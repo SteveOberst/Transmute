@@ -2,12 +2,14 @@ package dev.transmute.image.codecs.jvm
 
 import dev.transmute.core.ImageFormat
 import dev.transmute.image.ImageFormatDetector
+import dev.transmute.image.ImageTestHelpers.adjustAlphaForComparison
 import dev.transmute.image.ImageTestHelpers.checkerboard
 import dev.transmute.image.ImageTestHelpers.horizontalGradient
 import dev.transmute.image.ImageTestHelpers.meanAbsoluteError
 import dev.transmute.image.ImageTestHelpers.pixelAt
 import dev.transmute.image.ImageTestHelpers.solidColor
 import dev.transmute.image.ImageTestHelpers.testContext
+import dev.transmute.image.ImageTestHelpers.testContextWith
 import dev.transmute.image.Orientation
 import dev.transmute.image.transform.ImageCropTransform
 import dev.transmute.image.transform.ImageRotateTransform
@@ -24,7 +26,7 @@ import kotlin.test.assertTrue
  * and multi-transform pipelines (crop + scale + rotate + encode + decode).
  *
  * These prove that the entire conversion chain works end-to-end with real
- * byte-level codecs — exactly what ShrinkIt will do to iOS/Android photos.
+ * byte-level codecs — exactly what Transmute will do to iOS/Android photos.
  */
 class FormatRoundTripTest {
 
@@ -32,21 +34,11 @@ class FormatRoundTripTest {
   private val encoder = JvmImageIoEncoder()
   private val ctx = testContext()
 
-  private fun ctxWith(
-    outputFormat: ImageFormat,
-    quality: Float? = null,
-  ) = ctx.copy(
-    scratchpad = ctx.scratchpad.toMutableMap().apply {
-      this["image.output.format"] = outputFormat
-      if (quality != null) this["image.output.quality"] = quality
-    },
-  )
-
   private suspend fun encodePng(ir: ImageIR): ByteArray =
-    encoder.encode(ir, ctxWith(outputFormat = ImageFormat.PNG))
+    encoder.encode(ir, testContextWith(format = ImageFormat.PNG))
 
   private suspend fun encodeJpeg(ir: ImageIR, quality: Float = 0.90f): ByteArray =
-    encoder.encode(ir, ctxWith(outputFormat = ImageFormat.JPEG, quality = quality))
+    encoder.encode(ir, testContextWith(format = ImageFormat.JPEG, quality = quality))
 
   // --- Format detection after encoding ---
 
@@ -79,8 +71,8 @@ class FormatRoundTripTest {
 
     // PNG is lossless — mean error should be 0 (ignoring alpha artefacts)
     val mae = meanAbsoluteError(
-      original.adjustAlphaForComparison(),
-      decoded.adjustAlphaForComparison(),
+      adjustAlphaForComparison(original),
+      adjustAlphaForComparison(decoded),
     )
     assertTrue(mae < 1.0, "PNG full loop MAE should be ~0, got $mae")
   }
@@ -249,15 +241,3 @@ class FormatRoundTripTest {
   }
 }
 
-/**
- * Helper: Replaces alpha with 255 in every pixel, so we can compare
- * RGB values without JPEG's lack-of-alpha interfering.
- */
-private fun ImageIR.adjustAlphaForComparison(): ImageIR {
-  val buf = (buffer as dev.transmute.image.ByteArrayPixelBuffer).data.copyOf()
-  val bpp = pixelFormat.bytesPerPixel
-  for (i in buf.indices) {
-    if (i % bpp == bpp - 1) buf[i] = 0xFF.toByte()
-  }
-  return copy(buffer = dev.transmute.image.ByteArrayPixelBuffer(buf))
-}

@@ -307,9 +307,9 @@ class JvmAlacCodecTest {
 
 ### 6. Update Documentation
 
-1. **README.md** — Update the platform support table with the new format
-2. **README.md** — Add the new integration test to the test tables
-3. **CHANGELOG.md** — This is handled automatically by release-please
+1. **`docs/codecs/<format>.md`** — Create a doc page with platform support table, usage example, and notes (see existing pages in `docs/codecs/` for the template)
+2. **`README.md`** — Add a row to the codec support table with a link to the new doc page
+3. **`CHANGELOG.md`** — This is handled automatically by release-please
 
 ### Codec Checklist
 
@@ -318,8 +318,8 @@ class JvmAlacCodecTest {
 - [ ] Codec implementation (implements `Codec`, `Decoder`, or `Encoder`)
 - [ ] Codec registered in the platform registration file
 - [ ] Integration test with roundtrip encode → decode
-- [ ] README platform support table updated
-- [ ] README test table updated
+- [ ] Doc page created at `docs/codecs/<format>.md`
+- [ ] README codec support table updated with link to doc page
 - [ ] Commit message follows `feat(<module>): add <FORMAT> codec for <platform>`
 
 ---
@@ -373,7 +373,15 @@ fun ImageTransmuter.sepia(intensity: Float = 1.0f): ImageTransmuter = apply {
 > keeps the Transmuter classes lean and avoids modifying core infrastructure
 > every time a new transform is added.
 
-### 4. Test
+### 4. Add Documentation
+
+Create a doc page at `docs/transforms/<domain>/<name>.md` with parameters,
+DSL example, pipeline example, and notes. See existing pages in `docs/transforms/`
+for the template.
+
+Update the README transforms table to include a link to the new doc page.
+
+### 5. Test
 
 ```kotlin
 class ImageSepiaTransformTest {
@@ -448,12 +456,15 @@ VideoTestHelpers.syntheticVideo(width = 64, height = 48, durationMs = 300)
 ```kotlin
 private inline fun requireFfmpeg(block: () -> Unit) {
   if (!FfmpegResolver.available) {
-    println("SKIPPED — FFmpeg not available")
+    log.warn("SKIPPED — FFmpeg not available")
     return
   }
   block()
 }
 ```
+
+> **Note:** Use `PrintLogger` from `dev.transmute.core` instead of `println`.
+> All test logging goes through the structured `ConversionLogger` API.
 
 **Lossy codec tolerance:**
 

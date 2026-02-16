@@ -2,13 +2,14 @@ package dev.transmute.image.codecs.jvm
 
 import dev.transmute.core.ImageFormat
 import dev.transmute.image.ImageTestHelpers
+import dev.transmute.image.ImageTestHelpers.adjustAlphaForComparison
 import dev.transmute.image.ImageTestHelpers.horizontalGradient
 import dev.transmute.image.ImageTestHelpers.meanAbsoluteError
 import dev.transmute.image.ImageTestHelpers.peakDifference
 import dev.transmute.image.ImageTestHelpers.pixelAt
 import dev.transmute.image.ImageTestHelpers.solidColor
 import dev.transmute.image.ImageTestHelpers.testContext
-import dev.transmute.image.ByteArrayPixelBuffer
+import dev.transmute.image.ImageTestHelpers.testContextWith
 import dev.transmute.image.ImageIR
 import dev.transmute.image.PixelFormat
 import kotlinx.coroutines.test.runTest
@@ -28,21 +29,11 @@ class JvmImageCodecTest {
   private val encoder = JvmImageIoEncoder()
   private val ctx = testContext()
 
-  private fun ctxWith(
-    format: ImageFormat,
-    quality: Float? = null,
-  ) = ctx.copy(
-    scratchpad = ctx.scratchpad.toMutableMap().apply {
-      this["image.output.format"] = format
-      if (quality != null) this["image.output.quality"] = quality else remove("image.output.quality")
-    },
-  )
-
   private suspend fun encodePng(ir: ImageIR): ByteArray =
-    encoder.encode(ir, ctxWith(format = ImageFormat.PNG))
+    encoder.encode(ir, testContextWith(format = ImageFormat.PNG))
 
   private suspend fun encodeJpeg(ir: ImageIR, quality: Float): ByteArray =
-    encoder.encode(ir, ctxWith(format = ImageFormat.JPEG, quality = quality))
+    encoder.encode(ir, testContextWith(format = ImageFormat.JPEG, quality = quality))
 
   // --- PNG round-trip (lossless) ---
 
@@ -85,8 +76,8 @@ class JvmImageCodecTest {
 
     // Lossless — peak difference should be 0 for RGB
     val diff = peakDifference(
-      original.adjustAlphaForComparison(),
-      decoded.adjustAlphaForComparison(),
+      adjustAlphaForComparison(original),
+      adjustAlphaForComparison(decoded),
     )
     assertTrue(diff <= 1, "PNG round-trip should be lossless, got peak diff = $diff")
   }
@@ -123,8 +114,8 @@ class JvmImageCodecTest {
 
     // JPEG quality 95 on a smooth gradient should have low MAE.
     val mae = meanAbsoluteError(
-      original.adjustAlphaForComparison(),
-      decoded.adjustAlphaForComparison(),
+      adjustAlphaForComparison(original),
+      adjustAlphaForComparison(decoded),
     )
     assertTrue(mae < 5.0, "JPEG Q95 gradient MAE should be < 5, got $mae")
   }
@@ -151,12 +142,12 @@ class JvmImageCodecTest {
     val lowDecoded = decoder.decode(lowEncoded, ctx)
 
     val highMae = meanAbsoluteError(
-      original.adjustAlphaForComparison(),
-      highDecoded.adjustAlphaForComparison(),
+      adjustAlphaForComparison(original),
+      adjustAlphaForComparison(highDecoded),
     )
     val lowMae = meanAbsoluteError(
-      original.adjustAlphaForComparison(),
-      lowDecoded.adjustAlphaForComparison(),
+      adjustAlphaForComparison(original),
+      adjustAlphaForComparison(lowDecoded),
     )
 
     assertTrue(lowMae > highMae,
@@ -264,21 +255,4 @@ class JvmImageCodecTest {
     assertTrue(right[0] > 225, "Right R after scale+JPEG should still be bright, got ${right[0]}")
   }
 
-  // --- Helper: adjust alpha for fair comparison ---
-
-  /**
-   * JPEG discards alpha. When comparing original (with alpha=255) against a
-   * JPEG round-trip result (which might have alpha=255 from decode), we need
-   * to ensure alpha channels match for peakDifference / MAE comparisons.
-   */
-  private fun ImageIR.adjustAlphaForComparison(): ImageIR {
-    if (pixelFormat != PixelFormat.RGBA_8888) return this
-    val buf = (buffer as ByteArrayPixelBuffer).data.copyOf()
-    for (y in 0 until height) {
-      for (x in 0 until width) {
-        buf[y * stride + x * 4 + 3] = 0xFF.toByte()
-      }
-    }
-    return copy(buffer = ByteArrayPixelBuffer(buf))
-  }
 }

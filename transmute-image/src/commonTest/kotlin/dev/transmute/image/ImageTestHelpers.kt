@@ -2,7 +2,9 @@ package dev.transmute.image
 
 import dev.transmute.core.ConversionContext
 import dev.transmute.core.ConversionLogger
+import dev.transmute.core.ImageFormat
 import dev.transmute.core.MetadataPolicy
+import dev.transmute.core.PrintLogger
 import kotlin.math.abs
 
 /**
@@ -23,14 +25,6 @@ object ImageTestHelpers {
     metadataPolicy = metadataPolicy,
     logger = PrintLogger,
   )
-
-  /** Logger that prints to stdout — helpful for debugging test failures. */
-  private object PrintLogger : ConversionLogger {
-    override fun debug(message: String) { /* silent in tests */ }
-    override fun info(message: String) { println("[INFO] $message") }
-    override fun warn(message: String) { println("[WARN] $message") }
-    override fun error(message: String, throwable: Throwable?) { println("[ERROR] $message") }
-  }
 
   // --- Synthetic image creation ---
 
@@ -223,6 +217,39 @@ object ImageTestHelpers {
       }
     }
     return if (count > 0) totalDiff.toDouble() / count else 0.0
+  }
+
+  // --- Test context helpers ---
+
+  /**
+   * Creates a [ConversionContext] with the given output format and optional quality
+   * set in the scratchpad.
+   */
+  fun testContextWith(
+    format: ImageFormat,
+    quality: Float? = null,
+    base: ConversionContext = testContext(),
+  ) = base.copy(
+    scratchpad = base.scratchpad.toMutableMap().apply {
+      this["image.output.format"] = format
+      if (quality != null) this["image.output.quality"] = quality else remove("image.output.quality")
+    },
+  )
+
+  // --- Alpha normalization ---
+
+  /**
+   * Replaces every alpha byte with 0xFF so that pixel comparisons are not
+   * affected by codecs that discard alpha (e.g. JPEG).
+   */
+  fun adjustAlphaForComparison(ir: ImageIR): ImageIR {
+    if (ir.pixelFormat != PixelFormat.RGBA_8888) return ir
+    val buf = (ir.buffer as ByteArrayPixelBuffer).data.copyOf()
+    val bpp = ir.pixelFormat.bytesPerPixel
+    for (i in buf.indices) {
+      if (i % bpp == bpp - 1) buf[i] = 0xFF.toByte()
+    }
+    return ir.copy(buffer = ByteArrayPixelBuffer(buf))
   }
 
   private fun lerp(start: Int, end: Int, t: Float): Int =

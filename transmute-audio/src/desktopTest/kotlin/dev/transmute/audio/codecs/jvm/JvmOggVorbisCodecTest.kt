@@ -2,11 +2,13 @@ package dev.transmute.audio.codecs.jvm
 
 import dev.transmute.audio.AudioTestHelpers
 import dev.transmute.core.AudioFormat
+import dev.transmute.core.PrintLogger
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
 class JvmOggVorbisCodecTest {
 
+    private val log = PrintLogger
     private val codec = JvmOggVorbisCodec()
 
     // ── Format declarations ──
@@ -56,7 +58,7 @@ class JvmOggVorbisCodecTest {
     @Test
     fun encodeDecodeOggRoundTrip() = runTest {
         if (!FfmpegAudioEngine.available) {
-            println("Skipping OGG encode/decode test — FFmpeg not available")
+            log.warn("Skipping OGG encode/decode test — FFmpeg not available")
             return@runTest
         }
 
@@ -72,7 +74,7 @@ class JvmOggVorbisCodecTest {
             codec.encode(original, AudioTestHelpers.testContext())
         } catch (e: Exception) {
             if ("FFmpeg" in e.message.orEmpty() || "libvorbis" in e.message.orEmpty()) {
-                println("SKIPPED: OGG/Vorbis encoding not available: ${e.message}")
+                log.warn("SKIPPED: OGG/Vorbis encoding not available: ${e.message}")
                 return@runTest
             }
             throw e
@@ -92,7 +94,7 @@ class JvmOggVorbisCodecTest {
     @Test
     fun encodeThrowsWithoutFfmpeg() = runTest {
         if (FfmpegAudioEngine.available) {
-            println("Skipping — FFmpeg is available, cannot test failure path")
+            log.warn("Skipping — FFmpeg is available, cannot test failure path")
             return@runTest
         }
 

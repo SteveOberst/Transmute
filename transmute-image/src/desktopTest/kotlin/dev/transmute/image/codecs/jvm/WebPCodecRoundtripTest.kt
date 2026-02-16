@@ -1,14 +1,16 @@
 package dev.transmute.image.codecs.jvm
 
 import dev.transmute.core.ImageFormat
-import dev.transmute.image.ByteArrayPixelBuffer
+import dev.transmute.core.PrintLogger
 import dev.transmute.image.ImageFormatDetector
 import dev.transmute.image.ImageTestHelpers
+import dev.transmute.image.ImageTestHelpers.adjustAlphaForComparison
 import dev.transmute.image.ImageTestHelpers.horizontalGradient
 import dev.transmute.image.ImageTestHelpers.meanAbsoluteError
 import dev.transmute.image.ImageTestHelpers.pixelAt
 import dev.transmute.image.ImageTestHelpers.solidColor
 import dev.transmute.image.ImageTestHelpers.testContext
+import dev.transmute.image.ImageTestHelpers.testContextWith
 import dev.transmute.image.ImageIR
 import dev.transmute.image.PixelFormat
 import kotlinx.coroutines.test.runTest
@@ -38,6 +40,7 @@ import kotlin.test.assertTrue
  */
 class WebPCodecRoundtripTest {
 
+  private val log = PrintLogger
   private val decoder = JvmImageIoDecoder()
   private val encoder = JvmImageIoEncoder()
   private val ctx = testContext()
@@ -46,21 +49,12 @@ class WebPCodecRoundtripTest {
   private val canEncodeWebp: Boolean =
     ImageIO.getImageWritersByFormatName("webp").asSequence().firstOrNull() != null
 
-  private fun ctxWith(
-    quality: Float = 0.85f,
-  ) = ctx.copy(
-    scratchpad = ctx.scratchpad.toMutableMap().apply {
-      this["image.output.format"] = ImageFormat.WEBP
-      this["image.output.quality"] = quality
-    },
-  )
-
   private suspend fun encodeWebp(ir: ImageIR, quality: Float = 0.85f): ByteArray =
-    encoder.encode(ir, ctxWith(quality))
+    encoder.encode(ir, testContextWith(format = ImageFormat.WEBP, quality = quality))
 
   private inline fun requireWebpWriter(block: () -> Unit) {
     if (!canEncodeWebp) {
-      println("SKIP: WebP writer not available on this JVM — encode/roundtrip tests skipped")
+      log.warn("SKIP: WebP writer not available on this JVM — encode/roundtrip tests skipped")
       return
     }
     block()
@@ -157,8 +151,8 @@ class WebPCodecRoundtripTest {
 
       // MAE on a smooth gradient at Q90 should be low
       val mae = meanAbsoluteError(
-        original.adjustAlphaForComparison(),
-        decoded.adjustAlphaForComparison(),
+        adjustAlphaForComparison(original),
+        adjustAlphaForComparison(decoded),
       )
       assertTrue(mae < 10.0, "WebP: Q90 gradient MAE should be < 10, got $mae")
     }
@@ -220,16 +214,4 @@ class WebPCodecRoundtripTest {
     }
   }
 
-  // --- Helper ---
-
-  private fun ImageIR.adjustAlphaForComparison(): ImageIR {
-    if (pixelFormat != PixelFormat.RGBA_8888) return this
-    val buf = (buffer as ByteArrayPixelBuffer).data.copyOf()
-    for (y in 0 until height) {
-      for (x in 0 until width) {
-        buf[y * stride + x * 4 + 3] = 0xFF.toByte()
-      }
-    }
-    return copy(buffer = ByteArrayPixelBuffer(buf))
-  }
 }

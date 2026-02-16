@@ -3,6 +3,7 @@ package dev.transmute.audio
 import dev.transmute.core.ConversionContext
 import dev.transmute.core.ConversionLogger
 import dev.transmute.core.MetadataPolicy
+import dev.transmute.core.PrintLogger
 import kotlin.math.PI
 import kotlin.math.sin
 import kotlin.random.Random
@@ -22,12 +23,7 @@ object AudioTestHelpers {
     coroutineJob = null,
     metadataPolicy = metadataPolicy,
     onProgress = {},
-    logger = object : ConversionLogger {
-      override fun debug(message: String) {}
-      override fun info(message: String) {}
-      override fun warn(message: String) {}
-      override fun error(message: String, throwable: Throwable?) {}
-    },
+    logger = PrintLogger,
     scratchpad = mutableMapOf(),
     timeBudgetMs = Long.MAX_VALUE,
     memoryBudgetBytes = Long.MAX_VALUE,

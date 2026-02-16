@@ -2,10 +2,13 @@ package dev.transmute.audio.codecs.jvm
 
 import dev.transmute.audio.AudioTestHelpers
 import dev.transmute.core.AudioFormat
+import dev.transmute.core.PrintLogger
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
 class FfmpegAudioCodecsTest {
+
+    private val log = PrintLogger
 
     // ── FfmpegAudioEngine availability ──
 
@@ -22,7 +25,7 @@ class FfmpegAudioCodecsTest {
     @Test
     fun aacCodecFormatsCorrect() {
         if (!FfmpegAudioEngine.available) {
-            println("Skipping — FFmpeg not available")
+            log.warn("Skipping — FFmpeg not available")
             return
         }
         val codec = JvmAacCodec()
@@ -33,7 +36,7 @@ class FfmpegAudioCodecsTest {
     @Test
     fun aacCodecSniffDetectsAdts() {
         if (!FfmpegAudioEngine.available) {
-            println("Skipping — FFmpeg not available")
+            log.warn("Skipping — FFmpeg not available")
             return
         }
         val codec = JvmAacCodec()
@@ -45,7 +48,7 @@ class FfmpegAudioCodecsTest {
     @Test
     fun aacCodecSniffReturnsNullForMp3() {
         if (!FfmpegAudioEngine.available) {
-            println("Skipping — FFmpeg not available")
+            log.warn("Skipping — FFmpeg not available")
             return
         }
         val codec = JvmAacCodec()
@@ -56,7 +59,7 @@ class FfmpegAudioCodecsTest {
     @Test
     fun aacEncodeDecodeRoundTrip() = runTest {
         if (!FfmpegAudioEngine.available) {
-            println("Skipping — FFmpeg not available")
+            log.warn("Skipping — FFmpeg not available")
             return@runTest
         }
         val codec = JvmAacCodec()
@@ -78,7 +81,7 @@ class FfmpegAudioCodecsTest {
     @Test
     fun m4aCodecFormatsCorrect() {
         if (!FfmpegAudioEngine.available) {
-            println("Skipping — FFmpeg not available")
+            log.warn("Skipping — FFmpeg not available")
             return
         }
         val codec = JvmM4aCodec()
@@ -89,7 +92,7 @@ class FfmpegAudioCodecsTest {
     @Test
     fun m4aCodecSniffDetectsFtyp() {
         if (!FfmpegAudioEngine.available) {
-            println("Skipping — FFmpeg not available")
+            log.warn("Skipping — FFmpeg not available")
             return
         }
         val codec = JvmM4aCodec()
@@ -105,7 +108,7 @@ class FfmpegAudioCodecsTest {
     @Test
     fun m4aEncodeDecodeRoundTrip() = runTest {
         if (!FfmpegAudioEngine.available) {
-            println("Skipping — FFmpeg not available")
+            log.warn("Skipping — FFmpeg not available")
             return@runTest
         }
         val codec = JvmM4aCodec()
@@ -127,7 +130,7 @@ class FfmpegAudioCodecsTest {
     @Test
     fun opusCodecFormatsCorrect() {
         if (!FfmpegAudioEngine.available) {
-            println("Skipping — FFmpeg not available")
+            log.warn("Skipping — FFmpeg not available")
             return
         }
         val codec = JvmOpusCodec()
@@ -138,7 +141,7 @@ class FfmpegAudioCodecsTest {
     @Test
     fun opusCodecSniffDetectsOpusInOgg() {
         if (!FfmpegAudioEngine.available) {
-            println("Skipping — FFmpeg not available")
+            log.warn("Skipping — FFmpeg not available")
             return
         }
         val codec = JvmOpusCodec()
@@ -154,7 +157,7 @@ class FfmpegAudioCodecsTest {
     @Test
     fun opusEncodeDecodeRoundTrip() = runTest {
         if (!FfmpegAudioEngine.available) {
-            println("Skipping — FFmpeg not available")
+            log.warn("Skipping — FFmpeg not available")
             return@runTest
         }
         val codec = JvmOpusCodec()
