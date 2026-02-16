@@ -309,6 +309,7 @@ internal class AndroidMp3Codec : AudioCodec {
     qupvt.setModules(tak, rv, lame.enc.psy)
     rv.setModules(bs)
     tak.setModules(qupvt)
+    vbr.setModules(lame, bs, ver)
     mpg.setModules(intf, common)
     intf.setModules(vbr, common)
 

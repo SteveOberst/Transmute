@@ -24,8 +24,6 @@ class AndroidBitmapImageDecoder : ImageDecoder {
   override suspend fun decode(source: ByteArray, context: ConversionContext): ImageIR {
     val opts = BitmapFactory.Options().apply {
       inPreferredConfig = Bitmap.Config.ARGB_8888
-      // Best-effort: avoid premultiplication to keep transforms predictable.
-      inPremultiplied = false
     }
 
     val bitmap = BitmapFactory.decodeByteArray(source, 0, source.size, opts)
@@ -33,10 +31,10 @@ class AndroidBitmapImageDecoder : ImageDecoder {
 
     val width = bitmap.width
     val height = bitmap.height
-    val argb = ByteArray(width * height * 4)
-    bitmap.copyPixelsToBuffer(ByteBuffer.wrap(argb))
+    val bgra = ByteArray(width * height * 4)
+    bitmap.copyPixelsToBuffer(ByteBuffer.wrap(bgra))
 
-    val rgba = argbToRgba(argb)
+    val rgba = bgraToRgba(bgra)
 
     return ImageIR(
       buffer = ByteArrayPixelBuffer(rgba),
@@ -51,18 +49,14 @@ class AndroidBitmapImageDecoder : ImageDecoder {
     )
   }
 
-  private fun argbToRgba(argb: ByteArray): ByteArray {
-    val out = ByteArray(argb.size)
+  private fun bgraToRgba(bgra: ByteArray): ByteArray {
+    val out = ByteArray(bgra.size)
     var i = 0
-    while (i < argb.size) {
-      val a = argb[i]
-      val r = argb[i + 1]
-      val g = argb[i + 2]
-      val b = argb[i + 3]
-      out[i] = r
-      out[i + 1] = g
-      out[i + 2] = b
-      out[i + 3] = a
+    while (i < bgra.size) {
+      out[i]     = bgra[i + 2] // R
+      out[i + 1] = bgra[i + 1] // G
+      out[i + 2] = bgra[i]     // B
+      out[i + 3] = bgra[i + 3] // A
       i += 4
     }
     return out
@@ -85,10 +79,10 @@ class AndroidBitmapImageEncoder : ImageEncoder {
       .coerceIn(0f, 1f)
     val qInt = (quality * 100).toInt().coerceIn(0, 100)
 
-    val argb = rgbaToArgb(buffer.data)
+    val bgra = rgbaToBgra(buffer.data)
 
     val bitmap = Bitmap.createBitmap(ir.width, ir.height, Bitmap.Config.ARGB_8888)
-    bitmap.copyPixelsFromBuffer(ByteBuffer.wrap(argb))
+    bitmap.copyPixelsFromBuffer(ByteBuffer.wrap(bgra))
 
     val out = ByteArrayOutputStream()
     val outputFormat = context.scratchpad["image.output.format"] as? ImageFormat
@@ -111,18 +105,14 @@ class AndroidBitmapImageEncoder : ImageEncoder {
     return out.toByteArray()
   }
 
-  private fun rgbaToArgb(rgba: ByteArray): ByteArray {
+  private fun rgbaToBgra(rgba: ByteArray): ByteArray {
     val out = ByteArray(rgba.size)
     var i = 0
     while (i < rgba.size) {
-      val r = rgba[i]
-      val g = rgba[i + 1]
-      val b = rgba[i + 2]
-      val a = rgba[i + 3]
-      out[i] = a
-      out[i + 1] = r
-      out[i + 2] = g
-      out[i + 3] = b
+      out[i]     = rgba[i + 2] // B
+      out[i + 1] = rgba[i + 1] // G
+      out[i + 2] = rgba[i]     // R
+      out[i + 3] = rgba[i + 3] // A
       i += 4
     }
     return out

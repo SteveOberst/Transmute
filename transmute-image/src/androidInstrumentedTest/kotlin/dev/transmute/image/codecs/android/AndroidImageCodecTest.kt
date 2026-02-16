@@ -59,7 +59,11 @@ class AndroidImageCodecTest {
     val encoded = encoder.encode(original, ctx)
     val decoded = decoder.decode(encoded, ctx)
     val diff = ImageTestHelpers.peakDifference(original, decoded)
-    assertTrue(diff < 10, "JPEG solid color peak diff $diff should be < 10")
+    val origPx = ImageTestHelpers.pixelAt(original, 0, 0)
+    val decPx = ImageTestHelpers.pixelAt(decoded, 0, 0)
+    assertTrue(diff < 10,
+      "JPEG solid color peak diff $diff should be < 10 | " +
+      "orig=${origPx.toList()} dec=${decPx.toList()}")
   }
 
   // -----------------------------------------------------------------------
@@ -78,7 +82,10 @@ class AndroidImageCodecTest {
     assertEquals(32, decoded.width)
     assertEquals(32, decoded.height)
     val diff = ImageTestHelpers.peakDifference(original, decoded)
-    assertEquals(0, diff, "PNG should be lossless")
+    val origPx = ImageTestHelpers.pixelAt(original, 0, 0)
+    val decPx = ImageTestHelpers.pixelAt(decoded, 0, 0)
+    assertEquals(0, diff,
+      "PNG lossless: diff=$diff orig=${origPx.toList()} dec=${decPx.toList()}")
   }
 
   // -----------------------------------------------------------------------
