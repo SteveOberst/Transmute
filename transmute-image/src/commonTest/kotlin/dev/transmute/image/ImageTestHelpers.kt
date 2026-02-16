@@ -13,7 +13,7 @@ import kotlin.math.abs
  */
 object ImageTestHelpers {
 
-  // ── ConversionContext ──
+  // --- ConversionContext ---
 
   /** Creates a minimal ConversionContext suitable for unit tests. */
   fun testContext(
@@ -32,7 +32,7 @@ object ImageTestHelpers {
     override fun error(message: String, throwable: Throwable?) { println("[ERROR] $message") }
   }
 
-  // ── Synthetic image creation ──
+  // --- Synthetic image creation ---
 
   /**
    * Creates a solid-color RGBA_8888 image.
@@ -149,7 +149,7 @@ object ImageTestHelpers {
     )
   }
 
-  // ── Pixel comparison ──
+  // --- Pixel comparison ---
 
   /**
    * Returns the pixel value at (x, y) as an [IntArray] of [bpp] channels (0–255).

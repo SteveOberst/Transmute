@@ -19,7 +19,7 @@ data class VideoIR(
   val metadata: VideoMetadata = VideoMetadata(),
 )
 
-// ── Video track ──
+// --- Video track ---
 
 data class VideoTrack(
   val width: Int,
@@ -34,6 +34,19 @@ interface FrameStream {
   suspend fun nextFrame(): VideoFrame?
 }
 
+/**
+ * Simple [FrameStream] backed by a pre-decoded list of frames.
+ * Used by platform decoders that extract all frames up-front.
+ */
+class ListFrameStream(private val frames: List<VideoFrame>) : FrameStream {
+  private var index = 0
+  override val frameCount: Long = frames.size.toLong()
+  override suspend fun nextFrame(): VideoFrame? {
+    if (index >= frames.size) return null
+    return frames[index++]
+  }
+}
+
 data class VideoFrame(
   val buffer: PixelBuffer,
   val width: Int,
@@ -42,14 +55,14 @@ data class VideoFrame(
   val timestampMs: Long,
 )
 
-// ── Audio track (within a video container) ──
+// --- Audio track (within a video container) ---
 
 data class AudioTrack(
   val samples: AudioSamples,
   val sampleStream: SampleStream?,
 )
 
-// ── Metadata ──
+// --- Metadata ---
 
 data class VideoMetadata(
   val title: String? = null,

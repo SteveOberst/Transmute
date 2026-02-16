@@ -13,12 +13,11 @@ import dev.transmute.core.pipeline.TransformId
  */
 class ImageMetadataTransform(
   private val policy: MetadataPolicy,
-) : Transform {
+) : Transform<ImageIR> {
 
   override val id: TransformId = TransformId("image-metadata")
 
-  override suspend fun apply(ir: Any, context: ConversionContext): Any {
-    if (ir !is ImageIR) return ir
+  override suspend fun apply(ir: ImageIR, context: ConversionContext): ImageIR {
     return when (policy) {
       MetadataPolicy.PRESERVE -> ir
       MetadataPolicy.STRIP_ALL -> ir.copy(metadata = ImageMetadata())

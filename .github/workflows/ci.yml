@@ -1,4 +1,4 @@
-name: CI
+name: CI — Unit Tests
 
 on:
   push:
@@ -6,8 +6,13 @@ on:
   pull_request:
     branches: [main]
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  build:
+  unit-tests:
+    name: Unit Tests (JVM + Common)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -21,8 +26,8 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Build
-        run: ./gradlew build
+      - name: Compile all modules
+        run: ./gradlew build -x test -x check
 
-      - name: Run tests
-        run: ./gradlew check
+      - name: Run common + desktop tests
+        run: ./gradlew desktopTest

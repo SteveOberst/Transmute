@@ -1,8 +1,6 @@
 package dev.transmute.image.codecs.jvm
 
 import dev.transmute.core.ImageFormat
-import dev.transmute.image.ByteArrayPixelBuffer
-import dev.transmute.image.ImageIR
 import dev.transmute.image.ImageTestHelpers
 import dev.transmute.image.ImageTestHelpers.horizontalGradient
 import dev.transmute.image.ImageTestHelpers.meanAbsoluteError
@@ -10,6 +8,8 @@ import dev.transmute.image.ImageTestHelpers.peakDifference
 import dev.transmute.image.ImageTestHelpers.pixelAt
 import dev.transmute.image.ImageTestHelpers.solidColor
 import dev.transmute.image.ImageTestHelpers.testContext
+import dev.transmute.image.ByteArrayPixelBuffer
+import dev.transmute.image.ImageIR
 import dev.transmute.image.PixelFormat
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -17,25 +17,39 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 /**
- * Tests for [JvmImageDecoder], [JvmImageEncoder], and [JvmPngEncoder].
+ * Tests for [JvmImageIoDecoder] and [JvmImageIoEncoder].
  *
  * These tests encode synthetic images to real JPEG/PNG bytes, decode them
  * back to [ImageIR], and verify pixel correctness with appropriate tolerance.
  */
 class JvmImageCodecTest {
 
-  private val decoder = JvmImageDecoder()
-  private val jpegEncoder = JvmImageEncoder(format = ImageFormat.JPEG, quality = 0.95f)
-  private val jpegLowEncoder = JvmImageEncoder(format = ImageFormat.JPEG, quality = 0.50f)
-  private val pngEncoder = JvmPngEncoder()
+  private val decoder = JvmImageIoDecoder()
+  private val encoder = JvmImageIoEncoder()
   private val ctx = testContext()
 
-  // ── PNG round-trip (lossless) ──
+  private fun ctxWith(
+    format: ImageFormat,
+    quality: Float? = null,
+  ) = ctx.copy(
+    scratchpad = ctx.scratchpad.toMutableMap().apply {
+      this["image.output.format"] = format
+      if (quality != null) this["image.output.quality"] = quality else remove("image.output.quality")
+    },
+  )
+
+  private suspend fun encodePng(ir: ImageIR): ByteArray =
+    encoder.encode(ir, ctxWith(format = ImageFormat.PNG))
+
+  private suspend fun encodeJpeg(ir: ImageIR, quality: Float): ByteArray =
+    encoder.encode(ir, ctxWith(format = ImageFormat.JPEG, quality = quality))
+
+  // --- PNG round-trip (lossless) ---
 
   @Test
   fun pngRoundTripIsLossless() = runTest {
     val original = solidColor(64, 64, r = 200, g = 100, b = 50)
-    val encoded = pngEncoder.encode(original, ctx)
+    val encoded = encodePng(original)
     val decoded = decoder.decode(encoded, ctx)
 
     assertEquals(64, decoded.width)
@@ -57,7 +71,7 @@ class JvmImageCodecTest {
   @Test
   fun pngRoundTripGradientLossless() = runTest {
     val original = horizontalGradient(256, 10)
-    val encoded = pngEncoder.encode(original, ctx)
+    val encoded = encodePng(original)
     val decoded = decoder.decode(encoded, ctx)
 
     assertEquals(256, decoded.width)
@@ -77,12 +91,12 @@ class JvmImageCodecTest {
     assertTrue(diff <= 1, "PNG round-trip should be lossless, got peak diff = $diff")
   }
 
-  // ── JPEG round-trip (lossy) ──
+  // --- JPEG round-trip (lossy) ---
 
   @Test
   fun jpegRoundTripSolidColorCloseToOriginal() = runTest {
     val original = solidColor(100, 100, r = 128, g = 64, b = 192)
-    val encoded = jpegEncoder.encode(original, ctx)
+    val encoded = encodeJpeg(original, quality = 0.95f)
     val decoded = decoder.decode(encoded, ctx)
 
     assertEquals(100, decoded.width)
@@ -101,7 +115,7 @@ class JvmImageCodecTest {
       startR = 20, startG = 20, startB = 20,
       endR = 235, endG = 235, endB = 235,
     )
-    val encoded = jpegEncoder.encode(original, ctx)
+    val encoded = encodeJpeg(original, quality = 0.95f)
     val decoded = decoder.decode(encoded, ctx)
 
     assertEquals(256, decoded.width)
@@ -118,8 +132,8 @@ class JvmImageCodecTest {
   @Test
   fun jpegHighQualityProducesLargerFilesThanLow() = runTest {
     val original = horizontalGradient(200, 200)
-    val highBytes = jpegEncoder.encode(original, ctx)
-    val lowBytes = jpegLowEncoder.encode(original, ctx)
+    val highBytes = encodeJpeg(original, quality = 0.95f)
+    val lowBytes = encodeJpeg(original, quality = 0.40f)
 
     assertTrue(
       highBytes.size > lowBytes.size,
@@ -130,8 +144,8 @@ class JvmImageCodecTest {
   @Test
   fun jpegLowQualityHasMoreArtifacts() = runTest {
     val original = horizontalGradient(200, 200)
-    val highEncoded = jpegEncoder.encode(original, ctx)
-    val lowEncoded = jpegLowEncoder.encode(original, ctx)
+    val highEncoded = encodeJpeg(original, quality = 0.95f)
+    val lowEncoded = encodeJpeg(original, quality = 0.40f)
 
     val highDecoded = decoder.decode(highEncoded, ctx)
     val lowDecoded = decoder.decode(lowEncoded, ctx)
@@ -149,12 +163,12 @@ class JvmImageCodecTest {
       "Low quality MAE ($lowMae) should be worse than high quality MAE ($highMae)")
   }
 
-  // ── JPEG file structure ──
+  // --- JPEG file structure ---
 
   @Test
   fun jpegOutputStartsWithCorrectMagicBytes() = runTest {
     val original = solidColor(10, 10, 128, 128, 128)
-    val encoded = jpegEncoder.encode(original, ctx)
+    val encoded = encodeJpeg(original, quality = 0.90f)
 
     // JPEG files always start with FF D8 FF
     assertTrue(encoded.size > 4, "JPEG output should be non-trivial")
@@ -166,7 +180,7 @@ class JvmImageCodecTest {
   @Test
   fun pngOutputStartsWithCorrectMagicBytes() = runTest {
     val original = solidColor(10, 10, 128, 128, 128)
-    val encoded = pngEncoder.encode(original, ctx)
+    val encoded = encodePng(original)
 
     // PNG magic: 89 50 4E 47 0D 0A 1A 0A
     assertTrue(encoded.size > 8, "PNG output should be non-trivial")
@@ -176,13 +190,13 @@ class JvmImageCodecTest {
     assertEquals(0x47.toByte(), encoded[3]) // 'G'
   }
 
-  // ── Dimension preservation ──
+  // --- Dimension preservation ---
 
   @Test
   fun dimensionsPreservedThroughJpegRoundTrip() = runTest {
     for ((w, h) in listOf(1 to 1, 7 to 13, 100 to 50, 640 to 480)) {
       val original = solidColor(w, h, 100, 100, 100)
-      val encoded = jpegEncoder.encode(original, ctx)
+      val encoded = encodeJpeg(original, quality = 0.90f)
       val decoded = decoder.decode(encoded, ctx)
       assertEquals(w, decoded.width, "Width should be preserved for ${w}×${h}")
       assertEquals(h, decoded.height, "Height should be preserved for ${w}×${h}")
@@ -193,19 +207,19 @@ class JvmImageCodecTest {
   fun dimensionsPreservedThroughPngRoundTrip() = runTest {
     for ((w, h) in listOf(1 to 1, 7 to 13, 100 to 50, 640 to 480)) {
       val original = solidColor(w, h, 100, 100, 100)
-      val encoded = pngEncoder.encode(original, ctx)
+      val encoded = encodePng(original)
       val decoded = decoder.decode(encoded, ctx)
       assertEquals(w, decoded.width, "Width should be preserved for ${w}×${h}")
       assertEquals(h, decoded.height, "Height should be preserved for ${w}×${h}")
     }
   }
 
-  // ── Checkerboard stress test ──
+  // --- Checkerboard stress test ---
 
   @Test
   fun jpegCheckerboardRoundTrip() = runTest {
     val original = ImageTestHelpers.checkerboard(128, 128, blockSize = 16)
-    val encoded = jpegEncoder.encode(original, ctx)
+    val encoded = encodeJpeg(original, quality = 0.95f)
     val decoded = decoder.decode(encoded, ctx)
 
     assertEquals(128, decoded.width)
@@ -220,7 +234,7 @@ class JvmImageCodecTest {
     assertTrue(blackCenter[0] < 15, "Black block center R should be < 15, got ${blackCenter[0]}")
   }
 
-  // ── End-to-end: scale + encode + decode ──
+  // --- End-to-end: scale + encode + decode ---
 
   @Test
   fun scaleDownThenJpegRoundTrip() = runTest {
@@ -230,12 +244,12 @@ class JvmImageCodecTest {
     val scaleTransform = dev.transmute.image.transform.ImageScaleTransform(
       maxWidth = 200, maxHeight = 150,
     )
-    val scaled = scaleTransform.apply(original, ctx) as ImageIR
+    val scaled = scaleTransform.apply(original, ctx)
     assertEquals(200, scaled.width)
     assertEquals(150, scaled.height)
 
     // Encode to JPEG
-    val encoded = jpegEncoder.encode(scaled, ctx)
+    val encoded = encodeJpeg(scaled, quality = 0.85f)
     assertTrue(encoded.size < 200 * 150 * 4, "JPEG should compress significantly")
 
     // Decode back
@@ -250,7 +264,7 @@ class JvmImageCodecTest {
     assertTrue(right[0] > 225, "Right R after scale+JPEG should still be bright, got ${right[0]}")
   }
 
-  // ── Helper: adjust alpha for fair comparison ──
+  // --- Helper: adjust alpha for fair comparison ---
 
   /**
    * JPEG discards alpha. When comparing original (with alpha=255) against a

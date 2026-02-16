@@ -24,13 +24,11 @@ import kotlin.math.roundToInt
 class ImageScaleTransform(
   private val maxWidth: Int,
   private val maxHeight: Int,
-) : Transform {
+) : Transform<ImageIR> {
 
   override val id: TransformId = TransformId("image-scale")
 
-  override suspend fun apply(ir: Any, context: ConversionContext): Any {
-    if (ir !is ImageIR) return ir
-
+  override suspend fun apply(ir: ImageIR, context: ConversionContext): ImageIR {
     // Don't upscale — only downscale.
     if (ir.width <= maxWidth && ir.height <= maxHeight) {
       context.logger.debug("ImageScaleTransform: image ${ir.width}×${ir.height} already fits within $maxWidth×$maxHeight — skipping")

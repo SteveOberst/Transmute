@@ -12,7 +12,7 @@ sealed interface MediaFormat {
   val extension: String
 }
 
-// ── Image ──
+// --- Image ---
 
 /**
  * All image formats the pipeline can encounter on iOS and Android.
@@ -40,7 +40,7 @@ enum class ImageFormat(override val mimeType: String, override val extension: St
   UNKNOWN("application/octet-stream", "bin"),
 }
 
-// ── Audio ──
+// --- Audio ---
 
 /**
  * Common audio formats for mobile media.
@@ -56,7 +56,7 @@ enum class AudioFormat(override val mimeType: String, override val extension: St
   UNKNOWN("application/octet-stream", "bin"),
 }
 
-// ── Video ──
+// --- Video ---
 
 /**
  * Common video container formats for mobile media.

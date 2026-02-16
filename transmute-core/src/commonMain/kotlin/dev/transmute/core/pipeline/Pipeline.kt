@@ -4,8 +4,6 @@ import dev.transmute.core.ConversionContext
 import dev.transmute.core.ConversionError
 import dev.transmute.core.MediaFormat
 
-// ── Plan ──
-
 /** Declarative blueprint for a single file conversion. */
 data class ConversionPlan(
   val source: String,
@@ -38,8 +36,6 @@ sealed class PipelineStage {
     val config: Map<String, Any> = emptyMap(),
   ) : PipelineStage()
 }
-
-// ── Executor ──
 
 /** Executes a [ConversionPlan] stage-by-stage. */
 interface PipelineExecutor {
@@ -78,16 +74,20 @@ class DefaultPipelineExecutor(
   }
 }
 
-// ── Generic interfaces ──
-
-/** IR-agnostic transform applied during the pipeline. */
-interface Transform {
+/**
+ * A single step in a media conversion pipeline.
+ *
+ * Transforms are generic over the intermediate representation (IR) type,
+ * ensuring type safety — an image transform cannot accidentally receive
+ * audio data.
+ */
+interface Transform<IR> {
   /** Unique identifier used by [TransformRegistry] look-ups. */
   val id: TransformId
-  suspend fun apply(ir: Any, context: ConversionContext): Any
+  suspend fun apply(ir: IR, context: ConversionContext): IR
 }
 
 /** Lookup for registered [Transform] instances. */
 interface TransformRegistry {
-  fun getTransform(transformId: TransformId): Transform?
+  fun getTransform(transformId: TransformId): Transform<*>?
 }

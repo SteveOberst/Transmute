@@ -16,7 +16,7 @@ import kotlin.test.assertTrue
 
 class ImageScaleTransformTest {
 
-  // ── fitDimensions ──
+  // --- fitDimensions ---
 
   @Test
   fun fitDimensionsScalesDownToMaxWidth() {
@@ -49,7 +49,7 @@ class ImageScaleTransformTest {
     assertTrue(h >= 1)
   }
 
-  // ── No upscale ──
+  // --- No upscale ---
 
   @Test
   fun noUpscaleWhenAlreadySmaller() = runTest {
@@ -67,13 +67,13 @@ class ImageScaleTransformTest {
     assertSame(input, result)
   }
 
-  // ── Solid color downscale ──
+  // --- Solid color downscale ---
 
   @Test
   fun solidColorDownscalePreservesColor() = runTest {
     val input = solidColor(400, 300, r = 200, g = 100, b = 50)
     val transform = ImageScaleTransform(maxWidth = 200, maxHeight = 150)
-    val result = transform.apply(input, testContext()) as ImageIR
+    val result = transform.apply(input, testContext())
 
     assertEquals(200, result.width)
     assertEquals(150, result.height)
@@ -89,14 +89,14 @@ class ImageScaleTransformTest {
     assertContentEquals(intArrayOf(200, 100, 50, 255), pixelAt(result, 199, 149))
   }
 
-  // ── Gradient downscale ──
+  // --- Gradient downscale ---
 
   @Test
   fun gradientDownscaleProducesSmootherGradient() = runTest {
     // 800×600 → maxWidth=200, maxHeight=150 → scale=0.25 → 200×150
     val input = horizontalGradient(800, 600, startR = 0, endR = 255)
     val transform = ImageScaleTransform(maxWidth = 200, maxHeight = 150)
-    val result = transform.apply(input, testContext()) as ImageIR
+    val result = transform.apply(input, testContext())
 
     assertEquals(200, result.width)
     assertEquals(150, result.height)
@@ -114,13 +114,13 @@ class ImageScaleTransformTest {
     assertTrue(mid[0] in 120..136, "Middle R should be near 128, got ${mid[0]}")
   }
 
-  // ── Checkerboard downscale ──
+  // --- Checkerboard downscale ---
 
   @Test
   fun checkerboardDownscaleProducesValidOutput() = runTest {
     val input = checkerboard(400, 400, blockSize = 8)
     val transform = ImageScaleTransform(maxWidth = 100, maxHeight = 100)
-    val result = transform.apply(input, testContext()) as ImageIR
+    val result = transform.apply(input, testContext())
 
     assertEquals(100, result.width)
     assertEquals(100, result.height)
@@ -130,13 +130,13 @@ class ImageScaleTransformTest {
     assertEquals(100 * 100 * 4, buffer.data.size)
   }
 
-  // ── Non-square aspect ratio ──
+  // --- Non-square aspect ratio ---
 
   @Test
   fun landscapeImageScaledCorrectly() = runTest {
     val input = solidColor(1920, 1080, r = 50, g = 150, b = 250)
     val transform = ImageScaleTransform(maxWidth = 960, maxHeight = 540)
-    val result = transform.apply(input, testContext()) as ImageIR
+    val result = transform.apply(input, testContext())
 
     assertEquals(960, result.width)
     assertEquals(540, result.height)
@@ -146,7 +146,7 @@ class ImageScaleTransformTest {
   fun portraitImageScaledCorrectly() = runTest {
     val input = solidColor(1080, 1920, r = 50, g = 150, b = 250)
     val transform = ImageScaleTransform(maxWidth = 540, maxHeight = 960)
-    val result = transform.apply(input, testContext()) as ImageIR
+    val result = transform.apply(input, testContext())
 
     assertEquals(540, result.width)
     assertEquals(960, result.height)
@@ -157,34 +157,24 @@ class ImageScaleTransformTest {
     // 3000×500 → maxWidth constrains: scale = 1000/3000 = 0.333
     val input = solidColor(3000, 500, r = 100, g = 200, b = 50)
     val transform = ImageScaleTransform(maxWidth = 1000, maxHeight = 1000)
-    val result = transform.apply(input, testContext()) as ImageIR
+    val result = transform.apply(input, testContext())
 
     assertEquals(1000, result.width)
     assertEquals(167, result.height)
   }
 
-  // ── Stride correctness ──
+  // --- Stride correctness ---
 
   @Test
   fun outputStrideMatchesWidthTimesBpp() = runTest {
     val input = solidColor(800, 600, r = 128, g = 128, b = 128)
     val transform = ImageScaleTransform(maxWidth = 320, maxHeight = 240)
-    val result = transform.apply(input, testContext()) as ImageIR
+    val result = transform.apply(input, testContext())
 
     assertEquals(320 * 4, result.stride, "Stride should be width × bytesPerPixel")
   }
 
-  // ── Pass-through for non-ImageIR ──
-
-  @Test
-  fun nonImageIRPassedThrough() = runTest {
-    val transform = ImageScaleTransform(maxWidth = 100, maxHeight = 100)
-    val input = "not an image"
-    val result = transform.apply(input, testContext())
-    assertSame(input, result, "Non-ImageIR should be returned unchanged")
-  }
-
-  // ── 2× downscale pixel accuracy ──
+  // --- 2× downscale pixel accuracy ---
 
   @Test
   fun halfSizeDownscalePixelAccuracy() = runTest {
@@ -220,7 +210,7 @@ class ImageScaleTransformTest {
     // Scale to 2×2 — each output pixel covers a 2×2 block of identical source pixels.
     // With bilinear interpolation sampling at (0,0), (3,0), (0,3), (3,3) in source:
     val transform = ImageScaleTransform(maxWidth = 2, maxHeight = 2)
-    val result = transform.apply(input, testContext()) as ImageIR
+    val result = transform.apply(input, testContext())
 
     assertEquals(2, result.width)
     assertEquals(2, result.height)

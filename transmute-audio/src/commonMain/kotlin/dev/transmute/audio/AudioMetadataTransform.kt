@@ -13,12 +13,11 @@ import dev.transmute.core.pipeline.TransformId
  */
 class AudioMetadataTransform(
   private val policy: MetadataPolicy,
-) : Transform {
+) : Transform<AudioIR> {
 
   override val id: TransformId = TransformId("audio-metadata")
 
-  override suspend fun apply(ir: Any, context: ConversionContext): Any {
-    if (ir !is AudioIR) return ir
+  override suspend fun apply(ir: AudioIR, context: ConversionContext): AudioIR {
     return when (policy) {
       MetadataPolicy.PRESERVE -> ir
       MetadataPolicy.STRIP_ALL -> ir.copy(metadata = AudioMetadata())

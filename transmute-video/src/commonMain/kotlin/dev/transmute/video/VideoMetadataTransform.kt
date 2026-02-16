@@ -13,12 +13,11 @@ import dev.transmute.core.pipeline.TransformId
  */
 class VideoMetadataTransform(
   private val policy: MetadataPolicy,
-) : Transform {
+) : Transform<VideoIR> {
 
   override val id: TransformId = TransformId("video-metadata")
 
-  override suspend fun apply(ir: Any, context: ConversionContext): Any {
-    if (ir !is VideoIR) return ir
+  override suspend fun apply(ir: VideoIR, context: ConversionContext): VideoIR {
     return when (policy) {
       MetadataPolicy.PRESERVE -> ir
       MetadataPolicy.STRIP_ALL -> ir.copy(metadata = VideoMetadata())

@@ -17,6 +17,7 @@ dependencyResolutionManagement {
 rootProject.name = "Transmute"
 
 include(
+    ":transmute-api",
     ":transmute-core",
     ":transmute-audio",
     ":transmute-video",
