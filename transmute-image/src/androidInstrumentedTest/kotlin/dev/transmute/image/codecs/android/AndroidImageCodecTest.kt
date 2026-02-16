@@ -2,9 +2,11 @@ package dev.transmute.image.codecs.android
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.os.Build
 import dev.transmute.core.ImageFormat
 import dev.transmute.image.ByteArrayPixelBuffer
 import dev.transmute.image.ImageTestHelpers
+import dev.transmute.image.codecs.bmp.BmpImageEncoder
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -98,8 +100,66 @@ class AndroidImageCodecTest {
     assertEquals(32, decoded.height)
   }
 
-  // -----------------------------------------------------------------------
-  // Decode-only formats
+  // -----------------------------------------------------------------------  // BMP roundtrip (common encoder → Android decoder)
+  // -----------------------------------------------------------------------    
+
+  @Test
+  fun bmpDecodeProducesCorrectDimensions() = runTest {
+    // Encode with the common BMP encoder, then decode with Android BitmapFactory
+    val original = ImageTestHelpers.solidColor(32, 32, r = 255, g = 0, b = 0)
+    val ctx = ImageTestHelpers.testContext()
+    val bmpEncoder = BmpImageEncoder()
+    val bmpBytes = bmpEncoder.encode(original, ctx)
+    assertTrue(bmpBytes.isNotEmpty(), "BMP encoded bytes should not be empty")
+
+    val decoded = decoder.decode(bmpBytes, ctx)
+    assertEquals(32, decoded.width, "BMP: width should be 32")
+    assertEquals(32, decoded.height, "BMP: height should be 32")
+  }
+
+  // -----------------------------------------------------------------------    
+  // GIF decode (minimal valid GIF)
+  // -----------------------------------------------------------------------    
+
+  @Test
+  fun gifDecodeProducesCorrectDimensions() = runTest {
+    // Minimal valid 1×1 GIF89a with a single red pixel
+    val gif = byteArrayOf(
+      0x47, 0x49, 0x46, 0x38, 0x39, 0x61,       // GIF89a
+      0x01, 0x00, 0x01, 0x00,                     // 1×1
+      0x80.toByte(), 0x00, 0x00,                  // GCT flag, bg=0, aspect=0
+      0xFF.toByte(), 0x00, 0x00,                  // palette[0] = red
+      0x00, 0x00, 0x00,                           // palette[1] = black
+      0x2C,                                       // image descriptor
+      0x00, 0x00, 0x00, 0x00,                     // left=0, top=0
+      0x01, 0x00, 0x01, 0x00,                     // 1×1
+      0x00,                                       // no local color table
+      0x02,                                       // LZW minimum code size
+      0x02, 0x44, 0x01,                           // 2 bytes of LZW data
+      0x00,                                       // block terminator
+      0x3B,                                       // trailer
+    )
+
+    val ctx = ImageTestHelpers.testContext()
+    val decoded = decoder.decode(gif, ctx)
+    assertEquals(1, decoded.width, "GIF: width should be 1")
+    assertEquals(1, decoded.height, "GIF: height should be 1")
+  }
+
+  // -----------------------------------------------------------------------    
+  // HEIF decode (API 28+)
+  // -----------------------------------------------------------------------    
+
+  @Test
+  fun heifIsReportedAsSupported() {
+    // Android supports HEIF/HEIC decoding from API 28+
+    if (Build.VERSION.SDK_INT >= 28) {
+      assertTrue(ImageFormat.HEIF in decoder.supportedFormats, "HEIF should be supported on API 28+")
+      assertTrue(ImageFormat.HEIC in decoder.supportedFormats, "HEIC should be supported on API 28+")
+    }
+  }
+
+  // -----------------------------------------------------------------------      // Decode-only formats
   // -----------------------------------------------------------------------
 
   @Test
