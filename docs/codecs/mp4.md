@@ -1,0 +1,35 @@
+# MP4 (H.264)
+
+MP4 is the most widely-used video container format, typically containing H.264 (AVC) video and AAC audio. It offers excellent compatibility across all devices and platforms.
+
+## Platform Support
+
+| Platform | Decode | Encode | Engine |
+|----------|--------|--------|--------|
+| Android  | ✅     | ✅     | MediaCodec |
+| Desktop  | ✅     | ✅     | FFmpeg (bundled) |
+| iOS      | ✅     | ✅     | AVFoundation / AVAssetWriter |
+
+## Usage
+
+```kotlin
+// Convert video to MP4
+val mp4Bytes = Transmute.video(inputBytes) {
+    outputFormat(VideoFormat.MP4)
+}
+
+// Decode MP4 to another format
+val webmBytes = Transmute.video(mp4Bytes) {
+    outputFormat(VideoFormat.WEBM)
+}
+```
+
+## Notes
+
+- Full encode + decode support on all platforms.
+- Android uses hardware-accelerated MediaCodec for H.264.
+- Desktop relies on the bundled FFmpeg — no user setup needed.
+- iOS uses AVFoundation with hardware H.264 encode/decode.
+- The safest choice for maximum cross-platform and cross-device compatibility.
+- Supports H.264 (AVC) video codec with AAC audio by default.
+- Streaming-friendly with proper moov atom placement (faststart).
