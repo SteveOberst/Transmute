@@ -71,7 +71,7 @@ jobs:
           force-avd-creation: false
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
-          script: ./gradlew :transmute-image:connectedAndroidTest :transmute-audio:connectedAndroidTest :transmute-video:connectedAndroidTest
+          script: ./gradlew --continue :transmute-image:connectedAndroidTest :transmute-audio:connectedAndroidTest :transmute-video:connectedAndroidTest
 
       - name: Upload Android test reports
         if: always()
