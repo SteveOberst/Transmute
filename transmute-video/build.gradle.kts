@@ -46,6 +46,7 @@ kotlin {
         val desktopTest by getting
 
         val androidInstrumentedTest by getting {
+            dependsOn(commonTest.get())
             dependencies {
                 implementation("androidx.test.ext:junit:1.1.5")
                 implementation("androidx.test:runner:1.5.2")

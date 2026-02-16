@@ -121,14 +121,30 @@ class AndroidAudioCodecTest {
     assertTrue(AudioFormat.OGG in decoder.supportedFormats)
   }
 
-  // -----------------------------------------------------------------------
-  // Format declarations
-  // -----------------------------------------------------------------------
+  // -----------------------------------------------------------------------    
+  // OPUS roundtrip
+  // -----------------------------------------------------------------------    
 
   @Test
-  fun allCodecsReportCorrectFormats() {
-    assertTrue(AudioFormat.MP3 in AndroidMp3Codec().decodableFormats)
-    assertTrue(AudioFormat.AAC in AndroidAacCodec().decodableFormats)
+  fun opusRoundTripPreservesSampleRate() = runTest {
+    if (!AndroidOpusCodec.canEncode) return@runTest // API 29+ required
+
+    val original = AudioTestHelpers.sineWave(
+      frequency = 440f,
+      durationMs = 500,
+      sampleRate = 48000, // Opus prefers 48 kHz
+      amplitude = 0.5f,
+    )
+    val ctx = AudioTestHelpers.testContext()
+    val codec = AndroidOpusCodec()
+
+    val encoded = codec.encode(original, ctx)
+    assertTrue(encoded.isNotEmpty(), "Encoded OPUS should not be empty")
+
+    val decoded = codec.decode(encoded, ctx)
+    assertEquals(48000, decoded.sampleRate, "OPUS: sample rate should be preserved")
+    assertTrue(decoded.samples.data.isNotEmpty(), "OPUS: decoded samples should not be empty")
+  }
     assertTrue(AudioFormat.FLAC in AndroidFlacCodec().decodableFormats)
     assertTrue(AudioFormat.M4A in AndroidM4aCodec().decodableFormats)
     assertTrue(AudioFormat.OPUS in AndroidOpusCodec().decodableFormats)
