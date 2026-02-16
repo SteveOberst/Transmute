@@ -13,7 +13,7 @@ data class AudioIR(
   val metadata: AudioMetadata = AudioMetadata(),
 )
 
-// ── Sample data ──
+// --- Sample data ---
 
 /** Provides pull-based streaming access to decoded audio samples. */
 interface SampleStream {
@@ -44,7 +44,7 @@ data class AudioSamples(
   }
 }
 
-// ── Metadata ──
+// --- Metadata ---
 
 data class AudioMetadata(
   val title: String? = null,

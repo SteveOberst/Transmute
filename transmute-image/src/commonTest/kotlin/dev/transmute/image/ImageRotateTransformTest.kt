@@ -27,7 +27,7 @@ import kotlin.test.assertSame
  */
 class ImageRotateTransformTest {
 
-  // ── Helpers ──
+  // --- Helpers ---
 
   private val RED     = intArrayOf(255,   0,   0, 255)
   private val GREEN   = intArrayOf(  0, 255,   0, 255)
@@ -70,7 +70,7 @@ class ImageRotateTransformTest {
     )
   }
 
-  // ── NORMAL passthrough ──
+  // --- NORMAL passthrough ---
 
   @Test
   fun normalOrientationSkipped() = runTest {
@@ -79,12 +79,12 @@ class ImageRotateTransformTest {
     assertSame(input, result, "NORMAL should return same instance")
   }
 
-  // ── 90° CW ──
+  // --- 90° CW ---
 
   @Test
   fun rotate90DimensionsSwapped() = runTest {
     val input = referenceImage(Orientation.ROTATE_90) // 4×3
-    val result = ImageRotateTransform().apply(input, testContext()) as ImageIR
+    val result = ImageRotateTransform().apply(input, testContext())
     assertEquals(3, result.width, "W should become srcH")  // srcH=3
     assertEquals(4, result.height, "H should become srcW")  // srcW=4
     assertEquals(Orientation.NORMAL, result.orientation)
@@ -98,7 +98,7 @@ class ImageRotateTransformTest {
     // Source (0,2)=ORANGE → dst(0,0)
     // Source (3,2)=TEAL → dst(0,3)
     val input = referenceImage(Orientation.ROTATE_90)
-    val result = ImageRotateTransform().apply(input, testContext()) as ImageIR
+    val result = ImageRotateTransform().apply(input, testContext())
 
     // Top-left of rotated image: was bottom-left of original = ORANGE (0,2) → (0,0)
     // Wait, (x,y)=(0,2) in source → dst_x = srcH-1-y = 3-1-2 = 0, dst_y = x = 0 → (0,0)
@@ -117,12 +117,12 @@ class ImageRotateTransformTest {
     assertContentEquals(TEAL, pixelAt(result, 0, 3), "dst(0,3) should be TEAL from src(3,2)")
   }
 
-  // ── 180° ──
+  // --- 180° ---
 
   @Test
   fun rotate180DimensionsPreserved() = runTest {
     val input = referenceImage(Orientation.ROTATE_180) // 4×3
-    val result = ImageRotateTransform().apply(input, testContext()) as ImageIR
+    val result = ImageRotateTransform().apply(input, testContext())
     assertEquals(4, result.width)
     assertEquals(3, result.height)
     assertEquals(Orientation.NORMAL, result.orientation)
@@ -135,7 +135,7 @@ class ImageRotateTransformTest {
     // src(3,2)=TEAL → dst(0,0)
     // src(1,1)=CYAN → dst(2,1)
     val input = referenceImage(Orientation.ROTATE_180)
-    val result = ImageRotateTransform().apply(input, testContext()) as ImageIR
+    val result = ImageRotateTransform().apply(input, testContext())
 
     assertContentEquals(TEAL, pixelAt(result, 0, 0), "dst(0,0) should be TEAL from src(3,2)")
     assertContentEquals(RED, pixelAt(result, 3, 2), "dst(3,2) should be RED from src(0,0)")
@@ -148,12 +148,12 @@ class ImageRotateTransformTest {
     assertContentEquals(ORANGE, pixelAt(result, 3, 0), "dst(3,0) should be ORANGE from src(0,2)")
   }
 
-  // ── 270° CW (= 90° CCW) ──
+  // --- 270° CW (= 90° CCW) ---
 
   @Test
   fun rotate270DimensionsSwapped() = runTest {
     val input = referenceImage(Orientation.ROTATE_270) // 4×3
-    val result = ImageRotateTransform().apply(input, testContext()) as ImageIR
+    val result = ImageRotateTransform().apply(input, testContext())
     assertEquals(3, result.width, "W should become srcH")
     assertEquals(4, result.height, "H should become srcW")
     assertEquals(Orientation.NORMAL, result.orientation)
@@ -167,7 +167,7 @@ class ImageRotateTransformTest {
     // src(0,2)=ORANGE → dst(2,3)
     // src(3,2)=TEAL → dst(2,0)
     val input = referenceImage(Orientation.ROTATE_270)
-    val result = ImageRotateTransform().apply(input, testContext()) as ImageIR
+    val result = ImageRotateTransform().apply(input, testContext())
 
     assertContentEquals(WHITE, pixelAt(result, 0, 0), "dst(0,0) should be WHITE from src(3,0)")
     assertContentEquals(RED, pixelAt(result, 0, 3), "dst(0,3) should be RED from src(0,0)")
@@ -178,7 +178,7 @@ class ImageRotateTransformTest {
     assertContentEquals(CYAN, pixelAt(result, 1, 2), "dst(1,2) should be CYAN from src(1,1)")
   }
 
-  // ── Rotation preserves metadata ──
+  // --- Rotation preserves metadata ---
 
   @Test
   fun rotationPreservesMetadata() = runTest {
@@ -186,23 +186,23 @@ class ImageRotateTransformTest {
     val input = referenceImage(Orientation.ROTATE_90).copy(
       metadata = ImageMetadata(exifBlob = exif, xmpBlob = null),
     )
-    val result = ImageRotateTransform().apply(input, testContext()) as ImageIR
+    val result = ImageRotateTransform().apply(input, testContext())
     assertContentEquals(exif, result.metadata.exifBlob, "EXIF should survive rotation")
   }
 
-  // ── Buffer size correctness ──
+  // --- Buffer size correctness ---
 
   @Test
   fun rotateBufferSizeCorrect() = runTest {
     val input = referenceImage(Orientation.ROTATE_90)
-    val result = ImageRotateTransform().apply(input, testContext()) as ImageIR
+    val result = ImageRotateTransform().apply(input, testContext())
 
     val buf = result.buffer as ByteArrayPixelBuffer
     assertEquals(result.width * result.height * 4, buf.data.size)
     assertEquals(result.width * 4, result.stride)
   }
 
-  // ── Solid colour rotation invariant ──
+  // --- Solid colour rotation invariant ---
 
   @Test
   fun solidColourUnchangedByAnyRotation() = runTest {
@@ -211,7 +211,7 @@ class ImageRotateTransformTest {
 
     for (rot in listOf(Orientation.ROTATE_90, Orientation.ROTATE_180, Orientation.ROTATE_270)) {
       val input = solid.copy(orientation = rot)
-      val result = transform.apply(input, testContext()) as ImageIR
+      val result = transform.apply(input, testContext())
 
       // All pixels should be the same colour regardless of rotation
       assertContentEquals(intArrayOf(42, 84, 168, 255), pixelAt(result, 0, 0),
@@ -221,15 +221,6 @@ class ImageRotateTransformTest {
       assertContentEquals(intArrayOf(42, 84, 168, 255), pixelAt(result, maxX, maxY),
         "Bottom-right should remain same colour after $rot")
     }
-  }
-
-  // ── Non-ImageIR passthrough ──
-
-  @Test
-  fun nonImageIRPassedThrough() = runTest {
-    val input = "not an image"
-    val result = ImageRotateTransform().apply(input, testContext())
-    assertSame(input, result)
   }
 
   @Test

@@ -27,13 +27,11 @@ import dev.transmute.core.pipeline.TransformId
  *
  * This is a pure pixel-shuffle — no interpolation, no quality loss.
  */
-class ImageRotateTransform : Transform {
+class ImageRotateTransform : Transform<ImageIR> {
 
   override val id: TransformId = TransformId("image-rotate")
 
-  override suspend fun apply(ir: Any, context: ConversionContext): Any {
-    if (ir !is ImageIR) return ir
-
+  override suspend fun apply(ir: ImageIR, context: ConversionContext): ImageIR {
     if (ir.orientation == Orientation.NORMAL) {
       context.logger.debug("ImageRotateTransform: already NORMAL — skipping")
       return ir

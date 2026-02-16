@@ -27,14 +27,27 @@ object ImageFormatDetector {
    * the RIFF/ftyp box). Returns [ImageFormat.UNKNOWN] for unrecognised data.
    */
   fun detect(data: ByteArray): ImageFormat {
+    // 1. Try registered codecs' sniff() first.
+    for (codec in ImageRegistries.codecs) {
+      codec.sniff(data)?.let { return it }
+    }
+
+    // 2. Fall back to built-in magic-byte detection.
+    return detectByMagicBytes(data)
+  }
+
+  /**
+   * Built-in magic-byte detection for all known image formats.
+   */
+  fun detectByMagicBytes(data: ByteArray): ImageFormat {
     if (data.size < 4) return ImageFormat.UNKNOWN
 
-    // ── JPEG: FF D8 FF ──
+    // --- JPEG: FF D8 FF ---
     if (data[0] == 0xFF.toByte() && data[1] == 0xD8.toByte() && data[2] == 0xFF.toByte()) {
       return ImageFormat.JPEG
     }
 
-    // ── PNG: 89 50 4E 47 0D 0A 1A 0A ──
+    // --- PNG: 89 50 4E 47 0D 0A 1A 0A ---
     if (data.size >= 8 &&
       data[0] == 0x89.toByte() && data[1] == 0x50.toByte() &&
       data[2] == 0x4E.toByte() && data[3] == 0x47.toByte() &&
@@ -44,7 +57,7 @@ object ImageFormatDetector {
       return ImageFormat.PNG
     }
 
-    // ── GIF: "GIF87a" or "GIF89a" ──
+    // --- GIF: "GIF87a" or "GIF89a" ---
     if (data.size >= 6 &&
       data[0] == 0x47.toByte() && data[1] == 0x49.toByte() &&
       data[2] == 0x46.toByte() && data[3] == 0x38.toByte() &&
@@ -54,12 +67,12 @@ object ImageFormatDetector {
       return ImageFormat.GIF
     }
 
-    // ── BMP: "BM" ──
+    // --- BMP: "BM" ---
     if (data[0] == 0x42.toByte() && data[1] == 0x4D.toByte()) {
       return ImageFormat.BMP
     }
 
-    // ── TIFF: "II" (little-endian) + 42 or "MM" (big-endian) + 42 ──
+    // --- TIFF: "II" (little-endian) + 42 or "MM" (big-endian) + 42 ---
     if (data.size >= 4) {
       if (data[0] == 0x49.toByte() && data[1] == 0x49.toByte() &&
         data[2] == 0x2A.toByte() && data[3] == 0x00.toByte()
@@ -70,7 +83,7 @@ object ImageFormatDetector {
       ) return ImageFormat.TIFF
     }
 
-    // ── WebP: RIFF....WEBP ──
+    // --- WebP: RIFF....WEBP ---
     if (data.size >= 12 &&
       data[0] == 0x52.toByte() && data[1] == 0x49.toByte() &&
       data[2] == 0x46.toByte() && data[3] == 0x46.toByte() &&
@@ -80,7 +93,7 @@ object ImageFormatDetector {
       return ImageFormat.WEBP
     }
 
-    // ── HEIF / HEIC / AVIF: ISO BMFF ftyp box ──
+    // --- HEIF / HEIC / AVIF: ISO BMFF ftyp box ---
     // Structure: [4-byte size][ftyp][4-byte brand]
     // The brand determines the exact sub-format.
     if (data.size >= 12) {

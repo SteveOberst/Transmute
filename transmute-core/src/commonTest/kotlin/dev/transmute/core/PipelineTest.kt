@@ -13,7 +13,7 @@ import kotlin.test.assertTrue
 
 class PipelineTest {
 
-  // ── helpers ──
+  // --- helpers ---
 
   private fun testContext(job: Job = Job()) = ConversionContext(
     jobId = "test-job",
@@ -28,16 +28,14 @@ class PipelineTest {
   )
 
   /** A transform that appends a marker to demonstrate ordering. */
-  private class MarkerTransform(override val id: TransformId) : Transform {
-    override suspend fun apply(ir: Any, context: ConversionContext): Any {
-      @Suppress("UNCHECKED_CAST")
-      val list = ir as MutableList<String>
-      list.add(id.value)
-      return list
+  private class MarkerTransform(override val id: TransformId) : Transform<MutableList<String>> {
+    override suspend fun apply(ir: MutableList<String>, context: ConversionContext): MutableList<String> {
+      ir.add(id.value)
+      return ir
     }
   }
 
-  // ── tests ──
+  // --- tests ---
 
   @Test
   fun planCreationPreservesStages() {
@@ -61,7 +59,7 @@ class PipelineTest {
   @Test
   fun executorWalksStagesSuccessfully() = runTest {
     val registry = object : TransformRegistry {
-      override fun getTransform(transformId: TransformId): Transform? = null
+      override fun getTransform(transformId: TransformId): Transform<*>? = null
     }
     val executor = DefaultPipelineExecutor(registry)
     val ctx = testContext()

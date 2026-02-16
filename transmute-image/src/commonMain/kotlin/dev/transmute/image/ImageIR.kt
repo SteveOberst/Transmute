@@ -18,7 +18,7 @@ data class ImageIR(
   val metadata: ImageMetadata = ImageMetadata(),
 )
 
-// ── Pixel data ──
+// --- Pixel data ---
 
 interface PixelBuffer {
   val sizeBytes: Long
@@ -45,7 +45,7 @@ enum class PixelFormat(val bytesPerPixel: Int, val description: String) {
 
 enum class AlphaSemantics { STRAIGHT, PREMULTIPLIED, OPAQUE }
 
-// ── Color ──
+// --- Color ---
 
 data class ColorInfo(
   val colorspace: Colorspace = Colorspace.SRGB,
@@ -85,7 +85,7 @@ enum class Orientation {
   ROTATE_270,
 }
 
-// ── Metadata ──
+// --- Metadata ---
 
 data class ImageMetadata(
   val exifBlob: ByteArray? = null,

@@ -19,13 +19,11 @@ class ImageCropTransform(
   private val y: Int,
   private val cropWidth: Int,
   private val cropHeight: Int,
-) : Transform {
+) : Transform<ImageIR> {
 
   override val id: TransformId = TransformId("image-crop")
 
-  override suspend fun apply(ir: Any, context: ConversionContext): Any {
-    if (ir !is ImageIR) return ir
-
+  override suspend fun apply(ir: ImageIR, context: ConversionContext): ImageIR {
     val srcBuffer = ir.buffer as? ByteArrayPixelBuffer
       ?: error("ImageCropTransform requires ByteArrayPixelBuffer")
 

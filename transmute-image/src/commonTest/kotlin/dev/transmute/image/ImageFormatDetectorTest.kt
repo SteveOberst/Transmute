@@ -12,7 +12,7 @@ import kotlin.test.assertTrue
  */
 class ImageFormatDetectorTest {
 
-  // ── JPEG ──
+  // --- JPEG ---
 
   @Test
   fun detectJpeg() {
@@ -30,7 +30,7 @@ class ImageFormatDetectorTest {
     assertEquals(ImageFormat.JPEG, ImageFormatDetector.detect(data))
   }
 
-  // ── PNG ──
+  // --- PNG ---
 
   @Test
   fun detectPng() {
@@ -42,7 +42,7 @@ class ImageFormatDetectorTest {
     assertEquals(ImageFormat.PNG, ImageFormatDetector.detect(magic))
   }
 
-  // ── WebP ──
+  // --- WebP ---
 
   @Test
   fun detectWebp() {
@@ -60,7 +60,7 @@ class ImageFormatDetectorTest {
     assertEquals(ImageFormat.WEBP, ImageFormatDetector.detect(data))
   }
 
-  // ── HEIC (iOS default) ──
+  // --- HEIC (iOS default) ---
 
   @Test
   fun detectHeic() {
@@ -88,7 +88,7 @@ class ImageFormatDetectorTest {
     assertEquals(ImageFormat.HEIC, ImageFormatDetector.detect(data))
   }
 
-  // ── HEIF ──
+  // --- HEIF ---
 
   @Test
   fun detectHeifMif1() {
@@ -98,7 +98,7 @@ class ImageFormatDetectorTest {
     assertEquals(ImageFormat.HEIF, ImageFormatDetector.detect(data))
   }
 
-  // ── AVIF ──
+  // --- AVIF ---
 
   @Test
   fun detectAvif() {
@@ -116,7 +116,7 @@ class ImageFormatDetectorTest {
     assertEquals(ImageFormat.AVIF, ImageFormatDetector.detect(data))
   }
 
-  // ── GIF ──
+  // --- GIF ---
 
   @Test
   fun detectGif89a() {
@@ -130,7 +130,7 @@ class ImageFormatDetectorTest {
     assertEquals(ImageFormat.GIF, ImageFormatDetector.detect(data))
   }
 
-  // ── BMP ──
+  // --- BMP ---
 
   @Test
   fun detectBmp() {
@@ -138,7 +138,7 @@ class ImageFormatDetectorTest {
     assertEquals(ImageFormat.BMP, ImageFormatDetector.detect(data))
   }
 
-  // ── TIFF ──
+  // --- TIFF ---
 
   @Test
   fun detectTiffLittleEndian() {
@@ -154,7 +154,7 @@ class ImageFormatDetectorTest {
     assertEquals(ImageFormat.TIFF, ImageFormatDetector.detect(data))
   }
 
-  // ── Edge cases ──
+  // --- Edge cases ---
 
   @Test
   fun unknownForTooFewBytes() {
@@ -175,7 +175,7 @@ class ImageFormatDetectorTest {
     assertEquals(ImageFormat.UNKNOWN, ImageFormatDetector.detect(text))
   }
 
-  // ── Alpha support ──
+  // --- Alpha support ---
 
   @Test
   fun alphaSupport() {
@@ -191,7 +191,7 @@ class ImageFormatDetectorTest {
     assertFalse(ImageFormatDetector.supportsAlpha(ImageFormat.TIFF))
   }
 
-  // ── Lossy detection ──
+  // --- Lossy detection ---
 
   @Test
   fun lossyDetection() {
@@ -207,7 +207,7 @@ class ImageFormatDetectorTest {
     assertFalse(ImageFormatDetector.isLossy(ImageFormat.TIFF))
   }
 
-  // ── MIME types ──
+  // --- MIME types ---
 
   @Test
   fun mimeTypesCorrect() {
@@ -222,7 +222,7 @@ class ImageFormatDetectorTest {
     assertEquals("image/tiff", ImageFormat.TIFF.mimeType)
   }
 
-  // ── Extensions ──
+  // --- Extensions ---
 
   @Test
   fun extensionsCorrect() {

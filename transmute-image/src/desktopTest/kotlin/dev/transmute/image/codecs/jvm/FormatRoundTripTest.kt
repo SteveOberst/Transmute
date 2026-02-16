@@ -28,33 +28,48 @@ import kotlin.test.assertTrue
  */
 class FormatRoundTripTest {
 
-  private val decoder = JvmImageDecoder()
-  private val jpegEncoder = JvmImageEncoder(format = ImageFormat.JPEG, quality = 0.90f)
-  private val pngEncoder = JvmPngEncoder()
+  private val decoder = JvmImageIoDecoder()
+  private val encoder = JvmImageIoEncoder()
   private val ctx = testContext()
 
-  // ── Format detection after encoding ──
+  private fun ctxWith(
+    outputFormat: ImageFormat,
+    quality: Float? = null,
+  ) = ctx.copy(
+    scratchpad = ctx.scratchpad.toMutableMap().apply {
+      this["image.output.format"] = outputFormat
+      if (quality != null) this["image.output.quality"] = quality
+    },
+  )
+
+  private suspend fun encodePng(ir: ImageIR): ByteArray =
+    encoder.encode(ir, ctxWith(outputFormat = ImageFormat.PNG))
+
+  private suspend fun encodeJpeg(ir: ImageIR, quality: Float = 0.90f): ByteArray =
+    encoder.encode(ir, ctxWith(outputFormat = ImageFormat.JPEG, quality = quality))
+
+  // --- Format detection after encoding ---
 
   @Test
   fun encodedJpegDetectedAsJpeg() = runTest {
     val ir = solidColor(80, 80, r = 200, g = 100, b = 50)
-    val bytes = jpegEncoder.encode(ir, ctx)
+    val bytes = encodeJpeg(ir)
     assertEquals(ImageFormat.JPEG, ImageFormatDetector.detect(bytes))
   }
 
   @Test
   fun encodedPngDetectedAsPng() = runTest {
     val ir = solidColor(80, 80, r = 200, g = 100, b = 50)
-    val bytes = pngEncoder.encode(ir, ctx)
+    val bytes = encodePng(ir)
     assertEquals(ImageFormat.PNG, ImageFormatDetector.detect(bytes))
   }
 
-  // ── Full loop: encode → detect → decode → verify ──
+  // --- Full loop: encode → detect → decode → verify ---
 
   @Test
   fun pngFullLoopLossless() = runTest {
     val original = horizontalGradient(200, 20, startR = 10, endR = 245)
-    val bytes = pngEncoder.encode(original, ctx)
+    val bytes = encodePng(original)
     val format = ImageFormatDetector.detect(bytes)
     assertEquals(ImageFormat.PNG, format)
 
@@ -73,7 +88,7 @@ class FormatRoundTripTest {
   @Test
   fun jpegFullLoopWithinTolerance() = runTest {
     val original = solidColor(120, 120, r = 50, g = 150, b = 250)
-    val bytes = jpegEncoder.encode(original, ctx)
+    val bytes = encodeJpeg(original)
     val format = ImageFormatDetector.detect(bytes)
     assertEquals(ImageFormat.JPEG, format)
 
@@ -88,7 +103,7 @@ class FormatRoundTripTest {
     assertTrue(center[2] in 240..255, "B should be near 250, got ${center[2]}")
   }
 
-  // ── Multi-transform pipelines ──
+  // --- Multi-transform pipelines ---
 
   @Test
   fun scaleDownThenEncodeJpegThenDecode() = runTest {
@@ -97,12 +112,12 @@ class FormatRoundTripTest {
       colorB = intArrayOf(0, 0, 255, 255),
     )
     val scaled = ImageScaleTransform(maxWidth = 200, maxHeight = 150)
-      .apply(original, ctx) as ImageIR
+      .apply(original, ctx)
 
     assertEquals(200, scaled.width)
     assertEquals(150, scaled.height)
 
-    val bytes = jpegEncoder.encode(scaled, ctx)
+    val bytes = encodeJpeg(scaled)
     val format = ImageFormatDetector.detect(bytes)
     assertEquals(ImageFormat.JPEG, format)
 
@@ -116,7 +131,7 @@ class FormatRoundTripTest {
     // 200×200 gradient, crop center 100×100, encode to PNG, decode back
     val original = horizontalGradient(200, 200, startR = 0, endR = 200)
     val cropped = ImageCropTransform(x = 50, y = 50, cropWidth = 100, cropHeight = 100)
-      .apply(original, ctx) as ImageIR
+      .apply(original, ctx)
 
     assertEquals(100, cropped.width)
     assertEquals(100, cropped.height)
@@ -125,7 +140,7 @@ class FormatRoundTripTest {
     val cropLeft = pixelAt(cropped, 0, 0)
     assertEquals(50, cropLeft[0], "Crop left edge R should be ~50")
 
-    val bytes = pngEncoder.encode(cropped, ctx)
+    val bytes = encodePng(cropped)
     val decoded = decoder.decode(bytes, ctx)
 
     assertEquals(100, decoded.width)
@@ -142,17 +157,17 @@ class FormatRoundTripTest {
     val original = solidColor(400, 300, r = 100, g = 200, b = 50)
       .copy(orientation = Orientation.ROTATE_90)
 
-    val rotated = ImageRotateTransform().apply(original, ctx) as ImageIR
+    val rotated = ImageRotateTransform().apply(original, ctx)
     assertEquals(300, rotated.width)
     assertEquals(400, rotated.height)
     assertEquals(Orientation.NORMAL, rotated.orientation)
 
     val scaled = ImageScaleTransform(maxWidth = 150, maxHeight = 200)
-      .apply(rotated, ctx) as ImageIR
+      .apply(rotated, ctx)
     assertEquals(150, scaled.width)
     assertEquals(200, scaled.height)
 
-    val bytes = jpegEncoder.encode(scaled, ctx)
+    val bytes = encodeJpeg(scaled)
     assertEquals(ImageFormat.JPEG, ImageFormatDetector.detect(bytes))
 
     val decoded = decoder.decode(bytes, ctx)
@@ -172,13 +187,13 @@ class FormatRoundTripTest {
 
     // Crop 100×200 from x=100
     val cropped = ImageCropTransform(x = 100, y = 0, cropWidth = 100, cropHeight = 200)
-      .apply(original, ctx) as ImageIR
+      .apply(original, ctx)
     assertEquals(100, cropped.width)
     assertEquals(200, cropped.height)
 
     // Rotate 180°
     val rotated = ImageRotateTransform()
-      .apply(cropped.copy(orientation = Orientation.ROTATE_180), ctx) as ImageIR
+      .apply(cropped.copy(orientation = Orientation.ROTATE_180), ctx)
     assertEquals(100, rotated.width)
     assertEquals(200, rotated.height)
 
@@ -189,7 +204,7 @@ class FormatRoundTripTest {
       "After 180° rotation, gradient should be reversed")
 
     // Encode to PNG → decode → verify dimensions
-    val bytes = pngEncoder.encode(rotated, ctx)
+    val bytes = encodePng(rotated)
     assertEquals(ImageFormat.PNG, ImageFormatDetector.detect(bytes))
 
     val decoded = decoder.decode(bytes, ctx)
@@ -197,20 +212,17 @@ class FormatRoundTripTest {
     assertEquals(200, decoded.height)
   }
 
-  // ── JPEG re-encode size reduction ──
+  // --- JPEG re-encode size reduction ---
 
   @Test
   fun jpegReEncodeAtLowerQualityIsSmallerFile() = runTest {
-    val highQ = JvmImageEncoder(format = ImageFormat.JPEG, quality = 0.95f)
-    val lowQ = JvmImageEncoder(format = ImageFormat.JPEG, quality = 0.40f)
-
     val input = checkerboard(300, 300, blockSize = 15,
       colorA = intArrayOf(30, 60, 120, 255),
       colorB = intArrayOf(200, 180, 140, 255),
     )
 
-    val highBytes = highQ.encode(input, ctx)
-    val lowBytes = lowQ.encode(input, ctx)
+    val highBytes = encodeJpeg(input, quality = 0.95f)
+    val lowBytes = encodeJpeg(input, quality = 0.40f)
 
     assertTrue(lowBytes.size < highBytes.size,
       "Low quality JPEG (${lowBytes.size}B) should be smaller than high quality (${highBytes.size}B)")
@@ -220,14 +232,14 @@ class FormatRoundTripTest {
     assertEquals(ImageFormat.JPEG, ImageFormatDetector.detect(lowBytes))
   }
 
-  // ── Edge: 1×1 pixel survives the whole pipeline ──
+  // --- Edge: 1×1 pixel survives the whole pipeline ---
 
   @Test
   fun singlePixelSurvivesFullPipeline() = runTest {
     val original = solidColor(1, 1, r = 42, g = 84, b = 168)
 
     // PNG encode → detect → decode
-    val pngBytes = pngEncoder.encode(original, ctx)
+    val pngBytes = encodePng(original)
     assertEquals(ImageFormat.PNG, ImageFormatDetector.detect(pngBytes))
     val decodedPng = decoder.decode(pngBytes, ctx)
     assertEquals(1, decodedPng.width)

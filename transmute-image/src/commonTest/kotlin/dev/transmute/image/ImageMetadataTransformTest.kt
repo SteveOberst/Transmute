@@ -27,7 +27,7 @@ class ImageMetadataTransformTest {
   fun preservePolicyKeepsAllMetadata() = runTest {
     val input = imageWithMetadata()
     val transform = ImageMetadataTransform(MetadataPolicy.PRESERVE)
-    val result = transform.apply(input, testContext()) as ImageIR
+    val result = transform.apply(input, testContext())
 
     assertSame(input, result, "PRESERVE should return the same instance")
   }
@@ -36,7 +36,7 @@ class ImageMetadataTransformTest {
   fun stripAllRemovesExif() = runTest {
     val input = imageWithMetadata()
     val transform = ImageMetadataTransform(MetadataPolicy.STRIP_ALL)
-    val result = transform.apply(input, testContext()) as ImageIR
+    val result = transform.apply(input, testContext())
 
     assertNull(result.metadata.exifBlob, "EXIF should be stripped")
     assertNull(result.metadata.xmpBlob, "XMP should be stripped")
@@ -47,20 +47,12 @@ class ImageMetadataTransformTest {
   fun stripAllPreservesPixels() = runTest {
     val input = imageWithMetadata()
     val transform = ImageMetadataTransform(MetadataPolicy.STRIP_ALL)
-    val result = transform.apply(input, testContext()) as ImageIR
+    val result = transform.apply(input, testContext())
 
     assertEquals(input.width, result.width)
     assertEquals(input.height, result.height)
     assertEquals(input.buffer, result.buffer, "Pixel data should be unchanged")
     assertEquals(input.pixelFormat, result.pixelFormat)
-  }
-
-  @Test
-  fun nonImageIRPassedThrough() = runTest {
-    val transform = ImageMetadataTransform(MetadataPolicy.STRIP_ALL)
-    val input = "not an image"
-    val result = transform.apply(input, testContext())
-    assertSame(input, result)
   }
 
   @Test
