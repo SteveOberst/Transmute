@@ -60,7 +60,12 @@ kotlin {
         }
 
         if (isMac) {
-            val iosMain by getting
+            val iosMain by creating {
+                dependsOn(commonMain.get())
+            }
+            val iosX64Main by getting { dependsOn(iosMain) }
+            val iosArm64Main by getting { dependsOn(iosMain) }
+            val iosSimulatorArm64Main by getting { dependsOn(iosMain) }
         }
     }
 }
