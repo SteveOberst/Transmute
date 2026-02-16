@@ -4,6 +4,7 @@ import dev.transmute.audio.AudioSamples
 import dev.transmute.core.ConversionContext
 import dev.transmute.core.ConversionLogger
 import dev.transmute.core.MetadataPolicy
+import dev.transmute.core.PrintLogger
 import dev.transmute.image.ByteArrayPixelBuffer
 import dev.transmute.image.PixelFormat
 import kotlin.random.Random
@@ -23,12 +24,7 @@ object VideoTestHelpers {
     coroutineJob = null,
     metadataPolicy = metadataPolicy,
     onProgress = {},
-    logger = object : ConversionLogger {
-      override fun debug(message: String) {}
-      override fun info(message: String) {}
-      override fun warn(message: String) {}
-      override fun error(message: String, throwable: Throwable?) {}
-    },
+    logger = PrintLogger,
     scratchpad = mutableMapOf(),
     timeBudgetMs = Long.MAX_VALUE,
     memoryBudgetBytes = Long.MAX_VALUE,

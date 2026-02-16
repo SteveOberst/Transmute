@@ -124,8 +124,9 @@ jobs:
         run: >-
           ./gradlew
           :transmute-core:iosSimulatorArm64Test
-          :transmute-audio:iosSimulatorArm64Test
           :transmute-image:iosSimulatorArm64Test
+          :transmute-audio:iosSimulatorArm64Test
+          :transmute-video:iosSimulatorArm64Test
 
       - name: Upload iOS test reports
         if: always()

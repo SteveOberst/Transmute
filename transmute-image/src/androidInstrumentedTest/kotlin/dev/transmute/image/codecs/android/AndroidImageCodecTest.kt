@@ -34,32 +34,25 @@ class AndroidImageCodecTest {
   private val decoder = AndroidBitmapImageDecoder()
   private val encoder = AndroidBitmapImageEncoder()
 
-  // -----------------------------------------------------------------------
   // JPEG roundtrip
-  // -----------------------------------------------------------------------
 
   @Test
   fun jpegRoundTripPreservesDimensions() = runTest {
-    println(">>> jpegRoundTripPreservesDimensions: START")
     val original = ImageTestHelpers.solidColor(64, 48, r = 200, g = 100, b = 50)
     val ctx = ImageTestHelpers.testContext()
     ctx.scratchpad["image.output.format"] = ImageFormat.JPEG
     ctx.scratchpad["image.quality"] = 0.9f
 
-    println(">>> jpegRoundTripPreservesDimensions: encoding...")
     val encoded = encoder.encode(original, ctx)
     assertTrue(encoded.isNotEmpty())
 
-    println(">>> jpegRoundTripPreservesDimensions: decoding ${encoded.size} bytes...")
     val decoded = decoder.decode(encoded, ctx)
     assertEquals(64, decoded.width)
     assertEquals(48, decoded.height)
-    println(">>> jpegRoundTripPreservesDimensions: PASS")
   }
 
   @Test
   fun jpegRoundTripSolidColorHasLowError() = runTest {
-    println(">>> jpegRoundTripSolidColorHasLowError: START")
     val original = ImageTestHelpers.solidColor(32, 32, r = 128, g = 128, b = 128)
     val ctx = ImageTestHelpers.testContext()
     ctx.scratchpad["image.output.format"] = ImageFormat.JPEG
@@ -70,20 +63,15 @@ class AndroidImageCodecTest {
     val diff = ImageTestHelpers.peakDifference(original, decoded)
     val origPx = ImageTestHelpers.pixelAt(original, 0, 0)
     val decPx = ImageTestHelpers.pixelAt(decoded, 0, 0)
-    println(">>> jpegRoundTripSolidColorHasLowError: diff=$diff")
     assertTrue(diff < 10,
       "JPEG solid color peak diff $diff should be < 10 | " +
       "orig=${origPx.toList()} dec=${decPx.toList()}")
-    println(">>> jpegRoundTripSolidColorHasLowError: PASS")
   }
 
-  // -----------------------------------------------------------------------
   // PNG roundtrip
-  // -----------------------------------------------------------------------
 
   @Test
   fun pngRoundTripIsLossless() = runTest {
-    println(">>> pngRoundTripIsLossless: START")
     val original = ImageTestHelpers.checkerboard(32, 32)
     val ctx = ImageTestHelpers.testContext()
     ctx.scratchpad["image.output.format"] = ImageFormat.PNG
@@ -98,16 +86,12 @@ class AndroidImageCodecTest {
     val decPx = ImageTestHelpers.pixelAt(decoded, 0, 0)
     assertEquals(0, diff,
       "PNG lossless: diff=$diff orig=${origPx.toList()} dec=${decPx.toList()}")
-    println(">>> pngRoundTripIsLossless: PASS")
   }
 
-  // -----------------------------------------------------------------------
   // WebP roundtrip
-  // -----------------------------------------------------------------------
 
   @Test
   fun webpRoundTripPreservesDimensions() = runTest {
-    println(">>> webpRoundTripPreservesDimensions: START")
     val original = ImageTestHelpers.horizontalGradient(64, 32)
     val ctx = ImageTestHelpers.testContext()
     ctx.scratchpad["image.output.format"] = ImageFormat.WEBP
@@ -119,15 +103,12 @@ class AndroidImageCodecTest {
     val decoded = decoder.decode(encoded, ctx)
     assertEquals(64, decoded.width)
     assertEquals(32, decoded.height)
-    println(">>> webpRoundTripPreservesDimensions: PASS")
   }
 
-  // -----------------------------------------------------------------------  // BMP roundtrip (common encoder → Android decoder)
-  // -----------------------------------------------------------------------    
+  // BMP roundtrip (common encoder → Android decoder)
 
   @Test
   fun bmpDecodeProducesCorrectDimensions() = runTest {
-    println(">>> bmpDecodeProducesCorrectDimensions: START")
     val original = ImageTestHelpers.solidColor(32, 32, r = 255, g = 0, b = 0)
     val ctx = ImageTestHelpers.testContext()
     val bmpEncoder = BmpImageEncoder()
@@ -137,16 +118,12 @@ class AndroidImageCodecTest {
     val decoded = decoder.decode(bmpBytes, ctx)
     assertEquals(32, decoded.width, "BMP: width should be 32")
     assertEquals(32, decoded.height, "BMP: height should be 32")
-    println(">>> bmpDecodeProducesCorrectDimensions: PASS")
   }
 
-  // -----------------------------------------------------------------------    
   // GIF decode (minimal valid GIF)
-  // -----------------------------------------------------------------------    
 
   @Test
   fun gifDecodeProducesCorrectDimensions() = runTest {
-    println(">>> gifDecodeProducesCorrectDimensions: START")
     // Minimal valid 1×1 GIF89a with a single red pixel
     val gif = byteArrayOf(
       0x47, 0x49, 0x46, 0x38, 0x39, 0x61,       // GIF89a
@@ -168,30 +145,23 @@ class AndroidImageCodecTest {
     val decoded = decoder.decode(gif, ctx)
     assertEquals(1, decoded.width, "GIF: width should be 1")
     assertEquals(1, decoded.height, "GIF: height should be 1")
-    println(">>> gifDecodeProducesCorrectDimensions: PASS")
   }
 
-  // -----------------------------------------------------------------------    
   // HEIF decode (API 28+)
-  // -----------------------------------------------------------------------    
 
   @Test
   fun heifIsReportedAsSupported() {
-    println(">>> heifIsReportedAsSupported: START (API=${Build.VERSION.SDK_INT})")
     // Android supports HEIF/HEIC decoding from API 28+
     if (Build.VERSION.SDK_INT >= 28) {
       assertTrue(ImageFormat.HEIF in decoder.supportedFormats, "HEIF should be supported on API 28+")
       assertTrue(ImageFormat.HEIC in decoder.supportedFormats, "HEIC should be supported on API 28+")
     }
-    println(">>> heifIsReportedAsSupported: PASS")
   }
 
-  // -----------------------------------------------------------------------      // Decode-only formats
-  // -----------------------------------------------------------------------
+  // Decode-only formats
 
   @Test
   fun decoderReportsAllSupportedFormats() {
-    println(">>> decoderReportsAllSupportedFormats: START")
     val formats = decoder.supportedFormats
     assertTrue(ImageFormat.JPEG in formats)
     assertTrue(ImageFormat.PNG in formats)
@@ -201,16 +171,13 @@ class AndroidImageCodecTest {
     assertTrue(ImageFormat.HEIF in formats)
     assertTrue(ImageFormat.HEIC in formats)
     assertTrue(ImageFormat.AVIF in formats)
-    println(">>> decoderReportsAllSupportedFormats: PASS")
   }
 
   @Test
   fun encoderSupportsJpegPngWebp() {
-    println(">>> encoderSupportsJpegPngWebp: START")
     val formats = encoder.supportedFormats
     assertTrue(ImageFormat.JPEG in formats)
     assertTrue(ImageFormat.PNG in formats)
     assertTrue(ImageFormat.WEBP in formats)
-    println(">>> encoderSupportsJpegPngWebp: PASS")
   }
 }

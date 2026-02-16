@@ -2,6 +2,7 @@ package dev.transmute.image.codecs.jvm
 
 import dev.transmute.core.FfmpegResolver
 import dev.transmute.core.ImageFormat
+import dev.transmute.core.PrintLogger
 import dev.transmute.image.ImageFormatDetector
 import dev.transmute.image.ImageTestHelpers
 import kotlinx.coroutines.test.runTest
@@ -21,20 +22,19 @@ import kotlin.test.assertTrue
  */
 class FfmpegImageCodecsTest {
 
+  private val log = PrintLogger
   private val decoder = FfmpegImageDecoder()
   private val encoder = FfmpegImageEncoder()
 
   private inline fun requireFfmpeg(block: () -> Unit) {
     if (!FfmpegResolver.available) {
-      println("SKIPPED: FFmpeg not available")
+      log.warn("SKIPPED: FFmpeg not available")
       return
     }
     block()
   }
 
-  // -----------------------------------------------------------------------
   // HEIF roundtrip
-  // -----------------------------------------------------------------------
 
   @Test
   fun heifRoundTripPreservesDimensions() = runTest {
@@ -49,7 +49,7 @@ class FfmpegImageCodecsTest {
       } catch (e: Exception) {
         // libx265 may not be available in this FFmpeg build
         if ("libx265" in e.message.orEmpty() || "Encoder" in e.message.orEmpty()) {
-          println("SKIPPED: HEIF encoder (libx265) not available: ${e.message}")
+          log.warn("SKIPPED: HEIF encoder (libx265) not available: ${e.message}")
           return@requireFfmpeg
         }
         throw e
@@ -75,7 +75,7 @@ class FfmpegImageCodecsTest {
         encoder.encode(original, ctx)
       } catch (e: Exception) {
         if ("libx265" in e.message.orEmpty()) {
-          println("SKIPPED: HEIF encoder not available")
+          log.warn("SKIPPED: HEIF encoder not available")
           return@requireFfmpeg
         }
         throw e
@@ -88,9 +88,7 @@ class FfmpegImageCodecsTest {
     }
   }
 
-  // -----------------------------------------------------------------------
   // AVIF roundtrip
-  // -----------------------------------------------------------------------
 
   @Test
   fun avifRoundTripPreservesDimensions() = runTest {
@@ -104,7 +102,7 @@ class FfmpegImageCodecsTest {
         encoder.encode(original, ctx)
       } catch (e: Exception) {
         if ("FFmpeg" in e.message.orEmpty() || "libaom-av1" in e.message.orEmpty() || "Encoder" in e.message.orEmpty()) {
-          println("SKIPPED: AVIF encoding not available: ${e.message}")
+          log.warn("SKIPPED: AVIF encoding not available: ${e.message}")
           return@requireFfmpeg
         }
         throw e
@@ -130,7 +128,7 @@ class FfmpegImageCodecsTest {
         encoder.encode(original, ctx)
       } catch (e: Exception) {
         if ("FFmpeg" in e.message.orEmpty() || "libaom-av1" in e.message.orEmpty()) {
-          println("SKIPPED: AVIF encoding not available: ${e.message}")
+          log.warn("SKIPPED: AVIF encoding not available: ${e.message}")
           return@requireFfmpeg
         }
         throw e
@@ -142,9 +140,7 @@ class FfmpegImageCodecsTest {
     }
   }
 
-  // -----------------------------------------------------------------------
   // Decode-only tests (from known magic bytes)
-  // -----------------------------------------------------------------------
 
   @Test
   fun decoderReportsCorrectSupportedFormats() {

@@ -2,12 +2,14 @@ package dev.transmute.audio.codecs.jvm
 
 import dev.transmute.audio.AudioTestHelpers
 import dev.transmute.core.AudioFormat
+import dev.transmute.core.PrintLogger
 import kotlinx.coroutines.test.runTest
 import kotlin.math.abs
 import kotlin.test.*
 
 class JvmFlacCodecTest {
 
+    private val log = PrintLogger
     private val codec = JvmFlacCodec()
 
     // ── Format declarations ──
@@ -51,7 +53,7 @@ class JvmFlacCodecTest {
     @Test
     fun encodeDecodeFlacRoundTrip() = runTest {
         if (!FfmpegAudioEngine.available) {
-            println("Skipping FLAC encode/decode test — FFmpeg not available")
+            log.warn("Skipping FLAC encode/decode test — FFmpeg not available")
             return@runTest
         }
 
@@ -85,7 +87,7 @@ class JvmFlacCodecTest {
     @Test
     fun encodeThrowsWithoutFfmpeg() = runTest {
         if (FfmpegAudioEngine.available) {
-            println("Skipping — FFmpeg is available, cannot test failure path")
+            log.warn("Skipping — FFmpeg is available, cannot test failure path")
             return@runTest
         }
 

@@ -1,5 +1,6 @@
 package dev.transmute.video.codecs.jvm
 
+import dev.transmute.core.PrintLogger
 import dev.transmute.core.VideoFormat
 import dev.transmute.image.ByteArrayPixelBuffer
 import dev.transmute.image.PixelFormat
@@ -20,16 +21,17 @@ import kotlinx.coroutines.test.runTest
  */
 class FfmpegVideoCodecsTest {
 
+  private val log = PrintLogger
   private val hasFfmpeg: Boolean = FfmpegVideoEngine.available
 
   /**
    * Guards a test that requires FFmpeg.
-   * If FFmpeg is unavailable the test body is skipped with a println note
+   * If FFmpeg is unavailable the test body is skipped with a log warning
    * (mirrors the audio module convention).
    */
   private inline fun requireFfmpeg(block: () -> Unit) {
     if (!hasFfmpeg) {
-      println("SKIPPED — FFmpeg not found on PATH")
+      log.warn("SKIPPED — FFmpeg not found on PATH")
       return
     }
     VideoRegistries.installDefaultsIfEmpty()

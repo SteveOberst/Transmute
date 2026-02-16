@@ -10,6 +10,7 @@ import dev.transmute.core.ConversionLogger
 import dev.transmute.core.ImageFormat
 import dev.transmute.core.MediaFormat
 import dev.transmute.core.MetadataPolicy
+import dev.transmute.core.TransmuteLogging
 import dev.transmute.core.VideoFormat
 import dev.transmute.image.ImageFormatDetector
 import dev.transmute.image.ImageIR
@@ -160,6 +161,10 @@ class ImageTransmuter(private val source: ByteArray) : Transmuter<ImageTransmute
   private var progressCallback: ((Float) -> Unit)? = null
   // 0.85 balances visual quality against file size for most lossy formats.
   private var quality: Float = 0.85f
+  private var loggerOverride: ConversionLogger? = null
+
+  /** Override the global logger for this operation only. */
+  fun logger(logger: ConversionLogger): ImageTransmuter = apply { loggerOverride = logger }
 
   /**
    * Direct pipeline access for fine-grained ordering control.
@@ -236,7 +241,7 @@ class ImageTransmuter(private val source: ByteArray) : Transmuter<ImageTransmute
     coroutineJob = null,
     metadataPolicy = metadataPolicy,
     onProgress = progressCallback ?: {},
-    logger = NoOpLogger,
+    logger = loggerOverride ?: TransmuteLogging.logger,
     scratchpad = mutableMapOf(),
     timeBudgetMs = Long.MAX_VALUE,
     memoryBudgetBytes = Long.MAX_VALUE,
@@ -250,6 +255,10 @@ class AudioTransmuter(private val source: ByteArray) : Transmuter<AudioTransmute
   private var outputFormat: AudioFormat? = null
   private var metadataPolicy: MetadataPolicy = MetadataPolicy.STRIP_ALL
   private var progressCallback: ((Float) -> Unit)? = null
+  private var loggerOverride: ConversionLogger? = null
+
+  /** Override the global logger for this operation only. */
+  fun logger(logger: ConversionLogger): AudioTransmuter = apply { loggerOverride = logger }
 
   /**
    * Direct pipeline access for fine-grained ordering control.
@@ -326,7 +335,7 @@ class AudioTransmuter(private val source: ByteArray) : Transmuter<AudioTransmute
     coroutineJob = null,
     metadataPolicy = metadataPolicy,
     onProgress = progressCallback ?: {},
-    logger = NoOpLogger,
+    logger = loggerOverride ?: TransmuteLogging.logger,
     scratchpad = mutableMapOf(),
     timeBudgetMs = Long.MAX_VALUE,
     memoryBudgetBytes = Long.MAX_VALUE,
@@ -340,6 +349,10 @@ class VideoTransmuter(private val source: ByteArray) : Transmuter<VideoTransmute
   private var outputFormat: VideoFormat? = null
   private var metadataPolicy: MetadataPolicy = MetadataPolicy.STRIP_ALL
   private var progressCallback: ((Float) -> Unit)? = null
+  private var loggerOverride: ConversionLogger? = null
+
+  /** Override the global logger for this operation only. */
+  fun logger(logger: ConversionLogger): VideoTransmuter = apply { loggerOverride = logger }
 
   /**
    * Direct pipeline access for fine-grained ordering control.
@@ -407,16 +420,9 @@ class VideoTransmuter(private val source: ByteArray) : Transmuter<VideoTransmute
     coroutineJob = null,
     metadataPolicy = metadataPolicy,
     onProgress = progressCallback ?: {},
-    logger = NoOpLogger,
+    logger = loggerOverride ?: TransmuteLogging.logger,
     scratchpad = mutableMapOf(),
     timeBudgetMs = Long.MAX_VALUE,
     memoryBudgetBytes = Long.MAX_VALUE,
   )
-}
-
-internal object NoOpLogger : ConversionLogger {
-  override fun debug(message: String) {}
-  override fun info(message: String) {}
-  override fun warn(message: String) {}
-  override fun error(message: String, throwable: Throwable?) {}
 }

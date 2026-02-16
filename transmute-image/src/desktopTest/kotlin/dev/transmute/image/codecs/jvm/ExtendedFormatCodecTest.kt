@@ -2,15 +2,15 @@ package dev.transmute.image.codecs.jvm
 
 import dev.transmute.core.ImageFormat
 import dev.transmute.image.ImageFormatDetector
+import dev.transmute.image.ImageTestHelpers.adjustAlphaForComparison
 import dev.transmute.image.ImageTestHelpers.checkerboard
 import dev.transmute.image.ImageTestHelpers.horizontalGradient
 import dev.transmute.image.ImageTestHelpers.meanAbsoluteError
 import dev.transmute.image.ImageTestHelpers.pixelAt
 import dev.transmute.image.ImageTestHelpers.solidColor
 import dev.transmute.image.ImageTestHelpers.testContext
-import dev.transmute.image.ByteArrayPixelBuffer
+import dev.transmute.image.ImageTestHelpers.testContextWith
 import dev.transmute.image.ImageIR
-import dev.transmute.image.PixelFormat
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -29,21 +29,11 @@ class ExtendedFormatCodecTest {
   private val encoder = JvmImageIoEncoder()
   private val ctx = testContext()
 
-  private fun ctxWith(
-    format: ImageFormat,
-    quality: Float? = null,
-  ) = ctx.copy(
-    scratchpad = ctx.scratchpad.toMutableMap().apply {
-      this["image.output.format"] = format
-      if (quality != null) this["image.output.quality"] = quality else remove("image.output.quality")
-    },
-  )
-
   private suspend fun encodeGif(ir: ImageIR): ByteArray =
-    encoder.encode(ir, ctxWith(format = ImageFormat.GIF))
+    encoder.encode(ir, testContextWith(format = ImageFormat.GIF))
 
   private suspend fun encodeTiff(ir: ImageIR): ByteArray =
-    encoder.encode(ir, ctxWith(format = ImageFormat.TIFF))
+    encoder.encode(ir, testContextWith(format = ImageFormat.TIFF))
 
   // --- WebP decode ---
 
@@ -138,8 +128,8 @@ class ExtendedFormatCodecTest {
 
     // TIFF is lossless — MAE should be 0
     val mae = meanAbsoluteError(
-      original.adjustAlphaForComparison(),
-      decoded.adjustAlphaForComparison(),
+      adjustAlphaForComparison(original),
+      adjustAlphaForComparison(decoded),
     )
     assertTrue(mae < 1.0, "TIFF round-trip MAE should be ~0, got $mae")
   }
@@ -200,15 +190,4 @@ class ExtendedFormatCodecTest {
     assertEquals(ImageFormat.TIFF, ImageFormatDetector.detect(tiffBytes))
   }
 
-  // --- Helper ---
-
-  private fun ImageIR.adjustAlphaForComparison(): ImageIR {
-    if (pixelFormat != PixelFormat.RGBA_8888) return this
-    val buf = (buffer as ByteArrayPixelBuffer).data.copyOf()
-    val bpp = pixelFormat.bytesPerPixel
-    for (i in buf.indices) {
-      if (i % bpp == bpp - 1) buf[i] = 0xFF.toByte()
-    }
-    return copy(buffer = ByteArrayPixelBuffer(buf))
-  }
 }
