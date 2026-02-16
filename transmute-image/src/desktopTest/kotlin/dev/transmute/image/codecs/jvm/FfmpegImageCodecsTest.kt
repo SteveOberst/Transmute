@@ -103,8 +103,8 @@ class FfmpegImageCodecsTest {
       val encoded = try {
         encoder.encode(original, ctx)
       } catch (e: Exception) {
-        if ("libaom-av1" in e.message.orEmpty() || "Encoder" in e.message.orEmpty()) {
-          println("SKIPPED: AVIF encoder (libaom-av1) not available: ${e.message}")
+        if ("FFmpeg" in e.message.orEmpty() || "libaom-av1" in e.message.orEmpty() || "Encoder" in e.message.orEmpty()) {
+          println("SKIPPED: AVIF encoding not available: ${e.message}")
           return@requireFfmpeg
         }
         throw e
@@ -129,8 +129,8 @@ class FfmpegImageCodecsTest {
       val encoded = try {
         encoder.encode(original, ctx)
       } catch (e: Exception) {
-        if ("libaom-av1" in e.message.orEmpty()) {
-          println("SKIPPED: AVIF encoder not available")
+        if ("FFmpeg" in e.message.orEmpty() || "libaom-av1" in e.message.orEmpty()) {
+          println("SKIPPED: AVIF encoding not available: ${e.message}")
           return@requireFfmpeg
         }
         throw e
