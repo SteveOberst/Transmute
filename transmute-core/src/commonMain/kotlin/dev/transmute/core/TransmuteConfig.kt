@@ -1,5 +1,7 @@
 package dev.transmute.core
 
+import kotlin.concurrent.Volatile
+
 /**
  * Global runtime configuration for the Transmute library.
  *
