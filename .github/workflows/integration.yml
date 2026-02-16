@@ -103,7 +103,12 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Run iOS simulator tests
-        run: ./gradlew iosSimulatorArm64Test
+        run: >-
+          ./gradlew
+          :transmute-core:iosSimulatorArm64Test
+          :transmute-audio:iosSimulatorArm64Test
+          :transmute-image:iosSimulatorArm64Test
+          :transmute-api:iosSimulatorArm64Test
 
       - name: Upload iOS test reports
         if: always()
