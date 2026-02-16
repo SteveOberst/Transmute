@@ -71,7 +71,25 @@ jobs:
           force-avd-creation: false
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
-          script: ./gradlew --continue :transmute-image:connectedAndroidTest :transmute-audio:connectedAndroidTest :transmute-video:connectedAndroidTest
+          script: |
+            exit_code=0
+
+            echo "=== Image tests ==="
+            ./gradlew :transmute-image:connectedAndroidTest --stacktrace || exit_code=$?
+            echo "=== Image tests done (exit=$exit_code) ==="
+
+            echo "=== Audio tests ==="
+            ./gradlew :transmute-audio:connectedAndroidTest --stacktrace || exit_code=$?
+            echo "=== Audio tests done (exit=$exit_code) ==="
+
+            echo "=== Video tests ==="
+            ./gradlew :transmute-video:connectedAndroidTest --stacktrace || exit_code=$?
+            echo "=== Video tests done (exit=$exit_code) ==="
+
+            echo "=== Logcat (test output) ==="
+            adb logcat -d -s "System.out" | grep ">>>" || true
+
+            exit $exit_code
 
       - name: Upload Android test reports
         if: always()
