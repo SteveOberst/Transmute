@@ -369,6 +369,11 @@ private fun encodeVideoWithMediaCodec(
       var tracksAdded = 0
       val totalTracksExpected = 1 + (if (audioCodec != null) 1 else 0)
 
+      // Buffer for encoded video data produced before the muxer starts
+      // (when both video+audio tracks are needed, the muxer can't start
+      // until both tracks are added, but video is encoded first)
+      val pendingVideoSamples = mutableListOf<Pair<ByteArray, MediaCodec.BufferInfo>>()
+
       // Collect all frames first (for simplicity)
       val allFrames = mutableListOf<ByteArray>()
       val frames = ir.videoTrack.frames
@@ -421,10 +426,21 @@ private fun encodeVideoWithMediaCodec(
               }
             }
             val outputBuffer = videoCodec.getOutputBuffer(outputIndex)
-            if (muxerStarted && outputBuffer != null && bufferInfo.size > 0) {
-              outputBuffer.position(bufferInfo.offset)
-              outputBuffer.limit(bufferInfo.offset + bufferInfo.size)
-              muxer.writeSampleData(videoTrackIdx, outputBuffer, bufferInfo)
+            if (outputBuffer != null && bufferInfo.size > 0) {
+              if (muxerStarted) {
+                outputBuffer.position(bufferInfo.offset)
+                outputBuffer.limit(bufferInfo.offset + bufferInfo.size)
+                muxer.writeSampleData(videoTrackIdx, outputBuffer, bufferInfo)
+              } else {
+                // Buffer encoded data until muxer starts (waiting for audio track)
+                val copy = ByteArray(bufferInfo.size)
+                outputBuffer.position(bufferInfo.offset)
+                outputBuffer.get(copy)
+                val infoCopy = MediaCodec.BufferInfo().apply {
+                  set(0, copy.size, bufferInfo.presentationTimeUs, bufferInfo.flags)
+                }
+                pendingVideoSamples.add(copy to infoCopy)
+              }
             }
             if ((bufferInfo.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
               sawVideoOutputEos = true
@@ -488,6 +504,11 @@ private fun encodeVideoWithMediaCodec(
                 if (!muxerStarted && tracksAdded >= totalTracksExpected) {
                   muxer.start()
                   muxerStarted = true
+                  // Flush buffered video samples now that muxer is started
+                  for ((data, info) in pendingVideoSamples) {
+                    muxer.writeSampleData(videoTrackIdx, java.nio.ByteBuffer.wrap(data), info)
+                  }
+                  pendingVideoSamples.clear()
                 }
               }
               val outputBuffer = audioCodec.getOutputBuffer(outputIndex)
@@ -508,6 +529,11 @@ private fun encodeVideoWithMediaCodec(
                 if (!muxerStarted && tracksAdded >= totalTracksExpected) {
                   muxer.start()
                   muxerStarted = true
+                  // Flush buffered video samples now that muxer is started
+                  for ((data, info) in pendingVideoSamples) {
+                    muxer.writeSampleData(videoTrackIdx, java.nio.ByteBuffer.wrap(data), info)
+                  }
+                  pendingVideoSamples.clear()
                 }
               }
             }

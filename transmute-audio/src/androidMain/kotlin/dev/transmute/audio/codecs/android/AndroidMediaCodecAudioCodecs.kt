@@ -319,7 +319,9 @@ internal class AndroidMp3Codec : AudioCodec {
     gfp.brate = 128
     gfp.quality = 5 // QUALITY_MIDDLE
     gfp.write_id3tag_automatic = false
-    gfp.findReplayGain = true
+    // Disable VBR/Info tag — not needed for in-memory encode and avoids
+    // an intermittent NPE in VBRTag.setLameTagFrameHeader on Android/ART.
+    gfp.bWriteVbrTag = false
     id3.id3tag_init(gfp)
 
     val rc = lame.lame_init_params(gfp)

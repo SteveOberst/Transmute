@@ -1,5 +1,6 @@
 package dev.transmute.audio.codecs.android
 
+import android.os.Build
 import dev.transmute.audio.AudioTestHelpers
 import dev.transmute.core.AudioFormat
 import kotlinx.coroutines.test.runTest
@@ -33,14 +34,7 @@ class AndroidAudioCodecTest {
     val ctx = AudioTestHelpers.testContext()
     val codec = AndroidMp3Codec()
 
-    val encoded = try {
-      codec.encode(original, ctx)
-    } catch (e: Exception) {
-      // jump3r LAME encoder can fail with NPE on some Android emulators;
-      // skip the test gracefully when this happens.
-      println("MP3 encode failed (${e::class.simpleName}: ${e.message}), skipping")
-      return@runTest
-    }
+    val encoded = codec.encode(original, ctx)
     assertTrue(encoded.isNotEmpty(), "Encoded MP3 should not be empty")
 
     val decoded = codec.decode(encoded, ctx)
@@ -134,7 +128,7 @@ class AndroidAudioCodecTest {
 
   @Test
   fun opusRoundTripPreservesSampleRate() = runTest {
-    if (!AndroidOpusCodec.canEncode) return@runTest // API 29+ required
+    assertTrue(AndroidOpusCodec.canEncode, "OPUS encoding must be available on API ${Build.VERSION.SDK_INT}")
 
     val original = AudioTestHelpers.sineWave(
       frequency = 440f,
