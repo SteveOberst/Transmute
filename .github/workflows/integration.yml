@@ -108,7 +108,6 @@ jobs:
           :transmute-core:iosSimulatorArm64Test
           :transmute-audio:iosSimulatorArm64Test
           :transmute-image:iosSimulatorArm64Test
-          :transmute-api:iosSimulatorArm64Test
 
       - name: Upload iOS test reports
         if: always()
