@@ -6,14 +6,14 @@ Kotlin Multiplatform media conversion — image, audio, and video — with a sin
 [![Kotlin](https://img.shields.io/badge/kotlin-2.2.21-blue.svg?logo=kotlin)](http://kotlinlang.org)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-## Why Transmute?
+## Features
 
-- **One API, three platforms** — write conversion code in `commonMain`, run it on Android (MediaCodec), Desktop (ImageIO + FFmpeg), and iOS (CoreGraphics + AVFoundation).
-- **Batteries included** — FFmpeg ships bundled for desktop. No external installs needed.
-- **Pure-Kotlin codecs** — WAV and BMP work everywhere, even without platform APIs.
-- **Kernel-based image resize** — resample filters (Nearest, Bilinear, Mitchell, Catmull-Rom, Lanczos3) with anti-aliasing for downscale.
-- **27 transforms** — scale, crop, rotate, blur, normalize, trim, fade, gain, speed, compressor, and more across all three media types.
-- **Configurable logging** — control verbosity with `TransmuteLogging.configure(LogLevel.WARN)` or supply your own `ConversionLogger`.
+- Single `commonMain` API for image, audio, and video conversion across Android, Desktop (JVM), and iOS
+- Bundled FFmpeg for desktop — no external install required
+- Pure-Kotlin WAV and BMP codecs that work on all platforms without native dependencies
+- Image resample filters: Nearest, Bilinear, Mitchell, Catmull-Rom, Lanczos3 (with anti-alias for downscale)
+- 27 transforms across all three media types (scale, crop, rotate, blur, normalize, trim, fade, gain, speed, compressor, etc.)
+- Configurable logging with level filtering and pluggable logger backends
 
 ## Quick Start
 
