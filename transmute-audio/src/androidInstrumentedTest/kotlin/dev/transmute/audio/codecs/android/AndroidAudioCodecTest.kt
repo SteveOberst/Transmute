@@ -145,6 +145,15 @@ class AndroidAudioCodecTest {
     assertEquals(48000, decoded.sampleRate, "OPUS: sample rate should be preserved")
     assertTrue(decoded.samples.data.isNotEmpty(), "OPUS: decoded samples should not be empty")
   }
+
+  // -----------------------------------------------------------------------    
+  // Format declarations
+  // -----------------------------------------------------------------------    
+
+  @Test
+  fun allCodecsReportCorrectFormats() {
+    assertTrue(AudioFormat.MP3 in AndroidMp3Codec().decodableFormats)
+    assertTrue(AudioFormat.AAC in AndroidAacCodec().decodableFormats)
     assertTrue(AudioFormat.FLAC in AndroidFlacCodec().decodableFormats)
     assertTrue(AudioFormat.M4A in AndroidM4aCodec().decodableFormats)
     assertTrue(AudioFormat.OPUS in AndroidOpusCodec().decodableFormats)
