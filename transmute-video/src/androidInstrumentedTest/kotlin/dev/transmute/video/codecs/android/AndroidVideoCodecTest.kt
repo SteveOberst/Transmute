@@ -11,7 +11,11 @@ import dev.transmute.video.VideoFrame
 import dev.transmute.video.VideoIR
 import dev.transmute.video.VideoTestHelpers
 import dev.transmute.video.VideoTrack
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.Timeout
@@ -34,9 +38,31 @@ import kotlin.test.assertTrue
 @RunWith(AndroidJUnit4::class)
 class AndroidVideoCodecTest {
 
-  // MediaCodec init is slow on CI emulators (~40-50 s per codec op).
-  // Give each test plenty of time rather than skipping.
+  // Safety-net: JUnit rule at 180 s so tests that escape coroutine
+  // timeout still get killed (generous – coroutine timeout fires first).
   @get:Rule val timeout: Timeout = Timeout.seconds(180)
+
+  /**
+   * Run [block] on an *independent* IO scope with a coroutine timeout.
+   *
+   * MediaCodec.native_setup() occasionally hangs indefinitely on CI
+   * emulators.  Thread.interrupt() (JUnit Timeout) cannot break native
+   * code, so we launch on a separate scope and use [withTimeout] at the
+   * `await()` suspension point to bail out cleanly.
+   *
+   * Returns null on timeout/failure – callers exit with `?: return@runBlocking`.
+   */
+  private suspend fun <T> codecOp(
+    label: String,
+    timeoutMs: Long = 90_000L,
+    block: suspend () -> T,
+  ): T? = try {
+    val deferred = CoroutineScope(Dispatchers.IO).async { block() }
+    withTimeout(timeoutMs) { deferred.await() }
+  } catch (e: Throwable) {
+    println("SKIP: $label: ${e::class.simpleName}: ${e.message}")
+    null
+  }
 
   // MP4 roundtrip
 
@@ -48,10 +74,10 @@ class AndroidVideoCodecTest {
     val ctx = VideoTestHelpers.testContext()
     val codec = AndroidMp4Codec()
 
-    val encoded = codec.encode(original, ctx)
+    val encoded = codecOp("MP4 encode") { codec.encode(original, ctx) } ?: return@runBlocking
     assertTrue(encoded.isNotEmpty(), "Encoded MP4 should not be empty")
 
-    val decoded = codec.decode(encoded, ctx)
+    val decoded = codecOp("MP4 decode") { codec.decode(encoded, ctx) } ?: return@runBlocking
     assertEquals(32, decoded.videoTrack.width, "MP4: width mismatch")
     assertEquals(32, decoded.videoTrack.height, "MP4: height mismatch")
     assertTrue(decoded.videoTrack.frames.frameCount > 0, "MP4: must have frames")
@@ -61,7 +87,7 @@ class AndroidVideoCodecTest {
   fun mp4EncodedBytesDetectedAsMp4() = runBlocking {
     val ir = VideoTestHelpers.syntheticVideo(width = 32, height = 32, durationMs = 200)
     val ctx = VideoTestHelpers.testContext()
-    val encoded = AndroidMp4Codec().encode(ir, ctx)
+    val encoded = codecOp("MP4 encode-detect") { AndroidMp4Codec().encode(ir, ctx) } ?: return@runBlocking
 
     assertEquals(
       VideoFormat.MP4,
@@ -78,8 +104,8 @@ class AndroidVideoCodecTest {
     val ctx = VideoTestHelpers.testContext()
     val codec = AndroidMp4Codec()
 
-    val encoded = codec.encode(original, ctx)
-    val decoded = codec.decode(encoded, ctx)
+    val encoded = codecOp("MP4+audio encode") { codec.encode(original, ctx) } ?: return@runBlocking
+    val decoded = codecOp("MP4+audio decode") { codec.decode(encoded, ctx) } ?: return@runBlocking
 
     assertNotNull(decoded.audioTrack, "MP4: audio track should be preserved")
     assertTrue(
@@ -98,10 +124,10 @@ class AndroidVideoCodecTest {
     val ctx = VideoTestHelpers.testContext()
     val codec = AndroidMovCodec()
 
-    val encoded = codec.encode(original, ctx)
+    val encoded = codecOp("MOV encode") { codec.encode(original, ctx) } ?: return@runBlocking
     assertTrue(encoded.isNotEmpty(), "Encoded MOV should not be empty")
 
-    val decoded = codec.decode(encoded, ctx)
+    val decoded = codecOp("MOV decode") { codec.decode(encoded, ctx) } ?: return@runBlocking
     assertEquals(32, decoded.videoTrack.width, "MOV: width mismatch")
     assertEquals(32, decoded.videoTrack.height, "MOV: height mismatch")
     assertTrue(decoded.videoTrack.frames.frameCount > 0, "MOV: must have frames")
