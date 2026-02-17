@@ -82,6 +82,8 @@ class MutableImageEncoderRegistry : ImageEncoderRegistry {
  * that participate in format sniffing via [ImageFormatDetector].
  */
 object ImageRegistries {
+  @Volatile private var defaultsInstalled: Boolean = false
+
   val decoders: MutableImageDecoderRegistry = MutableImageDecoderRegistry()
   val encoders: MutableImageEncoderRegistry = MutableImageEncoderRegistry()
 
@@ -102,13 +104,14 @@ object ImageRegistries {
     if (encoders.encoderFor(ImageFormat.BMP) == null) {
       encoders.register(BmpImageEncoder())
     }
+
+    defaultsInstalled = true
   }
 
   /** Installs platform defaults if the registries look empty. */
   fun installDefaultsIfEmpty() {
-    if (decoders.supportedFormats.isEmpty() || encoders.supportedFormats.isEmpty()) {
-      installDefaults()
-    }
+    if (defaultsInstalled) return
+    installDefaults()
   }
 }
 

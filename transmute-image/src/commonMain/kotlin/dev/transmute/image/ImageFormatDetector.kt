@@ -3,20 +3,10 @@ package dev.transmute.image
 import dev.transmute.core.ImageFormat
 
 /**
- * Detects image format from raw file bytes by inspecting magic-byte signatures.
+ * Detects image format from raw bytes via registered decoders/codecs.
  *
- * Covers every format commonly encountered on iOS and Android devices:
- * - **JPEG** — universal camera format
- * - **PNG** — screenshots, stickers, transparency
- * - **WebP** — Android default since 4.0, also used by WhatsApp/Telegram
- * - **HEIF / HEIC** — iOS default since iOS 11 (iPhone 7+)
- * - **AVIF** — next-gen format, growing adoption on Android 12+
- * - **GIF** — animated images
- * - **BMP** — legacy, sometimes from Windows screenshots
- * - **TIFF** — ProRAW on iOS, some scanner apps
- *
- * All detection is pure Kotlin — no platform dependencies.
- * Uses [ImageFormat] from the core module for type-safe format identification.
+ * The detector iterates registered decoders and returns the first non-null
+ * result from `sniff(data)`.
  */
 object ImageFormatDetector {
 

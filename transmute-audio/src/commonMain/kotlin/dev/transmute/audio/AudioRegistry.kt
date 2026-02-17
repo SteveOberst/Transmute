@@ -72,6 +72,8 @@ class MutableAudioEncoderRegistry : AudioEncoderRegistry {
  * Global audio registries.
  */
 object AudioRegistries {
+  @Volatile private var defaultsInstalled: Boolean = false
+
   val decoders = MutableAudioDecoderRegistry()
   val encoders = MutableAudioEncoderRegistry()
 
@@ -89,13 +91,14 @@ object AudioRegistries {
 
     // Platform codecs add hardware-accelerated decoders (MP3, AAC, etc.).
     installPlatformAudioCodecs(decoders, encoders)
+
+    defaultsInstalled = true
   }
 
   /** Installs defaults if the registries look empty. */
   fun installDefaultsIfEmpty() {
-    if (decoders.supportedFormats.isEmpty() || encoders.supportedFormats.isEmpty()) {
-      installDefaults()
-    }
+    if (defaultsInstalled) return
+    installDefaults()
   }
 }
 

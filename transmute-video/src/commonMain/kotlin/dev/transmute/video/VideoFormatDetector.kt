@@ -3,10 +3,10 @@ package dev.transmute.video
 import dev.transmute.core.VideoFormat
 
 /**
- * Detects video format from raw bytes using magic-byte signatures.
+ * Detects video format from raw bytes via registered decoders/codecs.
  *
- * Registered codecs' [sniff()][dev.transmute.core.Codec.sniff] are tried first;
- * if none match, falls back to built-in magic-byte detection.
+ * The detector iterates registered decoders and returns the first non-null
+ * result from `sniff(data)`.
  */
 object VideoFormatDetector {
 

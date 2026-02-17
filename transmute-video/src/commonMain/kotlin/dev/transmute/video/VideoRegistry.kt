@@ -74,6 +74,8 @@ class MutableVideoEncoderRegistry : VideoEncoderRegistry {
  * Global video registries.
  */
 object VideoRegistries {
+  @Volatile private var defaultsInstalled: Boolean = false
+
   val decoders = MutableVideoDecoderRegistry()
   val encoders = MutableVideoEncoderRegistry()
 
@@ -86,13 +88,13 @@ object VideoRegistries {
   /** Installs platform defaults unconditionally. */
   fun installDefaults() {
     installPlatformVideoCodecs(decoders, encoders)
+    defaultsInstalled = true
   }
 
   /** Installs platform defaults if the registries look empty. */
   fun installDefaultsIfEmpty() {
-    if (decoders.supportedFormats.isEmpty() || encoders.supportedFormats.isEmpty()) {
-      installDefaults()
-    }
+    if (defaultsInstalled) return
+    installDefaults()
   }
 }
 
