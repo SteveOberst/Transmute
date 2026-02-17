@@ -21,6 +21,20 @@ object AudioFormatDetector {
     for (decoder in AudioRegistries.decoders.allDecoders) {
       decoder.sniff(bytes)?.let { return it }
     }
+    // Fallback sniffs for formats that have no registered decoder on this platform.
+    return sniffFallback(bytes)
+  }
+
+  /**
+   * Magic-byte checks for formats that may lack a platform decoder
+   * (e.g. OGG on iOS). These run only when no registered decoder matched.
+   */
+  private fun sniffFallback(bytes: ByteArray): AudioFormat {
+    if (bytes.size < 4) return AudioFormat.UNKNOWN
+    // OGG: "OggS" capture pattern
+    if (bytes[0] == 'O'.code.toByte() && bytes[1] == 'g'.code.toByte() &&
+      bytes[2] == 'g'.code.toByte() && bytes[3] == 'S'.code.toByte()
+    ) return AudioFormat.OGG
     return AudioFormat.UNKNOWN
   }
 }
