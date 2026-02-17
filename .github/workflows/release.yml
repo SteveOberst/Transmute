@@ -22,6 +22,12 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
+  # Gate on CI unit tests passing
+  ci-gate:
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created }}
+    uses: ./.github/workflows/ci.yml
+
   # Run integration tests before publishing
   integration-gate:
     needs: release-please
@@ -29,7 +35,7 @@ jobs:
     uses: ./.github/workflows/integration.yml
 
   publish:
-    needs: [release-please, integration-gate]
+    needs: [release-please, ci-gate, integration-gate]
     if: ${{ needs.release-please.outputs.release_created }}
     runs-on: ubuntu-latest
     steps:

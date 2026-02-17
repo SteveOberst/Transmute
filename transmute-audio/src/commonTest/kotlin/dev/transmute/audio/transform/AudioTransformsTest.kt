@@ -369,7 +369,7 @@ class AudioSilenceTrimTransformTest {
 
     val result = AudioSilenceTrimTransform(thresholdDb = -40f, trimEnd = false).apply(audio, context)
 
-    // Output should be shorter — leading silence removed.
+    // Output should be shorter - leading silence removed.
     assertTrue(
       result.samples.data.size < audio.samples.data.size,
       "Should have fewer samples after trimming leading silence"
@@ -415,7 +415,7 @@ class AudioSilenceTrimTransformTest {
 
   @Test
   fun noSilenceNoChange() = runTest {
-    // Constant signal well above threshold — nothing to trim.
+    // Constant signal well above threshold - nothing to trim.
     val sampleRate = 8000
     val frames = (200 * sampleRate) / 1000
     val data = FloatArray(frames) { 0.8f }

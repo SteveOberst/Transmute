@@ -18,7 +18,7 @@ import platform.CoreMedia.*
 import platform.Foundation.*
 
 // ---------------------------------------------------------------------------
-// Shared decode logic — AVAssetReader → float32 PCM.
+// Shared decode logic - AVAssetReader → float32 PCM.
 // ---------------------------------------------------------------------------
 
 private suspend fun decodeWithAssetReader(
@@ -136,7 +136,7 @@ private suspend fun decodeWithAssetReader(
 }
 
 // ---------------------------------------------------------------------------
-// Shared encode logic — WAV → AVAssetReader → AVAssetWriter (AAC).
+// Shared encode logic - WAV → AVAssetReader → AVAssetWriter (AAC).
 // ---------------------------------------------------------------------------
 
 /**
@@ -411,7 +411,7 @@ private suspend fun encodeFlacWithAssetWriter(ir: AudioIR, context: ConversionCo
 }
 
 // ---------------------------------------------------------------------------
-// Decode-only codecs — formats where iOS has no encoder.
+// Decode-only codecs - formats where iOS has no encoder.
 // ---------------------------------------------------------------------------
 
 internal abstract class IosAssetReaderAudioDecoder(
@@ -436,7 +436,7 @@ internal class IosMp3Decoder : IosAssetReaderAudioDecoder(AudioFormat.MP3) {
 }
 
 // ---------------------------------------------------------------------------
-// Full codecs — formats we can both decode AND encode on iOS.
+// Full codecs - formats we can both decode AND encode on iOS.
 // ---------------------------------------------------------------------------
 
 /**

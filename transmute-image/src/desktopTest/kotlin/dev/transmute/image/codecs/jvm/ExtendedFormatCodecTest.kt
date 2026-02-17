@@ -58,7 +58,7 @@ class ExtendedFormatCodecTest {
     assertEquals(64, decoded.width)
     assertEquals(64, decoded.height)
 
-    // GIF uses a palette — colour may shift slightly
+    // GIF uses a palette - colour may shift slightly
     val center = pixelAt(decoded, 32, 32)
     assertTrue(center[0] in 190..210, "R should be near 200, got ${center[0]}")
     assertTrue(center[1] in 90..110, "G should be near 100, got ${center[1]}")
@@ -78,7 +78,7 @@ class ExtendedFormatCodecTest {
 
   @Test
   fun gifFullLoopPreservesSimplePattern() = runTest {
-    // Pure black and pure white — GIF palette should handle this perfectly
+    // Pure black and pure white - GIF palette should handle this perfectly
     val original = checkerboard(64, 64, blockSize = 32,
       colorA = intArrayOf(255, 255, 255, 255),
       colorB = intArrayOf(0, 0, 0, 255),
@@ -110,7 +110,7 @@ class ExtendedFormatCodecTest {
     assertEquals(64, decoded.width)
     assertEquals(64, decoded.height)
 
-    // TIFF is lossless (uncompressed) — pixel match should be exact
+    // TIFF is lossless (uncompressed) - pixel match should be exact
     val center = pixelAt(decoded, 32, 32)
     assertEquals(200, center[0], "R should be 200")
     assertEquals(100, center[1], "G should be 100")
@@ -126,7 +126,7 @@ class ExtendedFormatCodecTest {
     assertEquals(256, decoded.width)
     assertEquals(10, decoded.height)
 
-    // TIFF is lossless — MAE should be 0
+    // TIFF is lossless - MAE should be 0
     val mae = meanAbsoluteError(
       adjustAlphaForComparison(original),
       adjustAlphaForComparison(decoded),

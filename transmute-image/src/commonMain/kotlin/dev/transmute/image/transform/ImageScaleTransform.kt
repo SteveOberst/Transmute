@@ -29,9 +29,9 @@ class ImageScaleTransform(
   override val id: TransformId = TransformId("image-scale")
 
   override suspend fun apply(ir: ImageIR, context: ConversionContext): ImageIR {
-    // Don't upscale — only downscale.
+    // Don't upscale - only downscale.
     if (ir.width <= maxWidth && ir.height <= maxHeight) {
-      context.logger.debug("ImageScaleTransform: image ${ir.width}×${ir.height} already fits within $maxWidth×$maxHeight — skipping")
+      context.logger.debug("ImageScaleTransform: image ${ir.width}×${ir.height} already fits within $maxWidth×$maxHeight - skipping")
       return ir
     }
 

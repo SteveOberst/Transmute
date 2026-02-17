@@ -207,7 +207,7 @@ class ImageScaleTransformTest {
       colorInfo = ColorInfo(),
     )
 
-    // Scale to 2×2 — each output pixel covers a 2×2 block of identical source pixels.
+    // Scale to 2×2 - each output pixel covers a 2×2 block of identical source pixels.
     // With bilinear interpolation sampling at (0,0), (3,0), (0,3), (3,3) in source:
     val transform = ImageScaleTransform(maxWidth = 2, maxHeight = 2)
     val result = transform.apply(input, testContext())

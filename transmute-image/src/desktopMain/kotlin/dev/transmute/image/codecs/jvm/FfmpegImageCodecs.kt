@@ -21,7 +21,7 @@ import javax.imageio.ImageIO
  */
 
 // ---------------------------------------------------------------------------
-// FFmpeg Image Decoder — HEIF, HEIC, AVIF
+// FFmpeg Image Decoder - HEIF, HEIC, AVIF
 // ---------------------------------------------------------------------------
 
 /**
@@ -118,7 +118,7 @@ class FfmpegImageDecoder : ImageDecoder {
 }
 
 // ---------------------------------------------------------------------------
-// FFmpeg Image Encoder — HEIF, AVIF
+// FFmpeg Image Encoder - HEIF, AVIF
 // ---------------------------------------------------------------------------
 
 /**

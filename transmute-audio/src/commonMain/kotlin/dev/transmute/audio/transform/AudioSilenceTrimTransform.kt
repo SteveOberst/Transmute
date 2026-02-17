@@ -56,7 +56,7 @@ class AudioSilenceTrimTransform(
     }
 
     if (startFrame >= endFrame) {
-      context.logger.warn("AudioSilenceTrimTransform: entire track is below threshold — returning empty")
+      context.logger.warn("AudioSilenceTrimTransform: entire track is below threshold - returning empty")
       return ir.copy(
         samples = AudioSamples(FloatArray(0), sampleRate, channelCount),
         durationMs = 0,

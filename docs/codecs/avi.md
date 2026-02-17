@@ -26,7 +26,7 @@ val mp4Bytes = Transmute.video(aviBytes) {
 
 ## Notes
 
-- **Desktop only** — no Android or iOS support.
+- **Desktop only** - no Android or iOS support.
 - Requires the bundled FFmpeg on Desktop; no user setup needed.
 - AVI is a legacy format; prefer MP4 or MKV for new projects.
 - Large file sizes due to limited container-level compression.

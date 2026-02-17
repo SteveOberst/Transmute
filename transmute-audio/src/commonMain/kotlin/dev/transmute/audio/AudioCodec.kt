@@ -12,7 +12,7 @@ import dev.transmute.core.EncoderCodec
  */
 interface AudioCodec : Codec<AudioFormat, AudioIR>
 
-// Split interfaces — kept for codecs that only decode or only encode.
+// Split interfaces - kept for codecs that only decode or only encode.
 
 interface AudioDecoder {
   val supportedFormats: Set<AudioFormat>

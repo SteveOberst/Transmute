@@ -28,7 +28,7 @@ val compressedBytes = Transmute.image(inputBytes) {
 
 ## Notes
 
-- Lossy compression — each re-encode degrades quality slightly.
+- Lossy compression - each re-encode degrades quality slightly.
 - `quality` ranges from `0.0` (maximum compression) to `1.0` (best quality).
 - Does not support transparency; alpha channels are flattened to white/black.
 - EXIF metadata handling varies by platform.

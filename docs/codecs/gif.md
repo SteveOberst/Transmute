@@ -26,9 +26,9 @@ val pngBytes = Transmute.image(gifBytes) {
 
 ## Notes
 
-- Limited to 256 colors per frame — produces visible banding on photographic content.
+- Limited to 256 colors per frame - produces visible banding on photographic content.
 - Encoding produces a **single-frame** GIF; animated GIF creation is not supported.
 - Decoding animated GIFs extracts the first frame only.
-- Supports binary (1-bit) transparency — no partial/alpha transparency.
+- Supports binary (1-bit) transparency - no partial/alpha transparency.
 - `quality()` has no meaningful effect on GIF output.
 - Consider WebP or AVIF for better compression and quality.

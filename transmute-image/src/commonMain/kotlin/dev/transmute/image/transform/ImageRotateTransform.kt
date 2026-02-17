@@ -21,11 +21,11 @@ import dev.transmute.core.pipeline.TransformId
  *   viewers display the image correctly regardless of EXIF support.
  *
  * Supports all three non-trivial orientations:
- * - [Orientation.ROTATE_90] — 90° CW (portrait, camera held upright)
- * - [Orientation.ROTATE_180] — upside down
- * - [Orientation.ROTATE_270] — 90° CCW (landscape, camera held left)
+ * - [Orientation.ROTATE_90] - 90° CW (portrait, camera held upright)
+ * - [Orientation.ROTATE_180] - upside down
+ * - [Orientation.ROTATE_270] - 90° CCW (landscape, camera held left)
  *
- * This is a pure pixel-shuffle — no interpolation, no quality loss.
+ * This is a pure pixel-shuffle - no interpolation, no quality loss.
  */
 class ImageRotateTransform : Transform<ImageIR> {
 
@@ -33,7 +33,7 @@ class ImageRotateTransform : Transform<ImageIR> {
 
   override suspend fun apply(ir: ImageIR, context: ConversionContext): ImageIR {
     if (ir.orientation == Orientation.NORMAL) {
-      context.logger.debug("ImageRotateTransform: already NORMAL — skipping")
+      context.logger.debug("ImageRotateTransform: already NORMAL - skipping")
       return ir
     }
 

@@ -14,12 +14,12 @@ actual fun installPlatformAudioCodecs(
   // Decode-only formats (no Android encoder available).
   decoders.register(AndroidOggDecoder())
 
-  // Full codecs — hardware-accelerated decode + encode via MediaCodec.
+  // Full codecs - hardware-accelerated decode + encode via MediaCodec.
   val mp3Codec = AndroidMp3Codec()
   decoders.register(mp3Codec)
   encoders.register(mp3Codec)
 
-  // Full codecs — hardware-accelerated decode + encode via MediaCodec.
+  // Full codecs - hardware-accelerated decode + encode via MediaCodec.
   val flacCodec = AndroidFlacCodec()
   decoders.register(flacCodec)
   encoders.register(flacCodec)

@@ -51,7 +51,7 @@ class AudioSpeedTransform(
 
     while (readPos + windowFrames <= frameCount && writePos + windowFrames <= outputFrames) {
       for (i in 0 until windowFrames) {
-        // Hann window — smooths the overlap boundaries to prevent clicks.
+        // Hann window - smooths the overlap boundaries to prevent clicks.
         val w = 0.5f * (1f - kotlin.math.cos(2.0 * kotlin.math.PI * i / windowFrames).toFloat())
         for (ch in 0 until channelCount) {
           val srcIdx = (readPos + i) * channelCount + ch

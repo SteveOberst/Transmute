@@ -82,7 +82,7 @@ class FfmpegImageCodecsTest {
       }
 
       val decoded = decoder.decode(encoded, ctx)
-      // Lossy codec — allow generous tolerance for HEIF
+      // Lossy codec - allow generous tolerance for HEIF
       val diff = ImageTestHelpers.peakDifference(original, decoded)
       assertTrue(diff < 30, "Peak difference $diff should be < 30 for solid color HEIF")
     }

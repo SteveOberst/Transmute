@@ -103,7 +103,7 @@ object ImageTestHelpers {
   }
 
   /**
-   * Creates a checkerboard pattern — alternating [colorA] / [colorB] blocks.
+   * Creates a checkerboard pattern - alternating [colorA] / [colorB] blocks.
    *
    * Useful for verifying that scaling doesn't smear boundaries and
    * that codecs handle high-frequency detail.

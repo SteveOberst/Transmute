@@ -341,7 +341,7 @@ private suspend fun encodeWithAvFoundation(
   // Write audio samples (if present)
   if (audioInput != null && ir.audioTrack != null) {
     // Convert float samples to 16-bit PCM and write via audio input
-    // For simplicity, we mark audio finished — full audio encoding requires
+    // For simplicity, we mark audio finished - full audio encoding requires
     // CMSampleBuffer construction from raw PCM data.
     audioInput.markAsFinished()
   }

@@ -16,8 +16,8 @@ import kotlin.math.roundToInt
  * Resizes an [ImageIR] to exact [targetWidth]×[targetHeight] dimensions
  * using a configurable [ResampleFilter].
  *
- * The resize is performed as a two-pass **separable convolution** — first
- * horizontal, then vertical — which is both fast (O(n·k) per axis instead
+ * The resize is performed as a two-pass **separable convolution** - first
+ * horizontal, then vertical - which is both fast (O(n·k) per axis instead
  * of O(n·k²) for a 2-D kernel) and mathematically equivalent to the full
  * 2-D filter for all symmetric kernels.
  *
@@ -48,9 +48,9 @@ class ImageResizeTransform(
     val srcW = ir.width
     val srcH = ir.height
 
-    // Already at target size — nothing to do.
+    // Already at target size - nothing to do.
     if (srcW == targetWidth && srcH == targetHeight) {
-      context.logger.debug("ImageResizeTransform: already ${srcW}×${srcH} — skipping")
+      context.logger.debug("ImageResizeTransform: already ${srcW}×${srcH} - skipping")
       return ir
     }
 
@@ -58,7 +58,7 @@ class ImageResizeTransform(
     if (!allowUpscale && srcW <= targetWidth && srcH <= targetHeight) {
       context.logger.debug(
         "ImageResizeTransform: ${srcW}×${srcH} smaller than ${targetWidth}×${targetHeight} " +
-          "and upscale disabled — skipping"
+          "and upscale disabled - skipping"
       )
       return ir
     }

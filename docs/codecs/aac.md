@@ -28,7 +28,7 @@ val wavBytes = Transmute.audio(aacBytes) {
 
 - Full encode + decode support on all platforms.
 - Android uses hardware-accelerated MediaCodec for both encoding and decoding.
-- Desktop relies on the bundled FFmpeg — no user setup needed.
+- Desktop relies on the bundled FFmpeg - no user setup needed.
 - iOS encodes via AVAssetWriter with native hardware acceleration.
-- Lossy compression — typically superior to MP3 at equivalent bitrates.
+- Lossy compression - typically superior to MP3 at equivalent bitrates.
 - AAC output is commonly wrapped in an M4A/MP4 container.

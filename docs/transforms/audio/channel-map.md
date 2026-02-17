@@ -6,7 +6,7 @@ Remap audio channels by specifying which source channel feeds each output channe
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| mapping | IntArray | — | Array where index = output channel, value = source channel index |
+| mapping | IntArray | - | Array where index = output channel, value = source channel index |
 
 ## Usage
 

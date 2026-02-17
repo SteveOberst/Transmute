@@ -26,7 +26,7 @@ object ImageFormatDetector {
 
   /**
    * Returns `true` if the format supports transparency (alpha channel).
-   * Important for choosing the right encoder — JPEG/HEIC don't support alpha.
+   * Important for choosing the right encoder - JPEG/HEIC don't support alpha.
    */
   fun supportsAlpha(format: ImageFormat): Boolean = when (format) {
     ImageFormat.PNG, ImageFormat.WEBP, ImageFormat.GIF, ImageFormat.AVIF -> true

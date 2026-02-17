@@ -6,7 +6,7 @@ Apply a volume gain in decibels.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| db | Float | — | Gain in dB; positive = louder, negative = quieter |
+| db | Float | - | Gain in dB; positive = louder, negative = quieter |
 
 ## Usage
 

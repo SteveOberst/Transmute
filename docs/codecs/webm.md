@@ -26,10 +26,10 @@ val mp4Bytes = Transmute.video(webmBytes) {
 
 ## Notes
 
-- **iOS does not support WebM** — neither decode nor encode.
+- **iOS does not support WebM** - neither decode nor encode.
 - Android can **decode** WebM (VP8/VP9) but cannot encode to it.
 - Desktop uses the bundled FFmpeg for full VP8/VP9 encode and decode.
-- Royalty-free — no patent licensing concerns.
+- Royalty-free - no patent licensing concerns.
 - Commonly used for web video (HTML5 `<video>` element).
 - Supports VP8, VP9, and AV1 video codecs; Vorbis and Opus audio.
 - Consider MP4/H.264 if cross-platform compatibility is required.

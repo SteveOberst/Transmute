@@ -6,8 +6,8 @@ Resize an image to exact dimensions with a configurable resample filter.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| targetWidth | Int | — | Desired output width in pixels |
-| targetHeight | Int | — | Desired output height in pixels |
+| targetWidth | Int | - | Desired output width in pixels |
+| targetHeight | Int | - | Desired output height in pixels |
 | filter | ResampleFilter | LANCZOS3 | Resampling filter algorithm |
 | allowUpscale | Boolean | false | Whether to upscale if source is smaller |
 
@@ -38,5 +38,5 @@ transform { add(Transformers.image().resize(800, 600, ResampleFilter.LANCZOS3)) 
 ## Notes
 
 - Kernel-based filtering with anti-aliasing applied automatically on downscale.
-- `allowUpscale = false` by default — images smaller than the target are returned unchanged.
+- `allowUpscale = false` by default - images smaller than the target are returned unchanged.
 - For aspect-ratio-preserving resize, use `scale` instead.

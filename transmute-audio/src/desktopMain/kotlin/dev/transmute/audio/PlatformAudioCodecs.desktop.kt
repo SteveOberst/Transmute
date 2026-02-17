@@ -12,12 +12,12 @@ actual fun installPlatformAudioCodecs(
   decoders: MutableAudioDecoderRegistry,
   encoders: MutableAudioEncoderRegistry,
 ) {
-  // Full codec — decode via JLayer, encode via Jump3r (LAME).
+  // Full codec - decode via JLayer, encode via Jump3r (LAME).
   val mp3Codec = JvmMp3Codec()
   decoders.register(mp3Codec)
   encoders.register(mp3Codec)
 
-  // Mixed codecs — pure-Java decode, FFmpeg encode (if available).
+  // Mixed codecs - pure-Java decode, FFmpeg encode (if available).
   val flacCodec = JvmFlacCodec()
   decoders.register(flacCodec)
   encoders.register(flacCodec) // no-op if FFmpeg unavailable

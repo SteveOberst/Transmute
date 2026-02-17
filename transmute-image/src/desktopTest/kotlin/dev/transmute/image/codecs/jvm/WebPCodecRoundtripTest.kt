@@ -54,7 +54,7 @@ class WebPCodecRoundtripTest {
 
   private inline fun requireWebpWriter(block: () -> Unit) {
     if (!canEncodeWebp) {
-      log.warn("SKIP: WebP writer not available on this JVM — encode/roundtrip tests skipped")
+      log.warn("SKIP: WebP writer not available on this JVM - encode/roundtrip tests skipped")
       return
     }
     block()
@@ -126,7 +126,7 @@ class WebPCodecRoundtripTest {
       assertEquals(64, decoded.height, "WebP: height mismatch after round-trip")
       assertEquals(PixelFormat.RGBA_8888, decoded.pixelFormat, "WebP: pixel format mismatch")
 
-      // WebP is lossy — check center pixel within tolerance
+      // WebP is lossy - check center pixel within tolerance
       val center = pixelAt(decoded, 32, 32)
       assertTrue(center[0] in 185..215, "WebP: R should be near 200, got ${center[0]}")
       assertTrue(center[1] in 85..115, "WebP: G should be near 100, got ${center[1]}")

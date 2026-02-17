@@ -113,7 +113,7 @@ object Transmute {
     VideoTransmuter(source).apply(block).transmute()
 
   /**
-   * Fully-typed transmutation entry point — lets callers parameterise the
+   * Fully-typed transmutation entry point - lets callers parameterise the
    * media domain without committing to a concrete transmuter class.
    *
    * ```

@@ -45,7 +45,7 @@ private class ByteArrayMediaDataSource(private val bytes: ByteArray) : MediaData
 }
 
 // ---------------------------------------------------------------------------
-// Shared decode logic — used by both decode-only and full codec classes.
+// Shared decode logic - used by both decode-only and full codec classes.
 // ---------------------------------------------------------------------------
 
 /**
@@ -232,7 +232,7 @@ private fun buildAdtsHeader(frameLength: Int, sampleRate: Int, channelCount: Int
 }
 
 // ---------------------------------------------------------------------------
-// Decode-only codecs — formats where Android has no encoder.
+// Decode-only codecs - formats where Android has no encoder.
 // ---------------------------------------------------------------------------
 
 internal abstract class AndroidMediaCodecAudioDecoder(
@@ -331,7 +331,7 @@ internal class AndroidMp3Codec : AudioCodec {
     gfp.brate = 128
     gfp.quality = 5 // QUALITY_MIDDLE
     gfp.write_id3tag_automatic = false
-    // Disable VBR/Info tag — not needed for in-memory encode and avoids
+    // Disable VBR/Info tag - not needed for in-memory encode and avoids
     // an intermittent NPE in VBRTag.setLameTagFrameHeader on Android/ART.
     gfp.bWriteVbrTag = false
     id3.id3tag_init(gfp)
@@ -376,7 +376,7 @@ internal class AndroidOggDecoder : AndroidMediaCodecAudioDecoder(AudioFormat.OGG
 }
 
 // ---------------------------------------------------------------------------
-// Full codecs — formats we can both decode AND encode on Android.
+// Full codecs - formats we can both decode AND encode on Android.
 // ---------------------------------------------------------------------------
 
 /**
@@ -495,7 +495,7 @@ internal class AndroidOpusCodec : AudioCodec {
     if (data[0] == 'O'.code.toByte() && data[1] == 'g'.code.toByte() &&
       data[2] == 'g'.code.toByte() && data[3] == 'S'.code.toByte()
     ) {
-      // Could be OGG/Vorbis too — check for "OpusHead" in first page.
+      // Could be OGG/Vorbis too - check for "OpusHead" in first page.
       if (data.size >= 36) {
         val header = String(data, 28, 8, Charsets.US_ASCII)
         if (header == "OpusHead") return AudioFormat.OPUS

@@ -47,7 +47,7 @@ class JvmImageCodecTest {
     assertEquals(64, decoded.height)
     assertEquals(PixelFormat.RGBA_8888, decoded.pixelFormat)
 
-    // PNG is lossless — RGB channels should be identical.
+    // PNG is lossless - RGB channels should be identical.
     // (Alpha channel may differ since PNG preserves it differently.)
     for (y in 0 until 64) {
       for (x in 0 until 64) {
@@ -74,7 +74,7 @@ class JvmImageCodecTest {
     assertEquals(0, left[0], "Left R should be 0")
     assertEquals(255, right[0], "Right R should be 255")
 
-    // Lossless — peak difference should be 0 for RGB
+    // Lossless - peak difference should be 0 for RGB
     val diff = peakDifference(
       adjustAlphaForComparison(original),
       adjustAlphaForComparison(decoded),

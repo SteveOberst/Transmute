@@ -92,7 +92,7 @@ internal class JvmWebmCodec : VideoCodec {
       if (content.contains("matroska")) return null // MKV, not WebM
       if (content.contains("webm")) return VideoFormat.WEBM
     }
-    // Short EBML data without identifiable doctype — assume WebM (more common)
+    // Short EBML data without identifiable doctype - assume WebM (more common)
     return VideoFormat.WEBM
   }
 

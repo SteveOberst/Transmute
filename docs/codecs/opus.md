@@ -26,7 +26,7 @@ val wavBytes = Transmute.audio(opusBytes) {
 
 ## Notes
 
-- **iOS does not support OPUS** — neither decode nor encode.
+- **iOS does not support OPUS** - neither decode nor encode.
 - Android decoding works on any supported API level; **encoding requires API 29+**.
 - Desktop uses the bundled FFmpeg for full encode + decode.
 - Best-in-class quality at low bitrates (6–510 kbps).

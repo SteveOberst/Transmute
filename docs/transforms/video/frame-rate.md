@@ -6,7 +6,7 @@ Change the frame rate of a video.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| targetFps | Double | — | Desired output frames per second |
+| targetFps | Double | - | Desired output frames per second |
 
 ## Usage
 
@@ -26,4 +26,4 @@ transform { add(Transformers.video().frameRate(30.0)) }
 
 - Frames are dropped or duplicated to match the target rate.
 - Audio track timing is unaffected (duration stays the same).
-- No motion interpolation — only nearest-frame selection.
+- No motion interpolation - only nearest-frame selection.

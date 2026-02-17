@@ -30,7 +30,7 @@ class ImageBrightnessContrastTransform(
 
   override suspend fun apply(ir: ImageIR, context: ConversionContext): ImageIR {
     if (brightness == 0f && contrast == 1f) {
-      context.logger.debug("ImageBrightnessContrastTransform: no adjustment — skipping")
+      context.logger.debug("ImageBrightnessContrastTransform: no adjustment - skipping")
       return ir
     }
 

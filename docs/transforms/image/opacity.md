@@ -6,7 +6,7 @@ Adjust the alpha channel of every pixel.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| opacity | Float | — | Opacity multiplier, 0.0 = fully transparent, 1.0 = unchanged |
+| opacity | Float | - | Opacity multiplier, 0.0 = fully transparent, 1.0 = unchanged |
 
 ## Usage
 

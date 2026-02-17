@@ -28,7 +28,7 @@ val webmBytes = Transmute.video(mp4Bytes) {
 
 - Full encode + decode support on all platforms.
 - Android uses hardware-accelerated MediaCodec for H.264.
-- Desktop relies on the bundled FFmpeg — no user setup needed.
+- Desktop relies on the bundled FFmpeg - no user setup needed.
 - iOS uses AVFoundation with hardware H.264 encode/decode.
 - The safest choice for maximum cross-platform and cross-device compatibility.
 - Supports H.264 (AVC) video codec with AAC audio by default.

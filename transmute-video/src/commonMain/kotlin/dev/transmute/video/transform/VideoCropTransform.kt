@@ -11,7 +11,7 @@ import dev.transmute.image.ByteArrayPixelBuffer
 /**
  * Crops video frames to a sub-region.
  *
- * Operates on each frame's [ByteArrayPixelBuffer] — the same row-copy
+ * Operates on each frame's [ByteArrayPixelBuffer] - the same row-copy
  * strategy used by [ImageCropTransform][dev.transmute.image.transform.ImageCropTransform].
  * Coordinates are clamped to frame bounds.
  *
@@ -39,12 +39,12 @@ class VideoCropTransform(
     val ch = cropHeight.coerceIn(0, track.height - cy)
 
     if (cw == 0 || ch == 0) {
-      context.logger.warn("VideoCropTransform: crop region is empty — returning original")
+      context.logger.warn("VideoCropTransform: crop region is empty - returning original")
       return ir
     }
 
     if (cx == 0 && cy == 0 && cw == track.width && ch == track.height) {
-      context.logger.debug("VideoCropTransform: crop region equals full frame — skipping")
+      context.logger.debug("VideoCropTransform: crop region equals full frame - skipping")
       return ir
     }
 

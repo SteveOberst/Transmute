@@ -9,7 +9,7 @@ import dev.transmute.core.pipeline.TransformId
 /**
  * Crops an [ImageIR] to a sub-region defined by [x], [y], [cropWidth], [cropHeight].
  *
- * The crop rectangle is clamped to image bounds — requesting a region that
+ * The crop rectangle is clamped to image bounds - requesting a region that
  * extends beyond the edge simply truncates at the edge.
  *
  * Operates on [ByteArrayPixelBuffer] with any [PixelFormat].
@@ -34,12 +34,12 @@ class ImageCropTransform(
     val ch = cropHeight.coerceIn(0, ir.height - cy)
 
     if (cw == 0 || ch == 0) {
-      context.logger.warn("ImageCropTransform: crop region is empty after clamping — returning original")
+      context.logger.warn("ImageCropTransform: crop region is empty after clamping - returning original")
       return ir
     }
 
     if (cx == 0 && cy == 0 && cw == ir.width && ch == ir.height) {
-      context.logger.debug("ImageCropTransform: crop region equals full image — skipping")
+      context.logger.debug("ImageCropTransform: crop region equals full image - skipping")
       return ir
     }
 

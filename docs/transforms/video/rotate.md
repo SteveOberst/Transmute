@@ -6,7 +6,7 @@ Rotate video frames by a fixed angle clockwise.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| degrees | Int | — | Rotation angle: 90, 180, or 270 |
+| degrees | Int | - | Rotation angle: 90, 180, or 270 |
 
 ## Usage
 

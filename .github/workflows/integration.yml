@@ -138,7 +138,7 @@ jobs:
           retention-days: 14
 
   # ──────────────────────────────────────────────
-  # Desktop Tests (macOS — also covers FFmpeg)
+  # Desktop Tests (macOS - also covers FFmpeg)
   # ──────────────────────────────────────────────
   desktop-tests:
     name: Desktop Tests (macOS)

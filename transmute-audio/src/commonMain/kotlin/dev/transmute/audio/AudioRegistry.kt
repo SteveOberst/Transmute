@@ -1,5 +1,6 @@
 package dev.transmute.audio
 
+import kotlin.concurrent.Volatile
 import dev.transmute.audio.codecs.WavDecoder
 import dev.transmute.audio.codecs.WavEncoder
 import dev.transmute.core.AudioFormat

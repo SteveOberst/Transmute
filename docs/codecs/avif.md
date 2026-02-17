@@ -31,5 +31,5 @@ val pngBytes = Transmute.image(avifBytes) {
 - Desktop encoding requires the bundled FFmpeg with `libaom-av1` support.
 - iOS has full AVIF support starting with iOS 16.
 - Encoding can be noticeably slower than JPEG/WebP due to AV1 complexity.
-- Royalty-free — no patent licensing concerns unlike HEIF.
+- Royalty-free - no patent licensing concerns unlike HEIF.
 - Supports HDR, wide color gamut, and alpha transparency.

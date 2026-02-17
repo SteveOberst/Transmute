@@ -4,7 +4,7 @@ Auto-rotate an image based on its EXIF orientation tag, then reset the tag to NO
 
 ## Parameters
 
-None — rotation is derived from the embedded EXIF orientation.
+None - rotation is derived from the embedded EXIF orientation.
 
 ## Usage
 

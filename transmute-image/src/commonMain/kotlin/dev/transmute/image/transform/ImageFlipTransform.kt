@@ -9,7 +9,7 @@ import dev.transmute.core.pipeline.TransformId
 /**
  * Flips an [ImageIR] horizontally, vertically, or both.
  *
- * A pure pixel-shuffle with no interpolation — lossless and fast.
+ * A pure pixel-shuffle with no interpolation - lossless and fast.
  * Supports any [PixelFormat][dev.transmute.image.PixelFormat] because it
  * operates on whole-pixel byte spans, not individual channels.
  *
@@ -25,7 +25,7 @@ class ImageFlipTransform(
 
   override suspend fun apply(ir: ImageIR, context: ConversionContext): ImageIR {
     if (!horizontal && !vertical) {
-      context.logger.debug("ImageFlipTransform: no flip axis specified — skipping")
+      context.logger.debug("ImageFlipTransform: no flip axis specified - skipping")
       return ir
     }
 

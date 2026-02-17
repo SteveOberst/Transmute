@@ -12,7 +12,7 @@ import dev.transmute.core.ImageFormat
  */
 interface ImageCodec : Codec<ImageFormat, ImageIR>
 
-// Split interfaces — kept for codecs that only decode or only encode
+// Split interfaces - kept for codecs that only decode or only encode
 // (e.g. platform decoders with no matching encoder).
 
 interface ImageDecoder {

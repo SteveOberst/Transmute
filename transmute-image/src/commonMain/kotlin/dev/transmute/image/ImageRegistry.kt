@@ -1,5 +1,6 @@
 package dev.transmute.image
 
+import kotlin.concurrent.Volatile
 import dev.transmute.core.Codec
 import dev.transmute.core.ImageFormat
 import dev.transmute.image.codecs.bmp.BmpImageDecoder

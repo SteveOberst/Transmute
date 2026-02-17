@@ -13,10 +13,10 @@ import kotlin.test.assertTrue
  * the real AVAssetReader / AVAssetWriter pipeline.
  *
  * Codecs under test:
- * - [IosMp3Decoder] — decode-only
- * - [IosFlacCodec] — encode + decode
- * - [IosAacCodec] — encode + decode
- * - [IosM4aCodec] — encode + decode
+ * - [IosMp3Decoder] - decode-only
+ * - [IosFlacCodec] - encode + decode
+ * - [IosAacCodec] - encode + decode
+ * - [IosM4aCodec] - encode + decode
  *
  * Run: `./gradlew :transmute-audio:iosSimulatorArm64Test`
  */

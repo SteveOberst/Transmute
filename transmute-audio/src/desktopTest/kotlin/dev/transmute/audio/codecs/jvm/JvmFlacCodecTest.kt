@@ -53,7 +53,7 @@ class JvmFlacCodecTest {
     @Test
     fun encodeDecodeFlacRoundTrip() = runTest {
         if (!FfmpegAudioEngine.available) {
-            log.warn("Skipping FLAC encode/decode test — FFmpeg not available")
+            log.warn("Skipping FLAC encode/decode test - FFmpeg not available")
             return@runTest
         }
 
@@ -75,7 +75,7 @@ class JvmFlacCodecTest {
         assertEquals(original.sampleRate, decoded.sampleRate)
         assertEquals(original.channelCount, decoded.channelCount)
 
-        // FLAC is lossless — samples should match closely (quantization diff only)
+        // FLAC is lossless - samples should match closely (quantization diff only)
         assertEquals(original.samples.data.size, decoded.samples.data.size,
             "Sample count should match for lossless codec")
         for (i in original.samples.data.indices) {
@@ -87,7 +87,7 @@ class JvmFlacCodecTest {
     @Test
     fun encodeThrowsWithoutFfmpeg() = runTest {
         if (FfmpegAudioEngine.available) {
-            log.warn("Skipping — FFmpeg is available, cannot test failure path")
+            log.warn("Skipping - FFmpeg is available, cannot test failure path")
             return@runTest
         }
 

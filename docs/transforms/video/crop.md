@@ -6,10 +6,10 @@ Crop video frames to a rectangular sub-region.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| x | Int | — | Left edge of crop region |
-| y | Int | — | Top edge of crop region |
-| width | Int | — | Width of crop region |
-| height | Int | — | Height of crop region |
+| x | Int | - | Left edge of crop region |
+| y | Int | - | Top edge of crop region |
+| width | Int | - | Width of crop region |
+| height | Int | - | Height of crop region |
 
 ## Usage
 

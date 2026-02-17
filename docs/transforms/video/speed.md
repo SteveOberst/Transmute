@@ -6,7 +6,7 @@ Change playback speed, adjusting both frame timing and audio.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| speed | Float | — | Speed multiplier; >1 = faster, <1 = slower |
+| speed | Float | - | Speed multiplier; >1 = faster, <1 = slower |
 
 ## Usage
 

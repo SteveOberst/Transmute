@@ -12,7 +12,7 @@ actual fun installPlatformAudioCodecs(
   // Decode-only formats (no iOS encoder available).
   decoders.register(IosMp3Decoder())
 
-  // Full codecs — hardware-accelerated decode + encode via AVAssetReader/Writer.
+  // Full codecs - hardware-accelerated decode + encode via AVAssetReader/Writer.
   val flacCodec = IosFlacCodec()
   decoders.register(flacCodec)
   encoders.register(flacCodec)

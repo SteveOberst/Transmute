@@ -88,7 +88,7 @@ class JvmVideoCodecSniffTest {
 
   @Test
   fun webmSniffsEbmlShort() {
-    // Short EBML header without doctype — defaults to WebM
+    // Short EBML header without doctype - defaults to WebM
     val data = byteArrayOf(
       0x1A.toByte(), 0x45.toByte(), 0xDF.toByte(), 0xA3.toByte(),
       0x00, 0x00, 0x00, 0x00,
@@ -170,7 +170,7 @@ class JvmVideoCodecSniffTest {
 
   @Test
   fun mkvRejectsShortEbml() {
-    // Short EBML without doctype — MKV requires explicit "matroska"
+    // Short EBML without doctype - MKV requires explicit "matroska"
     val data = byteArrayOf(
       0x1A.toByte(), 0x45.toByte(), 0xDF.toByte(), 0xA3.toByte(),
       0x00, 0x00, 0x00, 0x00,

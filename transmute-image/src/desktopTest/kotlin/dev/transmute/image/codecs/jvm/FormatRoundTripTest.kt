@@ -26,7 +26,7 @@ import kotlin.test.assertTrue
  * and multi-transform pipelines (crop + scale + rotate + encode + decode).
  *
  * These prove that the entire conversion chain works end-to-end with real
- * byte-level codecs — exactly what Transmute will do to iOS/Android photos.
+ * byte-level codecs - exactly what Transmute will do to iOS/Android photos.
  */
 class FormatRoundTripTest {
 
@@ -69,7 +69,7 @@ class FormatRoundTripTest {
     assertEquals(200, decoded.width)
     assertEquals(20, decoded.height)
 
-    // PNG is lossless — mean error should be 0 (ignoring alpha artefacts)
+    // PNG is lossless - mean error should be 0 (ignoring alpha artefacts)
     val mae = meanAbsoluteError(
       adjustAlphaForComparison(original),
       adjustAlphaForComparison(decoded),
@@ -88,7 +88,7 @@ class FormatRoundTripTest {
     assertEquals(120, decoded.width)
     assertEquals(120, decoded.height)
 
-    // JPEG is lossy — check pixel tolerance
+    // JPEG is lossy - check pixel tolerance
     val center = pixelAt(decoded, 60, 60)
     assertTrue(center[0] in 40..60, "R should be near 50, got ${center[0]}")
     assertTrue(center[1] in 140..160, "G should be near 150, got ${center[1]}")
@@ -138,7 +138,7 @@ class FormatRoundTripTest {
     assertEquals(100, decoded.width)
     assertEquals(100, decoded.height)
 
-    // Lossless — verify pixel values survive
+    // Lossless - verify pixel values survive
     val decodedLeft = pixelAt(decoded, 0, 0)
     assertEquals(50, decodedLeft[0], "Decoded crop left R should be ~50")
   }
@@ -166,7 +166,7 @@ class FormatRoundTripTest {
     assertEquals(150, decoded.width)
     assertEquals(200, decoded.height)
 
-    // Solid colour — JPEG tolerance
+    // Solid colour - JPEG tolerance
     val px = pixelAt(decoded, 75, 100)
     assertTrue(px[0] in 90..110, "R near 100, got ${px[0]}")
     assertTrue(px[1] in 190..210, "G near 200, got ${px[1]}")

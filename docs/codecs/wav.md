@@ -26,8 +26,8 @@ val aacBytes = Transmute.audio(wavBytes) {
 
 ## Notes
 
-- The WAV codec is **pure Kotlin** — identical behavior across all platforms with no native dependencies.
+- The WAV codec is **pure Kotlin** - identical behavior across all platforms with no native dependencies.
 - WAV files are uncompressed and can be very large (≈10 MB/min for 16-bit stereo at 44.1 kHz).
 - Supports standard PCM encoding (16-bit, 44.1 kHz stereo by default).
 - Commonly used as an intermediate format for lossless audio processing.
-- No quality parameter — WAV is always uncompressed/lossless.
+- No quality parameter - WAV is always uncompressed/lossless.

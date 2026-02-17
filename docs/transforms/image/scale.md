@@ -6,8 +6,8 @@ Fit an image within maximum bounds while preserving aspect ratio. Never upscales
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| maxWidth | Int | — | Maximum output width in pixels |
-| maxHeight | Int | — | Maximum output height in pixels |
+| maxWidth | Int | - | Maximum output width in pixels |
+| maxHeight | Int | - | Maximum output height in pixels |
 
 ## Usage
 

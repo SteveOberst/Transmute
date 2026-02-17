@@ -12,7 +12,7 @@ import dev.transmute.core.VideoFormat
  */
 interface VideoCodec : Codec<VideoFormat, VideoIR>
 
-// Split interfaces — kept for codecs that only decode or only encode.
+// Split interfaces - kept for codecs that only decode or only encode.
 
 interface VideoDecoder {
   val supportedFormats: Set<VideoFormat>

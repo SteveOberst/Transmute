@@ -147,7 +147,7 @@ internal object FfmpegVideoEngine {
       }
     } else null
 
-    // Create streaming frame reader (owns tmpIn — deletes when exhausted)
+    // Create streaming frame reader (owns tmpIn - deletes when exhausted)
     val frameStream = FfmpegFrameStream(
       inputFile = tmpIn,
       width = info.width,

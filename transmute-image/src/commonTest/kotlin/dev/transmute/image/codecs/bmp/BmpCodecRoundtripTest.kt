@@ -89,7 +89,7 @@ class BmpCodecRoundtripTest {
     assertEquals(0, left[0], "BMP: left gradient R should be 0")
     assertEquals(255, right[0], "BMP: right gradient R should be 255")
 
-    // Lossless — compare RGB channels only
+    // Lossless - compare RGB channels only
     // (alpha ignored: encoder writes 24-bit, decoder sets alpha to 0xFF)
     val diff = peakDifference(
       original.adjustAlphaTo0xFF(),

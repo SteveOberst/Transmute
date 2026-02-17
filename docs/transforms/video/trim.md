@@ -6,7 +6,7 @@ Trim a video to a specific time range.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| startMs | Long | — | Start time in milliseconds |
+| startMs | Long | - | Start time in milliseconds |
 | endMs | Long? | null | End time in milliseconds; `null` means end of video |
 
 ## Usage
