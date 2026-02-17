@@ -1,5 +1,7 @@
 package dev.transmute.core
 
+import kotlin.concurrent.Volatile
+
 /**
  * Log levels for Transmute operations, ordered by increasing severity.
  *

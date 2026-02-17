@@ -26,7 +26,7 @@ val wavBytes = Transmute.audio(oggBytes) {
 
 ## Notes
 
-- **iOS does not support OGG Vorbis** — neither decode nor encode.
+- **iOS does not support OGG Vorbis** - neither decode nor encode.
 - Android can **decode** OGG but cannot encode to it.
 - Desktop decoding uses jorbis (pure-Java); encoding uses the bundled FFmpeg.
 - Royalty-free alternative to MP3 and AAC.

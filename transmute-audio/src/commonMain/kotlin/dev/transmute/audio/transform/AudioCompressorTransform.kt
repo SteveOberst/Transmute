@@ -9,7 +9,7 @@ import kotlin.math.abs
 import kotlin.math.pow
 
 /**
- * Dynamic range compressor — reduces the volume difference between
+ * Dynamic range compressor - reduces the volume difference between
  * loud and quiet parts of the audio.
  *
  * Works by applying gain reduction to samples that exceed [thresholdDb].
@@ -40,7 +40,7 @@ class AudioCompressorTransform(
 
   override suspend fun apply(ir: AudioIR, context: ConversionContext): AudioIR {
     if (ratio <= 1f) {
-      context.logger.debug("AudioCompressorTransform: ratio ≤ 1 — skipping")
+      context.logger.debug("AudioCompressorTransform: ratio ≤ 1 - skipping")
       return ir
     }
 
@@ -57,7 +57,7 @@ class AudioCompressorTransform(
     val thresholdLin = 10.0.pow(thresholdDb / 20.0).toFloat()
     val makeupLin = 10.0.pow(makeupGainDb / 20.0).toFloat()
 
-    // Smoothing coefficients — derived from the time constants.
+    // Smoothing coefficients - derived from the time constants.
     // α = 1 − e^(−1/(SR×T)) where T is in seconds.
     val attackCoeff = 1f - kotlin.math.exp(-1.0 / (sampleRate * attackMs / 1000.0)).toFloat()
     val releaseCoeff = 1f - kotlin.math.exp(-1.0 / (sampleRate * releaseMs / 1000.0)).toFloat()
@@ -72,7 +72,7 @@ class AudioCompressorTransform(
         peak = maxOf(peak, abs(samples[frame * channelCount + ch]))
       }
 
-      // Envelope follower — fast attack, slow release.
+      // Envelope follower - fast attack, slow release.
       val coeff = if (peak > envelope) attackCoeff else releaseCoeff
       envelope += coeff * (peak - envelope)
 

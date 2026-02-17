@@ -29,7 +29,7 @@ val wavBytes = Transmute.audio(m4aBytes) {
 - Full encode + decode support on all platforms.
 - M4A is essentially an MP4 container with audio-only content (typically AAC).
 - Android uses hardware-accelerated MediaCodec.
-- Desktop relies on the bundled FFmpeg — no user setup needed.
+- Desktop relies on the bundled FFmpeg - no user setup needed.
 - iOS has native support via AVFoundation / AVAssetWriter.
 - Preferred over raw AAC when metadata (tags, album art) is needed.
 - Functionally equivalent to AAC in most conversion scenarios.

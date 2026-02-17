@@ -6,8 +6,8 @@ Fit video frames within maximum bounds while preserving aspect ratio.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| maxWidth | Int | — | Maximum output width in pixels |
-| maxHeight | Int | — | Maximum output height in pixels |
+| maxWidth | Int | - | Maximum output width in pixels |
+| maxHeight | Int | - | Maximum output height in pixels |
 
 ## Usage
 
@@ -27,4 +27,4 @@ transform { add(Transformers.video().resize(1280, 720)) }
 
 - Aspect ratio is always preserved; the video fits within the bounding box.
 - Dimensions are rounded to even numbers (required by most video codecs).
-- Does not upscale — if the video is already smaller, it is returned unchanged.
+- Does not upscale - if the video is already smaller, it is returned unchanged.

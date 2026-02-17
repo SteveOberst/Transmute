@@ -98,7 +98,7 @@ class JvmImageIoDecoderSniffTest {
 
   @Test
   fun sniffRejectsHeicNotSupported() {
-    // JvmImageIoDecoder does not support HEIC — should return null
+    // JvmImageIoDecoder does not support HEIC - should return null
     val data = ByteArray(16)
     data[4] = 0x66; data[5] = 0x74; data[6] = 0x79; data[7] = 0x70 // ftyp
     data[8] = 0x68; data[9] = 0x65; data[10] = 0x69; data[11] = 0x63 // heic

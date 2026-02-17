@@ -42,7 +42,7 @@ interface PipelineExecutor {
   suspend fun execute(plan: ConversionPlan, context: ConversionContext): Result<Unit>
 }
 
-/** Reference implementation — walks stages, delegates to registries. */
+/** Reference implementation - walks stages, delegates to registries. */
 class DefaultPipelineExecutor(
   private val transformRegistry: TransformRegistry,
 ) : PipelineExecutor {
@@ -78,7 +78,7 @@ class DefaultPipelineExecutor(
  * A single step in a media conversion pipeline.
  *
  * Transforms are generic over the intermediate representation (IR) type,
- * ensuring type safety — an image transform cannot accidentally receive
+ * ensuring type safety - an image transform cannot accidentally receive
  * audio data.
  */
 interface Transform<IR> {

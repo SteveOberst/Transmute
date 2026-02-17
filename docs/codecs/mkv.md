@@ -26,9 +26,9 @@ val mp4Bytes = Transmute.video(mkvBytes) {
 
 ## Notes
 
-- **Desktop only** — no Android or iOS support.
+- **Desktop only** - no Android or iOS support.
 - Requires the bundled FFmpeg on Desktop; no user setup needed.
-- Extremely flexible container — supports H.264, H.265, VP9, AV1, and many more codecs.
+- Extremely flexible container - supports H.264, H.265, VP9, AV1, and many more codecs.
 - Open-source and royalty-free (Matroska specification).
 - Supports multiple audio tracks, subtitles, chapters, and rich metadata.
 - Popular for media archival and high-quality video distribution.

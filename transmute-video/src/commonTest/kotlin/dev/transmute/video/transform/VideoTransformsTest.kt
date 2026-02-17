@@ -197,7 +197,7 @@ class VideoCropTransformTest {
     val result = VideoCropTransform(x = 0, y = 0, cropWidth = 320, cropHeight = 240)
       .apply(video, context)
 
-    // Same dimensions — transform should skip.
+    // Same dimensions - transform should skip.
     assertEquals(320, result.videoTrack.width)
     assertEquals(240, result.videoTrack.height)
   }

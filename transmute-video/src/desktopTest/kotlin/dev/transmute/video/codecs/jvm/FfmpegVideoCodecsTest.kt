@@ -15,7 +15,7 @@ import kotlinx.coroutines.test.runTest
 /**
  * Integration tests for FFmpeg-backed video codecs on desktop/JVM.
  *
- * All tests are gated on FFmpeg availability — they skip gracefully when
+ * All tests are gated on FFmpeg availability - they skip gracefully when
  * FFmpeg is not on PATH (same pattern as [FfmpegAudioCodecsTest] in the
  * audio module).
  */
@@ -31,7 +31,7 @@ class FfmpegVideoCodecsTest {
    */
   private inline fun requireFfmpeg(block: () -> Unit) {
     if (!hasFfmpeg) {
-      log.warn("SKIPPED — FFmpeg not found on PATH")
+      log.warn("SKIPPED - FFmpeg not found on PATH")
       return
     }
     VideoRegistries.installDefaultsIfEmpty()

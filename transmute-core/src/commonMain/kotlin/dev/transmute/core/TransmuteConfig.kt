@@ -7,13 +7,13 @@ import kotlin.concurrent.Volatile
  *
  * Every property has a sensible default so the library works out of the box
  * without any configuration.  Override properties **before** performing any
- * conversions — typically during application initialisation.
+ * conversions - typically during application initialisation.
  *
  * ## FFmpeg
  *
  * Desktop/JVM codecs that depend on FFmpeg (audio: AAC, M4A, OPUS, OGG,
  * FLAC encode; image: HEIF, AVIF; video: all formats) use a **bundled**
- * static FFmpeg build by default — no setup required.
+ * static FFmpeg build by default - no setup required.
  *
  * ```kotlin
  * // Point at a system-installed FFmpeg instead of the bundled one
@@ -29,7 +29,7 @@ import kotlin.concurrent.Volatile
  * TransmuteConfig.ffmpeg = FfmpegConfig.Bundled
  * ```
  *
- * Changing [ffmpeg] at runtime is safe — the resolved binary path is
+ * Changing [ffmpeg] at runtime is safe - the resolved binary path is
  * invalidated and re-evaluated lazily on next use.
  */
 object TransmuteConfig {
@@ -80,7 +80,7 @@ object TransmuteConfig {
  * ```
  *
  * FFmpeg configuration only affects desktop/JVM targets.  Android uses
- * `MediaCodec` and iOS uses `AVFoundation` — neither requires FFmpeg.
+ * `MediaCodec` and iOS uses `AVFoundation` - neither requires FFmpeg.
  */
 sealed class FfmpegConfig {
 

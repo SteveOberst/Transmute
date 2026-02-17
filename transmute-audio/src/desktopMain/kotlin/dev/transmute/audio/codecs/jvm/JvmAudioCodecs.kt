@@ -258,10 +258,10 @@ class JvmOggVorbisCodec : AudioCodec {
       ) {
         return AudioFormat.OGG
       }
-      // Enough data but no Vorbis header — might be Opus or another OGG codec.
+      // Enough data but no Vorbis header - might be Opus or another OGG codec.
       return null
     }
-    // Short OGG header (can't determine inner codec) — report as OGG container.
+    // Short OGG header (can't determine inner codec) - report as OGG container.
     return AudioFormat.OGG
   }
 

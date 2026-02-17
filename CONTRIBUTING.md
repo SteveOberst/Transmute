@@ -1,7 +1,7 @@
     # Contributing to Transmute
 
 Thank you for your interest in contributing to Transmute! This guide covers everything
-you need to know — from setting up your environment to adding new codecs and submitting
+you need to know - from setting up your environment to adding new codecs and submitting
 a pull request.
 
 ## Table of Contents
@@ -26,7 +26,7 @@ a pull request.
 | JDK         | 17                      | Temurin or any standard JDK                                                        |
 | Android SDK | API 26+ (compileSdk 35) | Required for Android targets                                                       |
 | Kotlin      | 2.2.21                  | Managed by Gradle version catalog                                                  |
-| FFmpeg      | 6.x                     | Optional — bundled by default; needed if running desktop integration tests locally |
+| FFmpeg      | 6.x                     | Optional - bundled by default; needed if running desktop integration tests locally |
 
 ### Clone & Build
 
@@ -130,11 +130,11 @@ which drive automatic changelog generation and semantic versioning via
 |-------------------|------------------------------|-------------------------|
 | `feat`            | New feature                  | Minor (0.x → 0.x+1)     |
 | `fix`             | Bug fix                      | Patch (0.1.x → 0.1.x+1) |
-| `docs`            | Documentation only           | —                       |
-| `test`            | Adding/updating tests        | —                       |
-| `refactor`        | Code change (no feature/fix) | —                       |
-| `chore`           | Build/CI/tooling             | —                       |
-| `perf`            | Performance improvement      | —                       |
+| `docs`            | Documentation only           | -                       |
+| `test`            | Adding/updating tests        | -                       |
+| `refactor`        | Code change (no feature/fix) | -                       |
+| `chore`           | Build/CI/tooling             | -                       |
+| `perf`            | Performance improvement      | -                       |
 | `BREAKING CHANGE` | Breaking API change          | Major (0.x → 1.0)       |
 
 ### Scopes
@@ -201,7 +201,7 @@ implementation("com.github.SteveOberst.Transmute:transmute-api:<version>")
 ## Adding a New Codec
 
 This is the most common contribution. Follow these steps to add a codec
-properly — the process is the same regardless of media domain (image, audio,
+properly - the process is the same regardless of media domain (image, audio,
 video).
 
 ### 1. Check the Format Enum
@@ -229,7 +229,7 @@ is recognized, or `null` otherwise.
 **Sniff conventions:**
 - Fast, side-effect free, and tolerant of short inputs
 - Prefer conservative matching (avoid false positives)
-- Never throw — return `null` when unsure
+- Never throw - return `null` when unsure
 
 ```kotlin
 override fun sniff(data: ByteArray): AudioFormat? {
@@ -318,8 +318,8 @@ class JvmAlacCodecTest {
 
 ### 6. Update Documentation
 
-1. **README.md** — Update the platform support table with the new format
-2. **README.md** — Add the new integration test to the test tables
+1. **README.md** - Update the platform support table with the new format
+2. **README.md** - Add the new integration test to the test tables
 3. Release notes are handled automatically by release-please
 
 ### Codec Checklist
@@ -459,7 +459,7 @@ VideoTestHelpers.syntheticVideo(width = 64, height = 48, durationMs = 300)
 ```kotlin
 private inline fun requireFfmpeg(block: () -> Unit) {
   if (!FfmpegResolver.available) {
-    println("SKIPPED — FFmpeg not available")
+    println("SKIPPED - FFmpeg not available")
     return
   }
   block()
@@ -503,24 +503,24 @@ This includes:
 - Desktop tests with FFmpeg installed on macOS
 
 **Releases** are managed by release-please. When a release is created,
-the integration test workflow runs first as a gate — artifacts are only
+the integration test workflow runs first as a gate - artifacts are only
 published if all integration tests pass.
 
 ---
 
 ## Code Style
 
-- **Kotlin** — follow standard Kotlin coding conventions
-- **Visibility** — codec implementation classes are `internal`; only the
+- **Kotlin** - follow standard Kotlin coding conventions
+- **Visibility** - codec implementation classes are `internal`; only the
   registration function and the `Codec`/`Decoder`/`Encoder` interfaces
   are public
-- **Naming** — platform codecs are prefixed: `Jvm*`, `Android*`, `Ios*`
-- **Error handling** — throw `IllegalStateException` or
+- **Naming** - platform codecs are prefixed: `Jvm*`, `Android*`, `Ios*`
+- **Error handling** - throw `IllegalStateException` or
   `IllegalArgumentException` for invariant violations; let codec errors
   propagate naturally
-- **Coroutines** — all `decode`/`encode` functions are `suspend`;
+- **Coroutines** - all `decode`/`encode` functions are `suspend`;
   use `withContext(Dispatchers.IO)` for blocking I/O on JVM
-- **No golden files** — generate test fixtures in code via `TestHelpers`
+- **No golden files** - generate test fixtures in code via `TestHelpers`
 
 ---
 
@@ -534,7 +534,7 @@ published if all integration tests pass.
 3. Ensure all tests pass: `./gradlew check`
 4. Commit using conventional commits
 5. Open a PR against `main`
-6. CI will run automatically — fix any failures
+6. CI will run automatically - fix any failures
 7. A maintainer will review and merge
 
 Thank you for contributing!

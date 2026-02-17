@@ -27,10 +27,10 @@ val jpegBytes = Transmute.image(bmpBytes) {
 
 ## Notes
 
-- The BMP **encoder** is pure Kotlin — consistent behavior across all platforms.³
+- The BMP **encoder** is pure Kotlin - consistent behavior across all platforms.³
 - Decoding uses each platform's native image decoder.
 - BMP files are uncompressed and can be very large.
-- `quality()` has no effect — BMP is always uncompressed.
+- `quality()` has no effect - BMP is always uncompressed.
 - Does not support transparency in encoded output.
 - Useful as an intermediate format when pixel-perfect fidelity is needed.
 

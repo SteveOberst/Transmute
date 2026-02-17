@@ -1,5 +1,6 @@
 package dev.transmute.video
 
+import kotlin.concurrent.Volatile
 import dev.transmute.core.Codec
 import dev.transmute.core.VideoFormat
 

@@ -46,7 +46,7 @@ kotlin {
         val desktopTest by getting
 
         desktopMain.dependencies {
-            // TwelveMonkeys ImageIO plugins — pure-Java SPI, auto-register on classpath
+            // TwelveMonkeys ImageIO plugins - pure-Java SPI, auto-register on classpath
             implementation("com.twelvemonkeys.imageio:imageio-webp:3.13.0")
             implementation("com.twelvemonkeys.imageio:imageio-tiff:3.13.0")
         }

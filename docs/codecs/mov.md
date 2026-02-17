@@ -30,6 +30,6 @@ val mp4Bytes = Transmute.video(movBytes) {
 - MOV and MP4 share the same underlying ISO Base Media File Format (ISOBMFF).
 - Android handles MOV via MediaCodec (treated similarly to MP4).
 - Desktop uses the bundled FFmpeg for full support.
-- iOS has native MOV support — it is the default capture format for the camera.
+- iOS has native MOV support - it is the default capture format for the camera.
 - Supports H.264, H.265/HEVC, and ProRes video codecs.
 - Converting MOV ↔ MP4 is often a fast container remux with no re-encoding.

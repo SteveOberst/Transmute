@@ -6,7 +6,7 @@ Trim audio to a specific time range.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| startMs | Long | — | Start time in milliseconds |
+| startMs | Long | - | Start time in milliseconds |
 | endMs | Long? | null | End time in milliseconds; `null` means end of audio |
 
 ## Usage
@@ -27,4 +27,4 @@ transform { add(Transformers.audio().trim(1000, 5000)) }
 
 - `endMs = null` trims from `startMs` to the end of the file.
 - Values exceeding the audio duration are clamped.
-- Sample-accurate — the nearest sample boundary is used.
+- Sample-accurate - the nearest sample boundary is used.

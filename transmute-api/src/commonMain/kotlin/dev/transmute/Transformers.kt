@@ -22,7 +22,7 @@ import dev.transmute.video.transform.*
  * ```
  *
  * Custom transforms that implement [Transform][dev.transmute.core.pipeline.Transform]
- * can be added to any pipeline without registration — just pass instances
+ * can be added to any pipeline without registration - just pass instances
  * directly to `add()`, `before<T>()`, etc.
  */
 object Transformers {
@@ -48,7 +48,7 @@ object ImageTransforms {
   /**
    * Resize to exact [targetWidth]×[targetHeight] using a configurable resample [filter].
    *
-   * Unlike [scale], this does **not** preserve aspect ratio — it resizes to the
+   * Unlike [scale], this does **not** preserve aspect ratio - it resizes to the
    * exact dimensions specified. Set [allowUpscale] to `false` to skip images
    * that are already smaller than the target.
    */

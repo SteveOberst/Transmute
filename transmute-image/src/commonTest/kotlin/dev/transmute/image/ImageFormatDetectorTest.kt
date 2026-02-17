@@ -7,7 +7,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 /**
- * Tests for [ImageFormatDetector] — validates magic-byte detection for
+ * Tests for [ImageFormatDetector] - validates magic-byte detection for
  * every image format commonly encountered on iOS and Android.
  */
 class ImageFormatDetectorTest {

@@ -6,7 +6,7 @@ Change the sample rate of audio data.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| targetSampleRate | Int | — | Desired output sample rate in Hz |
+| targetSampleRate | Int | - | Desired output sample rate in Hz |
 
 ## Usage
 

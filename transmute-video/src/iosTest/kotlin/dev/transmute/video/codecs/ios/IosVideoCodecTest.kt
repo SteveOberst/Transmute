@@ -14,8 +14,8 @@ import kotlin.test.assertTrue
  * pipeline.
  *
  * Codecs under test:
- * - [IosMp4Codec] — H.264 + AAC in MP4 container
- * - [IosMovCodec] — H.264 + AAC in MOV container
+ * - [IosMp4Codec] - H.264 + AAC in MP4 container
+ * - [IosMovCodec] - H.264 + AAC in MOV container
  *
  * Run: `./gradlew :transmute-video:iosSimulatorArm64Test`
  */

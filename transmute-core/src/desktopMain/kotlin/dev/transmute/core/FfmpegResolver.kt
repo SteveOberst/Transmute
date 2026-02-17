@@ -8,11 +8,11 @@ import java.io.FileOutputStream
  *
  * Depending on [TransmuteConfig.ffmpeg] this will:
  *
- * - **Bundled** — extract the platform-appropriate FFmpeg/FFprobe static binary
+ * - **Bundled** - extract the platform-appropriate FFmpeg/FFprobe static binary
  *   from classpath resources to a cache directory and return paths to them.
- * - **System** — return the user-specified paths (or just `"ffmpeg"` / `"ffprobe"`
+ * - **System** - return the user-specified paths (or just `"ffmpeg"` / `"ffprobe"`
  *   for PATH lookup).
- * - **Disabled** — mark FFmpeg as unavailable.
+ * - **Disabled** - mark FFmpeg as unavailable.
  *
  * The bundled binaries are stored in the classpath under
  * `ffmpeg/<os>-<arch>/ffmpeg[.exe]` and `ffmpeg/<os>-<arch>/ffprobe[.exe]`.
@@ -52,7 +52,7 @@ object FfmpegResolver {
    * changes or on first access.
    */
   fun resolve() {
-    // Fast path — already resolved and config hasn't changed.
+    // Fast path - already resolved and config hasn't changed.
     if (resolved && TransmuteConfig.resolvedFfmpegPath != null) return
 
     synchronized(lock) {
@@ -118,7 +118,7 @@ object FfmpegResolver {
 
     val stream = javaClass.classLoader?.getResourceAsStream(resourcePath)
       ?: FfmpegResolver::class.java.getResourceAsStream("/$resourcePath")
-      ?: return // resource not found — skip silently
+      ?: return // resource not found - skip silently
 
     target.parentFile?.mkdirs()
     FileOutputStream(target).use { out ->

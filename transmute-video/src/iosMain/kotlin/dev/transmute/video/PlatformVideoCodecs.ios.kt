@@ -7,12 +7,12 @@ actual fun installPlatformVideoCodecs(
   decoders: MutableVideoDecoderRegistry,
   encoders: MutableVideoEncoderRegistry,
 ) {
-  // MP4 — full codec (H.264/AAC via AVFoundation)
+  // MP4 - full codec (H.264/AAC via AVFoundation)
   val mp4 = IosMp4Codec()
   decoders.register(mp4)
   encoders.register(mp4)
 
-  // MOV — full codec (H.264/AAC via AVFoundation)
+  // MOV - full codec (H.264/AAC via AVFoundation)
   val mov = IosMovCodec()
   decoders.register(mov)
   encoders.register(mov)

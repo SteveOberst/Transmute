@@ -193,14 +193,14 @@ class JvmImageIoEncoder : ImageEncoder {
   ): ByteArray {
     val q = quality.coerceIn(0.0f, 1.0f)
 
-    // WebP supports alpha — use ABGR for full transparency support.
+    // WebP supports alpha - use ABGR for full transparency support.
     val image = BufferedImage(width, height, BufferedImage.TYPE_4BYTE_ABGR)
     val abgr = rgbaToAbgr(buffer.data)
     val dest = (image.raster.dataBuffer as DataBufferByte).data
     System.arraycopy(abgr, 0, dest, 0, abgr.size)
 
     val writer = ImageIO.getImageWritersByFormatName("webp").asSequence().firstOrNull()
-      ?: error("No ImageIO WebP writer available — ensure TwelveMonkeys imageio-webp is on the classpath")
+      ?: error("No ImageIO WebP writer available - ensure TwelveMonkeys imageio-webp is on the classpath")
     val param = writer.defaultWriteParam.apply {
       if (canWriteCompressed()) {
         compressionMode = ImageWriteParam.MODE_EXPLICIT
@@ -230,7 +230,7 @@ class JvmImageIoEncoder : ImageEncoder {
     dropAlpha: Boolean,
   ): ByteArray {
     val image = if (dropAlpha) {
-      // GIF doesn't support full alpha — drop to RGB
+      // GIF doesn't support full alpha - drop to RGB
       val img = BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
       val rgba = buffer.data
       for (y in 0 until height) {

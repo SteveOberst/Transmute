@@ -10,7 +10,7 @@ import dev.transmute.core.pipeline.TransformId
 /**
  * Applies a box blur to an [ImageIR].
  *
- * Box blur is separable — we run a 1-D horizontal pass then a 1-D
+ * Box blur is separable - we run a 1-D horizontal pass then a 1-D
  * vertical pass, each O(width×height) regardless of [radius]. This
  * keeps the total cost O(N) instead of the O(N×R²) of a naive 2-D kernel.
  *
@@ -29,7 +29,7 @@ class ImageBlurTransform(
 
   override suspend fun apply(ir: ImageIR, context: ConversionContext): ImageIR {
     if (radius <= 0) {
-      context.logger.debug("ImageBlurTransform: radius ≤ 0 — skipping")
+      context.logger.debug("ImageBlurTransform: radius ≤ 0 - skipping")
       return ir
     }
 
@@ -100,7 +100,7 @@ class ImageBlurTransform(
     }
 
     /**
-     * Sliding-window vertical blur — identical strategy, transposed.
+     * Sliding-window vertical blur - identical strategy, transposed.
      */
     internal fun verticalPass(
       src: ByteArray, w: Int, h: Int, stride: Int, bpp: Int, channels: Int, r: Int,

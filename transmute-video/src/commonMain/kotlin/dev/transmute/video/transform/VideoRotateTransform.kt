@@ -13,7 +13,7 @@ import dev.transmute.image.ByteArrayPixelBuffer
  *
  * Uses the same pure pixel-shuffle approach as
  * [ImageRotateTransform][dev.transmute.image.transform.ImageRotateTransform].
- * No interpolation — every source pixel maps exactly to one destination pixel.
+ * No interpolation - every source pixel maps exactly to one destination pixel.
  *
  * For 90° and 270° rotations, frame width and height are swapped
  * and the video track dimensions are updated accordingly.

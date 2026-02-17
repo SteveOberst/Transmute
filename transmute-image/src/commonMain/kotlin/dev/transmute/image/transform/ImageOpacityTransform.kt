@@ -11,7 +11,7 @@ import dev.transmute.core.pipeline.TransformId
  * Adjusts the opacity (alpha channel) of an [ImageIR].
  *
  * If the source pixel format is [PixelFormat.RGB_888] (no alpha), the
- * image is first promoted to [PixelFormat.RGBA_8888] — the caller only
+ * image is first promoted to [PixelFormat.RGBA_8888] - the caller only
  * pays for the extra byte-per-pixel when opacity is actually needed.
  *
  * @param opacity Multiplier for the alpha channel (0.0 = fully transparent, 1.0 = unchanged).
@@ -24,7 +24,7 @@ class ImageOpacityTransform(
 
   override suspend fun apply(ir: ImageIR, context: ConversionContext): ImageIR {
     if (opacity == 1f) {
-      context.logger.debug("ImageOpacityTransform: opacity=1.0 — skipping")
+      context.logger.debug("ImageOpacityTransform: opacity=1.0 - skipping")
       return ir
     }
 
@@ -78,7 +78,7 @@ class ImageOpacityTransform(
       }
 
       else -> {
-        context.logger.warn("ImageOpacityTransform: unsupported pixel format ${ir.pixelFormat} — skipping")
+        context.logger.warn("ImageOpacityTransform: unsupported pixel format ${ir.pixelFormat} - skipping")
         ir
       }
     }

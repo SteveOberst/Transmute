@@ -26,7 +26,7 @@ val wavBytes = Transmute.audio(flacBytes) {
 
 ## Notes
 
-- Lossless compression — fully reversible to original PCM audio.
+- Lossless compression - fully reversible to original PCM audio.
 - Android uses MediaCodec for hardware-accelerated encode and decode.
 - Desktop decoding uses jflac-codec (pure-Java); encoding uses the bundled FFmpeg.
 - iOS encodes via AVAssetWriter with native support.

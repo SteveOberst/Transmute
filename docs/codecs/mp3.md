@@ -29,6 +29,6 @@ val wavBytes = Transmute.audio(mp3Bytes) {
 - iOS can **decode** MP3 but cannot encode to it.
 - Android decoding uses the hardware-accelerated MediaCodec pipeline.
 - Desktop decode uses JLayer; encode uses jump3r (pure-Java LAME port).
-- Lossy compression — re-encoding degrades quality.
+- Lossy compression - re-encoding degrades quality.
 - Supports bitrates from 32 kbps to 320 kbps.
 - The most universally compatible audio format across devices and players.

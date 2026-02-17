@@ -75,11 +75,11 @@ data class ColorInfo(
 enum class Colorspace { SRGB, DISPLAY_P3, REC_2020, ADOBE_RGB }
 enum class TransferFunction { SRGB, LINEAR, PQ, HLG }
 enum class Orientation {
-  /** No rotation needed — pixels are stored top-left first. */
+  /** No rotation needed - pixels are stored top-left first. */
   NORMAL,
-  /** 90° clockwise (EXIF 6 — common for portrait photos on iOS). */
+  /** 90° clockwise (EXIF 6 - common for portrait photos on iOS). */
   ROTATE_90,
-  /** 180° (EXIF 3 — upside-down). */
+  /** 180° (EXIF 3 - upside-down). */
   ROTATE_180,
   /** 270° clockwise / 90° counter-clockwise (EXIF 8). */
   ROTATE_270,

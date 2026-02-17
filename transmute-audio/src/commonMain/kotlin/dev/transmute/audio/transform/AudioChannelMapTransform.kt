@@ -7,15 +7,15 @@ import dev.transmute.core.pipeline.Transform
 import dev.transmute.core.pipeline.TransformId
 
 /**
- * Remaps audio channels — swap L/R, duplicate mono to stereo, or
+ * Remaps audio channels - swap L/R, duplicate mono to stereo, or
  * select specific channels from a multi-channel source.
  *
  * The [mapping] array defines which source channel feeds each output
  * channel. `mapping[outputCh] = sourceCh`. For example:
  *
- * - Swap stereo: `intArrayOf(1, 0)` — right → left, left → right
- * - Mono → stereo: `intArrayOf(0, 0)` — duplicate channel 0
- * - Pick centre from 5.1: `intArrayOf(2)` — extract channel 2 only
+ * - Swap stereo: `intArrayOf(1, 0)` - right → left, left → right
+ * - Mono → stereo: `intArrayOf(0, 0)` - duplicate channel 0
+ * - Pick centre from 5.1: `intArrayOf(2)` - extract channel 2 only
  *
  * Source indices that exceed the actual channel count wrap around
  * (modulo) to prevent crashes from misconfigured mappings.
@@ -33,7 +33,7 @@ class AudioChannelMapTransform(
     val dstChannels = mapping.size
 
     if (dstChannels == srcChannels && mapping.indices.all { mapping[it] == it }) {
-      context.logger.debug("AudioChannelMapTransform: identity mapping — skipping")
+      context.logger.debug("AudioChannelMapTransform: identity mapping - skipping")
       return ir
     }
 

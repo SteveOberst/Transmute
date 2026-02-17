@@ -98,7 +98,7 @@ private fun rgbaToNv12(rgba: ByteArray, width: Int, height: Int): ByteArray {
 }
 
 // ---------------------------------------------------------------------------
-// Shared decode logic — extract all video frames + audio via MediaCodec
+// Shared decode logic - extract all video frames + audio via MediaCodec
 // ---------------------------------------------------------------------------
 
 private fun decodeVideoWithMediaCodec(source: ByteArray): Pair<List<VideoFrame>, Pair<Int, MediaFormat?>> {
@@ -677,7 +677,7 @@ internal class AndroidMovCodec : VideoCodec {
 }
 
 // ---------------------------------------------------------------------------
-// WebM Decoder (VP8 decode — encode not reliably supported on all devices)
+// WebM Decoder (VP8 decode - encode not reliably supported on all devices)
 // ---------------------------------------------------------------------------
 
 internal class AndroidWebmDecoder : dev.transmute.video.VideoDecoder {

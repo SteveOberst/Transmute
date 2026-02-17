@@ -18,12 +18,12 @@ val pngBytes = Transmute.image(inputBytes) {
     outputFormat(ImageFormat.PNG)
 }
 
-// quality() has no effect on PNG — compression is always lossless
+// quality() has no effect on PNG - compression is always lossless
 ```
 
 ## Notes
 
-- Lossless compression — no quality degradation on re-encode.
+- Lossless compression - no quality degradation on re-encode.
 - Supports full alpha transparency (RGBA).
 - `quality()` parameter is ignored; PNG is always lossless.
 - File sizes are typically larger than JPEG for photographic content.

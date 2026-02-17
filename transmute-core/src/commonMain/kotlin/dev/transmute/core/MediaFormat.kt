@@ -18,14 +18,14 @@ sealed interface MediaFormat {
  * All image formats the pipeline can encounter on iOS and Android.
  *
  * Covers:
- * - **JPEG** — universal camera format
- * - **PNG** — screenshots, stickers, transparency
- * - **WebP** — Android default since 4.0, WhatsApp/Telegram
- * - **HEIF / HEIC** — iOS default since iOS 11
- * - **AVIF** — Android 12+ next-gen
- * - **GIF** — animated images
- * - **BMP** — legacy
- * - **TIFF** — ProRAW on iOS
+ * - **JPEG** - universal camera format
+ * - **PNG** - screenshots, stickers, transparency
+ * - **WebP** - Android default since 4.0, WhatsApp/Telegram
+ * - **HEIF / HEIC** - iOS default since iOS 11
+ * - **AVIF** - Android 12+ next-gen
+ * - **GIF** - animated images
+ * - **BMP** - legacy
+ * - **TIFF** - ProRAW on iOS
  */
 enum class ImageFormat(override val mimeType: String, override val extension: String) : MediaFormat {
   JPEG("image/jpeg", "jpg"),

@@ -19,7 +19,7 @@ fun ImageTransmuter.scale(maxWidth: Int, maxHeight: Int): ImageTransmuter = appl
 /**
  * Resize to exact [targetWidth]×[targetHeight] using a configurable resample [filter].
  *
- * Unlike [scale], this does **not** preserve aspect ratio — it resizes to the
+ * Unlike [scale], this does **not** preserve aspect ratio - it resizes to the
  * exact dimensions specified.
  */
 fun ImageTransmuter.resize(

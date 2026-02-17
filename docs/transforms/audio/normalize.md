@@ -1,6 +1,6 @@
 # Normalize
 
-Peak amplitude normalization — scales the entire signal so the loudest sample reaches a target peak.
+Peak amplitude normalization - scales the entire signal so the loudest sample reaches a target peak.
 
 ## Parameters
 

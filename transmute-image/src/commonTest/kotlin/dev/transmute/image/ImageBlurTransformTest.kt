@@ -28,7 +28,7 @@ class ImageBlurTransformTest {
 
   @Test
   fun blurReducesSharpEdge() = runTest {
-    // Left half white, right half black — sharp edge at center.
+    // Left half white, right half black - sharp edge at center.
     val w = 20; val h = 10; val bpp = 4
     val data = ByteArray(w * h * bpp)
     for (y in 0 until h) {

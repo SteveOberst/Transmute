@@ -58,7 +58,7 @@ class JvmOggVorbisCodecTest {
     @Test
     fun encodeDecodeOggRoundTrip() = runTest {
         if (!FfmpegAudioEngine.available) {
-            log.warn("Skipping OGG encode/decode test — FFmpeg not available")
+            log.warn("Skipping OGG encode/decode test - FFmpeg not available")
             return@runTest
         }
 
@@ -94,7 +94,7 @@ class JvmOggVorbisCodecTest {
     @Test
     fun encodeThrowsWithoutFfmpeg() = runTest {
         if (FfmpegAudioEngine.available) {
-            log.warn("Skipping — FFmpeg is available, cannot test failure path")
+            log.warn("Skipping - FFmpeg is available, cannot test failure path")
             return@runTest
         }
 

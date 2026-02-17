@@ -88,7 +88,7 @@ class FfmpegImageDecoderSniffTest {
 
   @Test
   fun sniffRejectsMp4Brand() {
-    // MP4 ftyp with "isom" — not an image format
+    // MP4 ftyp with "isom" - not an image format
     val data = ByteArray(16)
     data[4] = 0x66; data[5] = 0x74; data[6] = 0x79; data[7] = 0x70
     data[8] = 0x69; data[9] = 0x73; data[10] = 0x6F; data[11] = 0x6D // isom

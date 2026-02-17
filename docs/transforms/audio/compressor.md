@@ -1,6 +1,6 @@
 # Compressor
 
-Dynamic range compressor — reduces the volume of loud passages.
+Dynamic range compressor - reduces the volume of loud passages.
 
 ## Parameters
 

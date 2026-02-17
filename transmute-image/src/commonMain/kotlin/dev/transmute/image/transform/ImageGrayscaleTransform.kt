@@ -12,7 +12,7 @@ import dev.transmute.core.pipeline.TransformId
  * Converts an [ImageIR] to grayscale using ITU-R BT.709 luma coefficients.
  *
  * BT.709 weights (0.2126 R, 0.7152 G, 0.0722 B) match how the human eye
- * perceives brightness — green contributes most, blue least. This produces
+ * perceives brightness - green contributes most, blue least. This produces
  * more natural-looking grayscale than a simple channel average.
  *
  * Supports [PixelFormat.RGBA_8888] and [PixelFormat.RGB_888].
@@ -42,7 +42,7 @@ class ImageGrayscaleTransform : Transform<ImageIR> {
         val g = dstData[offset + 1].toInt() and 0xFF
         val b = dstData[offset + 2].toInt() and 0xFF
 
-        // BT.709 luma coefficients — perceptually accurate grayscale.
+        // BT.709 luma coefficients - perceptually accurate grayscale.
         val luma = (0.2126f * r + 0.7152f * g + 0.0722f * b).toInt().coerceIn(0, 255)
 
         dstData[offset] = luma.toByte()
