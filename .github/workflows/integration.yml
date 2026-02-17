@@ -72,24 +72,27 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
           script: |
-            exit_code=0
+            # Use a file to track failures — shell variables do not
+            # persist across the line-by-line execution that some
+            # versions of android-emulator-runner use.
+            echo "pass" > /tmp/test_status
 
             echo "=== Image tests ==="
-            ./gradlew :transmute-image:connectedAndroidTest --stacktrace || exit_code=$?
-            echo "=== Image tests done (exit=$exit_code) ==="
+            ./gradlew :transmute-image:connectedAndroidTest --stacktrace || echo "fail" > /tmp/test_status
+            echo "=== Image tests done ==="
 
             echo "=== Audio tests ==="
-            ./gradlew :transmute-audio:connectedAndroidTest --stacktrace || exit_code=$?
-            echo "=== Audio tests done (exit=$exit_code) ==="
+            ./gradlew :transmute-audio:connectedAndroidTest --stacktrace || echo "fail" > /tmp/test_status
+            echo "=== Audio tests done ==="
 
             echo "=== Video tests ==="
-            ./gradlew :transmute-video:connectedAndroidTest --stacktrace || exit_code=$?
-            echo "=== Video tests done (exit=$exit_code) ==="
+            ./gradlew :transmute-video:connectedAndroidTest --stacktrace || echo "fail" > /tmp/test_status
+            echo "=== Video tests done ==="
 
             echo "=== Logcat (test output) ==="
             adb logcat -d -s "System.out" | grep ">>>" || true
 
-            exit $exit_code
+            test "$(cat /tmp/test_status)" = "pass"
 
       - name: Upload Android test reports
         if: always()
