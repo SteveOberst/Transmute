@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.2](https://github.com/SteveOberst/Transmute/compare/v0.1.1...v0.1.2) (2026-02-17)
+
+
+### Bug Fixes
+
+* add Volatile import for K/N, gate release on CI+integration ([1223249](https://github.com/SteveOberst/Transmute/commit/122324931b85acbcf278b7977d024a59720619a0))
+
 ## [0.1.1](https://github.com/SteveOberst/Transmute/compare/v0.1.0...v0.1.1) (2026-02-17)
 
 
