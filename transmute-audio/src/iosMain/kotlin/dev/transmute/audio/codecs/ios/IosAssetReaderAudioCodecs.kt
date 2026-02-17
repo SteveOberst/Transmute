@@ -426,11 +426,19 @@ internal abstract class IosAssetReaderAudioDecoder(
 
 internal class IosMp3Decoder : IosAssetReaderAudioDecoder(AudioFormat.MP3) {
   override fun sniff(data: ByteArray): AudioFormat? {
-    if (data.size < 3) return null
+    if (data.size < 2) return null
     // ID3v2 tag
-    if (data[0] == 0x49.toByte() && data[1] == 0x44.toByte() && data[2] == 0x33.toByte()) return AudioFormat.MP3
-    // MPEG frame sync (first 11 bits set)
-    if (data.size >= 2 && (data[0].toInt() and 0xFF) == 0xFF && (data[1].toInt() and 0xE0) == 0xE0) return AudioFormat.MP3
+    if (data.size >= 3 &&
+      data[0] == 0x49.toByte() && data[1] == 0x44.toByte() && data[2] == 0x33.toByte()
+    ) return AudioFormat.MP3
+    // MPEG audio frame sync — validate version + layer bits to avoid
+    // matching AAC ADTS frames (which also start with 0xFFF but have layer=0).
+    val b0 = data[0].toInt() and 0xFF
+    val b1 = data[1].toInt() and 0xFF
+    if (b0 == 0xFF && (b1 and 0xE0) == 0xE0) {
+      val layer = (b1 shr 1) and 0x03   // 0=reserved (used by ADTS), 1=L3, 2=L2, 3=L1
+      if (layer != 0) return AudioFormat.MP3
+    }
     return null
   }
 }
