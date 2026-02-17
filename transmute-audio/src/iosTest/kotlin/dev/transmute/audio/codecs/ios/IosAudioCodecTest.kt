@@ -26,72 +26,92 @@ class IosAudioCodecTest {
 
   @Test
   fun flacRoundTripProducesAudio() = runTest {
-    try {
-      val codec = IosFlacCodec()
-      val original = AudioTestHelpers.sineWave(frequency = 440f, durationMs = 500)
-      val ctx = AudioTestHelpers.testContext()
+    val codec = IosFlacCodec()
+    val original = AudioTestHelpers.sineWave(frequency = 440f, durationMs = 500)
+    val ctx = AudioTestHelpers.testContext()
 
-      val encoded = codec.encode(original, ctx)
-      assertTrue(encoded.isNotEmpty(), "FLAC encoded bytes should not be empty")
-
-      val decoded = codec.decode(encoded, ctx)
-      assertTrue(decoded.sampleRate > 0, "Decoded sample rate should be > 0")
-      assertTrue(decoded.channelCount > 0, "Decoded channel count should be > 0")
-      assertTrue(decoded.durationMs > 0, "Decoded duration should be > 0")
-
-      val peak = AudioTestHelpers.peakAmplitude(decoded)
-      assertTrue(peak > 0.01f, "Decoded audio should contain non-silent samples, peak=$peak")
+    // Wrap only codec operations — simulator may lack HW codecs.
+    // Assertions stay outside so real failures are never swallowed.
+    val encoded = try {
+      codec.encode(original, ctx)
     } catch (e: Throwable) {
-      println("SKIP: FLAC roundtrip not available on this simulator: ${e::class.simpleName}: ${e.message}")
+      println("SKIP: FLAC encoding not available on this simulator: ${e::class.simpleName}: ${e.message}")
+      return@runTest
     }
+    assertTrue(encoded.isNotEmpty(), "FLAC encoded bytes should not be empty")
+
+    val decoded = try {
+      codec.decode(encoded, ctx)
+    } catch (e: Throwable) {
+      println("SKIP: FLAC decoding not available on this simulator: ${e::class.simpleName}: ${e.message}")
+      return@runTest
+    }
+    assertTrue(decoded.sampleRate > 0, "Decoded sample rate should be > 0")
+    assertTrue(decoded.channelCount > 0, "Decoded channel count should be > 0")
+    assertTrue(decoded.durationMs > 0, "Decoded duration should be > 0")
+
+    val peak = AudioTestHelpers.peakAmplitude(decoded)
+    assertTrue(peak > 0.01f, "Decoded audio should contain non-silent samples, peak=$peak")
   }
 
   // AAC roundtrip (encode → decode)
 
   @Test
   fun aacRoundTripProducesAudio() = runTest {
-    try {
-      val codec = IosAacCodec()
-      val original = AudioTestHelpers.sineWave(frequency = 440f, durationMs = 1000)
-      val ctx = AudioTestHelpers.testContext()
+    val codec = IosAacCodec()
+    val original = AudioTestHelpers.sineWave(frequency = 440f, durationMs = 1000)
+    val ctx = AudioTestHelpers.testContext()
 
-      val encoded = codec.encode(original, ctx)
-      assertTrue(encoded.isNotEmpty(), "AAC encoded bytes should not be empty")
-
-      val decoded = codec.decode(encoded, ctx)
-      assertTrue(decoded.sampleRate > 0, "Decoded sample rate should be > 0")
-      assertTrue(decoded.channelCount > 0, "Decoded channel count should be > 0")
-      assertTrue(decoded.durationMs > 200, "Decoded duration should be > 200ms, was ${decoded.durationMs}ms")
-
-      val peak = AudioTestHelpers.peakAmplitude(decoded)
-      assertTrue(peak > 0.01f, "Decoded audio should contain non-silent samples, peak=$peak")
+    val encoded = try {
+      codec.encode(original, ctx)
     } catch (e: Throwable) {
-      println("SKIP: AAC roundtrip not available on this simulator: ${e::class.simpleName}: ${e.message}")
+      println("SKIP: AAC encoding not available on this simulator: ${e::class.simpleName}: ${e.message}")
+      return@runTest
     }
+    assertTrue(encoded.isNotEmpty(), "AAC encoded bytes should not be empty")
+
+    val decoded = try {
+      codec.decode(encoded, ctx)
+    } catch (e: Throwable) {
+      println("SKIP: AAC decoding not available on this simulator: ${e::class.simpleName}: ${e.message}")
+      return@runTest
+    }
+    assertTrue(decoded.sampleRate > 0, "Decoded sample rate should be > 0")
+    assertTrue(decoded.channelCount > 0, "Decoded channel count should be > 0")
+    assertTrue(decoded.durationMs > 200, "Decoded duration should be > 200ms, was ${decoded.durationMs}ms")
+
+    val peak = AudioTestHelpers.peakAmplitude(decoded)
+    assertTrue(peak > 0.01f, "Decoded audio should contain non-silent samples, peak=$peak")
   }
 
   // M4A roundtrip (encode → decode)
 
   @Test
   fun m4aRoundTripProducesAudio() = runTest {
-    try {
-      val codec = IosM4aCodec()
-      val original = AudioTestHelpers.sineWave(frequency = 880f, durationMs = 1000)
-      val ctx = AudioTestHelpers.testContext()
+    val codec = IosM4aCodec()
+    val original = AudioTestHelpers.sineWave(frequency = 880f, durationMs = 1000)
+    val ctx = AudioTestHelpers.testContext()
 
-      val encoded = codec.encode(original, ctx)
-      assertTrue(encoded.isNotEmpty(), "M4A encoded bytes should not be empty")
-
-      val decoded = codec.decode(encoded, ctx)
-      assertTrue(decoded.sampleRate > 0, "Decoded sample rate should be > 0")
-      assertTrue(decoded.channelCount > 0, "Decoded channel count should be > 0")
-      assertTrue(decoded.durationMs > 200, "Decoded duration should be > 200ms, was ${decoded.durationMs}ms")
-
-      val peak = AudioTestHelpers.peakAmplitude(decoded)
-      assertTrue(peak > 0.01f, "Decoded audio should contain non-silent samples, peak=$peak")
+    val encoded = try {
+      codec.encode(original, ctx)
     } catch (e: Throwable) {
-      println("SKIP: M4A roundtrip not available on this simulator: ${e::class.simpleName}: ${e.message}")
+      println("SKIP: M4A encoding not available on this simulator: ${e::class.simpleName}: ${e.message}")
+      return@runTest
     }
+    assertTrue(encoded.isNotEmpty(), "M4A encoded bytes should not be empty")
+
+    val decoded = try {
+      codec.decode(encoded, ctx)
+    } catch (e: Throwable) {
+      println("SKIP: M4A decoding not available on this simulator: ${e::class.simpleName}: ${e.message}")
+      return@runTest
+    }
+    assertTrue(decoded.sampleRate > 0, "Decoded sample rate should be > 0")
+    assertTrue(decoded.channelCount > 0, "Decoded channel count should be > 0")
+    assertTrue(decoded.durationMs > 200, "Decoded duration should be > 200ms, was ${decoded.durationMs}ms")
+
+    val peak = AudioTestHelpers.peakAmplitude(decoded)
+    assertTrue(peak > 0.01f, "Decoded audio should contain non-silent samples, peak=$peak")
   }
 
   // Format support assertions
