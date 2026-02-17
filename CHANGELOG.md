@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.3](https://github.com/SteveOberst/Transmute/compare/v0.1.2...v0.1.3) (2026-02-17)
+
+
+### Bug Fixes
+
+* eliminate exception swallowing in tests and fix CI failure propagation ([045a013](https://github.com/SteveOberst/Transmute/commit/045a013e33895499f14fbf2972b0153151b54ab7))
+
 ## [0.1.2](https://github.com/SteveOberst/Transmute/compare/v0.1.1...v0.1.2) (2026-02-17)
 
 
