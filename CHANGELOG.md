@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.1.2](https://github.com/SteveOberst/Transmute/compare/v0.1.1...v0.1.2) (2026-02-17)
+
+
+### Bug Fixes
+
+* add Volatile import for K/N, gate release on CI+integration ([1223249](https://github.com/SteveOberst/Transmute/commit/122324931b85acbcf278b7977d024a59720619a0))
+* **ios:** fix format detection + tolerate simulator codec limits ([94b0960](https://github.com/SteveOberst/Transmute/commit/94b096097404d29e633994ed9e26d96ba357e4c5))
+* **ios:** fix video codec K/N compilation + runtime interop issues ([abb820b](https://github.com/SteveOberst/Transmute/commit/abb820b0d527205060bc6324101892759c2059f1))
+* **ios:** wrap entire audio roundtrip tests in try-catch Throwable ([48199cc](https://github.com/SteveOberst/Transmute/commit/48199cc2c4c3e1e9c6804e9702018592b94da8b4))
+* trigger release-please PR recreation with PAT ([ba79359](https://github.com/SteveOberst/Transmute/commit/ba79359bb59975aeb6cbd1b5c96dd85c712a3266))
+
 ## [0.1.1](https://github.com/SteveOberst/Transmute/compare/v0.1.0...v0.1.1) (2026-02-17)
 
 
