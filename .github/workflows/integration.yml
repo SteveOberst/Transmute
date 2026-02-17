@@ -1,6 +1,9 @@
 name: Integration Tests
 
 on:
+  push:
+    branches:
+      - 'release-please--branches--**'
   pull_request:
     branches: [main]
   release:
