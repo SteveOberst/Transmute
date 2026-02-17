@@ -26,6 +26,7 @@ jobs:
   # Dispatch CI & integration checks on the release-please PR branch.
   # GITHUB_TOKEN suppresses push/pull_request events but NOT workflow_dispatch,
   # so we use `gh workflow run` to trigger the test workflows on the PR branch.
+  # We first merge main into the PR branch so the workflow files are current.
   trigger-pr-checks:
     needs: release-please
     if: ${{ !needs.release-please.outputs.release_created }}
@@ -36,15 +37,32 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          PR_BRANCH=$(gh pr list --state open --json headRefName -q '.[].headRefName' \
-            | grep '^release-please--branches--' | head -1)
-          if [ -n "$PR_BRANCH" ]; then
-            echo "Dispatching workflows on: $PR_BRANCH"
-            gh workflow run ci.yml --ref "$PR_BRANCH"
-            gh workflow run integration.yml --ref "$PR_BRANCH"
-          else
+          set -euo pipefail
+
+          PR_BRANCH=$(gh pr list --state open --json headRefName \
+            -q '.[].headRefName' | grep '^release-please--branches--' | head -1)
+
+          if [ -z "$PR_BRANCH" ]; then
             echo "No release-please PR open, skipping."
+            exit 0
           fi
+
+          PR_NUMBER=$(gh pr list --state open --head "$PR_BRANCH" \
+            --json number -q '.[0].number')
+
+          echo "Found PR #$PR_NUMBER on branch $PR_BRANCH"
+
+          # Merge latest main into the PR branch so workflow files are current
+          gh api "repos/${GH_REPO}/pulls/${PR_NUMBER}/update-branch" \
+            --method PUT --field update_method=merge 2>&1 \
+            || echo "Branch already up to date"
+
+          sleep 5
+
+          echo "Dispatching CI on $PR_BRANCH"
+          gh workflow run ci.yml --ref "$PR_BRANCH"
+          echo "Dispatching Integration Tests on $PR_BRANCH"
+          gh workflow run integration.yml --ref "$PR_BRANCH"
 
   # Gate on CI unit tests passing
   ci-gate:
