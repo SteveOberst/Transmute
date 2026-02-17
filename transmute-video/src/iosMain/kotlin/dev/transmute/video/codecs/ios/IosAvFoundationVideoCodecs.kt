@@ -16,47 +16,13 @@ import dev.transmute.video.VideoCodec
 import dev.transmute.video.VideoFrame
 import dev.transmute.video.VideoIR
 import dev.transmute.video.VideoTrack
-import kotlinx.cinterop.addressOf
-import kotlinx.cinterop.alloc
-import kotlinx.cinterop.get
-import kotlinx.cinterop.memScoped
-import kotlinx.cinterop.ptr
-import kotlinx.cinterop.usePinned
-import kotlinx.cinterop.value
-import platform.AVFoundation.AVAssetReader
-import platform.AVFoundation.AVAssetReaderStatusCompleted
-import platform.AVFoundation.AVAssetReaderTrackOutput
-import platform.AVFoundation.AVAssetWriter
-import platform.AVFoundation.AVAssetWriterInput
-import platform.AVFoundation.AVAssetWriterInputPixelBufferAdaptor
-import platform.AVFoundation.AVAssetWriterStatusCompleted
-import platform.AVFoundation.AVFileTypeMPEG4
-import platform.AVFoundation.AVFileTypeQuickTimeMovie
-import platform.AVFoundation.AVMediaTypeAudio
-import platform.AVFoundation.AVMediaTypeVideo
-import platform.AVFoundation.AVURLAsset
-import platform.AVFoundation.AVVideoCodecH264
-import platform.AVFoundation.AVVideoCodecKey
-import platform.AVFoundation.AVVideoHeightKey
-import platform.AVFoundation.AVVideoWidthKey
-import platform.CoreMedia.CMBlockBufferCopyDataBytes
-import platform.CoreMedia.CMBlockBufferGetDataLength
-import platform.CoreMedia.CMSampleBufferGetDataBuffer
-import platform.CoreMedia.CMSampleBufferGetPresentationTimeStamp
-import platform.CoreMedia.CMTimeMake
-import platform.CoreVideo.CVPixelBufferCreate
-import platform.CoreVideo.CVPixelBufferGetBaseAddress
-import platform.CoreVideo.CVPixelBufferGetBytesPerRow
-import platform.CoreVideo.CVPixelBufferGetHeight
-import platform.CoreVideo.CVPixelBufferGetWidth
-import platform.CoreVideo.CVPixelBufferLockBaseAddress
-import platform.CoreVideo.CVPixelBufferUnlockBaseAddress
-import platform.CoreVideo.kCVPixelFormatType_32BGRA
-import platform.Foundation.NSTemporaryDirectory
-import platform.Foundation.NSURL
-import platform.Foundation.NSUUID
-import platform.Foundation.NSFileManager
-import platform.Foundation.writeToFile
+import kotlinx.cinterop.*
+import platform.AVFoundation.*
+import platform.CoreAudioTypes.kAudioFormatLinearPCM
+import platform.CoreAudioTypes.kAudioFormatMPEG4AAC
+import platform.CoreMedia.*
+import platform.CoreVideo.*
+import platform.Foundation.*
 import platform.posix.memcpy
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -73,13 +39,11 @@ private fun writeTempFile(data: ByteArray, ext: String): NSURL {
   val tmpDir = NSTemporaryDirectory()
   val name = "transmute_vid_${NSUUID().UUIDString}.$ext"
   val path = "$tmpDir$name"
-  data.usePinned { pinned ->
-    val nsData = platform.Foundation.NSData.create(
-      bytes = pinned.addressOf(0),
-      length = data.size.toULong(),
-    )
-    nsData.writeToFile(path, atomically = true)
+  val nsData = data.usePinned { pinned ->
+    NSData.dataWithBytes(pinned.addressOf(0), data.size.toULong())
   }
+  nsData?.writeToFile(path, atomically = true)
+    ?: error("Failed to create NSData for temp file")
   return NSURL.fileURLWithPath(path)
 }
 
@@ -93,13 +57,11 @@ private fun decodeVideoFrames(fileUrl: NSURL): List<VideoFrame> {
   val videoTrack = asset.tracksWithMediaType(AVMediaTypeVideo).firstOrNull()
     ?: error("No video track in asset")
 
-  val outputSettings = mapOf<Any?, Any?>(
-    platform.CoreVideo.kCVPixelBufferPixelFormatTypeKey to kCVPixelFormatType_32BGRA,
-  )
-
+  // Pass null for outputSettings to get native pixel format (avoids K/N
+  // CFStringRef key bridging issues with kCVPixelBufferPixelFormatTypeKey).
   val output = AVAssetReaderTrackOutput(
-    track = videoTrack as platform.AVFoundation.AVAssetTrack,
-    outputSettings = outputSettings,
+    track = videoTrack as AVAssetTrack,
+    outputSettings = null,
   )
   reader.addOutput(output)
   reader.startReading()
@@ -108,9 +70,11 @@ private fun decodeVideoFrames(fileUrl: NSURL): List<VideoFrame> {
 
   while (reader.status.toInt() == 1) { // AVAssetReaderStatusReading = 1
     val sampleBuffer = output.copyNextSampleBuffer() ?: break
-    val imageBuffer = platform.CoreMedia.CMSampleBufferGetImageBuffer(sampleBuffer) ?: continue
+    val imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) ?: continue
     val pts = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
-    val timestampMs = (pts.value.toDouble() / pts.timescale.toDouble() * 1000.0).toLong()
+    val timestampMs = pts.useContents {
+      (value.toDouble() / timescale.toDouble() * 1000.0).toLong()
+    }
 
     CVPixelBufferLockBaseAddress(imageBuffer, 0u)
     try {
@@ -118,6 +82,7 @@ private fun decodeVideoFrames(fileUrl: NSURL): List<VideoFrame> {
       val height = CVPixelBufferGetHeight(imageBuffer).toInt()
       val bytesPerRow = CVPixelBufferGetBytesPerRow(imageBuffer).toInt()
       val baseAddress = CVPixelBufferGetBaseAddress(imageBuffer)
+        ?.reinterpret<ByteVar>()
         ?: error("Null pixel buffer base address")
 
       // Convert BGRA → RGBA
@@ -166,15 +131,15 @@ private fun decodeAudioSamples(fileUrl: NSURL): AudioSamples? {
   val reader = AVAssetReader(asset = asset, error = null)
 
   val outputSettings = mapOf<Any?, Any?>(
-    platform.AVFoundation.AVFormatIDKey to platform.CoreAudio.kAudioFormatLinearPCM,
-    platform.AVFoundation.AVLinearPCMBitDepthKey to 16,
-    platform.AVFoundation.AVLinearPCMIsFloatKey to false,
-    platform.AVFoundation.AVLinearPCMIsBigEndianKey to false,
-    platform.AVFoundation.AVLinearPCMIsNonInterleaved to false,
+    "AVFormatIDKey" to kAudioFormatLinearPCM,
+    "AVLinearPCMBitDepthKey" to 16,
+    "AVLinearPCMIsFloatKey" to false,
+    "AVLinearPCMIsBigEndianKey" to false,
+    "AVLinearPCMIsNonInterleavedKey" to false,
   )
 
   val output = AVAssetReaderTrackOutput(
-    track = audioTrack as platform.AVFoundation.AVAssetTrack,
+    track = audioTrack as AVAssetTrack,
     outputSettings = outputSettings,
   )
   reader.addOutput(output)
@@ -185,7 +150,7 @@ private fun decodeAudioSamples(fileUrl: NSURL): AudioSamples? {
   var channels = 2
 
   // Try to get audio format from track
-  val trackFormats = (audioTrack as platform.AVFoundation.AVAssetTrack).formatDescriptions
+  val trackFormats = (audioTrack as AVAssetTrack).formatDescriptions
   if (trackFormats.isNotEmpty()) {
     val desc = trackFormats[0]
     // Extract sample rate and channel count from CMFormatDescription
@@ -254,9 +219,9 @@ private suspend fun encodeWithAvFoundation(
   val adaptor = AVAssetWriterInputPixelBufferAdaptor(
     assetWriterInput = videoInput,
     sourcePixelBufferAttributes = mapOf<Any?, Any?>(
-      platform.CoreVideo.kCVPixelBufferPixelFormatTypeKey to kCVPixelFormatType_32BGRA,
-      platform.CoreVideo.kCVPixelBufferWidthKey to width,
-      platform.CoreVideo.kCVPixelBufferHeightKey to height,
+      kCVPixelBufferPixelFormatTypeKey to kCVPixelFormatType_32BGRA,
+      kCVPixelBufferWidthKey to width,
+      kCVPixelBufferHeightKey to height,
     ),
   )
   writer.addInput(videoInput)
@@ -264,10 +229,10 @@ private suspend fun encodeWithAvFoundation(
   // Audio input (optional)
   val audioInput = if (ir.audioTrack != null) {
     val audioSettings = mapOf<Any?, Any?>(
-      platform.AVFoundation.AVFormatIDKey to platform.CoreAudio.kAudioFormatMPEG4AAC,
-      platform.AVFoundation.AVNumberOfChannelsKey to ir.audioTrack.samples.channelCount,
-      platform.AVFoundation.AVSampleRateKey to ir.audioTrack.samples.sampleRate.toDouble(),
-      platform.AVFoundation.AVEncoderBitRateKey to 128_000,
+      "AVFormatIDKey" to kAudioFormatMPEG4AAC,
+      "AVNumberOfChannelsKey" to ir.audioTrack.samples.channelCount,
+      "AVSampleRateKey" to ir.audioTrack.samples.sampleRate.toDouble(),
+      "AVEncoderBitRateKey" to 128_000,
     )
     val input = AVAssetWriterInput(
       mediaType = AVMediaTypeAudio,
@@ -289,12 +254,12 @@ private suspend fun encodeWithAvFoundation(
 
     // Wait for input ready
     while (!videoInput.readyForMoreMediaData) {
-      platform.Foundation.NSThread.sleepForTimeInterval(0.01)
+      NSThread.sleepForTimeInterval(0.01)
     }
 
     // Create CVPixelBuffer from RGBA data (convert to BGRA)
     memScoped {
-      val pixelBufferPtr = alloc<platform.CoreVideo.CVPixelBufferRefVar>()
+      val pixelBufferPtr = alloc<CVPixelBufferRefVar>()
       CVPixelBufferCreate(
         null,
         width.toULong(),
@@ -307,6 +272,7 @@ private suspend fun encodeWithAvFoundation(
 
       CVPixelBufferLockBaseAddress(pixelBuffer, 0u)
       val baseAddress = CVPixelBufferGetBaseAddress(pixelBuffer)
+        ?.reinterpret<ByteVar>()
         ?: error("Null CVPixelBuffer base address")
       val bytesPerRow = CVPixelBufferGetBytesPerRow(pixelBuffer).toInt()
 
@@ -360,7 +326,7 @@ private suspend fun encodeWithAvFoundation(
   }
 
   // Read output file
-  val data = platform.Foundation.NSData.dataWithContentsOfFile(outPath)
+  val data = NSData.dataWithContentsOfFile(outPath)
     ?: error("Failed to read encoded video output")
   val result = ByteArray(data.length.toInt())
   result.usePinned { pin ->
@@ -422,7 +388,7 @@ internal class IosMp4Codec : VideoCodec {
   }
 
   override suspend fun encode(ir: VideoIR, context: ConversionContext): ByteArray =
-    encodeWithAvFoundation(ir, AVFileTypeMPEG4, "mp4")
+    encodeWithAvFoundation(ir, AVFileTypeMPEG4!!, "mp4")
 }
 
 // ---------------------------------------------------------------------------
@@ -468,5 +434,5 @@ internal class IosMovCodec : VideoCodec {
   }
 
   override suspend fun encode(ir: VideoIR, context: ConversionContext): ByteArray =
-    encodeWithAvFoundation(ir, AVFileTypeQuickTimeMovie, "mov")
+    encodeWithAvFoundation(ir, AVFileTypeQuickTimeMovie!!, "mov")
 }
