@@ -16,6 +16,7 @@ interface AudioCodec : Codec<AudioFormat, AudioIR>
 
 interface AudioDecoder {
   val supportedFormats: Set<AudioFormat>
+  fun sniff(data: ByteArray): AudioFormat? = null
   suspend fun decode(source: ByteArray, context: ConversionContext): AudioIR
 }
 

@@ -26,18 +26,17 @@ actual fun installPlatformAudioCodecs(
   decoders.register(oggCodec)
   encoders.register(oggCodec) // no-op if FFmpeg unavailable
 
-  // FFmpeg-only codecs — registered only when FFmpeg is on PATH.
-  if (FfmpegAudioEngine.available) {
-    val aacCodec = JvmAacCodec()
-    decoders.register(aacCodec)
-    encoders.register(aacCodec)
+  // Always register decoders for format detection (sniffing doesn't need FFmpeg).
+  // Decode/encode will throw at runtime if FFmpeg is absent.
+  val aacCodec = JvmAacCodec()
+  decoders.register(aacCodec)
+  if (FfmpegAudioEngine.available) encoders.register(aacCodec)
 
-    val m4aCodec = JvmM4aCodec()
-    decoders.register(m4aCodec)
-    encoders.register(m4aCodec)
+  val m4aCodec = JvmM4aCodec()
+  decoders.register(m4aCodec)
+  if (FfmpegAudioEngine.available) encoders.register(m4aCodec)
 
-    val opusCodec = JvmOpusCodec()
-    decoders.register(opusCodec)
-    encoders.register(opusCodec)
-  }
+  val opusCodec = JvmOpusCodec()
+  decoders.register(opusCodec)
+  if (FfmpegAudioEngine.available) encoders.register(opusCodec)
 }

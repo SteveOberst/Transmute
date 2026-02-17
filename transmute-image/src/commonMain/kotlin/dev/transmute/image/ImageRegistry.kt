@@ -13,8 +13,10 @@ import dev.transmute.image.codecs.bmp.BmpImageEncoder
  */
 class MutableImageDecoderRegistry : ImageDecoderRegistry {
   private val decoders = mutableMapOf<ImageFormat, ImageDecoder>()
+  private val decoderList = mutableListOf<ImageDecoder>()
 
   fun register(decoder: ImageDecoder) {
+    decoderList.add(decoder)
     for (format in decoder.supportedFormats) {
       decoders[format] = decoder
     }
@@ -22,18 +24,23 @@ class MutableImageDecoderRegistry : ImageDecoderRegistry {
 
   /** Register a unified [Codec] as a decoder. */
   fun register(codec: Codec<ImageFormat, ImageIR>) {
+    val wrapper = object : ImageDecoder {
+      override val supportedFormats = codec.decodableFormats
+      override fun sniff(data: ByteArray) = codec.sniff(data)
+      override suspend fun decode(source: ByteArray, context: dev.transmute.core.ConversionContext) =
+        codec.decode(source, context)
+    }
+    decoderList.add(wrapper)
     for (format in codec.decodableFormats) {
-      decoders[format] = object : ImageDecoder {
-        override val supportedFormats = codec.decodableFormats
-        override suspend fun decode(source: ByteArray, context: dev.transmute.core.ConversionContext) =
-          codec.decode(source, context)
-      }
+      decoders[format] = wrapper
     }
   }
 
   override fun decoderFor(format: ImageFormat): ImageDecoder? = decoders[format]
 
   val supportedFormats: Set<ImageFormat> get() = decoders.keys.toSet()
+
+  val allDecoders: List<ImageDecoder> get() = decoderList
 }
 
 /**
@@ -78,12 +85,8 @@ object ImageRegistries {
   val decoders: MutableImageDecoderRegistry = MutableImageDecoderRegistry()
   val encoders: MutableImageEncoderRegistry = MutableImageEncoderRegistry()
 
-  /** Codecs that participate in format sniffing. */
-  val codecs = mutableListOf<Codec<ImageFormat, ImageIR>>()
-
   /** Register a unified codec for both decode, encode, and sniffing. */
   fun register(codec: Codec<ImageFormat, ImageIR>) {
-    codecs.add(codec)
     decoders.register(codec)
     encoders.register(codec)
   }

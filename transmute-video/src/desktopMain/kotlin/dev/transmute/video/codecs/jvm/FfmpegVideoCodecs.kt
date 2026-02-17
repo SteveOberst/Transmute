@@ -3,7 +3,6 @@ package dev.transmute.video.codecs.jvm
 import dev.transmute.core.ConversionContext
 import dev.transmute.core.VideoFormat
 import dev.transmute.video.VideoCodec
-import dev.transmute.video.VideoFormatDetector
 import dev.transmute.video.VideoIR
 
 // ---------------------------------------------------------------------------
@@ -21,8 +20,17 @@ internal class JvmMp4Codec : VideoCodec {
   override val encodableFormats: Set<VideoFormat> = setOf(VideoFormat.MP4)
 
   override fun sniff(data: ByteArray): VideoFormat? {
-    val detected = VideoFormatDetector.detectByMagicBytes(data)
-    return if (detected == VideoFormat.MP4) VideoFormat.MP4 else null
+    if (data.size < 12) return null
+    if (data[4] != 0x66.toByte() || data[5] != 0x74.toByte() ||
+      data[6] != 0x79.toByte() || data[7] != 0x70.toByte()) return null
+    val brand = (8 until 12).map { data[it].toInt().toChar() }.joinToString("")
+    return when {
+      brand.startsWith("mp4") || brand == "isom" || brand == "M4V " ||
+        brand == "avc1" || brand == "iso2" || brand == "iso5" ||
+        brand == "iso6" || brand == "mmp4" -> VideoFormat.MP4
+      brand.startsWith("3gp") || brand.startsWith("3g2") -> VideoFormat.MP4
+      else -> null
+    }
   }
 
   override suspend fun decode(source: ByteArray, context: ConversionContext): VideoIR =
@@ -47,8 +55,11 @@ internal class JvmMovCodec : VideoCodec {
   override val encodableFormats: Set<VideoFormat> = setOf(VideoFormat.MOV)
 
   override fun sniff(data: ByteArray): VideoFormat? {
-    val detected = VideoFormatDetector.detectByMagicBytes(data)
-    return if (detected == VideoFormat.MOV) VideoFormat.MOV else null
+    if (data.size < 12) return null
+    if (data[4] != 0x66.toByte() || data[5] != 0x74.toByte() ||
+      data[6] != 0x79.toByte() || data[7] != 0x70.toByte()) return null
+    val brand = (8 until 12).map { data[it].toInt().toChar() }.joinToString("")
+    return if (brand == "qt  ") VideoFormat.MOV else null
   }
 
   override suspend fun decode(source: ByteArray, context: ConversionContext): VideoIR =
@@ -72,8 +83,17 @@ internal class JvmWebmCodec : VideoCodec {
   override val encodableFormats: Set<VideoFormat> = setOf(VideoFormat.WEBM)
 
   override fun sniff(data: ByteArray): VideoFormat? {
-    val detected = VideoFormatDetector.detectByMagicBytes(data)
-    return if (detected == VideoFormat.WEBM) VideoFormat.WEBM else null
+    if (data.size < 4) return null
+    if (data[0] != 0x1A.toByte() || data[1] != 0x45.toByte() ||
+      data[2] != 0xDF.toByte() || data[3] != 0xA3.toByte()) return null
+    // Check doctype in EBML header
+    if (data.size >= 40) {
+      val content = data.copyOfRange(0, minOf(data.size, 64)).decodeToString()
+      if (content.contains("matroska")) return null // MKV, not WebM
+      if (content.contains("webm")) return VideoFormat.WEBM
+    }
+    // Short EBML data without identifiable doctype — assume WebM (more common)
+    return VideoFormat.WEBM
   }
 
   override suspend fun decode(source: ByteArray, context: ConversionContext): VideoIR =
@@ -97,8 +117,12 @@ internal class JvmAviCodec : VideoCodec {
   override val encodableFormats: Set<VideoFormat> = setOf(VideoFormat.AVI)
 
   override fun sniff(data: ByteArray): VideoFormat? {
-    val detected = VideoFormatDetector.detectByMagicBytes(data)
-    return if (detected == VideoFormat.AVI) VideoFormat.AVI else null
+    if (data.size < 12) return null
+    if (data[0] == 'R'.code.toByte() && data[1] == 'I'.code.toByte() &&
+      data[2] == 'F'.code.toByte() && data[3] == 'F'.code.toByte() &&
+      data[8] == 'A'.code.toByte() && data[9] == 'V'.code.toByte() &&
+      data[10] == 'I'.code.toByte() && data[11] == ' '.code.toByte()) return VideoFormat.AVI
+    return null
   }
 
   override suspend fun decode(source: ByteArray, context: ConversionContext): VideoIR =
@@ -122,8 +146,14 @@ internal class JvmMkvCodec : VideoCodec {
   override val encodableFormats: Set<VideoFormat> = setOf(VideoFormat.MKV)
 
   override fun sniff(data: ByteArray): VideoFormat? {
-    val detected = VideoFormatDetector.detectByMagicBytes(data)
-    return if (detected == VideoFormat.MKV) VideoFormat.MKV else null
+    if (data.size < 4) return null
+    if (data[0] != 0x1A.toByte() || data[1] != 0x45.toByte() ||
+      data[2] != 0xDF.toByte() || data[3] != 0xA3.toByte()) return null
+    if (data.size >= 40) {
+      val content = data.copyOfRange(0, minOf(data.size, 64)).decodeToString()
+      if (content.contains("matroska")) return VideoFormat.MKV
+    }
+    return null
   }
 
   override suspend fun decode(source: ByteArray, context: ConversionContext): VideoIR =

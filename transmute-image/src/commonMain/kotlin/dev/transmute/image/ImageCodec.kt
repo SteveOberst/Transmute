@@ -17,6 +17,7 @@ interface ImageCodec : Codec<ImageFormat, ImageIR>
 
 interface ImageDecoder {
   val supportedFormats: Set<ImageFormat>
+  fun sniff(data: ByteArray): ImageFormat? = null
   suspend fun decode(source: ByteArray, context: ConversionContext): ImageIR
 }
 

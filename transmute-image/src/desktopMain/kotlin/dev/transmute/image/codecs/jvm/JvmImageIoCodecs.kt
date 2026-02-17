@@ -22,6 +22,35 @@ class JvmImageIoDecoder : ImageDecoder {
     ImageFormat.WEBP,
   )
 
+  override fun sniff(data: ByteArray): ImageFormat? {
+    if (data.size < 4) return null
+    // JPEG: FF D8 FF
+    if (data[0] == 0xFF.toByte() && data[1] == 0xD8.toByte() && data[2] == 0xFF.toByte())
+      return ImageFormat.JPEG
+    // PNG: 89 50 4E 47
+    if (data.size >= 8 && data[0] == 0x89.toByte() && data[1] == 0x50.toByte() &&
+      data[2] == 0x4E.toByte() && data[3] == 0x47.toByte())
+      return ImageFormat.PNG
+    // GIF: GIF8
+    if (data.size >= 6 && data[0] == 0x47.toByte() && data[1] == 0x49.toByte() &&
+      data[2] == 0x46.toByte() && data[3] == 0x38.toByte())
+      return ImageFormat.GIF
+    // BMP: BM
+    if (data[0] == 0x42.toByte() && data[1] == 0x4D.toByte())
+      return ImageFormat.BMP
+    // TIFF: II*\0 or MM\0*
+    if ((data[0] == 0x49.toByte() && data[1] == 0x49.toByte() && data[2] == 0x2A.toByte() && data[3] == 0x00.toByte()) ||
+      (data[0] == 0x4D.toByte() && data[1] == 0x4D.toByte() && data[2] == 0x00.toByte() && data[3] == 0x2A.toByte()))
+      return ImageFormat.TIFF
+    // WebP: RIFF....WEBP
+    if (data.size >= 12 && data[0] == 0x52.toByte() && data[1] == 0x49.toByte() &&
+      data[2] == 0x46.toByte() && data[3] == 0x46.toByte() &&
+      data[8] == 0x57.toByte() && data[9] == 0x45.toByte() &&
+      data[10] == 0x42.toByte() && data[11] == 0x50.toByte())
+      return ImageFormat.WEBP
+    return null
+  }
+
   override suspend fun decode(source: ByteArray, context: ConversionContext): ImageIR {
     val input = ByteArrayInputStream(source)
     val img = ImageIO.read(input) ?: error("ImageIO could not decode image")

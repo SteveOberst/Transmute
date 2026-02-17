@@ -34,9 +34,15 @@ class JvmMp3Codec : AudioCodec {
     if (data[0] == 0x49.toByte() && data[1] == 0x44.toByte() && data[2] == 0x33.toByte()) {
       return AudioFormat.MP3
     }
-    // MPEG audio frame sync word (first 11 bits set)
-    if (data.size >= 2 && (data[0].toInt() and 0xFF) == 0xFF && (data[1].toInt() and 0xE0) == 0xE0) {
-      return AudioFormat.MP3
+    // MPEG audio frame sync word (first 11 bits set).
+    // Exclude layer==00 which is AAC ADTS, not MP3.
+    if (data.size >= 2) {
+      val b0 = data[0].toInt() and 0xFF
+      val b1 = data[1].toInt() and 0xFF
+      if (b0 == 0xFF && (b1 and 0xE0) == 0xE0) {
+        val layer = (b1 shr 1) and 0x03
+        if (layer != 0) return AudioFormat.MP3
+      }
     }
     return null
   }
@@ -238,20 +244,25 @@ class JvmOggVorbisCodec : AudioCodec {
     if (FfmpegAudioEngine.available) setOf(AudioFormat.OGG) else emptySet()
 
   override fun sniff(data: ByteArray): AudioFormat? {
-    if (data.size < 35) return null
+    if (data.size < 4) return null
     // OGG container magic: "OggS"
     if (data[0] != 0x4F.toByte() || data[1] != 0x67.toByte() ||
       data[2] != 0x67.toByte() || data[3] != 0x53.toByte()
     ) return null
-    // Vorbis identification header: type 0x01 + "vorbis" at first-page payload.
-    if (data[28] == 0x01.toByte() &&
-      data[29] == 0x76.toByte() && data[30] == 0x6F.toByte() &&
-      data[31] == 0x72.toByte() && data[32] == 0x62.toByte() &&
-      data[33] == 0x69.toByte() && data[34] == 0x73.toByte()
-    ) {
-      return AudioFormat.OGG
+    // With enough data, confirm Vorbis identification header (type 0x01 + "vorbis").
+    if (data.size >= 35) {
+      if (data[28] == 0x01.toByte() &&
+        data[29] == 0x76.toByte() && data[30] == 0x6F.toByte() &&
+        data[31] == 0x72.toByte() && data[32] == 0x62.toByte() &&
+        data[33] == 0x69.toByte() && data[34] == 0x73.toByte()
+      ) {
+        return AudioFormat.OGG
+      }
+      // Enough data but no Vorbis header — might be Opus or another OGG codec.
+      return null
     }
-    return null
+    // Short OGG header (can't determine inner codec) — report as OGG container.
+    return AudioFormat.OGG
   }
 
   override suspend fun decode(source: ByteArray, context: ConversionContext): AudioIR {

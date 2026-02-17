@@ -16,6 +16,7 @@ interface VideoCodec : Codec<VideoFormat, VideoIR>
 
 interface VideoDecoder {
   val supportedFormats: Set<VideoFormat>
+  fun sniff(data: ByteArray): VideoFormat? = null
   suspend fun decode(source: ByteArray, context: ConversionContext): VideoIR
 }
 

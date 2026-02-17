@@ -17,6 +17,15 @@ class WavDecoder : AudioDecoder {
 
   override val supportedFormats: Set<AudioFormat> = setOf(AudioFormat.WAV)
 
+  override fun sniff(data: ByteArray): AudioFormat? {
+    if (data.size < 12) return null
+    if (data[0] == 'R'.code.toByte() && data[1] == 'I'.code.toByte() &&
+      data[2] == 'F'.code.toByte() && data[3] == 'F'.code.toByte() &&
+      data[8] == 'W'.code.toByte() && data[9] == 'A'.code.toByte() &&
+      data[10] == 'V'.code.toByte() && data[11] == 'E'.code.toByte()) return AudioFormat.WAV
+    return null
+  }
+
   override suspend fun decode(source: ByteArray, context: ConversionContext): AudioIR {
     require(source.size >= 44) { "WAV file too small: ${source.size} bytes" }
 

@@ -20,6 +20,11 @@ import dev.transmute.image.*
 class BmpImageDecoder : ImageDecoder {
   override val supportedFormats: Set<ImageFormat> = setOf(ImageFormat.BMP)
 
+  override fun sniff(data: ByteArray): ImageFormat? {
+    if (data.size >= 2 && data[0] == 0x42.toByte() && data[1] == 0x4D.toByte()) return ImageFormat.BMP
+    return null
+  }
+
   override suspend fun decode(source: ByteArray, context: ConversionContext): ImageIR {
     require(source.size >= 54) { "BMP too small" }
     require(source[0] == 'B'.code.toByte() && source[1] == 'M'.code.toByte()) { "Not a BMP" }

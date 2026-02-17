@@ -36,6 +36,23 @@ class FfmpegImageDecoder : ImageDecoder {
     ImageFormat.AVIF,
   )
 
+  override fun sniff(data: ByteArray): ImageFormat? {
+    if (data.size < 12) return null
+    // ISO BMFF ftyp box
+    if (data[4] == 0x66.toByte() && data[5] == 0x74.toByte() &&
+      data[6] == 0x79.toByte() && data[7] == 0x70.toByte()) {
+      val brand = data.sliceArray(8 until 12).decodeToString()
+      return when {
+        brand == "heic" || brand == "heix" -> ImageFormat.HEIC
+        brand == "mif1" || brand == "msf1" -> ImageFormat.HEIF
+        brand == "hevc" || brand == "hevx" -> ImageFormat.HEIC
+        brand == "avif" || brand == "avis" -> ImageFormat.AVIF
+        else -> null
+      }
+    }
+    return null
+  }
+
   override suspend fun decode(
     source: ByteArray,
     context: ConversionContext,

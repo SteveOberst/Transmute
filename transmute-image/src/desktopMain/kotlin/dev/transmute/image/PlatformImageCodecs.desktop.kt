@@ -13,9 +13,10 @@ actual fun installPlatformImageCodecs(
   decoders.register(JvmImageIoDecoder())
   encoders.register(JvmImageIoEncoder())
 
-  // FFmpeg-based codecs for HEIF, HEIC, AVIF (when FFmpeg is available)
+  // Always register for format detection (sniffing doesn't need FFmpeg).
+  // Decode/encode will throw at runtime if FFmpeg is absent.
+  decoders.register(FfmpegImageDecoder())
   if (FfmpegResolver.available) {
-    decoders.register(FfmpegImageDecoder())
     encoders.register(FfmpegImageEncoder())
   }
 }

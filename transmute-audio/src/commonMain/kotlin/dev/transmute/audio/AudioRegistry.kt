@@ -10,8 +10,10 @@ import dev.transmute.core.Codec
  */
 class MutableAudioDecoderRegistry : AudioDecoderRegistry {
   private val decoders = mutableMapOf<AudioFormat, AudioDecoder>()
+  private val decoderList = mutableListOf<AudioDecoder>()
 
   fun register(decoder: AudioDecoder) {
+    decoderList.add(decoder)
     for (format in decoder.supportedFormats) {
       decoders[format] = decoder
     }
@@ -19,18 +21,23 @@ class MutableAudioDecoderRegistry : AudioDecoderRegistry {
 
   /** Register a unified [Codec] as a decoder. */
   fun register(codec: Codec<AudioFormat, AudioIR>) {
+    val wrapper = object : AudioDecoder {
+      override val supportedFormats = codec.decodableFormats
+      override fun sniff(data: ByteArray) = codec.sniff(data)
+      override suspend fun decode(source: ByteArray, context: dev.transmute.core.ConversionContext) =
+        codec.decode(source, context)
+    }
+    decoderList.add(wrapper)
     for (format in codec.decodableFormats) {
-      decoders[format] = object : AudioDecoder {
-        override val supportedFormats = codec.decodableFormats
-        override suspend fun decode(source: ByteArray, context: dev.transmute.core.ConversionContext) =
-          codec.decode(source, context)
-      }
+      decoders[format] = wrapper
     }
   }
 
   override fun decoderFor(format: AudioFormat): AudioDecoder? = decoders[format]
 
   val supportedFormats: Set<AudioFormat> get() = decoders.keys.toSet()
+
+  val allDecoders: List<AudioDecoder> get() = decoderList
 }
 
 /**
@@ -68,12 +75,8 @@ object AudioRegistries {
   val decoders = MutableAudioDecoderRegistry()
   val encoders = MutableAudioEncoderRegistry()
 
-  /** Codecs that participate in format sniffing. */
-  val codecs = mutableListOf<Codec<AudioFormat, AudioIR>>()
-
   /** Register a unified codec for both decode, encode, and sniffing. */
   fun register(codec: Codec<AudioFormat, AudioIR>) {
-    codecs.add(codec)
     decoders.register(codec)
     encoders.register(codec)
   }

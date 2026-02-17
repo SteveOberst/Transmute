@@ -424,7 +424,16 @@ internal abstract class IosAssetReaderAudioDecoder(
     decodeWithAssetReader(source, format, context)
 }
 
-internal class IosMp3Decoder : IosAssetReaderAudioDecoder(AudioFormat.MP3)
+internal class IosMp3Decoder : IosAssetReaderAudioDecoder(AudioFormat.MP3) {
+  override fun sniff(data: ByteArray): AudioFormat? {
+    if (data.size < 3) return null
+    // ID3v2 tag
+    if (data[0] == 0x49.toByte() && data[1] == 0x44.toByte() && data[2] == 0x33.toByte()) return AudioFormat.MP3
+    // MPEG frame sync (first 11 bits set)
+    if (data.size >= 2 && (data[0].toInt() and 0xFF) == 0xFF && (data[1].toInt() and 0xE0) == 0xE0) return AudioFormat.MP3
+    return null
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Full codecs — formats we can both decode AND encode on iOS.

@@ -13,7 +13,6 @@ import dev.transmute.image.PixelFormat
 import dev.transmute.video.AudioTrack
 import dev.transmute.video.ListFrameStream
 import dev.transmute.video.VideoCodec
-import dev.transmute.video.VideoFormatDetector
 import dev.transmute.video.VideoFrame
 import dev.transmute.video.VideoIR
 import dev.transmute.video.VideoTrack
@@ -383,8 +382,17 @@ internal class IosMp4Codec : VideoCodec {
   override val encodableFormats: Set<VideoFormat> = setOf(VideoFormat.MP4)
 
   override fun sniff(data: ByteArray): VideoFormat? {
-    val detected = VideoFormatDetector.detectByMagicBytes(data)
-    return if (detected == VideoFormat.MP4) VideoFormat.MP4 else null
+    if (data.size < 12) return null
+    if (data[4] != 0x66.toByte() || data[5] != 0x74.toByte() ||
+      data[6] != 0x79.toByte() || data[7] != 0x70.toByte()) return null
+    val brand = (8 until 12).map { data[it].toInt().toChar() }.joinToString("")
+    return when {
+      brand.startsWith("mp4") || brand == "isom" || brand == "M4V " ||
+        brand == "avc1" || brand == "iso2" || brand == "iso5" ||
+        brand == "iso6" || brand == "mmp4" -> VideoFormat.MP4
+      brand.startsWith("3gp") || brand.startsWith("3g2") -> VideoFormat.MP4
+      else -> null
+    }
   }
 
   override suspend fun decode(source: ByteArray, context: ConversionContext): VideoIR {
@@ -426,8 +434,11 @@ internal class IosMovCodec : VideoCodec {
   override val encodableFormats: Set<VideoFormat> = setOf(VideoFormat.MOV)
 
   override fun sniff(data: ByteArray): VideoFormat? {
-    val detected = VideoFormatDetector.detectByMagicBytes(data)
-    return if (detected == VideoFormat.MOV) VideoFormat.MOV else null
+    if (data.size < 12) return null
+    if (data[4] != 0x66.toByte() || data[5] != 0x74.toByte() ||
+      data[6] != 0x79.toByte() || data[7] != 0x70.toByte()) return null
+    val brand = (8 until 12).map { data[it].toInt().toChar() }.joinToString("")
+    return if (brand == "qt  ") VideoFormat.MOV else null
   }
 
   override suspend fun decode(source: ByteArray, context: ConversionContext): VideoIR {

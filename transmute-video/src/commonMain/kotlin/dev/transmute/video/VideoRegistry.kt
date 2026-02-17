@@ -8,8 +8,10 @@ import dev.transmute.core.VideoFormat
  */
 class MutableVideoDecoderRegistry : VideoDecoderRegistry {
   private val decoders = mutableMapOf<VideoFormat, VideoDecoder>()
+  private val decoderList = mutableListOf<VideoDecoder>()
 
   fun register(decoder: VideoDecoder) {
+    decoderList.add(decoder)
     for (format in decoder.supportedFormats) {
       decoders[format] = decoder
     }
@@ -17,16 +19,21 @@ class MutableVideoDecoderRegistry : VideoDecoderRegistry {
 
   /** Register a unified [Codec] as a decoder. */
   fun register(codec: Codec<VideoFormat, VideoIR>) {
+    val wrapper = object : VideoDecoder {
+      override val supportedFormats = codec.decodableFormats
+      override fun sniff(data: ByteArray) = codec.sniff(data)
+      override suspend fun decode(source: ByteArray, context: dev.transmute.core.ConversionContext) =
+        codec.decode(source, context)
+    }
+    decoderList.add(wrapper)
     for (format in codec.decodableFormats) {
-      decoders[format] = object : VideoDecoder {
-        override val supportedFormats = codec.decodableFormats
-        override suspend fun decode(source: ByteArray, context: dev.transmute.core.ConversionContext) =
-          codec.decode(source, context)
-      }
+      decoders[format] = wrapper
     }
   }
 
   override fun decoderFor(format: VideoFormat): VideoDecoder? = decoders[format]
+
+  val allDecoders: List<VideoDecoder> get() = decoderList
 
   val supportedFormats: Set<VideoFormat> get() = decoders.keys.toSet()
 }
@@ -70,12 +77,8 @@ object VideoRegistries {
   val decoders = MutableVideoDecoderRegistry()
   val encoders = MutableVideoEncoderRegistry()
 
-  /** Codecs that participate in format sniffing. */
-  val codecs = mutableListOf<Codec<VideoFormat, VideoIR>>()
-
   /** Register a unified codec for both decode, encode, and sniffing. */
   fun register(codec: Codec<VideoFormat, VideoIR>) {
-    codecs.add(codec)
     decoders.register(codec)
     encoders.register(codec)
   }

@@ -347,7 +347,21 @@ internal class AndroidMp3Codec : AudioCodec {
   }
 }
 
-internal class AndroidOggDecoder : AndroidMediaCodecAudioDecoder(AudioFormat.OGG)
+internal class AndroidOggDecoder : AndroidMediaCodecAudioDecoder(AudioFormat.OGG) {
+  override fun sniff(data: ByteArray): AudioFormat? {
+    if (data.size < 4) return null
+    if (data[0] == 'O'.code.toByte() && data[1] == 'g'.code.toByte() &&
+      data[2] == 'g'.code.toByte() && data[3] == 'S'.code.toByte()) {
+      // Check for Opus inside OGG
+      if (data.size >= 36) {
+        val header = String(data, 28, 8, Charsets.US_ASCII)
+        if (header == "OpusHead") return null // Let OpusCodec handle it
+      }
+      return AudioFormat.OGG
+    }
+    return null
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Full codecs — formats we can both decode AND encode on Android.

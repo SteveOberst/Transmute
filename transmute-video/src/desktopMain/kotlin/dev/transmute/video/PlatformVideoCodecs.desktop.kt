@@ -11,26 +11,29 @@ actual fun installPlatformVideoCodecs(
   decoders: MutableVideoDecoderRegistry,
   encoders: MutableVideoEncoderRegistry,
 ) {
-  // All video codecs require FFmpeg on PATH.
-  if (!FfmpegVideoEngine.available) return
-
+  // Always register decoders for format detection (sniffing doesn't need FFmpeg).
+  // Decode/encode will throw at runtime if FFmpeg is absent.
   val mp4 = JvmMp4Codec()
   decoders.register(mp4)
-  encoders.register(mp4)
 
   val mov = JvmMovCodec()
   decoders.register(mov)
-  encoders.register(mov)
 
   val webm = JvmWebmCodec()
   decoders.register(webm)
-  encoders.register(webm)
 
   val avi = JvmAviCodec()
   decoders.register(avi)
-  encoders.register(avi)
 
   val mkv = JvmMkvCodec()
   decoders.register(mkv)
-  encoders.register(mkv)
+
+  // Only register encoders when FFmpeg is available.
+  if (FfmpegVideoEngine.available) {
+    encoders.register(mp4)
+    encoders.register(mov)
+    encoders.register(webm)
+    encoders.register(avi)
+    encoders.register(mkv)
+  }
 }
