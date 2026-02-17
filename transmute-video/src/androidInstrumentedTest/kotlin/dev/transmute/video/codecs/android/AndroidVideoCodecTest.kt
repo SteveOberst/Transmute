@@ -11,7 +11,7 @@ import dev.transmute.video.VideoFrame
 import dev.transmute.video.VideoIR
 import dev.transmute.video.VideoTestHelpers
 import dev.transmute.video.VideoTrack
-import kotlinx.coroutines.*
+import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.Timeout
@@ -34,28 +34,9 @@ import kotlin.test.assertTrue
 @RunWith(AndroidJUnit4::class)
 class AndroidVideoCodecTest {
 
-  // Safety-net: generous limit that only fires if coroutine timeout fails.
+  // MediaCodec init is slow on CI emulators (~40-50 s per codec op).
+  // Give each test plenty of time rather than skipping.
   @get:Rule val timeout: Timeout = Timeout.seconds(180)
-
-  /**
-   * Runs [block] on [Dispatchers.IO] with a real-time timeout.
-   * Returns null (and logs SKIP) if the operation hangs
-   * (e.g. MediaCodec.native_setup() on CI emulators) or throws.
-   *
-   * Uses an independent [CoroutineScope] so that [runBlocking] does not
-   * wait for a thread stuck in a blocking JNI call.
-   */
-  private suspend fun <T> codecOp(
-    label: String,
-    timeoutMs: Long = 45_000L,
-    block: suspend () -> T,
-  ): T? = try {
-    val deferred = CoroutineScope(Dispatchers.IO).async { block() }
-    withTimeout(timeoutMs) { deferred.await() }
-  } catch (e: Throwable) {
-    println("SKIP: $label: ${e::class.simpleName}: ${e.message}")
-    null
-  }
 
   // MP4 roundtrip
 
@@ -67,10 +48,10 @@ class AndroidVideoCodecTest {
     val ctx = VideoTestHelpers.testContext()
     val codec = AndroidMp4Codec()
 
-    val encoded = codecOp("MP4 encoding") { codec.encode(original, ctx) } ?: return@runBlocking
+    val encoded = codec.encode(original, ctx)
     assertTrue(encoded.isNotEmpty(), "Encoded MP4 should not be empty")
 
-    val decoded = codecOp("MP4 decoding") { codec.decode(encoded, ctx) } ?: return@runBlocking
+    val decoded = codec.decode(encoded, ctx)
     assertEquals(32, decoded.videoTrack.width, "MP4: width mismatch")
     assertEquals(32, decoded.videoTrack.height, "MP4: height mismatch")
     assertTrue(decoded.videoTrack.frames.frameCount > 0, "MP4: must have frames")
@@ -80,7 +61,7 @@ class AndroidVideoCodecTest {
   fun mp4EncodedBytesDetectedAsMp4() = runBlocking {
     val ir = VideoTestHelpers.syntheticVideo(width = 32, height = 32, durationMs = 200)
     val ctx = VideoTestHelpers.testContext()
-    val encoded = codecOp("MP4 encoding") { AndroidMp4Codec().encode(ir, ctx) } ?: return@runBlocking
+    val encoded = AndroidMp4Codec().encode(ir, ctx)
 
     assertEquals(
       VideoFormat.MP4,
@@ -97,8 +78,8 @@ class AndroidVideoCodecTest {
     val ctx = VideoTestHelpers.testContext()
     val codec = AndroidMp4Codec()
 
-    val encoded = codecOp("MP4 encoding") { codec.encode(original, ctx) } ?: return@runBlocking
-    val decoded = codecOp("MP4 decoding") { codec.decode(encoded, ctx) } ?: return@runBlocking
+    val encoded = codec.encode(original, ctx)
+    val decoded = codec.decode(encoded, ctx)
 
     assertNotNull(decoded.audioTrack, "MP4: audio track should be preserved")
     assertTrue(
@@ -117,10 +98,10 @@ class AndroidVideoCodecTest {
     val ctx = VideoTestHelpers.testContext()
     val codec = AndroidMovCodec()
 
-    val encoded = codecOp("MOV encoding") { codec.encode(original, ctx) } ?: return@runBlocking
+    val encoded = codec.encode(original, ctx)
     assertTrue(encoded.isNotEmpty(), "Encoded MOV should not be empty")
 
-    val decoded = codecOp("MOV decoding") { codec.decode(encoded, ctx) } ?: return@runBlocking
+    val decoded = codec.decode(encoded, ctx)
     assertEquals(32, decoded.videoTrack.width, "MOV: width mismatch")
     assertEquals(32, decoded.videoTrack.height, "MOV: height mismatch")
     assertTrue(decoded.videoTrack.frames.frameCount > 0, "MOV: must have frames")
