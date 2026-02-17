@@ -22,6 +22,29 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
+  # Dispatch CI & integration checks on the release-please PR branch.
+  # GITHUB_TOKEN suppresses push/pull_request events but NOT workflow_dispatch,
+  # so we use `gh workflow run` to trigger the test workflows on the PR branch.
+  trigger-pr-checks:
+    needs: release-please
+    if: ${{ !needs.release-please.outputs.release_created }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch CI & integration on release-please PR branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          PR_BRANCH=$(gh pr list --state open --json headRefName -q '.[].headRefName' \
+            | grep '^release-please--branches--' | head -1)
+          if [ -n "$PR_BRANCH" ]; then
+            echo "Dispatching workflows on: $PR_BRANCH"
+            gh workflow run ci.yml --ref "$PR_BRANCH"
+            gh workflow run integration.yml --ref "$PR_BRANCH"
+          else
+            echo "No release-please PR open, skipping."
+          fi
+
   # Gate on CI unit tests passing
   ci-gate:
     needs: release-please
