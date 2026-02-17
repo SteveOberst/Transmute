@@ -6,7 +6,6 @@ on:
   pull_request:
     branches: [main]
   workflow_call: # allow reuse from release.yml
-  workflow_dispatch: # allow dispatch from release.yml trigger-pr-checks
 
 concurrency:
   group: ci-${{ github.ref }}
