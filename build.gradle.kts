@@ -1,4 +1,4 @@
-import dev.transmute.build.ProjectVersion
+import dev.transmute.gradle.ProjectVersion
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform) apply false
