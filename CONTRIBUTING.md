@@ -175,12 +175,12 @@ BREAKING CHANGE: ConversionContext.scratchpad has been renamed to metadata."
 
 1. Push commits to `main` using conventional commit format.
 2. **release-please** automatically creates or updates a Release PR with:
-   - Bumped version number (based on commit types)
-   - Auto-generated `CHANGELOG.md` entries
-   - Updated version in `build.gradle.kts`
+    - Bumped version number (based on commit types)
+    - Auto-generated release notes (from conventional commits)
+    - Updated version metadata (see `.release-please-manifest.json`)
 3. When the Release PR is merged:
-   - A GitHub Release is created with the changelog
-   - JitPack automatically builds the release tag
+    - A GitHub Release is created from the Release PR notes
+    - JitPack automatically builds the release tag
 
 ### Version Policy
 
@@ -218,14 +218,25 @@ enum class AudioFormat : MediaFormat {
 }
 ```
 
-### 2. Add Magic Bytes Detection
+### 2. Implement Sniff-Based Detection
 
-In the domain's `FormatDetector` file (e.g. `AudioFormatDetector.kt`),
-add a magic-byte rule so the format can be auto-detected from raw bytes:
+Format detection is **sniff-based**: the domain `FormatDetector` iterates all
+registered decoders/codecs and calls `sniff(data)`.
+
+When adding a codec, implement `sniff()` so it returns the format when the input
+is recognized, or `null` otherwise.
+
+**Sniff conventions:**
+- Fast, side-effect free, and tolerant of short inputs
+- Prefer conservative matching (avoid false positives)
+- Never throw — return `null` when unsure
 
 ```kotlin
-// Inside detectByMagicBytes()
-if (data.size >= 4 && data[0] == 0x00.toByte() && /* ... */) return AudioFormat.ALAC
+override fun sniff(data: ByteArray): AudioFormat? {
+  if (data.size < 4) return null
+  // ... check container/header signature ...
+  return AudioFormat.ALAC
+}
 ```
 
 ### 3. Implement the Codec
@@ -309,12 +320,12 @@ class JvmAlacCodecTest {
 
 1. **README.md** — Update the platform support table with the new format
 2. **README.md** — Add the new integration test to the test tables
-3. **CHANGELOG.md** — This is handled automatically by release-please
+3. Release notes are handled automatically by release-please
 
 ### Codec Checklist
 
 - [ ] Format enum entry exists in `MediaFormat.kt`
-- [ ] Magic-byte detection added to `FormatDetector`
+- [ ] `sniff()` implemented (and covered by tests)
 - [ ] Codec implementation (implements `Codec`, `Decoder`, or `Encoder`)
 - [ ] Codec registered in the platform registration file
 - [ ] Integration test with roundtrip encode → decode
