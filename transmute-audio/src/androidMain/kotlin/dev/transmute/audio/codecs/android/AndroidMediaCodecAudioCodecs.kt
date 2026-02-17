@@ -257,8 +257,20 @@ internal class AndroidMp3Codec : AudioCodec {
       return AudioFormat.MP3
     }
     // MPEG audio frame sync word (first 11 bits set)
-    if (data.size >= 2 && (data[0].toInt() and 0xFF) == 0xFF && (data[1].toInt() and 0xE0) == 0xE0) {
-      return AudioFormat.MP3
+    // NOTE: AAC ADTS headers also start with 0xFF Fx and can be mis-detected as MP3
+    // unless we validate the MPEG audio layer bits.
+    if (data.size >= 2 && (data[0].toInt() and 0xFF) == 0xFF) {
+      val b1 = data[1].toInt() and 0xFF
+      if ((b1 and 0xE0) == 0xE0) {
+        val versionBits = (b1 shr 3) and 0x03
+        val layerBits = (b1 shr 1) and 0x03
+
+        // versionBits == 0b01 is reserved; layerBits == 0b00 is invalid for MPEG audio.
+        // ADTS uses layerBits == 0, so this excludes AAC.
+        if (versionBits != 0x01 && layerBits != 0x00) {
+          return AudioFormat.MP3
+        }
+      }
     }
     return null
   }
