@@ -3,8 +3,10 @@ plugins {
     alias(libs.plugins.android.library) apply false
 }
 
+import dev.transmute.build.ProjectVersion
+
 group = "com.github.SteveOberst.Transmute"
-version = "0.1.0" // x-release-please-version
+version = ProjectVersion.resolve(rootDir) // x-release-please-version
 
 subprojects {
     group = rootProject.group
