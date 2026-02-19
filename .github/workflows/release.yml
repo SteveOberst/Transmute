@@ -56,7 +56,7 @@ jobs:
         (github.event_name == 'push' && needs.release-please.outputs.release_created == 'true' && needs.ci-gate.result == 'success' && needs.integration-gate.result == 'success') ||
         github.event_name == 'workflow_dispatch'
       )
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64]
     env:
       GITHUB_USERNAME: ${{ github.actor }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
