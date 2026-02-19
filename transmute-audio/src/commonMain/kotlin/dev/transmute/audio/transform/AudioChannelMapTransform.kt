@@ -1,9 +1,10 @@
 package dev.transmute.audio.transform
 
+import dev.transmute.audio.AudioHint
 import dev.transmute.audio.AudioIR
 import dev.transmute.audio.AudioSamples
+import dev.transmute.audio.AudioTransform
 import dev.transmute.core.ConversionContext
-import dev.transmute.core.pipeline.Transform
 import dev.transmute.core.pipeline.TransformId
 
 /**
@@ -24,7 +25,12 @@ import dev.transmute.core.pipeline.TransformId
  */
 class AudioChannelMapTransform(
   val mapping: IntArray,
-) : Transform<AudioIR> {
+) : AudioTransform {
+
+  override fun wouldTransform(hint: AudioHint): Boolean =
+    hint.channelCount == null ||
+      mapping.size != hint.channelCount ||
+      mapping.indices.any { mapping[it] != it }
 
   override val id = TransformId("audio.channel-map")
 

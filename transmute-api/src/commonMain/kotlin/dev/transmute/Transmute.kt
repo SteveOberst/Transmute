@@ -21,25 +21,12 @@ import dev.transmute.video.VideoIR
 import dev.transmute.video.VideoMetadataTransform
 import dev.transmute.video.VideoRegistries
 import dev.transmute.core.pipeline.TransformPipeline
-import dev.transmute.image.ImageHint
 import dev.transmute.audio.AudioHint
+import dev.transmute.audio.AudioTransform
+import dev.transmute.image.ImageHint
+import dev.transmute.image.ImageTransform
 import dev.transmute.video.VideoHint
-import dev.transmute.image.transform.ImageScaleTransform
-import dev.transmute.image.transform.ImageResizeTransform
-import dev.transmute.image.transform.ImageBrightnessContrastTransform
-import dev.transmute.image.transform.ImageBlurTransform
-import dev.transmute.image.transform.ImageOpacityTransform
-import dev.transmute.image.transform.ImageFlipTransform
-import dev.transmute.audio.transform.AudioResampleTransform
-import dev.transmute.audio.transform.AudioSpeedTransform
-import dev.transmute.audio.transform.AudioGainTransform
-import dev.transmute.audio.transform.AudioFadeTransform
-import dev.transmute.audio.transform.AudioCompressorTransform
-import dev.transmute.audio.transform.AudioChannelMapTransform
-import dev.transmute.video.transform.VideoResizeTransform
-import dev.transmute.video.transform.VideoFrameRateTransform
-import dev.transmute.video.transform.VideoSpeedTransform
-import dev.transmute.video.transform.VideoRemoveAudioTransform
+import dev.transmute.video.VideoTransform
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -115,7 +102,7 @@ interface Transmuter<Self : Transmuter<Self>> {
  *
  * // 2. Filter: check whether the transmuter would change a given item
  * val hint = ImageHint(width = 400, height = 300, format = ImageFormat.JPEG)
- * if (transmuter.wouldAffect(hint)) {
+ * if (transmuter.wouldTransmute(hint)) {
  *   val result = transmuter.transmute(bytes)
  * }
  *
@@ -265,26 +252,10 @@ class ImageTransmuter : Transmuter<ImageTransmuter> {
    * transform is assumed to apply. Only returns `false` when it can be proven from the hint
    * that every configured transform is a no-op.
    */
-  fun wouldAffect(hint: ImageHint): Boolean {
+  fun wouldTransmute(hint: ImageHint): Boolean {
     if (metadataPolicy == MetadataPolicy.STRIP_ALL) return true
     if (outputFormat != null && outputFormat != hint.format) return true
-    return pipeline.transforms.any { t ->
-      when (t) {
-        is ImageScaleTransform -> {
-          val w = hint.width; val h = hint.height
-          w == null || h == null || w > t.maxWidth || h > t.maxHeight
-        }
-        is ImageResizeTransform -> {
-          val w = hint.width; val h = hint.height
-          w == null || h == null || w != t.targetWidth || h != t.targetHeight
-        }
-        is ImageBrightnessContrastTransform -> t.brightness != 0f || t.contrast != 1f
-        is ImageBlurTransform -> t.radius > 0
-        is ImageOpacityTransform -> t.opacity != 1f
-        is ImageFlipTransform -> t.horizontal || t.vertical
-        else -> true // conservative: unknown transforms are assumed to apply
-      }
-    }
+    return pipeline.transforms.any { (it as? ImageTransform)?.wouldTransform(hint) ?: true }
   }
 
   override suspend fun transmute(source: ByteArray): ByteArray {
@@ -385,24 +356,10 @@ class AudioTransmuter : Transmuter<AudioTransmuter> {
    * transform is assumed to apply. Only returns `false` when it can be proven from the hint
    * that every configured transform is a no-op.
    */
-  fun wouldAffect(hint: AudioHint): Boolean {
+  fun wouldTransmute(hint: AudioHint): Boolean {
     if (metadataPolicy == MetadataPolicy.STRIP_ALL) return true
     if (outputFormat != null && outputFormat != hint.format) return true
-    return pipeline.transforms.any { t ->
-      when (t) {
-        is AudioResampleTransform ->
-          hint.sampleRate == null || hint.sampleRate != t.targetSampleRate
-        is AudioSpeedTransform -> t.speed != 1f
-        is AudioGainTransform -> t.gainDb != 0f
-        is AudioFadeTransform -> t.fadeInMs > 0 || t.fadeOutMs > 0
-        is AudioCompressorTransform -> t.ratio > 1f
-        is AudioChannelMapTransform ->
-          hint.channelCount == null ||
-            t.mapping.size != hint.channelCount ||
-            t.mapping.indices.any { t.mapping[it] != it }
-        else -> true // conservative
-      }
-    }
+    return pipeline.transforms.any { (it as? AudioTransform)?.wouldTransform(hint) ?: true }
   }
 
   override suspend fun transmute(source: ByteArray): ByteArray {
@@ -505,24 +462,10 @@ class VideoTransmuter : Transmuter<VideoTransmuter> {
    * transform is assumed to apply. Only returns `false` when it can be proven from the hint
    * that every configured transform is a no-op.
    */
-  fun wouldAffect(hint: VideoHint): Boolean {
+  fun wouldTransmute(hint: VideoHint): Boolean {
     if (metadataPolicy == MetadataPolicy.STRIP_ALL) return true
     if (outputFormat != null && outputFormat != hint.format) return true
-    return pipeline.transforms.any { t ->
-      when (t) {
-        is VideoResizeTransform -> {
-          val w = hint.width; val h = hint.height
-          w == null || h == null || w > t.maxWidth || h > t.maxHeight
-        }
-        is VideoFrameRateTransform -> {
-          val fps = hint.fps
-          fps == null || fps > t.targetFps
-        }
-        is VideoSpeedTransform -> t.speed != 1f
-        is VideoRemoveAudioTransform -> true // always strips audio track
-        else -> true // conservative
-      }
-    }
+    return pipeline.transforms.any { (it as? VideoTransform)?.wouldTransform(hint) ?: true }
   }
 
   override suspend fun transmute(source: ByteArray): ByteArray {

@@ -5,7 +5,8 @@ import dev.transmute.image.AlphaSemantics
 import dev.transmute.image.ByteArrayPixelBuffer
 import dev.transmute.image.ImageIR
 import dev.transmute.image.PixelFormat
-import dev.transmute.core.pipeline.Transform
+import dev.transmute.image.ImageHint
+import dev.transmute.image.ImageTransform
 import dev.transmute.core.pipeline.TransformId
 
 /**
@@ -18,7 +19,9 @@ import dev.transmute.core.pipeline.TransformId
  * Supports [PixelFormat.RGBA_8888] and [PixelFormat.RGB_888].
  * Alpha channel is preserved when present.
  */
-class ImageGrayscaleTransform : Transform<ImageIR> {
+class ImageGrayscaleTransform : ImageTransform {
+
+  override fun wouldTransform(hint: ImageHint): Boolean = true // always converts to grayscale
 
   override val id: TransformId = TransformId("image.grayscale")
 

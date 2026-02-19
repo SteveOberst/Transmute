@@ -5,7 +5,7 @@ import dev.transmute.core.VideoFormat
 /**
  * Lightweight metadata snapshot for a video item.
  *
- * Used with [VideoTransmuter.wouldAffect] to determine whether a configured
+ * Used with [dev.transmute.VideoTransmuter.wouldTransmute] to determine whether a configured
  * transmuter would produce any change on a video file without decoding it.
  * All properties are nullable — `null` means the value is unknown, and the
  * transmuter will conservatively assume the transform *might* apply.
@@ -18,7 +18,7 @@ import dev.transmute.core.VideoFormat
  * }
  *
  * val hint = VideoHint(width = item.width, height = item.height, fps = item.fps)
- * if (transmuter.wouldAffect(hint)) {
+ * if (transmuter.wouldTransmute(hint)) {
  *     val compressed = transmuter.transmute(item.bytes)
  * }
  * ```

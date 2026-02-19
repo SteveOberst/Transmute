@@ -3,7 +3,8 @@ package dev.transmute.image.transform
 import dev.transmute.core.ConversionContext
 import dev.transmute.image.ByteArrayPixelBuffer
 import dev.transmute.image.ImageIR
-import dev.transmute.core.pipeline.Transform
+import dev.transmute.image.ImageHint
+import dev.transmute.image.ImageTransform
 import dev.transmute.core.pipeline.TransformId
 
 /**
@@ -19,7 +20,9 @@ import dev.transmute.core.pipeline.TransformId
 class ImageFlipTransform(
   val horizontal: Boolean = false,
   val vertical: Boolean = false,
-) : Transform<ImageIR> {
+) : ImageTransform {
+
+  override fun wouldTransform(hint: ImageHint): Boolean = horizontal || vertical
 
   override val id: TransformId = TransformId("image.flip")
 

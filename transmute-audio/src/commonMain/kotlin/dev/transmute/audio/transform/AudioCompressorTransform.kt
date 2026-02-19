@@ -1,9 +1,10 @@
 package dev.transmute.audio.transform
 
+import dev.transmute.audio.AudioHint
 import dev.transmute.audio.AudioIR
 import dev.transmute.audio.AudioSamples
+import dev.transmute.audio.AudioTransform
 import dev.transmute.core.ConversionContext
-import dev.transmute.core.pipeline.Transform
 import dev.transmute.core.pipeline.TransformId
 import kotlin.math.abs
 import kotlin.math.pow
@@ -34,7 +35,9 @@ class AudioCompressorTransform(
   val attackMs: Float = 10f,
   val releaseMs: Float = 100f,
   val makeupGainDb: Float = 0f,
-) : Transform<AudioIR> {
+) : AudioTransform {
+
+  override fun wouldTransform(hint: AudioHint): Boolean = ratio > 1f
 
   override val id = TransformId("audio.compressor")
 

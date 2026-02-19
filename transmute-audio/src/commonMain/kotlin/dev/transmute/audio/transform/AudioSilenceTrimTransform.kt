@@ -1,9 +1,10 @@
 package dev.transmute.audio.transform
 
+import dev.transmute.audio.AudioHint
 import dev.transmute.audio.AudioIR
 import dev.transmute.audio.AudioSamples
+import dev.transmute.audio.AudioTransform
 import dev.transmute.core.ConversionContext
-import dev.transmute.core.pipeline.Transform
 import dev.transmute.core.pipeline.TransformId
 import kotlin.math.abs
 import kotlin.math.pow
@@ -28,7 +29,9 @@ class AudioSilenceTrimTransform(
   val minSilenceMs: Long = 100,
   val trimStart: Boolean = true,
   val trimEnd: Boolean = true,
-) : Transform<AudioIR> {
+) : AudioTransform {
+
+  override fun wouldTransform(hint: AudioHint): Boolean = trimStart || trimEnd
 
   override val id = TransformId("audio.silence-trim")
 

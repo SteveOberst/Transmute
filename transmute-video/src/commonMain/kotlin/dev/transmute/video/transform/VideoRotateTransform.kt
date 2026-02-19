@@ -1,12 +1,13 @@
 package dev.transmute.video.transform
 
-import dev.transmute.video.VideoIR
-import dev.transmute.video.VideoFrame
-import dev.transmute.video.FrameStream
 import dev.transmute.core.ConversionContext
-import dev.transmute.core.pipeline.Transform
 import dev.transmute.core.pipeline.TransformId
 import dev.transmute.image.ByteArrayPixelBuffer
+import dev.transmute.video.FrameStream
+import dev.transmute.video.VideoFrame
+import dev.transmute.video.VideoHint
+import dev.transmute.video.VideoIR
+import dev.transmute.video.VideoTransform
 
 /**
  * Rotates video frames by 90°, 180°, or 270° clockwise.
@@ -22,7 +23,9 @@ import dev.transmute.image.ByteArrayPixelBuffer
  */
 class VideoRotateTransform(
   val degrees: Int,
-) : Transform<VideoIR> {
+) : VideoTransform {
+
+  override fun wouldTransform(hint: VideoHint): Boolean = true // always applies rotation
 
   init {
     require(degrees in setOf(90, 180, 270)) { "Rotation must be 90, 180, or 270 degrees, got $degrees" }

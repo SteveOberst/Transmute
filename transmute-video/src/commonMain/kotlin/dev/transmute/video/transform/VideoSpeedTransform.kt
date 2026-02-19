@@ -1,13 +1,14 @@
 package dev.transmute.video.transform
 
-import dev.transmute.video.VideoIR
+import dev.transmute.audio.AudioSamples
+import dev.transmute.core.ConversionContext
+import dev.transmute.core.pipeline.TransformId
+import dev.transmute.video.AudioTrack
 import dev.transmute.video.FrameStream
 import dev.transmute.video.VideoFrame
-import dev.transmute.audio.AudioSamples
-import dev.transmute.video.AudioTrack
-import dev.transmute.core.ConversionContext
-import dev.transmute.core.pipeline.Transform
-import dev.transmute.core.pipeline.TransformId
+import dev.transmute.video.VideoHint
+import dev.transmute.video.VideoIR
+import dev.transmute.video.VideoTransform
 import kotlin.math.roundToInt
 
 /**
@@ -29,7 +30,9 @@ import kotlin.math.roundToInt
  */
 class VideoSpeedTransform(
   val speed: Float,
-) : Transform<VideoIR> {
+) : VideoTransform {
+
+  override fun wouldTransform(hint: VideoHint): Boolean = speed != 1f
 
   override val id = TransformId("video.speed")
 

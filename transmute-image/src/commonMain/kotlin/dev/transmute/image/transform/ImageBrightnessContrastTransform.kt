@@ -4,7 +4,8 @@ import dev.transmute.core.ConversionContext
 import dev.transmute.image.ByteArrayPixelBuffer
 import dev.transmute.image.ImageIR
 import dev.transmute.image.PixelFormat
-import dev.transmute.core.pipeline.Transform
+import dev.transmute.image.ImageHint
+import dev.transmute.image.ImageTransform
 import dev.transmute.core.pipeline.TransformId
 
 /**
@@ -24,7 +25,9 @@ import dev.transmute.core.pipeline.TransformId
 class ImageBrightnessContrastTransform(
   val brightness: Float = 0f,
   val contrast: Float = 1f,
-) : Transform<ImageIR> {
+) : ImageTransform {
+
+  override fun wouldTransform(hint: ImageHint): Boolean = brightness != 0f || contrast != 1f
 
   override val id: TransformId = TransformId("image.brightness-contrast")
 
