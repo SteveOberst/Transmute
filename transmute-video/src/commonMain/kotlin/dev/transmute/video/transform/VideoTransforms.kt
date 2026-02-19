@@ -1,15 +1,16 @@
 package dev.transmute.video.transform
 
-import dev.transmute.video.VideoIR
-import dev.transmute.video.VideoTrack
-import dev.transmute.video.VideoMetadata
-import dev.transmute.video.FrameStream
-import dev.transmute.video.VideoFrame
 import dev.transmute.core.ConversionContext
-import dev.transmute.core.pipeline.Transform
 import dev.transmute.core.pipeline.TransformId
 import dev.transmute.image.ByteArrayPixelBuffer
 import dev.transmute.image.PixelBuffer
+import dev.transmute.video.FrameStream
+import dev.transmute.video.VideoFrame
+import dev.transmute.video.VideoHint
+import dev.transmute.video.VideoIR
+import dev.transmute.video.VideoMetadata
+import dev.transmute.video.VideoTrack
+import dev.transmute.video.VideoTransform
 
 /**
  * Trims video to a specified time range.
@@ -23,7 +24,9 @@ import dev.transmute.image.PixelBuffer
 class VideoTrimTransform(
   val startMs: Long,
   val endMs: Long? = null,
-) : Transform<VideoIR> {
+) : VideoTransform {
+  override fun wouldTransform(hint: VideoHint): Boolean = true // always trims
+
   override val id = TransformId("video.trim")
 
   override suspend fun apply(ir: VideoIR, context: ConversionContext): VideoIR {
@@ -80,7 +83,11 @@ private class TrimmedFrameStream(
 class VideoResizeTransform(
   val maxWidth: Int,
   val maxHeight: Int,
-) : Transform<VideoIR> {
+) : VideoTransform {
+  override fun wouldTransform(hint: VideoHint): Boolean =
+    hint.width == null || hint.height == null ||
+      hint.width > maxWidth || hint.height > maxHeight
+
   override val id = TransformId("video.resize")
 
   override suspend fun apply(ir: VideoIR, context: ConversionContext): VideoIR {
@@ -172,7 +179,10 @@ private class ResizedFrameStream(
  */
 class VideoFrameRateTransform(
   val targetFps: Double,
-) : Transform<VideoIR> {
+) : VideoTransform {
+  override fun wouldTransform(hint: VideoHint): Boolean =
+    hint.fps == null || hint.fps > targetFps
+
   override val id = TransformId("video.framerate")
 
   override suspend fun apply(ir: VideoIR, context: ConversionContext): VideoIR {
@@ -222,7 +232,9 @@ private class FrameRateAdjustedStream(
 /**
  * Removes the audio track from a video.
  */
-class VideoRemoveAudioTransform : Transform<VideoIR> {
+class VideoRemoveAudioTransform : VideoTransform {
+  override fun wouldTransform(hint: VideoHint): Boolean = true // always removes audio track
+
   override val id = TransformId("video.removeAudio")
 
   override suspend fun apply(ir: VideoIR, context: ConversionContext): VideoIR {

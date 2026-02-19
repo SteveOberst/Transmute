@@ -5,7 +5,7 @@ import dev.transmute.core.AudioFormat
 /**
  * Lightweight metadata snapshot for an audio item.
  *
- * Used with [AudioTransmuter.wouldAffect] to determine whether a configured
+ * Used with [dev.transmute.AudioTransmuter.wouldTransmute] to determine whether a configured
  * transmuter would produce any change on an audio file without decoding it.
  * All properties are nullable — `null` means the value is unknown, and the
  * transmuter will conservatively assume the transform *might* apply.
@@ -17,7 +17,7 @@ import dev.transmute.core.AudioFormat
  * }
  *
  * val hint = AudioHint(sampleRate = track.sampleRate, channelCount = track.channels)
- * if (transmuter.wouldAffect(hint)) {
+ * if (transmuter.wouldTransmute(hint)) {
  *     val processed = transmuter.transmute(track.bytes)
  * }
  * ```

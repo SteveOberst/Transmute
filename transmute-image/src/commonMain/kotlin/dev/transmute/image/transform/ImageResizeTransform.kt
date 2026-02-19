@@ -1,10 +1,11 @@
 package dev.transmute.image.transform
 
 import dev.transmute.core.ConversionContext
-import dev.transmute.core.pipeline.Transform
 import dev.transmute.core.pipeline.TransformId
 import dev.transmute.image.ByteArrayPixelBuffer
+import dev.transmute.image.ImageHint
 import dev.transmute.image.ImageIR
+import dev.transmute.image.ImageTransform
 import dev.transmute.image.transform.kernel.ResampleFactory
 import dev.transmute.image.transform.kernel.ResampleFilter
 import dev.transmute.image.transform.kernel.ResampleKernel
@@ -38,7 +39,11 @@ class ImageResizeTransform(
   val targetHeight: Int,
   val filter: ResampleFilter = ResampleFilter.BICUBIC_MITCHELL,
   val allowUpscale: Boolean = true,
-) : Transform<ImageIR> {
+) : ImageTransform {
+
+  override fun wouldTransform(hint: ImageHint): Boolean =
+    hint.width == null || hint.height == null ||
+      hint.width != targetWidth || hint.height != targetHeight
 
   override val id: TransformId = TransformId("image.resize")
 

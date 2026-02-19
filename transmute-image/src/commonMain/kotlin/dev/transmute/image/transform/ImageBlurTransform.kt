@@ -4,7 +4,8 @@ import dev.transmute.core.ConversionContext
 import dev.transmute.image.ByteArrayPixelBuffer
 import dev.transmute.image.ImageIR
 import dev.transmute.image.PixelFormat
-import dev.transmute.core.pipeline.Transform
+import dev.transmute.image.ImageHint
+import dev.transmute.image.ImageTransform
 import dev.transmute.core.pipeline.TransformId
 
 /**
@@ -23,7 +24,9 @@ import dev.transmute.core.pipeline.TransformId
  */
 class ImageBlurTransform(
   val radius: Int = 1,
-) : Transform<ImageIR> {
+) : ImageTransform {
+
+  override fun wouldTransform(hint: ImageHint): Boolean = radius > 0
 
   override val id: TransformId = TransformId("image.blur")
 

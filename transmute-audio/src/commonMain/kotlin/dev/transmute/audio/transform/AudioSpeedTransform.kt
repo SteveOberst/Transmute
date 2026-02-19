@@ -1,9 +1,10 @@
 package dev.transmute.audio.transform
 
+import dev.transmute.audio.AudioHint
 import dev.transmute.audio.AudioIR
 import dev.transmute.audio.AudioSamples
+import dev.transmute.audio.AudioTransform
 import dev.transmute.core.ConversionContext
-import dev.transmute.core.pipeline.Transform
 import dev.transmute.core.pipeline.TransformId
 import kotlin.math.roundToInt
 
@@ -25,7 +26,10 @@ import kotlin.math.roundToInt
  */
 class AudioSpeedTransform(
   val speed: Float = 1f,
-) : Transform<AudioIR> {
+) : AudioTransform {
+
+  override fun wouldTransform(hint: AudioHint): Boolean = speed != 1f
+
   override val id = TransformId("audio.speed")
 
   override suspend fun apply(ir: AudioIR, context: ConversionContext): AudioIR {

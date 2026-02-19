@@ -1,12 +1,13 @@
 package dev.transmute.video.transform
 
-import dev.transmute.video.VideoIR
-import dev.transmute.video.VideoFrame
-import dev.transmute.video.FrameStream
 import dev.transmute.core.ConversionContext
-import dev.transmute.core.pipeline.Transform
 import dev.transmute.core.pipeline.TransformId
 import dev.transmute.image.ByteArrayPixelBuffer
+import dev.transmute.video.FrameStream
+import dev.transmute.video.VideoFrame
+import dev.transmute.video.VideoHint
+import dev.transmute.video.VideoIR
+import dev.transmute.video.VideoTransform
 
 /**
  * Crops video frames to a sub-region.
@@ -25,7 +26,9 @@ class VideoCropTransform(
   val y: Int,
   val cropWidth: Int,
   val cropHeight: Int,
-) : Transform<VideoIR> {
+) : VideoTransform {
+
+  override fun wouldTransform(hint: VideoHint): Boolean = true // always crops
 
   override val id = TransformId("video.crop")
 

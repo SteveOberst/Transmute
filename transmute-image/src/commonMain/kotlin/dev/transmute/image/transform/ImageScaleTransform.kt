@@ -3,9 +3,10 @@ package dev.transmute.image.transform
 import dev.transmute.core.ConversionContext
 import dev.transmute.image.AlphaSemantics
 import dev.transmute.image.ByteArrayPixelBuffer
+import dev.transmute.image.ImageHint
 import dev.transmute.image.ImageIR
+import dev.transmute.image.ImageTransform
 import dev.transmute.image.PixelFormat
-import dev.transmute.core.pipeline.Transform
 import dev.transmute.core.pipeline.TransformId
 import kotlin.math.max
 import kotlin.math.min
@@ -24,7 +25,11 @@ import kotlin.math.roundToInt
 class ImageScaleTransform(
   val maxWidth: Int,
   val maxHeight: Int,
-) : Transform<ImageIR> {
+) : ImageTransform {
+
+  override fun wouldTransform(hint: ImageHint): Boolean =
+    hint.width == null || hint.height == null ||
+      hint.width > maxWidth || hint.height > maxHeight
 
   override val id: TransformId = TransformId("image-scale")
 

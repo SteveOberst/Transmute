@@ -1,9 +1,10 @@
 package dev.transmute.audio.transform
 
+import dev.transmute.audio.AudioHint
 import dev.transmute.audio.AudioIR
 import dev.transmute.audio.AudioSamples
+import dev.transmute.audio.AudioTransform
 import dev.transmute.core.ConversionContext
-import dev.transmute.core.pipeline.Transform
 import dev.transmute.core.pipeline.TransformId
 import kotlin.math.abs
 import kotlin.math.max
@@ -19,8 +20,10 @@ import kotlin.math.PI
  */
 class AudioNormalizeTransform(
   val targetPeak: Float = 0.95f,
-) : Transform<AudioIR> {
+) : AudioTransform {
   override val id = TransformId("audio.normalize")
+
+  override fun wouldTransform(hint: AudioHint): Boolean = true // conservative: peak is not in hint
 
   override suspend fun apply(ir: AudioIR, context: ConversionContext): AudioIR {
 
@@ -51,8 +54,11 @@ class AudioNormalizeTransform(
  */
 class AudioResampleTransform(
   val targetSampleRate: Int,
-) : Transform<AudioIR> {
+) : AudioTransform {
   override val id = TransformId("audio.resample")
+
+  override fun wouldTransform(hint: AudioHint): Boolean =
+    hint.sampleRate == null || hint.sampleRate != targetSampleRate
 
   override suspend fun apply(ir: AudioIR, context: ConversionContext): AudioIR {
 
@@ -107,8 +113,10 @@ class AudioResampleTransform(
 class AudioFadeTransform(
   val fadeInMs: Long = 0,
   val fadeOutMs: Long = 0,
-) : Transform<AudioIR> {
+) : AudioTransform {
   override val id = TransformId("audio.fade")
+
+  override fun wouldTransform(hint: AudioHint): Boolean = fadeInMs > 0 || fadeOutMs > 0
 
   override suspend fun apply(ir: AudioIR, context: ConversionContext): AudioIR {
 
@@ -159,8 +167,10 @@ class AudioFadeTransform(
 class AudioTrimTransform(
   val startMs: Long,
   val endMs: Long? = null,
-) : Transform<AudioIR> {
+) : AudioTransform {
   override val id = TransformId("audio.trim")
+
+  override fun wouldTransform(hint: AudioHint): Boolean = true // always trims
 
   override suspend fun apply(ir: AudioIR, context: ConversionContext): AudioIR {
 
@@ -200,8 +210,10 @@ class AudioTrimTransform(
  */
 class AudioGainTransform(
   val gainDb: Float,
-) : Transform<AudioIR> {
+) : AudioTransform {
   override val id = TransformId("audio.gain")
+
+  override fun wouldTransform(hint: AudioHint): Boolean = gainDb != 0f
 
   override suspend fun apply(ir: AudioIR, context: ConversionContext): AudioIR {
 
@@ -226,8 +238,11 @@ class AudioGainTransform(
 /**
  * Converts stereo audio to mono by averaging channels.
  */
-class AudioMonoTransform : Transform<AudioIR> {
+class AudioMonoTransform : AudioTransform {
   override val id = TransformId("audio.mono")
+
+  override fun wouldTransform(hint: AudioHint): Boolean =
+    hint.channelCount == null || hint.channelCount != 1
 
   override suspend fun apply(ir: AudioIR, context: ConversionContext): AudioIR {
 
@@ -262,8 +277,10 @@ class AudioMonoTransform : Transform<AudioIR> {
 /**
  * Reverses audio playback.
  */
-class AudioReverseTransform : Transform<AudioIR> {
+class AudioReverseTransform : AudioTransform {
   override val id = TransformId("audio.reverse")
+
+  override fun wouldTransform(hint: AudioHint): Boolean = true // always reverses
 
   override suspend fun apply(ir: AudioIR, context: ConversionContext): AudioIR {
 
