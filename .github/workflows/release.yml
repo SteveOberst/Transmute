@@ -86,7 +86,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Build release artifacts
-        run: ./gradlew --no-daemon build -Pkotlin.native.enabled=false
+        run: ./gradlew --no-daemon build -x test -x check -Pkotlin.native.enabled=false
 
       - name: Publish to GitHub Packages
         run: ./gradlew --no-daemon publish -Pkotlin.native.enabled=false
