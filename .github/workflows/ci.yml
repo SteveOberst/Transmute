@@ -27,8 +27,11 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Compile all modules
-        run: ./gradlew build -x test -x check
+      - name: Install FFmpeg
+        run: sudo apt-get install -y ffmpeg
 
-      - name: Run common + desktop tests
-        run: ./gradlew desktopTest
+      - name: Compile all modules (JVM + Android targets only)
+        run: ./gradlew build -x test -x check -Pkotlin.native.enabled=false
+
+      - name: Run JVM/desktop unit tests
+        run: ./gradlew desktopTest -Pkotlin.native.enabled=false
