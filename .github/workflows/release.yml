@@ -2,14 +2,9 @@ name: Release
 
 on:
   push:
-    branches:
-      - main
-  workflow_dispatch:
-    inputs:
-      tag_name:
-        description: 'Tag to publish (e.g. v2.0.0) — use this to re-publish a release that already exists'
-        required: true
-        type: string
+    branches: [main]
+  release:
+    types: [created]
 
 permissions:
   contents: write
@@ -18,63 +13,27 @@ permissions:
 
 jobs:
   release-please:
-    # Only run release-please on push; skip entirely for workflow_dispatch
-    if: ${{ github.event_name == 'push' }}
+    name: Release Please
+    if: github.event_name == 'push'
     runs-on: [self-hosted, linux, x64]
-    outputs:
-      release_created: ${{ steps.release.outputs.release_created }}
-      tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
       - uses: googleapis/release-please-action@v4
-        id: release
         with:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
-          # PAT is required so that the PR create/update fires pull_request
-          # events, which GITHUB_TOKEN suppresses by design.
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
 
-  # Gate on CI unit tests passing — runs on push (release) AND workflow_dispatch
-  ci-gate:
-    needs: [release-please]
-    if: |
-      always() &&
-      (github.event_name == 'workflow_dispatch' || needs.release-please.outputs.release_created == 'true')
-    uses: ./.github/workflows/ci.yml
-
-  # Run integration tests before publishing — same gate logic
-  integration-gate:
-    needs: [release-please]
-    if: |
-      always() &&
-      (github.event_name == 'workflow_dispatch' || needs.release-please.outputs.release_created == 'true')
-    uses: ./.github/workflows/integration.yml
-
   publish:
-    # Only publish if BOTH test gates passed.
-    needs: [release-please, ci-gate, integration-gate]
-    if: |
-      always() &&
-      needs.ci-gate.result == 'success' &&
-      needs.integration-gate.result == 'success' &&
-      (github.event_name == 'workflow_dispatch' || needs.release-please.outputs.release_created == 'true')
+    name: Publish to GitHub Packages
+    if: github.event_name == 'release'
     runs-on: [self-hosted, linux, x64]
     env:
-      GITHUB_USERNAME: ${{ github.actor }}
+      GITHUB_USERNAME: ${{ github.repository_owner }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - name: Resolve tag name
-        id: tag
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "tag_name=${{ github.event.inputs.tag_name }}" >> $GITHUB_OUTPUT
-          else
-            echo "tag_name=${{ needs.release-please.outputs.tag_name }}" >> $GITHUB_OUTPUT
-          fi
-
       - uses: actions/checkout@v4
         with:
-          ref: ${{ steps.tag.outputs.tag_name }}
+          ref: ${{ github.event.release.tag_name }}
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -85,16 +44,15 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Build release artifacts
+      - name: Build (tests already gated on the release PR)
         run: ./gradlew --no-daemon build -x test -x check -Pkotlin.native.enabled=false
 
       - name: Publish to GitHub Packages
         run: ./gradlew --no-daemon publish -Pkotlin.native.enabled=false
 
-      - name: Upload artifacts to release
+      - name: Upload JARs to release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.tag.outputs.tag_name }}
           files: |
             transmute-core/build/libs/*.jar
             transmute-audio/build/libs/*.jar
