@@ -10,7 +10,7 @@ concurrency:
 
 jobs:
   android-tests:
-    name: Android Unit Tests
+    name: Android + Desktop Unit Tests
     runs-on: [self-hosted, linux, x64]
     timeout-minutes: 30
     env:
@@ -28,8 +28,14 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Run Android + all module unit tests
+      - name: Install FFmpeg
+        run: sudo apt-get install -y ffmpeg
+
+      - name: Run Android unit tests
         run: ./gradlew --no-daemon test -Pkotlin.native.enabled=false
+
+      - name: Run desktop unit tests
+        run: ./gradlew --no-daemon desktopTest -Pkotlin.native.enabled=false
 
       - name: Upload test reports
         if: always()
