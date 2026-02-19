@@ -34,7 +34,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Run all module unit tests
-        run: ./gradlew test -Pkotlin.native.enabled=false
+        run: ./gradlew --no-daemon test -Pkotlin.native.enabled=false
 
       - name: Upload test reports
         if: always()
