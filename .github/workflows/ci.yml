@@ -31,7 +31,7 @@ jobs:
         run: sudo apt-get install -y ffmpeg
 
       - name: Compile all modules (JVM + Android targets only)
-        run: ./gradlew build -x test -x check -Pkotlin.native.enabled=false
+        run: ./gradlew --no-daemon build -x test -x check -Pkotlin.native.enabled=false
 
       - name: Run JVM/desktop unit tests
-        run: ./gradlew desktopTest -Pkotlin.native.enabled=false
+        run: ./gradlew --no-daemon desktopTest -Pkotlin.native.enabled=false
