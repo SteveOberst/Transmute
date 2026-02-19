@@ -7,7 +7,7 @@
       "package-name": "transmute",
       "component": "",
       "bump-minor-pre-major": true,
-      "bump-patch-for-minor-pre-major": true,
+      "bump-patch-for-minor-pre-major": false,
       "extra-files": [
         {
           "type": "generic",
