@@ -269,6 +269,7 @@ class JvmOggVorbisCodec : AudioCodec {
     val vorbis = VorbisFile(ByteArrayInputStream(source), ByteArray(0), 0)
 
     val info = vorbis.getInfo(0)
+      ?: error("OGG/Vorbis: stream info not available (file may be malformed or unsupported encoder)")
     val sampleRate = info.rate
     val channels = info.channels
 
