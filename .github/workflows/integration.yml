@@ -3,23 +3,18 @@ name: Integration Tests
 on:
   pull_request:
     branches: [main]
-  release:
-    types: [created]
-  workflow_call: # allow reuse from release.yml
-  workflow_dispatch: # allow manual trigger
 
 concurrency:
   group: integration-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  # ──────────────────────────────────────────────
-  # Android Emulator Tests (Linux)
-  # ──────────────────────────────────────────────
-  android-unit-tests:
-    name: Android + JVM Unit Tests
+  android-tests:
+    name: Android Unit Tests
     runs-on: [self-hosted, linux, x64]
-    timeout-minutes: 20
+    timeout-minutes: 30
+    env:
+      ANDROID_HOME: /opt/android-sdk
 
     steps:
       - uses: actions/checkout@v4
@@ -33,14 +28,13 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Run all module unit tests
+      - name: Run Android + all module unit tests
         run: ./gradlew --no-daemon test -Pkotlin.native.enabled=false
 
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: unit-test-reports
-          path: |
-            **/build/reports/tests/
-          retention-days: 14
+          name: android-test-reports-${{ github.run_id }}
+          path: '**/build/reports/tests/'
+          retention-days: 7
