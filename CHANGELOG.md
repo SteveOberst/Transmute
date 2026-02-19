@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.0.0](https://github.com/SteveOberst/Transmute/compare/v1.0.0...v2.0.0) (2026-02-19)
+
+
+### ⚠ BREAKING CHANGES
+
+* transmute() and transmuteInto() now require source bytes as a parameter. Transmuter constructors no longer accept source bytes. The old source-binding factory removed.
+
+### Features
+
+* reusable transmuters with wouldAffect predicate and public transform fields ([f8056e4](https://github.com/SteveOberst/Transmute/commit/f8056e4124229fd5fc50c6aae300c4433bf1dd78))
+
 ## 1.0.0 (2026-02-17)
 
 
