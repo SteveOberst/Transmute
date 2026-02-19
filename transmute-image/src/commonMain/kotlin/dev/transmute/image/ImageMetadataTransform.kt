@@ -12,7 +12,7 @@ import dev.transmute.core.pipeline.TransformId
  * - [MetadataPolicy.STRIP_ALL]: clears EXIF, XMP, and app metadata.
  */
 class ImageMetadataTransform(
-  private val policy: MetadataPolicy,
+  val policy: MetadataPolicy,
 ) : Transform<ImageIR> {
 
   override val id: TransformId = TransformId("image-metadata")

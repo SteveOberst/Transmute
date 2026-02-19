@@ -24,10 +24,10 @@ import kotlin.math.pow
  * @param trimEnd Whether to trim trailing silence.
  */
 class AudioSilenceTrimTransform(
-  private val thresholdDb: Float = -40f,
-  private val minSilenceMs: Long = 100,
-  private val trimStart: Boolean = true,
-  private val trimEnd: Boolean = true,
+  val thresholdDb: Float = -40f,
+  val minSilenceMs: Long = 100,
+  val trimStart: Boolean = true,
+  val trimEnd: Boolean = true,
 ) : Transform<AudioIR> {
 
   override val id = TransformId("audio.silence-trim")

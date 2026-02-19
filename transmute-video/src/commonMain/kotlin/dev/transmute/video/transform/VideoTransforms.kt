@@ -21,8 +21,8 @@ import dev.transmute.image.PixelBuffer
  * @param endMs End time in milliseconds (null = end of video).
  */
 class VideoTrimTransform(
-  private val startMs: Long,
-  private val endMs: Long? = null,
+  val startMs: Long,
+  val endMs: Long? = null,
 ) : Transform<VideoIR> {
   override val id = TransformId("video.trim")
 
@@ -78,8 +78,8 @@ private class TrimmedFrameStream(
  * @param maxHeight Maximum height in pixels.
  */
 class VideoResizeTransform(
-  private val maxWidth: Int,
-  private val maxHeight: Int,
+  val maxWidth: Int,
+  val maxHeight: Int,
 ) : Transform<VideoIR> {
   override val id = TransformId("video.resize")
 
@@ -171,7 +171,7 @@ private class ResizedFrameStream(
  * @param targetFps Target frames per second.
  */
 class VideoFrameRateTransform(
-  private val targetFps: Double,
+  val targetFps: Double,
 ) : Transform<VideoIR> {
   override val id = TransformId("video.framerate")
 
