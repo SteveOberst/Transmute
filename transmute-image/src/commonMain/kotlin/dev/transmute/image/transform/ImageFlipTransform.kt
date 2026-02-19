@@ -17,8 +17,8 @@ import dev.transmute.core.pipeline.TransformId
  * @param vertical Mirror top ↔ bottom.
  */
 class ImageFlipTransform(
-  private val horizontal: Boolean = false,
-  private val vertical: Boolean = false,
+  val horizontal: Boolean = false,
+  val vertical: Boolean = false,
 ) : Transform<ImageIR> {
 
   override val id: TransformId = TransformId("image.flip")

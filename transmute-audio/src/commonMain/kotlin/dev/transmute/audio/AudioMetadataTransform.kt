@@ -12,7 +12,7 @@ import dev.transmute.core.pipeline.TransformId
  * - [MetadataPolicy.STRIP_ALL]: clears all metadata fields.
  */
 class AudioMetadataTransform(
-  private val policy: MetadataPolicy,
+  val policy: MetadataPolicy,
 ) : Transform<AudioIR> {
 
   override val id: TransformId = TransformId("audio-metadata")

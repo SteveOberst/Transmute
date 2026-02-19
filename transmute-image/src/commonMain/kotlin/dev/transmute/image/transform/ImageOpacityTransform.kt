@@ -17,7 +17,7 @@ import dev.transmute.core.pipeline.TransformId
  * @param opacity Multiplier for the alpha channel (0.0 = fully transparent, 1.0 = unchanged).
  */
 class ImageOpacityTransform(
-  private val opacity: Float,
+  val opacity: Float,
 ) : Transform<ImageIR> {
 
   override val id: TransformId = TransformId("image.opacity")

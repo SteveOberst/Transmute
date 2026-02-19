@@ -34,10 +34,10 @@ import kotlin.math.roundToInt
  * @param allowUpscale  When `false`, images already smaller than the target are returned unchanged.
  */
 class ImageResizeTransform(
-  private val targetWidth: Int,
-  private val targetHeight: Int,
-  private val filter: ResampleFilter = ResampleFilter.BICUBIC_MITCHELL,
-  private val allowUpscale: Boolean = true,
+  val targetWidth: Int,
+  val targetHeight: Int,
+  val filter: ResampleFilter = ResampleFilter.BICUBIC_MITCHELL,
+  val allowUpscale: Boolean = true,
 ) : Transform<ImageIR> {
 
   override val id: TransformId = TransformId("image.resize")

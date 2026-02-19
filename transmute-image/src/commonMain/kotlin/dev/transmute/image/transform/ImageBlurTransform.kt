@@ -22,7 +22,7 @@ import dev.transmute.core.pipeline.TransformId
  * @param radius Blur radius in pixels. 1 = 3×3 kernel, 2 = 5×5, etc.
  */
 class ImageBlurTransform(
-  private val radius: Int = 1,
+  val radius: Int = 1,
 ) : Transform<ImageIR> {
 
   override val id: TransformId = TransformId("image.blur")

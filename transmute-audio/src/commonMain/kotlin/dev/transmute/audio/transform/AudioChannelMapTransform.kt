@@ -23,7 +23,7 @@ import dev.transmute.core.pipeline.TransformId
  * @param mapping Output-to-source channel index mapping.
  */
 class AudioChannelMapTransform(
-  private val mapping: IntArray,
+  val mapping: IntArray,
 ) : Transform<AudioIR> {
 
   override val id = TransformId("audio.channel-map")

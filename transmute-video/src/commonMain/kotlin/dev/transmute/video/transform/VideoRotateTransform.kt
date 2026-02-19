@@ -21,7 +21,7 @@ import dev.transmute.image.ByteArrayPixelBuffer
  * @param degrees Rotation angle. Must be 90, 180, or 270.
  */
 class VideoRotateTransform(
-  private val degrees: Int,
+  val degrees: Int,
 ) : Transform<VideoIR> {
 
   init {

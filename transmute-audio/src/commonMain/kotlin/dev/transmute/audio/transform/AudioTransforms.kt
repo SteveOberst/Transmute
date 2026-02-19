@@ -18,7 +18,7 @@ import kotlin.math.PI
  * @param targetPeak Peak amplitude to normalize to (0.0 to 1.0). Default is 0.95 to avoid clipping.
  */
 class AudioNormalizeTransform(
-  private val targetPeak: Float = 0.95f,
+  val targetPeak: Float = 0.95f,
 ) : Transform<AudioIR> {
   override val id = TransformId("audio.normalize")
 
@@ -50,7 +50,7 @@ class AudioNormalizeTransform(
  * @param targetSampleRate The target sample rate in Hz.
  */
 class AudioResampleTransform(
-  private val targetSampleRate: Int,
+  val targetSampleRate: Int,
 ) : Transform<AudioIR> {
   override val id = TransformId("audio.resample")
 
@@ -105,8 +105,8 @@ class AudioResampleTransform(
  * @param fadeOutMs Duration of fade out to silence (0 to disable).
  */
 class AudioFadeTransform(
-  private val fadeInMs: Long = 0,
-  private val fadeOutMs: Long = 0,
+  val fadeInMs: Long = 0,
+  val fadeOutMs: Long = 0,
 ) : Transform<AudioIR> {
   override val id = TransformId("audio.fade")
 
@@ -157,8 +157,8 @@ class AudioFadeTransform(
  * @param endMs End time in milliseconds (null = end of audio).
  */
 class AudioTrimTransform(
-  private val startMs: Long,
-  private val endMs: Long? = null,
+  val startMs: Long,
+  val endMs: Long? = null,
 ) : Transform<AudioIR> {
   override val id = TransformId("audio.trim")
 
@@ -199,7 +199,7 @@ class AudioTrimTransform(
  * @param gainDb Gain in decibels (positive = louder, negative = quieter).
  */
 class AudioGainTransform(
-  private val gainDb: Float,
+  val gainDb: Float,
 ) : Transform<AudioIR> {
   override val id = TransformId("audio.gain")
 

@@ -21,6 +21,25 @@ import dev.transmute.video.VideoIR
 import dev.transmute.video.VideoMetadataTransform
 import dev.transmute.video.VideoRegistries
 import dev.transmute.core.pipeline.TransformPipeline
+import dev.transmute.image.ImageHint
+import dev.transmute.audio.AudioHint
+import dev.transmute.video.VideoHint
+import dev.transmute.image.transform.ImageScaleTransform
+import dev.transmute.image.transform.ImageResizeTransform
+import dev.transmute.image.transform.ImageBrightnessContrastTransform
+import dev.transmute.image.transform.ImageBlurTransform
+import dev.transmute.image.transform.ImageOpacityTransform
+import dev.transmute.image.transform.ImageFlipTransform
+import dev.transmute.audio.transform.AudioResampleTransform
+import dev.transmute.audio.transform.AudioSpeedTransform
+import dev.transmute.audio.transform.AudioGainTransform
+import dev.transmute.audio.transform.AudioFadeTransform
+import dev.transmute.audio.transform.AudioCompressorTransform
+import dev.transmute.audio.transform.AudioChannelMapTransform
+import dev.transmute.video.transform.VideoResizeTransform
+import dev.transmute.video.transform.VideoFrameRateTransform
+import dev.transmute.video.transform.VideoSpeedTransform
+import dev.transmute.video.transform.VideoRemoveAudioTransform
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -57,18 +76,23 @@ interface Transmuter<Self : Transmuter<Self>> {
 
   fun onProgress(callback: (Float) -> Unit): Self
 
-  /** Run the pipeline and return the encoded bytes. */
-  suspend fun transmute(): ByteArray
+  /**
+   * Run the pipeline on [source] and return the encoded bytes.
+   *
+   * The transmuter is stateless with respect to [source] and can be called
+   * repeatedly with different inputs after a single configuration pass.
+   */
+  suspend fun transmute(source: ByteArray): ByteArray
 
   /**
-   * Run the pipeline and write the result into [buffer] at [offset].
+   * Run the pipeline on [source] and write the result into [buffer] at [offset].
    *
    * Useful for avoiding an extra copy when the caller already owns a buffer
    * (e.g. writing into a memory-mapped file or a pre-allocated NIO ByteBuffer).
    *
    * @return The number of bytes written.
    */
-  suspend fun transmuteInto(buffer: ByteArray, offset: Int = 0): Int
+  suspend fun transmuteInto(source: ByteArray, buffer: ByteArray, offset: Int = 0): Int
 
 }
 
@@ -77,22 +101,34 @@ interface Transmuter<Self : Transmuter<Self>> {
 /**
  * Public API facade for Transmute.
  *
- * Three ways to use it:
+ * Transmuters are reusable builders — configure once, apply many times:
  *
  * ```kotlin
- * // 1. Builder-chain
- * val bytes = Transmute.image(myBytes)
- *   .scale(800, 600)
- *   .outputFormat(ImageFormat.WEBP)
- *   .transmute()
+ * // 1. Reusable builder (configure once, apply to many inputs)
+ * val transmuter = Transmute.image()
+ *   .apply {
+ *     scale(800, 600)
+ *     outputFormat(ImageFormat.WEBP)
+ *   }
+ * val resultA = transmuter.transmute(bytesA)
+ * val resultB = transmuter.transmute(bytesB)
  *
- * // 2. DSL block (returns ByteArray directly)
+ * // 2. Filter: check whether the transmuter would change a given item
+ * val hint = ImageHint(width = 400, height = 300, format = ImageFormat.JPEG)
+ * if (transmuter.wouldAffect(hint)) {
+ *   val result = transmuter.transmute(bytes)
+ * }
+ *
+ * // 3. One-shot DSL block (still supported for convenience)
  * val bytes = Transmute.image(myBytes) {
  *   scale(800, 600)
  *   outputFormat(ImageFormat.WEBP)
  * }
  *
- * // 3. Typed dispatch
+ * // 4. Apply a pre-configured transmuter to a single source
+ * val bytes = Transmute.image(myBytes, transmuter)
+ *
+ * // 5. Typed dispatch
  * val bytes = Transmute.transmute(TransmuteType.Image, myBytes) {
  *   scale(800, 600)
  * }
@@ -100,17 +136,47 @@ interface Transmuter<Self : Transmuter<Self>> {
  */
 object Transmute {
 
-  fun image(source: ByteArray): ImageTransmuter = ImageTransmuter(source)
+  /** Create a reusable [ImageTransmuter] with no source bytes. Configure once, apply many times. */
+  fun image(): ImageTransmuter = ImageTransmuter()
+
+  /**
+   * One-shot convenience: configure via [block] and transmute [source] immediately.
+   * Equivalent to `Transmute.image().apply(block).transmute(source)`.
+   */
   suspend fun image(source: ByteArray, block: ImageTransmuter.() -> Unit): ByteArray =
-    ImageTransmuter(source).apply(block).transmute()
+    ImageTransmuter().apply(block).transmute(source)
 
-  fun audio(source: ByteArray): AudioTransmuter = AudioTransmuter(source)
+  /** Apply a pre-configured [transmuter] to [source]. */
+  suspend fun image(source: ByteArray, transmuter: ImageTransmuter): ByteArray =
+    transmuter.transmute(source)
+
+  /** Create a reusable [AudioTransmuter] with no source bytes. Configure once, apply many times. */
+  fun audio(): AudioTransmuter = AudioTransmuter()
+
+  /**
+   * One-shot convenience: configure via [block] and transmute [source] immediately.
+   * Equivalent to `Transmute.audio().apply(block).transmute(source)`.
+   */
   suspend fun audio(source: ByteArray, block: AudioTransmuter.() -> Unit): ByteArray =
-    AudioTransmuter(source).apply(block).transmute()
+    AudioTransmuter().apply(block).transmute(source)
 
-  fun video(source: ByteArray): VideoTransmuter = VideoTransmuter(source)
+  /** Apply a pre-configured [transmuter] to [source]. */
+  suspend fun audio(source: ByteArray, transmuter: AudioTransmuter): ByteArray =
+    transmuter.transmute(source)
+
+  /** Create a reusable [VideoTransmuter] with no source bytes. Configure once, apply many times. */
+  fun video(): VideoTransmuter = VideoTransmuter()
+
+  /**
+   * One-shot convenience: configure via [block] and transmute [source] immediately.
+   * Equivalent to `Transmute.video().apply(block).transmute(source)`.
+   */
   suspend fun video(source: ByteArray, block: VideoTransmuter.() -> Unit): ByteArray =
-    VideoTransmuter(source).apply(block).transmute()
+    VideoTransmuter().apply(block).transmute(source)
+
+  /** Apply a pre-configured [transmuter] to [source]. */
+  suspend fun video(source: ByteArray, transmuter: VideoTransmuter): ByteArray =
+    transmuter.transmute(source)
 
   /**
    * Fully-typed transmutation entry point - lets callers parameterise the
@@ -127,12 +193,12 @@ object Transmute {
     block: T.() -> Unit = {},
   ): ByteArray {
     val transmuter: T = when (type) {
-      TransmuteType.Image -> ImageTransmuter(source) as T
-      TransmuteType.Audio -> AudioTransmuter(source) as T
-      TransmuteType.Video -> VideoTransmuter(source) as T
+      TransmuteType.Image -> ImageTransmuter() as T
+      TransmuteType.Audio -> AudioTransmuter() as T
+      TransmuteType.Video -> VideoTransmuter() as T
     }
     transmuter.block()
-    return transmuter.transmute()
+    return transmuter.transmute(source)
   }
 
   fun detectImageFormat(bytes: ByteArray): ImageFormat = ImageFormatDetector.detect(bytes)
@@ -153,7 +219,7 @@ object Transmute {
 
 // ── ImageTransmuter ──
 
-class ImageTransmuter(private val source: ByteArray) : Transmuter<ImageTransmuter> {
+class ImageTransmuter : Transmuter<ImageTransmuter> {
   val pipeline = TransformPipeline<ImageIR>()
   private var outputFormat: ImageFormat? = null
   // Default to STRIP_ALL to avoid leaking GPS/camera data in shared images.
@@ -192,7 +258,36 @@ class ImageTransmuter(private val source: ByteArray) : Transmuter<ImageTransmute
 
   override fun onProgress(callback: (Float) -> Unit): ImageTransmuter = apply { progressCallback = callback }
 
-  override suspend fun transmute(): ByteArray {
+  /**
+   * Returns `true` if this transmuter would produce any change on an image described by [hint].
+   *
+   * All decisions are conservative: if a hint property is `null` (unknown), the corresponding
+   * transform is assumed to apply. Only returns `false` when it can be proven from the hint
+   * that every configured transform is a no-op.
+   */
+  fun wouldAffect(hint: ImageHint): Boolean {
+    if (metadataPolicy == MetadataPolicy.STRIP_ALL) return true
+    if (outputFormat != null && outputFormat != hint.format) return true
+    return pipeline.transforms.any { t ->
+      when (t) {
+        is ImageScaleTransform -> {
+          val w = hint.width; val h = hint.height
+          w == null || h == null || w > t.maxWidth || h > t.maxHeight
+        }
+        is ImageResizeTransform -> {
+          val w = hint.width; val h = hint.height
+          w == null || h == null || w != t.targetWidth || h != t.targetHeight
+        }
+        is ImageBrightnessContrastTransform -> t.brightness != 0f || t.contrast != 1f
+        is ImageBlurTransform -> t.radius > 0
+        is ImageOpacityTransform -> t.opacity != 1f
+        is ImageFlipTransform -> t.horizontal || t.vertical
+        else -> true // conservative: unknown transforms are assumed to apply
+      }
+    }
+  }
+
+  override suspend fun transmute(source: ByteArray): ByteArray {
     val context = createContext().also {
       it.scratchpad["image.quality"] = quality
     }
@@ -225,8 +320,8 @@ class ImageTransmuter(private val source: ByteArray) : Transmuter<ImageTransmute
     return result
   }
 
-  override suspend fun transmuteInto(buffer: ByteArray, offset: Int): Int {
-    val bytes = transmute()
+  override suspend fun transmuteInto(source: ByteArray, buffer: ByteArray, offset: Int): Int {
+    val bytes = transmute(source)
     require(offset >= 0 && offset <= buffer.size) { "offset out of bounds" }
     require(bytes.size <= buffer.size - offset) {
       "buffer too small: need ${bytes.size}, have ${buffer.size - offset}"
@@ -250,7 +345,7 @@ class ImageTransmuter(private val source: ByteArray) : Transmuter<ImageTransmute
 
 // ── AudioTransmuter ──
 
-class AudioTransmuter(private val source: ByteArray) : Transmuter<AudioTransmuter> {
+class AudioTransmuter : Transmuter<AudioTransmuter> {
   val pipeline = TransformPipeline<AudioIR>()
   private var outputFormat: AudioFormat? = null
   private var metadataPolicy: MetadataPolicy = MetadataPolicy.STRIP_ALL
@@ -283,7 +378,34 @@ class AudioTransmuter(private val source: ByteArray) : Transmuter<AudioTransmute
 
   override fun onProgress(callback: (Float) -> Unit): AudioTransmuter = apply { progressCallback = callback }
 
-  override suspend fun transmute(): ByteArray {
+  /**
+   * Returns `true` if this transmuter would produce any change on an audio track described by [hint].
+   *
+   * All decisions are conservative: if a hint property is `null` (unknown), the corresponding
+   * transform is assumed to apply. Only returns `false` when it can be proven from the hint
+   * that every configured transform is a no-op.
+   */
+  fun wouldAffect(hint: AudioHint): Boolean {
+    if (metadataPolicy == MetadataPolicy.STRIP_ALL) return true
+    if (outputFormat != null && outputFormat != hint.format) return true
+    return pipeline.transforms.any { t ->
+      when (t) {
+        is AudioResampleTransform ->
+          hint.sampleRate == null || hint.sampleRate != t.targetSampleRate
+        is AudioSpeedTransform -> t.speed != 1f
+        is AudioGainTransform -> t.gainDb != 0f
+        is AudioFadeTransform -> t.fadeInMs > 0 || t.fadeOutMs > 0
+        is AudioCompressorTransform -> t.ratio > 1f
+        is AudioChannelMapTransform ->
+          hint.channelCount == null ||
+            t.mapping.size != hint.channelCount ||
+            t.mapping.indices.any { t.mapping[it] != it }
+        else -> true // conservative
+      }
+    }
+  }
+
+  override suspend fun transmute(source: ByteArray): ByteArray {
     val context = createContext()
 
     AudioRegistries.installDefaultsIfEmpty()
@@ -319,8 +441,8 @@ class AudioTransmuter(private val source: ByteArray) : Transmuter<AudioTransmute
     return result
   }
 
-  override suspend fun transmuteInto(buffer: ByteArray, offset: Int): Int {
-    val bytes = transmute()
+  override suspend fun transmuteInto(source: ByteArray, buffer: ByteArray, offset: Int): Int {
+    val bytes = transmute(source)
     require(offset >= 0 && offset <= buffer.size) { "offset out of bounds" }
     require(bytes.size <= buffer.size - offset) {
       "buffer too small: need ${bytes.size}, have ${buffer.size - offset}"
@@ -344,7 +466,7 @@ class AudioTransmuter(private val source: ByteArray) : Transmuter<AudioTransmute
 
 // ── VideoTransmuter ──
 
-class VideoTransmuter(private val source: ByteArray) : Transmuter<VideoTransmuter> {
+class VideoTransmuter : Transmuter<VideoTransmuter> {
   val pipeline = TransformPipeline<VideoIR>()
   private var outputFormat: VideoFormat? = null
   private var metadataPolicy: MetadataPolicy = MetadataPolicy.STRIP_ALL
@@ -376,7 +498,34 @@ class VideoTransmuter(private val source: ByteArray) : Transmuter<VideoTransmute
 
   override fun onProgress(callback: (Float) -> Unit): VideoTransmuter = apply { progressCallback = callback }
 
-  override suspend fun transmute(): ByteArray {
+  /**
+   * Returns `true` if this transmuter would produce any change on a video described by [hint].
+   *
+   * All decisions are conservative: if a hint property is `null` (unknown), the corresponding
+   * transform is assumed to apply. Only returns `false` when it can be proven from the hint
+   * that every configured transform is a no-op.
+   */
+  fun wouldAffect(hint: VideoHint): Boolean {
+    if (metadataPolicy == MetadataPolicy.STRIP_ALL) return true
+    if (outputFormat != null && outputFormat != hint.format) return true
+    return pipeline.transforms.any { t ->
+      when (t) {
+        is VideoResizeTransform -> {
+          val w = hint.width; val h = hint.height
+          w == null || h == null || w > t.maxWidth || h > t.maxHeight
+        }
+        is VideoFrameRateTransform -> {
+          val fps = hint.fps
+          fps == null || fps > t.targetFps
+        }
+        is VideoSpeedTransform -> t.speed != 1f
+        is VideoRemoveAudioTransform -> true // always strips audio track
+        else -> true // conservative
+      }
+    }
+  }
+
+  override suspend fun transmute(source: ByteArray): ByteArray {
     val context = createContext()
     VideoRegistries.installDefaultsIfEmpty()
     val inputFormat = VideoFormatDetector.detect(source)
@@ -404,8 +553,8 @@ class VideoTransmuter(private val source: ByteArray) : Transmuter<VideoTransmute
     return result
   }
 
-  override suspend fun transmuteInto(buffer: ByteArray, offset: Int): Int {
-    val bytes = transmute()
+  override suspend fun transmuteInto(source: ByteArray, buffer: ByteArray, offset: Int): Int {
+    val bytes = transmute(source)
     require(offset >= 0 && offset <= buffer.size) { "offset out of bounds" }
     require(bytes.size <= buffer.size - offset) {
       "buffer too small: need ${bytes.size}, have ${buffer.size - offset}"
