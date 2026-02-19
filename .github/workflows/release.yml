@@ -34,28 +34,30 @@ jobs:
           # events, which GITHUB_TOKEN suppresses by design.
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
 
-  # Gate on CI unit tests passing
+  # Gate on CI unit tests passing — runs on push (release) AND workflow_dispatch
   ci-gate:
-    needs: release-please
-    if: ${{ needs.release-please.outputs.release_created }}
+    needs: [release-please]
+    if: |
+      always() &&
+      (github.event_name == 'workflow_dispatch' || needs.release-please.outputs.release_created == 'true')
     uses: ./.github/workflows/ci.yml
 
-  # Run integration tests before publishing
+  # Run integration tests before publishing — same gate logic
   integration-gate:
-    needs: release-please
-    if: ${{ needs.release-please.outputs.release_created }}
+    needs: [release-please]
+    if: |
+      always() &&
+      (github.event_name == 'workflow_dispatch' || needs.release-please.outputs.release_created == 'true')
     uses: ./.github/workflows/integration.yml
 
   publish:
-    # On push: triggered after CI + integration gates pass (release-please created a release).
-    # On workflow_dispatch: triggered directly with an explicit tag_name input.
+    # Only publish if BOTH test gates passed.
     needs: [release-please, ci-gate, integration-gate]
     if: |
       always() &&
-      (
-        (github.event_name == 'push' && needs.release-please.outputs.release_created == 'true' && needs.ci-gate.result == 'success' && needs.integration-gate.result == 'success') ||
-        github.event_name == 'workflow_dispatch'
-      )
+      needs.ci-gate.result == 'success' &&
+      needs.integration-gate.result == 'success' &&
+      (github.event_name == 'workflow_dispatch' || needs.release-please.outputs.release_created == 'true')
     runs-on: [self-hosted, linux, x64]
     env:
       GITHUB_USERNAME: ${{ github.actor }}
@@ -84,10 +86,10 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Build release artifacts
-        run: ./gradlew build
+        run: ./gradlew build -Pkotlin.native.enabled=false
 
       - name: Publish to GitHub Packages
-        run: ./gradlew publish
+        run: ./gradlew publish -Pkotlin.native.enabled=false
 
       - name: Upload artifacts to release
         uses: softprops/action-gh-release@v2
