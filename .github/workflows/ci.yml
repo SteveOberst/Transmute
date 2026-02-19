@@ -1,11 +1,10 @@
-name: CI - Unit Tests
+name: CI
 
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
-  workflow_call: # allow reuse from release.yml
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -13,8 +12,10 @@ concurrency:
 
 jobs:
   unit-tests:
-    name: Unit Tests (JVM + Common)
+    name: Unit Tests (JVM + Desktop)
     runs-on: [self-hosted, linux, x64]
+    timeout-minutes: 30
+
     steps:
       - uses: actions/checkout@v4
 
@@ -30,8 +31,13 @@ jobs:
       - name: Install FFmpeg
         run: sudo apt-get install -y ffmpeg
 
-      - name: Compile all modules (JVM + Android targets only)
-        run: ./gradlew --no-daemon build -x test -x check -Pkotlin.native.enabled=false
-
       - name: Run JVM/desktop unit tests
         run: ./gradlew --no-daemon desktopTest -Pkotlin.native.enabled=false
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-reports-${{ github.run_id }}
+          path: '**/build/reports/tests/'
+          retention-days: 7
