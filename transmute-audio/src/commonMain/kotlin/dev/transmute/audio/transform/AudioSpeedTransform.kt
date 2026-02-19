@@ -24,7 +24,7 @@ import kotlin.math.roundToInt
  * @param speed Playback speed multiplier. Must be > 0. Default is 1.0 (no change).
  */
 class AudioSpeedTransform(
-  private val speed: Float = 1f,
+  val speed: Float = 1f,
 ) : Transform<AudioIR> {
   override val id = TransformId("audio.speed")
 

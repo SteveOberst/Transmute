@@ -22,8 +22,8 @@ import dev.transmute.core.pipeline.TransformId
  * @param contrast   Multiplier applied around mid-grey (0.0 .. 3.0). 1.0 = no change.
  */
 class ImageBrightnessContrastTransform(
-  private val brightness: Float = 0f,
-  private val contrast: Float = 1f,
+  val brightness: Float = 0f,
+  val contrast: Float = 1f,
 ) : Transform<ImageIR> {
 
   override val id: TransformId = TransformId("image.brightness-contrast")

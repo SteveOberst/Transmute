@@ -29,11 +29,11 @@ import kotlin.math.pow
  * @param makeupGainDb Extra gain applied after compression to restore loudness. Default 0.
  */
 class AudioCompressorTransform(
-  private val thresholdDb: Float = -20f,
-  private val ratio: Float = 4f,
-  private val attackMs: Float = 10f,
-  private val releaseMs: Float = 100f,
-  private val makeupGainDb: Float = 0f,
+  val thresholdDb: Float = -20f,
+  val ratio: Float = 4f,
+  val attackMs: Float = 10f,
+  val releaseMs: Float = 100f,
+  val makeupGainDb: Float = 0f,
 ) : Transform<AudioIR> {
 
   override val id = TransformId("audio.compressor")

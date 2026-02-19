@@ -12,7 +12,7 @@ import dev.transmute.core.pipeline.TransformId
  * - [MetadataPolicy.STRIP_ALL]: clears all metadata fields.
  */
 class VideoMetadataTransform(
-  private val policy: MetadataPolicy,
+  val policy: MetadataPolicy,
 ) : Transform<VideoIR> {
 
   override val id: TransformId = TransformId("video-metadata")

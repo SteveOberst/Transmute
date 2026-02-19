@@ -22,8 +22,8 @@ import kotlin.math.roundToInt
  * unchanged (no upscaling).
  */
 class ImageScaleTransform(
-  private val maxWidth: Int,
-  private val maxHeight: Int,
+  val maxWidth: Int,
+  val maxHeight: Int,
 ) : Transform<ImageIR> {
 
   override val id: TransformId = TransformId("image-scale")

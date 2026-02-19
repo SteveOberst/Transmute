@@ -28,7 +28,7 @@ import kotlin.math.roundToInt
  * @param speed Playback speed multiplier. Must be > 0.
  */
 class VideoSpeedTransform(
-  private val speed: Float,
+  val speed: Float,
 ) : Transform<VideoIR> {
 
   override val id = TransformId("video.speed")

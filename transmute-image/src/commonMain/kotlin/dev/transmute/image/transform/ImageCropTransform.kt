@@ -15,10 +15,10 @@ import dev.transmute.core.pipeline.TransformId
  * Operates on [ByteArrayPixelBuffer] with any [PixelFormat].
  */
 class ImageCropTransform(
-  private val x: Int,
-  private val y: Int,
-  private val cropWidth: Int,
-  private val cropHeight: Int,
+  val x: Int,
+  val y: Int,
+  val cropWidth: Int,
+  val cropHeight: Int,
 ) : Transform<ImageIR> {
 
   override val id: TransformId = TransformId("image-crop")

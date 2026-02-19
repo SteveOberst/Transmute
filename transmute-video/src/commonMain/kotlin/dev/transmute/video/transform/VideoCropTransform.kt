@@ -21,10 +21,10 @@ import dev.transmute.image.ByteArrayPixelBuffer
  * @param cropHeight Height of the crop region.
  */
 class VideoCropTransform(
-  private val x: Int,
-  private val y: Int,
-  private val cropWidth: Int,
-  private val cropHeight: Int,
+  val x: Int,
+  val y: Int,
+  val cropWidth: Int,
+  val cropHeight: Int,
 ) : Transform<VideoIR> {
 
   override val id = TransformId("video.crop")
