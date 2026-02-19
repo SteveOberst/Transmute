@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.2.0](https://github.com/SteveOberst/Transmute/compare/v0.1.0...v0.2.0) (2026-02-19)
+
+
+### ⚠ BREAKING CHANGES
+
+* wouldAffect has been renamed to wouldTransmute on ImageTransmuter, AudioTransmuter and VideoTransmuter.
+
+### Features
+
+* add wouldTransform to domain Transform interfaces; rename wouldAffect -&gt; wouldTransmute ([981deb2](https://github.com/SteveOberst/Transmute/commit/981deb28a17e857dceb66927ac2ac97aa8072c60))
+
 ## [0.1.0](https://github.com/SteveOberst/Transmute/compare/v0.0.0...v0.1.0) (2026-02-19)
 
 
