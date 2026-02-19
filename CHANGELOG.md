@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.1](https://github.com/SteveOberst/Transmute/compare/v0.0.0...v0.0.1) (2026-02-19)
+
+
+### Features
+
+* run both Android and desktop unit tests in integration workflow ([ed78ad6](https://github.com/SteveOberst/Transmute/commit/ed78ad6a4b02edd290d9f047a2904358fe4126ad))
+
 ## [2.0.0](https://github.com/SteveOberst/Transmute/compare/v1.0.0...v2.0.0) (2026-02-19)
 
 
