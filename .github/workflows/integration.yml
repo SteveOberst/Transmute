@@ -18,7 +18,7 @@ jobs:
   # ──────────────────────────────────────────────
   android-tests:
     name: Android Instrumented Tests
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64]
     timeout-minutes: 45
     strategy:
       fail-fast: false
@@ -108,7 +108,7 @@ jobs:
   # ──────────────────────────────────────────────
   ios-tests:
     name: iOS Simulator Tests
-    runs-on: macos-latest
+    runs-on: [self-hosted, linux, x64]
     timeout-minutes: 30
 
     steps:
@@ -145,7 +145,7 @@ jobs:
   # ──────────────────────────────────────────────
   desktop-tests:
     name: Desktop Tests (macOS)
-    runs-on: macos-latest
+    runs-on: [self-hosted, linux, x64]
     timeout-minutes: 20
 
     steps:
