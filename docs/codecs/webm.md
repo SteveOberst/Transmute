@@ -1,35 +1,37 @@
 # WebM
 
-WebM is an open, royalty-free video container format developed by Google. It uses VP8 or VP9 video codecs with Vorbis or Opus audio.
+WebM is an open video container format often containing VP8/VP9 video and Opus/Vorbis audio. It's widely used on the web and in open ecosystems.
 
 ## Platform Support
 
 | Platform | Decode | Encode | Engine |
 |----------|--------|--------|--------|
-| Android  | ✅     | ❌     | MediaCodec (decode only) |
+| Android  | ✅     | ✅     | MediaCodec (decode) / FFmpeg (encode) |
 | Desktop  | ✅     | ✅     | FFmpeg (bundled) |
-| iOS      | ❌     | ❌     | Not supported |
+| iOS      | ✅     | ❌     | AVFoundation (decode only) |
 
 ## Usage
 
 ```kotlin
-// Encode to WebM (Desktop only)
-val webmBytes = Transmute.video(inputBytes) {
-    outputFormat(VideoFormat.WEBM)
-}
+import dev.transmute.Transmute
+import dev.transmute.core.VideoFormat
+import dev.transmute.video.DefaultVideoEncodeOptions
 
-// Decode WebM to MP4 (Android/Desktop)
-val mp4Bytes = Transmute.video(webmBytes) {
-    outputFormat(VideoFormat.MP4)
-}
+// Convert video to WebM (Android/Desktop)
+suspend fun convertToWebm(inputBytes: ByteArray): ByteArray =
+  Transmute.video {
+    encodeOptions(DefaultVideoEncodeOptions(outputFormat = VideoFormat.WEBM))
+  }.transmute(inputBytes).bytes
+
+// Decode WebM (re-encode to MP4)
+suspend fun convertToMp4(webmBytes: ByteArray): ByteArray =
+  Transmute.video {
+    encodeOptions(DefaultVideoEncodeOptions(outputFormat = VideoFormat.MP4))
+  }.transmute(webmBytes).bytes
 ```
 
 ## Notes
 
-- **iOS does not support WebM** - neither decode nor encode.
-- Android can **decode** WebM (VP8/VP9) but cannot encode to it.
-- Desktop uses the bundled FFmpeg for full VP8/VP9 encode and decode.
-- Royalty-free - no patent licensing concerns.
-- Commonly used for web video (HTML5 `<video>` element).
-- Supports VP8, VP9, and AV1 video codecs; Vorbis and Opus audio.
-- Consider MP4/H.264 if cross-platform compatibility is required.
+- Open and royalty-free container format.
+- iOS can decode WebM (via platform support) but cannot encode to it.
+- Desktop encoding relies on the bundled FFmpeg build.

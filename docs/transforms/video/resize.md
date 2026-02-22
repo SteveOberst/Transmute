@@ -14,7 +14,7 @@ Fit video frames within maximum bounds while preserving aspect ratio.
 ### DSL
 
 ```kotlin
-Transmute.video(bytes) { resize(maxWidth = 1280, maxHeight = 720) }
+Transmute.video { resize(maxWidth = 1280, maxHeight = 720) }.transmute(bytes).bytes
 ```
 
 ### Pipeline

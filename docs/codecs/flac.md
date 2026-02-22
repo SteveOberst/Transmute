@@ -1,34 +1,37 @@
 # FLAC
 
-FLAC (Free Lossless Audio Codec) is an open-source lossless audio compression format. It reduces file size by roughly 50–60% compared to WAV with no quality loss.
+FLAC (Free Lossless Audio Codec) is a lossless audio format. It compresses audio without any quality loss, making it ideal for archiving and high-fidelity audio.
 
 ## Platform Support
 
 | Platform | Decode | Encode | Engine |
 |----------|--------|--------|--------|
-| Android  | ✅     | ✅     | MediaCodec |
-| Desktop  | ✅     | ✅     | jflac-codec (decode) / FFmpeg (encode) |
-| iOS      | ✅     | ✅     | AVFoundation / AVAssetWriter |
+| Android  | ✅     | ✅     | MediaCodec (decode) / FFmpeg (encode) |
+| Desktop  | ✅     | ✅     | FFmpeg (bundled) |
+| iOS      | ✅     | ❌     | AVFoundation (decode only) |
 
 ## Usage
 
 ```kotlin
-// Convert audio to FLAC
-val flacBytes = Transmute.audio(inputBytes) {
-    outputFormat(AudioFormat.FLAC)
-}
+import dev.transmute.Transmute
+import dev.transmute.audio.DefaultAudioEncodeOptions
+import dev.transmute.core.AudioFormat
 
-// Decode FLAC to WAV
-val wavBytes = Transmute.audio(flacBytes) {
-    outputFormat(AudioFormat.WAV)
-}
+// Convert audio to FLAC (Android/Desktop)
+suspend fun convertToFlac(inputBytes: ByteArray): ByteArray =
+  Transmute.audio {
+    encodeOptions(DefaultAudioEncodeOptions(outputFormat = AudioFormat.FLAC))
+  }.transmute(inputBytes).bytes
+
+// Decode FLAC on any platform (re-encode to WAV)
+suspend fun decodeToWav(flacBytes: ByteArray): ByteArray =
+  Transmute.audio {
+    encodeOptions(DefaultAudioEncodeOptions(outputFormat = AudioFormat.WAV))
+  }.transmute(flacBytes).bytes
 ```
 
 ## Notes
 
-- Lossless compression - fully reversible to original PCM audio.
-- Android uses MediaCodec for hardware-accelerated encode and decode.
-- Desktop decoding uses jflac-codec (pure-Java); encoding uses the bundled FFmpeg.
-- iOS encodes via AVAssetWriter with native support.
-- Smaller than WAV but larger than lossy formats (MP3, AAC, OGG).
-- Royalty-free and open-source.
+- Lossless compression - no quality degradation on re-encode.
+- iOS can decode FLAC but cannot encode to it.
+- Desktop encoding relies on the bundled FFmpeg build.

@@ -11,7 +11,7 @@ None.
 ### DSL
 
 ```kotlin
-Transmute.video(bytes) { removeAudio() }
+Transmute.video { removeAudio() }.transmute(bytes).bytes
 ```
 
 ### Pipeline

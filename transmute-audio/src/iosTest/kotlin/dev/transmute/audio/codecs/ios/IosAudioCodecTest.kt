@@ -5,6 +5,7 @@ import dev.transmute.core.AudioFormat
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertTrue
+import dev.transmute.audio.DefaultAudioDecodeOptions
 
 /**
  * iOS integration tests for the AVFoundation-based audio codecs.
@@ -41,7 +42,7 @@ class IosAudioCodecTest {
     assertTrue(encoded.isNotEmpty(), "FLAC encoded bytes should not be empty")
 
     val decoded = try {
-      codec.decode(encoded, ctx)
+      codec.decode(encoded, DefaultAudioDecodeOptions(), ctx)
     } catch (e: Throwable) {
       println("SKIP: FLAC decoding not available on this simulator: ${e::class.simpleName}: ${e.message}")
       return@runTest
@@ -71,7 +72,7 @@ class IosAudioCodecTest {
     assertTrue(encoded.isNotEmpty(), "AAC encoded bytes should not be empty")
 
     val decoded = try {
-      codec.decode(encoded, ctx)
+      codec.decode(encoded, DefaultAudioDecodeOptions(), ctx)
     } catch (e: Throwable) {
       println("SKIP: AAC decoding not available on this simulator: ${e::class.simpleName}: ${e.message}")
       return@runTest
@@ -101,7 +102,7 @@ class IosAudioCodecTest {
     assertTrue(encoded.isNotEmpty(), "M4A encoded bytes should not be empty")
 
     val decoded = try {
-      codec.decode(encoded, ctx)
+      codec.decode(encoded, DefaultAudioDecodeOptions(), ctx)
     } catch (e: Throwable) {
       println("SKIP: M4A decoding not available on this simulator: ${e::class.simpleName}: ${e.message}")
       return@runTest
@@ -169,8 +170,13 @@ class IosAudioCodecTest {
   @Test
   fun m4aCodecSniffsFtypBox() {
     val codec = IosM4aCodec()
-    // MP4/M4A ftyp box: 4 bytes size + "ftyp"
-    val header = byteArrayOf(0x00, 0x00, 0x00, 0x20, 0x66, 0x74, 0x79, 0x70)
+    // MP4/M4A ftyp box: 4 bytes size + "ftyp" + major brand.
+    // Use explicit "M4A " brand to avoid ambiguity with MP4 video containers.
+    val header = byteArrayOf(
+      0x00, 0x00, 0x00, 0x20,
+      0x66, 0x74, 0x79, 0x70, // ftyp
+      'M'.code.toByte(), '4'.code.toByte(), 'A'.code.toByte(), ' '.code.toByte(),
+    )
     val result = codec.sniff(header)
     assertTrue(result == AudioFormat.M4A, "Should sniff ftyp box, got $result")
   }

@@ -12,6 +12,17 @@ sealed interface MediaFormat {
   val extension: String
 }
 
+/**
+ * Domain-agnostic unknown format marker.
+ *
+ * Prefer this for APIs that need to represent "unknown" without arbitrarily
+ * picking one domain's `UNKNOWN` enum value.
+ */
+data object UnknownFormat : MediaFormat {
+  override val mimeType: String = "application/octet-stream"
+  override val extension: String = "bin"
+}
+
 // --- Image ---
 
 /**

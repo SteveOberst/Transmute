@@ -13,7 +13,7 @@ Adjust the alpha channel of every pixel.
 ### DSL
 
 ```kotlin
-Transmute.image(bytes) { opacity(0.5f) }
+Transmute.image { opacity(0.5f) }.transmute(bytes).bytes
 ```
 
 ### Pipeline

@@ -279,7 +279,7 @@ class AudioReverseTransformTest {
   }
 }
 
-// ── Speed ──
+// -- Speed --
 
 class AudioSpeedTransformTest {
 
@@ -343,7 +343,7 @@ class AudioSpeedTransformTest {
   }
 }
 
-// ── Silence Trim ──
+// -- Silence Trim --
 
 class AudioSilenceTrimTransformTest {
 
@@ -441,7 +441,7 @@ class AudioSilenceTrimTransformTest {
   }
 }
 
-// ── Compressor ──
+// -- Compressor --
 
 class AudioCompressorTransformTest {
 
@@ -514,7 +514,7 @@ class AudioCompressorTransformTest {
   }
 }
 
-// ── Channel Map ──
+// -- Channel Map --
 
 class AudioChannelMapTransformTest {
 

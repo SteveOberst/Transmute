@@ -2,7 +2,10 @@ package dev.transmute.image
 
 import kotlin.concurrent.Volatile
 import dev.transmute.core.Codec
+import dev.transmute.core.Decoder
+import dev.transmute.core.Encoder
 import dev.transmute.core.ImageFormat
+import dev.transmute.core.TransmuteContext
 import dev.transmute.image.codecs.bmp.BmpImageDecoder
 import dev.transmute.image.codecs.bmp.BmpImageEncoder
 
@@ -23,13 +26,24 @@ class MutableImageDecoderRegistry : ImageDecoderRegistry {
     }
   }
 
+  /** Register a core [Decoder] as an [ImageDecoder]. */
+  fun register(decoder: Decoder<ImageFormat, ImageIR, ImageDecodeOptions>) {
+    val wrapper = object : ImageDecoder {
+      override val supportedFormats = decoder.decodableFormats
+      override fun sniff(data: ByteArray) = decoder.sniff(data)
+      override suspend fun decode(source: ByteArray, options: ImageDecodeOptions, context: TransmuteContext) =
+        decoder.decode(source, options, context)
+    }
+    register(wrapper)
+  }
+
   /** Register a unified [Codec] as a decoder. */
-  fun register(codec: Codec<ImageFormat, ImageIR>) {
+  fun register(codec: Codec<ImageFormat, ImageIR, ImageDecodeOptions, ImageEncodeOptions>) {
     val wrapper = object : ImageDecoder {
       override val supportedFormats = codec.decodableFormats
       override fun sniff(data: ByteArray) = codec.sniff(data)
-      override suspend fun decode(source: ByteArray, context: dev.transmute.core.ConversionContext) =
-        codec.decode(source, context)
+      override suspend fun decode(source: ByteArray, options: ImageDecodeOptions, context: TransmuteContext) =
+        codec.decode(source, options, context)
     }
     decoderList.add(wrapper)
     for (format in codec.decodableFormats) {
@@ -56,17 +70,35 @@ class MutableImageEncoderRegistry : ImageEncoderRegistry {
     }
   }
 
+  /** Register a core [Encoder] as an [ImageEncoder]. */
+  fun register(encoder: Encoder<ImageFormat, ImageIR, ImageEncodeOptions>) {
+    val wrapper = object : ImageEncoder {
+      override val supportedFormats = encoder.encodableFormats
+      override suspend fun encode(
+        ir: ImageIR,
+        format: ImageFormat,
+        options: ImageEncodeOptions,
+        context: TransmuteContext,
+      ) = encoder.encode(ir, format, options, context)
+    }
+    register(wrapper)
+  }
+
   fun register(format: ImageFormat, encoder: ImageEncoder) {
     encoders[format] = encoder
   }
 
   /** Register a unified [Codec] as an encoder. */
-  fun register(codec: Codec<ImageFormat, ImageIR>) {
+  fun register(codec: Codec<ImageFormat, ImageIR, ImageDecodeOptions, ImageEncodeOptions>) {
     for (format in codec.encodableFormats) {
       encoders[format] = object : ImageEncoder {
         override val supportedFormats = codec.encodableFormats
-        override suspend fun encode(ir: ImageIR, context: dev.transmute.core.ConversionContext) =
-          codec.encode(ir, context)
+        override suspend fun encode(
+          ir: ImageIR,
+          format: ImageFormat,
+          options: ImageEncodeOptions,
+          context: TransmuteContext,
+        ) = codec.encode(ir, format, options, context)
       }
     }
   }
@@ -88,8 +120,24 @@ object ImageRegistries {
   val decoders: MutableImageDecoderRegistry = MutableImageDecoderRegistry()
   val encoders: MutableImageEncoderRegistry = MutableImageEncoderRegistry()
 
+  fun register(decoder: ImageDecoder) {
+    decoders.register(decoder)
+  }
+
+  fun register(encoder: ImageEncoder) {
+    encoders.register(encoder)
+  }
+
+  fun register(decoder: Decoder<ImageFormat, ImageIR, ImageDecodeOptions>) {
+    decoders.register(decoder)
+  }
+
+  fun register(encoder: Encoder<ImageFormat, ImageIR, ImageEncodeOptions>) {
+    encoders.register(encoder)
+  }
+
   /** Register a unified codec for both decode, encode, and sniffing. */
-  fun register(codec: Codec<ImageFormat, ImageIR>) {
+  fun register(codec: Codec<ImageFormat, ImageIR, ImageDecodeOptions, ImageEncodeOptions>) {
     decoders.register(codec)
     encoders.register(codec)
   }
@@ -112,7 +160,11 @@ object ImageRegistries {
   /** Installs platform defaults if the registries look empty. */
   fun installDefaultsIfEmpty() {
     if (defaultsInstalled) return
-    installDefaults()
+    synchronized(this) {
+      if (defaultsInstalled) return
+      installDefaults()
+      defaultsInstalled = true
+    }
   }
 }
 

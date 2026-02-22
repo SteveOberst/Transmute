@@ -76,34 +76,34 @@ TransmuteConfig.ffmpeg = FfmpegConfig.system("/usr/local/bin/ffmpeg")  // explic
 
 ```
 Transmute/
-├── transmute-api/        # Public facade (Transmute.kt, Transformers.kt, *TransmuterExt.kt)
-├── transmute-core/       # Codec/Transform base types, IR types, TransmuteConfig
-├── transmute-audio/      # Audio codecs + transforms
-├── transmute-image/      # Image codecs + transforms
-├── transmute-video/      # Video codecs + transforms
-├── gradle/
-│   └── libs.versions.toml  # Version catalog
-├── .github/workflows/
-│   ├── ci.yml            # Unit tests on every push + PR
-│   ├── integration.yml   # Full integration tests (Android emulator, iOS sim, desktop)
-│   └── release.yml       # release-please + publish (gates on integration tests)
-├── release-please-config.json
-└── .release-please-manifest.json
+├-- transmute-api/        # Public facade (Transmute.kt, Transformers.kt, *TransmuterExt.kt)
+├-- transmute-core/       # Codec/Transform base types, IR types, TransmuteConfig
+├-- transmute-audio/      # Audio codecs + transforms
+├-- transmute-image/      # Image codecs + transforms
+├-- transmute-video/      # Video codecs + transforms
+├-- gradle/
+│   └-- libs.versions.toml  # Version catalog
+├-- .github/workflows/
+│   ├-- ci.yml            # Unit tests on every push + PR
+│   ├-- integration.yml   # Full integration tests (Android emulator, iOS sim, desktop)
+│   └-- release.yml       # release-please + publish (gates on integration tests)
+├-- release-please-config.json
+└-- .release-please-manifest.json
 ```
 
 Each media module follows the same pattern:
 
 ```
 transmute-<domain>/
-└── src/
-    ├── commonMain/       # Cross-platform types, IR, format detection, pure-Kotlin codecs
-    ├── commonTest/       # Tests for the above
-    ├── desktopMain/      # JVM/Desktop codecs (ImageIO, FFmpeg, JLayer, etc.)
-    ├── desktopTest/      # Desktop integration tests (roundtrip encode → decode)
-    ├── androidMain/      # Android codecs (BitmapFactory, MediaCodec, etc.)
-    ├── androidInstrumentedTest/  # Android instrumented tests (requires device/emulator)
-    ├── iosMain/          # iOS codecs (CoreGraphics, AVFoundation)
-    └── iosTest/          # iOS tests (requires macOS + simulator)
+└-- src/
+    ├-- commonMain/       # Cross-platform types, IR, format detection, pure-Kotlin codecs
+    ├-- commonTest/       # Tests for the above
+    ├-- desktopMain/      # JVM/Desktop codecs (ImageIO, FFmpeg, JLayer, etc.)
+    ├-- desktopTest/      # Desktop integration tests (roundtrip encode → decode)
+    ├-- androidMain/      # Android codecs (BitmapFactory, MediaCodec, etc.)
+    ├-- androidInstrumentedTest/  # Android instrumented tests (requires device/emulator)
+    ├-- iosMain/          # iOS codecs (CoreGraphics, AVFoundation)
+    └-- iosTest/          # iOS tests (requires macOS + simulator)
 ```
 
 ---
@@ -162,9 +162,10 @@ git commit -m "fix(audio): fix MP3 decode crash on zero-length input"
 git commit -m "test(video): add Android instrumented tests for MP4 roundtrip"
 
 # Breaking change
-git commit -m "feat(core)!: rename ConversionContext.scratchpad to metadata
+git commit -m "feat(core)!: rename ConversionContext to TransmuteContext
 
-BREAKING CHANGE: ConversionContext.scratchpad has been renamed to metadata."
+BREAKING CHANGE: ConversionContext was replaced by TransmuteContext.
+Resolved input formats now flow through `Decoded<F, IR>` instead of context fields."
 ```
 
 ---
@@ -262,11 +263,11 @@ internal class JvmAlacCodec : AudioCodec {
     // Return AudioFormat.ALAC if magic bytes match, null otherwise
   }
 
-  override suspend fun decode(source: ByteArray, context: ConversionContext): AudioIR {
+  override suspend fun decode(source: ByteArray, options: AudioDecodeOptions, context: TransmuteContext): AudioIR {
     // Decode raw bytes → AudioIR
   }
 
-  override suspend fun encode(ir: AudioIR, context: ConversionContext): ByteArray {
+  override suspend fun encode(ir: AudioIR, format: AudioFormat, options: AudioEncodeOptions, context: TransmuteContext): ByteArray {
     // Encode AudioIR → raw bytes
   }
 }
@@ -348,7 +349,7 @@ class ImageSepiaTransform(
 ) : Transform<ImageIR> {
   override val id = TransformId("image.sepia")
 
-  override suspend fun apply(ir: ImageIR, context: ConversionContext): ImageIR {
+  override suspend fun apply(ir: ImageIR, context: TransmuteContext): ImageIR {
     // Apply sepia filter to pixels
     return ir.copy(/* modified pixel buffer */)
   }

@@ -1,9 +1,7 @@
 package dev.transmute.video
 
 import dev.transmute.audio.AudioSamples
-import dev.transmute.core.ConversionContext
-import dev.transmute.core.ConversionLogger
-import dev.transmute.core.MetadataPolicy
+import dev.transmute.core.TransmuteContext
 import dev.transmute.core.PrintLogger
 import dev.transmute.image.ByteArrayPixelBuffer
 import dev.transmute.image.PixelFormat
@@ -15,20 +13,9 @@ import kotlin.random.Random
 object VideoTestHelpers {
 
   /**
-   * Creates a test [ConversionContext].
+   * Creates a test [TransmuteContext].
    */
-  fun testContext(
-    metadataPolicy: MetadataPolicy = MetadataPolicy.PRESERVE,
-  ): ConversionContext = ConversionContext(
-    jobId = "video-test-${Random.nextLong()}",
-    coroutineJob = null,
-    metadataPolicy = metadataPolicy,
-    onProgress = {},
-    logger = PrintLogger,
-    scratchpad = mutableMapOf(),
-    timeBudgetMs = Long.MAX_VALUE,
-    memoryBudgetBytes = Long.MAX_VALUE,
-  )
+  fun testContext(): TransmuteContext = TransmuteContext(logger = PrintLogger)
 
   /**
    * Creates a test VideoIR with synthetic frames.

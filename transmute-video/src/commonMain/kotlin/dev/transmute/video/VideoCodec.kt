@@ -1,23 +1,21 @@
 package dev.transmute.video
 
 import dev.transmute.core.Codec
-import dev.transmute.core.ConversionContext
-import dev.transmute.core.DecoderCodec
-import dev.transmute.core.EncoderCodec
 import dev.transmute.core.VideoFormat
+import dev.transmute.core.TransmuteContext
 
 /**
  * A full video codec that can decode **and** encode, plus sniff format
  * from raw bytes. Prefer implementing this over the split interfaces.
  */
-interface VideoCodec : Codec<VideoFormat, VideoIR>
+interface VideoCodec : Codec<VideoFormat, VideoIR, VideoDecodeOptions, VideoEncodeOptions>
 
 // Split interfaces - kept for codecs that only decode or only encode.
 
 interface VideoDecoder {
   val supportedFormats: Set<VideoFormat>
   fun sniff(data: ByteArray): VideoFormat? = null
-  suspend fun decode(source: ByteArray, context: ConversionContext): VideoIR
+  suspend fun decode(source: ByteArray, options: VideoDecodeOptions, context: TransmuteContext): VideoIR
 }
 
 interface VideoDecoderRegistry {
@@ -26,7 +24,7 @@ interface VideoDecoderRegistry {
 
 interface VideoEncoder {
   val supportedFormats: Set<VideoFormat>
-  suspend fun encode(ir: VideoIR, context: ConversionContext): ByteArray
+  suspend fun encode(ir: VideoIR, format: VideoFormat, options: VideoEncodeOptions, context: TransmuteContext): ByteArray
 }
 
 interface VideoEncoderRegistry {
@@ -43,26 +41,48 @@ class VideoCodecAdapter(
   override val decodableFormats: Set<VideoFormat> get() = decoder.supportedFormats
   override val encodableFormats: Set<VideoFormat> get() = encoder.supportedFormats
   override fun sniff(data: ByteArray): VideoFormat? = sniffer?.invoke(data)
-  override suspend fun decode(source: ByteArray, context: ConversionContext): VideoIR =
-    decoder.decode(source, context)
-  override suspend fun encode(ir: VideoIR, context: ConversionContext): ByteArray =
-    encoder.encode(ir, context)
+  override suspend fun decode(source: ByteArray, options: VideoDecodeOptions, context: TransmuteContext): VideoIR =
+    decoder.decode(source, options, context)
+  override suspend fun encode(
+    ir: VideoIR,
+    format: VideoFormat,
+    options: VideoEncodeOptions,
+    context: TransmuteContext,
+  ): ByteArray = encoder.encode(ir, format, options, context)
 }
 
 class VideoDecoderCodecAdapter(
   private val decoder: VideoDecoder,
   private val sniffer: ((ByteArray) -> VideoFormat?)? = null,
-) : DecoderCodec<VideoFormat, VideoIR> {
+) : Codec<VideoFormat, VideoIR, VideoDecodeOptions, VideoEncodeOptions> {
   override val decodableFormats: Set<VideoFormat> get() = decoder.supportedFormats
+  override val encodableFormats: Set<VideoFormat> get() = emptySet()
   override fun sniff(data: ByteArray): VideoFormat? = sniffer?.invoke(data)
-  override suspend fun decode(source: ByteArray, context: ConversionContext): VideoIR =
-    decoder.decode(source, context)
+  override suspend fun decode(source: ByteArray, options: VideoDecodeOptions, context: TransmuteContext): VideoIR =
+    decoder.decode(source, options, context)
+
+  override suspend fun encode(
+    ir: VideoIR,
+    format: VideoFormat,
+    options: VideoEncodeOptions,
+    context: TransmuteContext,
+  ): ByteArray = error("${this::class.simpleName} is decode-only")
 }
 
 class VideoEncoderCodecAdapter(
   private val encoder: VideoEncoder,
-) : EncoderCodec<VideoFormat, VideoIR> {
+) : Codec<VideoFormat, VideoIR, VideoDecodeOptions, VideoEncodeOptions> {
   override val encodableFormats: Set<VideoFormat> get() = encoder.supportedFormats
-  override suspend fun encode(ir: VideoIR, context: ConversionContext): ByteArray =
-    encoder.encode(ir, context)
+
+  override val decodableFormats: Set<VideoFormat> get() = emptySet()
+  override fun sniff(data: ByteArray): VideoFormat? = null
+  override suspend fun decode(source: ByteArray, options: VideoDecodeOptions, context: TransmuteContext): VideoIR =
+    error("${this::class.simpleName} is encode-only")
+
+  override suspend fun encode(
+    ir: VideoIR,
+    format: VideoFormat,
+    options: VideoEncodeOptions,
+    context: TransmuteContext,
+  ): ByteArray = encoder.encode(ir, format, options, context)
 }

@@ -1,6 +1,6 @@
-# M4A
+# M4A (AAC in MP4)
 
-M4A is an audio-only MPEG-4 container, typically containing AAC or ALAC encoded audio. It is the standard audio format for Apple ecosystem content.
+M4A is an audio-only MP4 container, typically containing AAC audio. It is widely supported and commonly used by Apple ecosystems.
 
 ## Platform Support
 
@@ -8,28 +8,30 @@ M4A is an audio-only MPEG-4 container, typically containing AAC or ALAC encoded 
 |----------|--------|--------|--------|
 | Android  | ✅     | ✅     | MediaCodec |
 | Desktop  | ✅     | ✅     | FFmpeg (bundled) |
-| iOS      | ✅     | ✅     | AVFoundation / AVAssetWriter |
+| iOS      | ✅     | ✅     | AVFoundation |
 
 ## Usage
 
 ```kotlin
-// Convert audio to M4A
-val m4aBytes = Transmute.audio(inputBytes) {
-    outputFormat(AudioFormat.M4A)
-}
+import dev.transmute.Transmute
+import dev.transmute.audio.DefaultAudioEncodeOptions
+import dev.transmute.core.AudioFormat
 
-// Decode M4A to WAV
-val wavBytes = Transmute.audio(m4aBytes) {
-    outputFormat(AudioFormat.WAV)
-}
+// Convert audio to M4A
+suspend fun convertToM4a(inputBytes: ByteArray): ByteArray =
+  Transmute.audio {
+    encodeOptions(DefaultAudioEncodeOptions(outputFormat = AudioFormat.M4A))
+  }.transmute(inputBytes).bytes
+
+// Decode M4A (re-encode to WAV)
+suspend fun decodeToWav(m4aBytes: ByteArray): ByteArray =
+  Transmute.audio {
+    encodeOptions(DefaultAudioEncodeOptions(outputFormat = AudioFormat.WAV))
+  }.transmute(m4aBytes).bytes
 ```
 
 ## Notes
 
-- Full encode + decode support on all platforms.
-- M4A is essentially an MP4 container with audio-only content (typically AAC).
-- Android uses hardware-accelerated MediaCodec.
-- Desktop relies on the bundled FFmpeg - no user setup needed.
-- iOS has native support via AVFoundation / AVAssetWriter.
-- Preferred over raw AAC when metadata (tags, album art) is needed.
-- Functionally equivalent to AAC in most conversion scenarios.
+- M4A is a container; the codec is typically AAC.
+- Great compatibility on iOS and modern Android.
+- Desktop encoding relies on the bundled FFmpeg build.

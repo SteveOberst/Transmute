@@ -1,10 +1,12 @@
 package dev.transmute.video.codecs.jvm
 
 import dev.transmute.audio.AudioIR
+import dev.transmute.audio.DefaultAudioEncodeOptions
 import dev.transmute.audio.AudioSamples
 import dev.transmute.audio.codecs.WavDecoder
 import dev.transmute.audio.codecs.WavEncoder
-import dev.transmute.core.ConversionContext
+import dev.transmute.core.AudioFormat
+import dev.transmute.core.TransmuteContext
 import dev.transmute.core.FfmpegResolver
 import dev.transmute.image.ByteArrayPixelBuffer
 import dev.transmute.image.PixelFormat
@@ -121,7 +123,7 @@ internal object FfmpegVideoEngine {
   suspend fun decode(
     source: ByteArray,
     ext: String,
-    context: ConversionContext,
+    context: TransmuteContext,
   ): VideoIR = withContext(Dispatchers.IO) {
     check(available) { "FFmpeg is not available on this system" }
 
@@ -140,7 +142,7 @@ internal object FfmpegVideoEngine {
           "-vn", "-codec:a", "pcm_s16le",
           "-f", "wav", tmpAudio.absolutePath,
         )
-        val audioIR = wavDecoder.decode(tmpAudio.readBytes(), context)
+        val audioIR = wavDecoder.decode(tmpAudio.readBytes(), dev.transmute.audio.DefaultAudioDecodeOptions(), context)
         AudioTrack(samples = audioIR.samples, sampleStream = null)
       } finally {
         tmpAudio.delete()
@@ -179,7 +181,7 @@ internal object FfmpegVideoEngine {
     format: String,
     ext: String,
     extraArgs: List<String> = emptyList(),
-    context: ConversionContext,
+    context: TransmuteContext,
   ): ByteArray = withContext(Dispatchers.IO) {
     check(available) { "FFmpeg is not available on this system" }
 
@@ -212,7 +214,7 @@ internal object FfmpegVideoEngine {
           channelCount = ir.audioTrack.samples.channelCount,
           durationMs = ir.durationMs,
         )
-        val wavBytes = wavEncoder.encode(audioIR, context)
+        val wavBytes = wavEncoder.encode(audioIR, AudioFormat.WAV, DefaultAudioEncodeOptions(), context)
         tmpAudio.writeBytes(wavBytes)
       }
 

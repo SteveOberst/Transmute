@@ -1,4 +1,4 @@
-package dev.transmute.video.codecs.android
+﻿package dev.transmute.video.codecs.android
 
 import android.media.MediaCodec
 import android.media.MediaCodecInfo
@@ -7,7 +7,7 @@ import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.media.MediaMuxer
 import dev.transmute.audio.AudioSamples
-import dev.transmute.core.ConversionContext
+import dev.transmute.core.TransmuteContext
 import dev.transmute.core.VideoFormat
 import dev.transmute.image.ByteArrayPixelBuffer
 import dev.transmute.image.PixelFormat
@@ -22,9 +22,11 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import dev.transmute.video.VideoDecodeOptions
+import dev.transmute.video.VideoEncodeOptions
 
 // ---------------------------------------------------------------------------
-// ByteArray → MediaDataSource helper (private, same pattern as audio module)
+// ByteArray -> MediaDataSource helper (private, same pattern as audio module)
 // ---------------------------------------------------------------------------
 
 private class ByteArrayMediaDataSource(private val bytes: ByteArray) : MediaDataSource() {
@@ -39,7 +41,7 @@ private class ByteArrayMediaDataSource(private val bytes: ByteArray) : MediaData
 }
 
 // ---------------------------------------------------------------------------
-// YUV ↔ RGBA conversion (BT.601)
+// YUV <-> RGBA conversion (BT.601)
 // ---------------------------------------------------------------------------
 
 private fun yuvToRgba(
@@ -587,7 +589,7 @@ internal class AndroidMp4Codec : VideoCodec {
     }
   }
 
-  override suspend fun decode(source: ByteArray, context: ConversionContext): VideoIR {
+  override suspend fun decode(source: ByteArray, options: VideoDecodeOptions, context: TransmuteContext): VideoIR {
     val (frames, audioInfo) = decodeVideoWithMediaCodec(source)
     require(frames.isNotEmpty()) { "No video frames decoded" }
 
@@ -613,7 +615,7 @@ internal class AndroidMp4Codec : VideoCodec {
     )
   }
 
-  override suspend fun encode(ir: VideoIR, context: ConversionContext): ByteArray =
+  override suspend fun encode(ir: VideoIR, format: VideoFormat, options: VideoEncodeOptions, context: TransmuteContext): ByteArray =
     encodeVideoWithMediaCodec(
       ir,
       outputFormat = MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4,
@@ -639,7 +641,7 @@ internal class AndroidMovCodec : VideoCodec {
     return if (brand == "qt  ") VideoFormat.MOV else null
   }
 
-  override suspend fun decode(source: ByteArray, context: ConversionContext): VideoIR {
+  override suspend fun decode(source: ByteArray, options: VideoDecodeOptions, context: TransmuteContext): VideoIR {
     // MOV and MP4 share the same container on Android
     val (frames, audioInfo) = decodeVideoWithMediaCodec(source)
     require(frames.isNotEmpty()) { "No video frames decoded" }
@@ -666,7 +668,7 @@ internal class AndroidMovCodec : VideoCodec {
     )
   }
 
-  override suspend fun encode(ir: VideoIR, context: ConversionContext): ByteArray =
+  override suspend fun encode(ir: VideoIR, format: VideoFormat, options: VideoEncodeOptions, context: TransmuteContext): ByteArray =
     encodeVideoWithMediaCodec(
       ir,
       outputFormat = MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4,
@@ -689,12 +691,13 @@ internal class AndroidWebmDecoder : dev.transmute.video.VideoDecoder {
       data[2] != 0xDF.toByte() || data[3] != 0xA3.toByte()) return null
     if (data.size >= 40) {
       val content = data.copyOfRange(0, minOf(data.size, 64)).decodeToString()
+      if (content.contains("matroska")) return null // MKV, not WebM
       if (content.contains("webm")) return VideoFormat.WEBM
     }
     return VideoFormat.WEBM
   }
 
-  override suspend fun decode(source: ByteArray, context: ConversionContext): VideoIR {
+  override suspend fun decode(source: ByteArray, options: VideoDecodeOptions, context: TransmuteContext): VideoIR {
     val (frames, audioInfo) = decodeVideoWithMediaCodec(source)
     require(frames.isNotEmpty()) { "No video frames decoded from WebM" }
 
@@ -720,3 +723,4 @@ internal class AndroidWebmDecoder : dev.transmute.video.VideoDecoder {
     )
   }
 }
+

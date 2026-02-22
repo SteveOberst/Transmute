@@ -1,35 +1,36 @@
 # WebP
 
-WebP is a modern image format developed by Google that supports both lossy and lossless compression, along with alpha transparency. It typically achieves smaller file sizes than JPEG and PNG.
+WebP is a modern image format that supports both lossy and lossless compression, as well as alpha transparency. It often produces smaller files than JPEG/PNG at similar quality.
 
 ## Platform Support
 
 | Platform | Decode | Encode | Engine |
 |----------|--------|--------|--------|
 | Android  | ✅     | ✅     | BitmapFactory / Bitmap.compress |
-| Desktop  | ✅     | ✅     | ImageIO (TwelveMonkeys / bundled codec) |
-| iOS      | ✅     | ✅     | CoreGraphics (CGImage, iOS 14+) |
+| Desktop  | ✅     | ✅     | ImageIO (via plugins) / FFmpeg fallback |
+| iOS      | ✅     | ✅     | CoreGraphics (CGImage) |
 
 ## Usage
 
 ```kotlin
-// Lossy WebP conversion
-val webpBytes = Transmute.image(inputBytes) {
-    outputFormat(ImageFormat.WEBP)
-    quality(0.80f)
-}
+import dev.transmute.Transmute
+import dev.transmute.image.WebPEncodeOptions
 
-// Lossless WebP (quality = 1.0)
-val losslessWebp = Transmute.image(inputBytes) {
-    outputFormat(ImageFormat.WEBP)
-    quality(1.0f)
-}
+// Convert any image to WebP (lossy)
+suspend fun convertToWebp(inputBytes: ByteArray): ByteArray =
+  Transmute.image {
+    encodeOptions(WebPEncodeOptions(quality = 0.8f, lossless = false))
+  }.transmute(inputBytes).bytes
+
+// Convert any image to WebP (lossless)
+suspend fun convertToWebpLossless(inputBytes: ByteArray): ByteArray =
+  Transmute.image {
+    encodeOptions(WebPEncodeOptions(lossless = true))
+  }.transmute(inputBytes).bytes
 ```
 
 ## Notes
 
-- Supports both lossy and lossless modes; `quality(1.0f)` selects lossless on supported platforms.
-- Supports alpha transparency in both lossy and lossless modes.
-- Android has native WebP support since API 14 (lossy) and API 18 (lossless).
-- Excellent compression-to-quality ratio for web-optimized images.
-- Animated WebP is not currently supported by Transmute.
+- Great compression for both photos (lossy) and graphics (lossless).
+- Supports alpha transparency.
+- Widely supported on Android; good support on iOS and modern desktop workflows.

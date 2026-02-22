@@ -16,6 +16,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import dev.transmute.audio.DefaultAudioDecodeOptions
 
 /**
  * Android instrumented tests for MediaCodec-based audio codecs.
@@ -67,7 +68,7 @@ class AndroidAudioCodecTest {
     val encoded = codecOp("MP3 encode") { codec.encode(original, ctx) } ?: return@runBlocking
     assertTrue(encoded.isNotEmpty(), "Encoded MP3 should not be empty")
 
-    val decoded = codecOp("MP3 decode") { codec.decode(encoded, ctx) } ?: return@runBlocking
+    val decoded = codecOp("MP3 decode") { codec.decode(encoded, DefaultAudioDecodeOptions(), ctx) } ?: return@runBlocking
     assertEquals(44100, decoded.sampleRate, "Sample rate should be preserved")
     assertTrue(decoded.samples.data.isNotEmpty(), "Decoded samples should not be empty")
   }
@@ -88,7 +89,7 @@ class AndroidAudioCodecTest {
     val encoded = codecOp("AAC encode") { codec.encode(original, ctx) } ?: return@runBlocking
     assertTrue(encoded.isNotEmpty())
 
-    val decoded = codecOp("AAC decode") { codec.decode(encoded, ctx) } ?: return@runBlocking
+    val decoded = codecOp("AAC decode") { codec.decode(encoded, DefaultAudioDecodeOptions(), ctx) } ?: return@runBlocking
     assertEquals(44100, decoded.sampleRate)
     assertTrue(decoded.samples.data.isNotEmpty())
   }
@@ -109,7 +110,7 @@ class AndroidAudioCodecTest {
     val encoded = codecOp("FLAC encode") { codec.encode(original, ctx) } ?: return@runBlocking
     assertTrue(encoded.isNotEmpty())
 
-    val decoded = codecOp("FLAC decode") { codec.decode(encoded, ctx) } ?: return@runBlocking
+    val decoded = codecOp("FLAC decode") { codec.decode(encoded, DefaultAudioDecodeOptions(), ctx) } ?: return@runBlocking
     assertEquals(44100, decoded.sampleRate)
     assertEquals(original.channelCount, decoded.channelCount)
     assertTrue(decoded.samples.data.isNotEmpty())
@@ -131,7 +132,7 @@ class AndroidAudioCodecTest {
     val encoded = codecOp("M4A encode") { codec.encode(original, ctx) } ?: return@runBlocking
     assertTrue(encoded.isNotEmpty())
 
-    val decoded = codecOp("M4A decode") { codec.decode(encoded, ctx) } ?: return@runBlocking
+    val decoded = codecOp("M4A decode") { codec.decode(encoded, DefaultAudioDecodeOptions(), ctx) } ?: return@runBlocking
     assertEquals(44100, decoded.sampleRate)
     assertTrue(decoded.samples.data.isNotEmpty())
   }
@@ -162,7 +163,7 @@ class AndroidAudioCodecTest {
     val encoded = codecOp("OPUS encode") { codec.encode(original, ctx) } ?: return@runBlocking
     assertTrue(encoded.isNotEmpty(), "Encoded OPUS should not be empty")
 
-    val decoded = codecOp("OPUS decode") { codec.decode(encoded, ctx) } ?: return@runBlocking
+    val decoded = codecOp("OPUS decode") { codec.decode(encoded, DefaultAudioDecodeOptions(), ctx) } ?: return@runBlocking
     assertEquals(48000, decoded.sampleRate, "OPUS: sample rate should be preserved")
     assertTrue(decoded.samples.data.isNotEmpty(), "OPUS: decoded samples should not be empty")
   }

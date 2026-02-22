@@ -24,6 +24,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import dev.transmute.video.DefaultVideoDecodeOptions
 
 /**
  * Android instrumented tests for MediaCodec-based video codecs.
@@ -77,7 +78,7 @@ class AndroidVideoCodecTest {
     val encoded = codecOp("MP4 encode") { codec.encode(original, ctx) } ?: return@runBlocking
     assertTrue(encoded.isNotEmpty(), "Encoded MP4 should not be empty")
 
-    val decoded = codecOp("MP4 decode") { codec.decode(encoded, ctx) } ?: return@runBlocking
+    val decoded = codecOp("MP4 decode") { codec.decode(encoded, DefaultVideoDecodeOptions(), ctx) } ?: return@runBlocking
     assertEquals(32, decoded.videoTrack.width, "MP4: width mismatch")
     assertEquals(32, decoded.videoTrack.height, "MP4: height mismatch")
     assertTrue(decoded.videoTrack.frames.frameCount > 0, "MP4: must have frames")
@@ -105,7 +106,7 @@ class AndroidVideoCodecTest {
     val codec = AndroidMp4Codec()
 
     val encoded = codecOp("MP4+audio encode") { codec.encode(original, ctx) } ?: return@runBlocking
-    val decoded = codecOp("MP4+audio decode") { codec.decode(encoded, ctx) } ?: return@runBlocking
+    val decoded = codecOp("MP4+audio decode") { codec.decode(encoded, DefaultVideoDecodeOptions(), ctx) } ?: return@runBlocking
 
     assertNotNull(decoded.audioTrack, "MP4: audio track should be preserved")
     assertTrue(
@@ -127,7 +128,7 @@ class AndroidVideoCodecTest {
     val encoded = codecOp("MOV encode") { codec.encode(original, ctx) } ?: return@runBlocking
     assertTrue(encoded.isNotEmpty(), "Encoded MOV should not be empty")
 
-    val decoded = codecOp("MOV decode") { codec.decode(encoded, ctx) } ?: return@runBlocking
+    val decoded = codecOp("MOV decode") { codec.decode(encoded, DefaultVideoDecodeOptions(), ctx) } ?: return@runBlocking
     assertEquals(32, decoded.videoTrack.width, "MOV: width mismatch")
     assertEquals(32, decoded.videoTrack.height, "MOV: height mismatch")
     assertTrue(decoded.videoTrack.frames.frameCount > 0, "MOV: must have frames")

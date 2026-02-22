@@ -11,7 +11,7 @@ None.
 ### DSL
 
 ```kotlin
-Transmute.audio(bytes) { mono() }
+Transmute.audio { mono() }.transmute(bytes).bytes
 ```
 
 ### Pipeline

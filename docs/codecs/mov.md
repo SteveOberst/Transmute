@@ -1,6 +1,6 @@
 # MOV (QuickTime)
 
-MOV is Apple's QuickTime container format. It is structurally similar to MP4 and is the default video format for iOS/macOS recordings.
+MOV is Apple's QuickTime container format. It commonly contains H.264 video and AAC audio and is widely used in Apple workflows.
 
 ## Platform Support
 
@@ -13,23 +13,24 @@ MOV is Apple's QuickTime container format. It is structurally similar to MP4 and
 ## Usage
 
 ```kotlin
-// Convert video to MOV
-val movBytes = Transmute.video(inputBytes) {
-    outputFormat(VideoFormat.MOV)
-}
+import dev.transmute.Transmute
+import dev.transmute.core.VideoFormat
+import dev.transmute.video.DefaultVideoEncodeOptions
 
-// Convert MOV to MP4
-val mp4Bytes = Transmute.video(movBytes) {
-    outputFormat(VideoFormat.MP4)
-}
+// Convert video to MOV
+suspend fun convertToMov(inputBytes: ByteArray): ByteArray =
+  Transmute.video {
+    encodeOptions(DefaultVideoEncodeOptions(outputFormat = VideoFormat.MOV))
+  }.transmute(inputBytes).bytes
+
+// Decode MOV (re-encode to MP4)
+suspend fun convertToMp4(movBytes: ByteArray): ByteArray =
+  Transmute.video {
+    encodeOptions(DefaultVideoEncodeOptions(outputFormat = VideoFormat.MP4))
+  }.transmute(movBytes).bytes
 ```
 
 ## Notes
 
-- Full encode + decode support on all platforms.
-- MOV and MP4 share the same underlying ISO Base Media File Format (ISOBMFF).
-- Android handles MOV via MediaCodec (treated similarly to MP4).
-- Desktop uses the bundled FFmpeg for full support.
-- iOS has native MOV support - it is the default capture format for the camera.
-- Supports H.264, H.265/HEVC, and ProRes video codecs.
-- Converting MOV ↔ MP4 is often a fast container remux with no re-encoding.
+- Great compatibility within Apple ecosystems.
+- Desktop encoding relies on the bundled FFmpeg build.

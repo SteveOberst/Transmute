@@ -2,10 +2,16 @@ package dev.transmute.image.codecs.ios
 
 import dev.transmute.core.ImageFormat
 import dev.transmute.image.ImageTestHelpers
+import dev.transmute.image.DefaultImageEncodeOptions
+import dev.transmute.image.HeifEncodeOptions
+import dev.transmute.image.JpegEncodeOptions
+import dev.transmute.image.PngEncodeOptions
+import dev.transmute.image.WebPEncodeOptions
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import dev.transmute.image.DefaultImageDecodeOptions
 
 /**
  * iOS integration tests for [IosImageIoDecoder] and [IosImageIoEncoder].
@@ -26,12 +32,10 @@ class IosImageCodecTest {
   fun jpegRoundTripPreservesDimensions() = runTest {
     val original = ImageTestHelpers.solidColor(64, 48, r = 200, g = 100, b = 50)
     val ctx = ImageTestHelpers.testContext()
-    ctx.scratchpad["image.output.format"] = ImageFormat.JPEG
-
-    val encoded = encoder.encode(original, ctx)
+    val encoded = encoder.encode(original, ImageFormat.JPEG, JpegEncodeOptions(), ctx)
     assertTrue(encoded.isNotEmpty(), "JPEG encoded bytes should not be empty")
 
-    val decoded = decoder.decode(encoded, ctx)
+    val decoded = decoder.decode(encoded, DefaultImageDecodeOptions(), ctx)
     assertEquals(64, decoded.width, "Width should be preserved")
     assertEquals(48, decoded.height, "Height should be preserved")
   }
@@ -40,11 +44,8 @@ class IosImageCodecTest {
   fun jpegRoundTripSolidColorHasLowError() = runTest {
     val original = ImageTestHelpers.solidColor(32, 32, r = 128, g = 128, b = 128)
     val ctx = ImageTestHelpers.testContext()
-    ctx.scratchpad["image.output.format"] = ImageFormat.JPEG
-    ctx.scratchpad["image.quality"] = 0.95f
-
-    val encoded = encoder.encode(original, ctx)
-    val decoded = decoder.decode(encoded, ctx)
+    val encoded = encoder.encode(original, ImageFormat.JPEG, JpegEncodeOptions(quality = 0.95f), ctx)
+    val decoded = decoder.decode(encoded, DefaultImageDecodeOptions(), ctx)
     val diff = ImageTestHelpers.peakDifference(original, decoded)
     assertTrue(diff < 15,
       "JPEG solid color peak diff $diff should be < 15")
@@ -56,10 +57,8 @@ class IosImageCodecTest {
   fun pngRoundTripIsLossless() = runTest {
     val original = ImageTestHelpers.checkerboard(32, 32)
     val ctx = ImageTestHelpers.testContext()
-    ctx.scratchpad["image.output.format"] = ImageFormat.PNG
-
-    val encoded = encoder.encode(original, ctx)
-    val decoded = decoder.decode(encoded, ctx)
+    val encoded = encoder.encode(original, ImageFormat.PNG, PngEncodeOptions(), ctx)
+    val decoded = decoder.decode(encoded, DefaultImageDecodeOptions(), ctx)
 
     assertEquals(32, decoded.width)
     assertEquals(32, decoded.height)
@@ -73,10 +72,8 @@ class IosImageCodecTest {
   fun webpRoundTripPreservesDimensions() = runTest {
     val original = ImageTestHelpers.horizontalGradient(64, 32)
     val ctx = ImageTestHelpers.testContext()
-    ctx.scratchpad["image.output.format"] = ImageFormat.WEBP
-
     val encoded = try {
-      encoder.encode(original, ctx)
+      encoder.encode(original, ImageFormat.WEBP, WebPEncodeOptions(), ctx)
     } catch (_: IllegalStateException) {
       // WebP encoding not supported on this simulator — skip.
       println("SKIP: WebP encoding not available on this simulator")
@@ -84,7 +81,7 @@ class IosImageCodecTest {
     }
     assertTrue(encoded.isNotEmpty(), "WebP encoded bytes should not be empty")
 
-    val decoded = decoder.decode(encoded, ctx)
+    val decoded = decoder.decode(encoded, DefaultImageDecodeOptions(), ctx)
     assertEquals(64, decoded.width)
     assertEquals(32, decoded.height)
   }
@@ -95,10 +92,8 @@ class IosImageCodecTest {
   fun heifRoundTripPreservesDimensions() = runTest {
     val original = ImageTestHelpers.solidColor(64, 48, r = 100, g = 200, b = 50)
     val ctx = ImageTestHelpers.testContext()
-    ctx.scratchpad["image.output.format"] = ImageFormat.HEIF
-
     val encoded = try {
-      encoder.encode(original, ctx)
+      encoder.encode(original, ImageFormat.HEIF, HeifEncodeOptions(outputFormat = ImageFormat.HEIF), ctx)
     } catch (_: IllegalStateException) {
       // HEIF encoding not supported on this simulator — skip.
       println("SKIP: HEIF encoding not available on this simulator")
@@ -106,7 +101,7 @@ class IosImageCodecTest {
     }
     assertTrue(encoded.isNotEmpty(), "HEIF encoded bytes should not be empty")
 
-    val decoded = decoder.decode(encoded, ctx)
+    val decoded = decoder.decode(encoded, DefaultImageDecodeOptions(), ctx)
     assertEquals(64, decoded.width, "Width should be preserved")
     assertEquals(48, decoded.height, "Height should be preserved")
   }
@@ -117,12 +112,10 @@ class IosImageCodecTest {
   fun tiffRoundTripPreservesDimensions() = runTest {
     val original = ImageTestHelpers.solidColor(32, 32, r = 0, g = 255, b = 0)
     val ctx = ImageTestHelpers.testContext()
-    ctx.scratchpad["image.output.format"] = ImageFormat.TIFF
-
-    val encoded = encoder.encode(original, ctx)
+    val encoded = encoder.encode(original, ImageFormat.TIFF, DefaultImageEncodeOptions(outputFormat = ImageFormat.TIFF), ctx)
     assertTrue(encoded.isNotEmpty(), "TIFF encoded bytes should not be empty")
 
-    val decoded = decoder.decode(encoded, ctx)
+    val decoded = decoder.decode(encoded, DefaultImageDecodeOptions(), ctx)
     assertEquals(32, decoded.width)
     assertEquals(32, decoded.height)
   }
@@ -133,12 +126,10 @@ class IosImageCodecTest {
   fun gifRoundTripPreservesDimensions() = runTest {
     val original = ImageTestHelpers.solidColor(16, 16, r = 255, g = 0, b = 0)
     val ctx = ImageTestHelpers.testContext()
-    ctx.scratchpad["image.output.format"] = ImageFormat.GIF
-
-    val encoded = encoder.encode(original, ctx)
+    val encoded = encoder.encode(original, ImageFormat.GIF, DefaultImageEncodeOptions(outputFormat = ImageFormat.GIF), ctx)
     assertTrue(encoded.isNotEmpty(), "GIF encoded bytes should not be empty")
 
-    val decoded = decoder.decode(encoded, ctx)
+    val decoded = decoder.decode(encoded, DefaultImageDecodeOptions(), ctx)
     assertEquals(16, decoded.width)
     assertEquals(16, decoded.height)
   }
@@ -149,12 +140,10 @@ class IosImageCodecTest {
   fun bmpRoundTripPreservesDimensions() = runTest {
     val original = ImageTestHelpers.solidColor(32, 32, r = 0, g = 0, b = 255)
     val ctx = ImageTestHelpers.testContext()
-    ctx.scratchpad["image.output.format"] = ImageFormat.BMP
-
-    val encoded = encoder.encode(original, ctx)
+    val encoded = encoder.encode(original, ImageFormat.BMP, DefaultImageEncodeOptions(outputFormat = ImageFormat.BMP), ctx)
     assertTrue(encoded.isNotEmpty(), "BMP encoded bytes should not be empty")
 
-    val decoded = decoder.decode(encoded, ctx)
+    val decoded = decoder.decode(encoded, DefaultImageDecodeOptions(), ctx)
     assertEquals(32, decoded.width)
     assertEquals(32, decoded.height)
   }

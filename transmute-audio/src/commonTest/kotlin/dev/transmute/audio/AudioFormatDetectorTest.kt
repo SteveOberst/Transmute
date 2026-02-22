@@ -34,6 +34,15 @@ class AudioFormatDetectorTest {
   }
 
   @Test
+  fun detectOpus() {
+    val data = ByteArray(36)
+    data[0] = 'O'.code.toByte(); data[1] = 'g'.code.toByte(); data[2] = 'g'.code.toByte(); data[3] = 'S'.code.toByte()
+    val opus = "OpusHead".encodeToByteArray()
+    opus.copyInto(data, destinationOffset = 28)
+    assertEquals(AudioFormat.OPUS, AudioFormatDetector.detect(data))
+  }
+
+  @Test
   fun detectMp3WithId3() {
     val mp3Id3Header = byteArrayOf(
       'I'.code.toByte(), 'D'.code.toByte(), '3'.code.toByte(),
@@ -52,6 +61,16 @@ class AudioFormatDetectorTest {
   fun detectAacAdts() {
     val aacHeader = byteArrayOf(0xFF.toByte(), 0xF1.toByte(), 0x00, 0x00)
     assertEquals(AudioFormat.AAC, AudioFormatDetector.detect(aacHeader))
+  }
+
+  @Test
+  fun detectM4aFtyp() {
+    val data = ByteArray(16)
+    // 4-byte size, then "ftyp"
+    data[0] = 0x00; data[1] = 0x00; data[2] = 0x00; data[3] = 0x18
+    data[4] = 'f'.code.toByte(); data[5] = 't'.code.toByte(); data[6] = 'y'.code.toByte(); data[7] = 'p'.code.toByte()
+    data[8] = 'M'.code.toByte(); data[9] = '4'.code.toByte(); data[10] = 'A'.code.toByte(); data[11] = ' '.code.toByte()
+    assertEquals(AudioFormat.M4A, AudioFormatDetector.detect(data))
   }
 
   @Test

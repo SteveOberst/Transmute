@@ -1,0 +1,65 @@
+# Pipelines (vNext)
+
+Transmute models **decode**, **transform**, and **encode** as *typed handler chains*.
+
+- Decode stage returns `Decoded<F, IR>` (resolved input format + intermediate representation).
+- Transform stage operates on the IR only.
+- Encode stage chooses an output format via `EncodeOptions` and produces `EncodedBytes`.
+
+## Default Stages (class-first)
+
+The default implementations are regular handler classes you can reuse in your own pipelines:
+
+- Images: `ImageDecodeHandler`, `ImageDynamicEncodeHandler`, `ImageFixedEncodeHandler`
+- Audio: `AudioDecodeHandler`, `AudioDynamicEncodeHandler`, `AudioFixedEncodeHandler`
+- Video: `VideoDecodeHandler`, `VideoDynamicEncodeHandler`, `VideoFixedEncodeHandler`
+
+## Custom Input Type + Default Decode Handler
+
+```kotlin
+import dev.transmute.Transmute
+import dev.transmute.core.ImageFormat
+import dev.transmute.image.DefaultImageDecodeOptions
+import dev.transmute.image.ImageDecodeHandler
+
+data class NamedBytes(val name: String, val bytes: ByteArray)
+
+val t = Transmute.imageFrom<NamedBytes> {
+  decodeOptions(DefaultImageDecodeOptions(acceptedInputFormats = setOf(ImageFormat.PNG, ImageFormat.JPEG)))
+
+  decode {
+    then { input, _ -> input.bytes }
+      .then(ImageDecodeHandler())
+  }
+}
+```
+
+## Dynamic Encode Format Selection
+
+Output format selection is an **encode concern** (via `encodeOptions.outputFormat` or a handler policy),
+not a builder-level knob.
+
+```kotlin
+import dev.transmute.Transmute
+import dev.transmute.core.ImageFormat
+import dev.transmute.image.AlphaSemantics
+import dev.transmute.image.DefaultImageEncodeOptions
+import dev.transmute.image.ImageDynamicEncodeHandler
+import dev.transmute.image.ImageOutputFormatSelector
+
+val t = Transmute.image {
+  encodeOptions(DefaultImageEncodeOptions()) // outputFormat = null => choose dynamically
+
+  encode {
+    then(
+      ImageDynamicEncodeHandler(
+        outputFormatSelector = ImageOutputFormatSelector { decoded, options ->
+          options.outputFormat
+            ?: if (decoded.ir.alphaSemantics != AlphaSemantics.OPAQUE) ImageFormat.PNG else ImageFormat.JPEG
+        },
+      ),
+    )
+  }
+}
+```
+

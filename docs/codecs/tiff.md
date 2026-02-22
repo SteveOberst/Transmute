@@ -1,35 +1,37 @@
 # TIFF
 
-TIFF (Tagged Image File Format) is a flexible, lossless image format commonly used in professional photography and publishing workflows.
+TIFF is a flexible image container format used in professional imaging workflows. It can store high bit-depth and multiple pages, depending on the encoder/decoder.
 
 ## Platform Support
 
 | Platform | Decode | Encode | Engine |
 |----------|--------|--------|--------|
 | Android  | ✅     | ❌     | BitmapFactory (decode only) |
-| Desktop  | ✅     | ✅     | ImageIO + TwelveMonkeys plugin |
+| Desktop  | ✅     | ✅     | FFmpeg (bundled) / ImageIO |
 | iOS      | ✅     | ✅     | CoreGraphics (CGImage) |
 
 ## Usage
 
 ```kotlin
-// Convert to TIFF (Desktop/iOS only for encode)
-val tiffBytes = Transmute.image(inputBytes) {
-    outputFormat(ImageFormat.TIFF)
-}
+import dev.transmute.Transmute
+import dev.transmute.core.ImageFormat
+import dev.transmute.image.DefaultImageEncodeOptions
+import dev.transmute.image.JpegEncodeOptions
 
-// Decode TIFF on any platform
-val jpegBytes = Transmute.image(tiffBytes) {
-    outputFormat(ImageFormat.JPEG)
-    quality(0.90f)
-}
+// Convert any image to TIFF (Desktop/iOS)
+suspend fun convertToTiff(inputBytes: ByteArray): ByteArray =
+  Transmute.image {
+    encodeOptions(DefaultImageEncodeOptions(outputFormat = ImageFormat.TIFF))
+  }.transmute(inputBytes).bytes
+
+// Decode TIFF (re-encode to JPEG)
+suspend fun decodeToJpeg(tiffBytes: ByteArray): ByteArray =
+  Transmute.image {
+    encodeOptions(JpegEncodeOptions(quality = 0.85f))
+  }.transmute(tiffBytes).bytes
 ```
 
 ## Notes
 
-- Android can **decode** TIFF but cannot encode to it.
-- Desktop uses the TwelveMonkeys ImageIO plugin for full TIFF read/write support.
-- iOS has full native TIFF support via CoreGraphics.
-- TIFF supports multiple compression modes (LZW, ZIP, None), but Transmute uses platform defaults.
-- File sizes are typically large; not recommended for general-purpose use.
-- Supports alpha transparency and high bit-depth color.
+- Common in professional workflows; features vary by platform codec implementation.
+- Desktop encoding may rely on the bundled FFmpeg build.

@@ -1,34 +1,36 @@
 # AVI
 
-AVI (Audio Video Interleave) is a legacy video container format originally developed by Microsoft. It supports a wide range of video and audio codecs.
+AVI is a legacy video container format. It is still encountered frequently in archives and older workflows.
 
 ## Platform Support
 
 | Platform | Decode | Encode | Engine |
 |----------|--------|--------|--------|
-| Android  | ❌     | ❌     | Not supported |
+| Android  | ✅     | ✅     | MediaCodec (decode) / FFmpeg (encode) |
 | Desktop  | ✅     | ✅     | FFmpeg (bundled) |
-| iOS      | ❌     | ❌     | Not supported |
+| iOS      | ✅     | ❌     | AVFoundation (decode only) |
 
 ## Usage
 
 ```kotlin
-// Convert to AVI (Desktop only)
-val aviBytes = Transmute.video(inputBytes) {
-    outputFormat(VideoFormat.AVI)
-}
+import dev.transmute.Transmute
+import dev.transmute.core.VideoFormat
+import dev.transmute.video.DefaultVideoEncodeOptions
 
-// Convert AVI to MP4 (Desktop only)
-val mp4Bytes = Transmute.video(aviBytes) {
-    outputFormat(VideoFormat.MP4)
-}
+// Convert video to AVI (Android/Desktop)
+suspend fun convertToAvi(inputBytes: ByteArray): ByteArray =
+  Transmute.video {
+    encodeOptions(DefaultVideoEncodeOptions(outputFormat = VideoFormat.AVI))
+  }.transmute(inputBytes).bytes
+
+// Decode AVI (re-encode to MP4)
+suspend fun convertToMp4(aviBytes: ByteArray): ByteArray =
+  Transmute.video {
+    encodeOptions(DefaultVideoEncodeOptions(outputFormat = VideoFormat.MP4))
+  }.transmute(aviBytes).bytes
 ```
 
 ## Notes
 
-- **Desktop only** - no Android or iOS support.
-- Requires the bundled FFmpeg on Desktop; no user setup needed.
-- AVI is a legacy format; prefer MP4 or MKV for new projects.
-- Large file sizes due to limited container-level compression.
-- Does not support modern features like streaming, chapters, or subtitles well.
-- Useful for interoperability with older software and workflows.
+- Legacy container format; prefer MP4 for modern workflows.
+- Desktop encoding relies on the bundled FFmpeg build.

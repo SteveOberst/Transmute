@@ -13,7 +13,7 @@ Change playback speed, adjusting both frame timing and audio.
 ### DSL
 
 ```kotlin
-Transmute.video(bytes) { speed(2.0f) }
+Transmute.video { speed(2.0f) }.transmute(bytes).bytes
 ```
 
 ### Pipeline

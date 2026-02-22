@@ -1,6 +1,6 @@
 package dev.transmute.image.codecs.jvm
 
-import dev.transmute.core.ConversionContext
+import dev.transmute.core.TransmuteContext
 import dev.transmute.core.FfmpegResolver
 import dev.transmute.core.ImageFormat
 import dev.transmute.image.*
@@ -55,7 +55,8 @@ class FfmpegImageDecoder : ImageDecoder {
 
   override suspend fun decode(
     source: ByteArray,
-    context: ConversionContext,
+    options: ImageDecodeOptions,
+    context: TransmuteContext,
   ): ImageIR = withContext(Dispatchers.IO) {
     check(FfmpegResolver.available) { "FFmpeg is not available" }
 
@@ -137,7 +138,9 @@ class FfmpegImageEncoder : ImageEncoder {
 
   override suspend fun encode(
     ir: ImageIR,
-    context: ConversionContext,
+    format: ImageFormat,
+    options: ImageEncodeOptions,
+    context: TransmuteContext,
   ): ByteArray = withContext(Dispatchers.IO) {
     check(FfmpegResolver.available) { "FFmpeg is not available" }
 
@@ -145,14 +148,14 @@ class FfmpegImageEncoder : ImageEncoder {
       ?: error("FfmpegImageEncoder requires ByteArrayPixelBuffer")
     require(ir.pixelFormat == PixelFormat.RGBA_8888) { "Only RGBA_8888 is supported" }
 
-    val outputFormat = (context.scratchpad["image.output.format"] as? ImageFormat)
-      ?: ImageFormat.HEIF
-    val quality = ((context.scratchpad["image.output.quality"] as? Number)?.toFloat()
-      ?: 0.85f).coerceIn(0f, 1f)
+    require(format in supportedFormats) { "Unsupported format $format" }
+
+    // FFmpeg encoder options can be added later; for now we use a stable default.
+    val quality = 0.85f
 
     // Write input as PNG temp
     val tmpIn = File.createTempFile("transmute_img_enc_in_", ".png")
-    val ext = when (outputFormat) {
+    val ext = when (format) {
       ImageFormat.AVIF -> "avif"
       else -> "heif"
     }
@@ -175,7 +178,7 @@ class FfmpegImageEncoder : ImageEncoder {
         add("-y"); add("-loglevel"); add("error")
         add("-i"); add(tmpIn.absolutePath)
 
-        when (outputFormat) {
+        when (format) {
           ImageFormat.AVIF -> {
             add("-c:v"); add("libaom-av1")
             add("-crf"); add(crf.toString())
@@ -197,7 +200,7 @@ class FfmpegImageEncoder : ImageEncoder {
       val process = ProcessBuilder(cmd).redirectErrorStream(true).start()
       val output = process.inputStream.bufferedReader().readText()
       check(process.waitFor() == 0) {
-        "FFmpeg image encode to $outputFormat failed: ${output.takeLast(500)}"
+        "FFmpeg image encode to $format failed: ${output.takeLast(500)}"
       }
 
       tmpOut.readBytes()

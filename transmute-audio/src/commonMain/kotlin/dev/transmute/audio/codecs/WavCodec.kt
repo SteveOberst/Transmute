@@ -1,12 +1,14 @@
 package dev.transmute.audio.codecs
 
+import dev.transmute.audio.AudioDecodeOptions
 import dev.transmute.audio.AudioDecoder
+import dev.transmute.audio.AudioEncodeOptions
 import dev.transmute.audio.AudioEncoder
 import dev.transmute.audio.AudioIR
 import dev.transmute.audio.AudioMetadata
 import dev.transmute.audio.AudioSamples
 import dev.transmute.core.AudioFormat
-import dev.transmute.core.ConversionContext
+import dev.transmute.core.TransmuteContext
 
 /**
  * Pure Kotlin WAV decoder supporting PCM (8/16/24/32-bit) and IEEE float formats.
@@ -26,7 +28,7 @@ class WavDecoder : AudioDecoder {
     return null
   }
 
-  override suspend fun decode(source: ByteArray, context: ConversionContext): AudioIR {
+  override suspend fun decode(source: ByteArray, options: AudioDecodeOptions, context: TransmuteContext): AudioIR {
     require(source.size >= 44) { "WAV file too small: ${source.size} bytes" }
 
     // Parse RIFF header
@@ -157,7 +159,13 @@ class WavEncoder : AudioEncoder {
 
   override val supportedFormats: Set<AudioFormat> = setOf(AudioFormat.WAV)
 
-  override suspend fun encode(ir: AudioIR, context: ConversionContext): ByteArray {
+  override suspend fun encode(
+    ir: AudioIR,
+    format: AudioFormat,
+    options: AudioEncodeOptions,
+    context: TransmuteContext,
+  ): ByteArray {
+    require(format == AudioFormat.WAV) { "WavEncoder only supports WAV, got $format" }
     val samples = ir.samples.data
     val sampleRate = ir.sampleRate
     val channelCount = ir.channelCount

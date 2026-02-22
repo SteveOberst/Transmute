@@ -1,8 +1,10 @@
 package dev.transmute.video.codecs.jvm
 
-import dev.transmute.core.ConversionContext
+import dev.transmute.core.TransmuteContext
 import dev.transmute.core.VideoFormat
 import dev.transmute.video.VideoCodec
+import dev.transmute.video.VideoDecodeOptions
+import dev.transmute.video.VideoEncodeOptions
 import dev.transmute.video.VideoIR
 
 // ---------------------------------------------------------------------------
@@ -33,11 +35,17 @@ internal class JvmMp4Codec : VideoCodec {
     }
   }
 
-  override suspend fun decode(source: ByteArray, context: ConversionContext): VideoIR =
+  override suspend fun decode(source: ByteArray, options: VideoDecodeOptions, context: TransmuteContext): VideoIR =
     FfmpegVideoEngine.decode(source, "mp4", context)
 
-  override suspend fun encode(ir: VideoIR, context: ConversionContext): ByteArray =
-    FfmpegVideoEngine.encode(
+  override suspend fun encode(
+    ir: VideoIR,
+    format: VideoFormat,
+    options: VideoEncodeOptions,
+    context: TransmuteContext,
+  ): ByteArray {
+    require(format == VideoFormat.MP4) { "JvmMp4Codec only supports MP4, got $format" }
+    return FfmpegVideoEngine.encode(
       ir,
       videoCodec = "libx264",
       audioCodec = "aac",
@@ -46,6 +54,7 @@ internal class JvmMp4Codec : VideoCodec {
       extraArgs = listOf("-movflags", "+faststart"),
       context = context,
     )
+  }
 }
 
 // --- MOV (H.264 + AAC) ---
@@ -62,11 +71,17 @@ internal class JvmMovCodec : VideoCodec {
     return if (brand == "qt  ") VideoFormat.MOV else null
   }
 
-  override suspend fun decode(source: ByteArray, context: ConversionContext): VideoIR =
+  override suspend fun decode(source: ByteArray, options: VideoDecodeOptions, context: TransmuteContext): VideoIR =
     FfmpegVideoEngine.decode(source, "mov", context)
 
-  override suspend fun encode(ir: VideoIR, context: ConversionContext): ByteArray =
-    FfmpegVideoEngine.encode(
+  override suspend fun encode(
+    ir: VideoIR,
+    format: VideoFormat,
+    options: VideoEncodeOptions,
+    context: TransmuteContext,
+  ): ByteArray {
+    require(format == VideoFormat.MOV) { "JvmMovCodec only supports MOV, got $format" }
+    return FfmpegVideoEngine.encode(
       ir,
       videoCodec = "libx264",
       audioCodec = "aac",
@@ -74,6 +89,7 @@ internal class JvmMovCodec : VideoCodec {
       ext = "mov",
       context = context,
     )
+  }
 }
 
 // --- WebM (VP8 + Vorbis) ---
@@ -96,11 +112,17 @@ internal class JvmWebmCodec : VideoCodec {
     return VideoFormat.WEBM
   }
 
-  override suspend fun decode(source: ByteArray, context: ConversionContext): VideoIR =
+  override suspend fun decode(source: ByteArray, options: VideoDecodeOptions, context: TransmuteContext): VideoIR =
     FfmpegVideoEngine.decode(source, "webm", context)
 
-  override suspend fun encode(ir: VideoIR, context: ConversionContext): ByteArray =
-    FfmpegVideoEngine.encode(
+  override suspend fun encode(
+    ir: VideoIR,
+    format: VideoFormat,
+    options: VideoEncodeOptions,
+    context: TransmuteContext,
+  ): ByteArray {
+    require(format == VideoFormat.WEBM) { "JvmWebmCodec only supports WEBM, got $format" }
+    return FfmpegVideoEngine.encode(
       ir,
       videoCodec = "libvpx",
       audioCodec = "libvorbis",
@@ -108,6 +130,7 @@ internal class JvmWebmCodec : VideoCodec {
       ext = "webm",
       context = context,
     )
+  }
 }
 
 // --- AVI (MPEG-4 + MP3) ---
@@ -125,11 +148,17 @@ internal class JvmAviCodec : VideoCodec {
     return null
   }
 
-  override suspend fun decode(source: ByteArray, context: ConversionContext): VideoIR =
+  override suspend fun decode(source: ByteArray, options: VideoDecodeOptions, context: TransmuteContext): VideoIR =
     FfmpegVideoEngine.decode(source, "avi", context)
 
-  override suspend fun encode(ir: VideoIR, context: ConversionContext): ByteArray =
-    FfmpegVideoEngine.encode(
+  override suspend fun encode(
+    ir: VideoIR,
+    format: VideoFormat,
+    options: VideoEncodeOptions,
+    context: TransmuteContext,
+  ): ByteArray {
+    require(format == VideoFormat.AVI) { "JvmAviCodec only supports AVI, got $format" }
+    return FfmpegVideoEngine.encode(
       ir,
       videoCodec = "mpeg4",
       audioCodec = "mp3",
@@ -137,6 +166,7 @@ internal class JvmAviCodec : VideoCodec {
       ext = "avi",
       context = context,
     )
+  }
 }
 
 // --- MKV / Matroska (H.264 + AAC) ---
@@ -156,11 +186,17 @@ internal class JvmMkvCodec : VideoCodec {
     return null
   }
 
-  override suspend fun decode(source: ByteArray, context: ConversionContext): VideoIR =
+  override suspend fun decode(source: ByteArray, options: VideoDecodeOptions, context: TransmuteContext): VideoIR =
     FfmpegVideoEngine.decode(source, "mkv", context)
 
-  override suspend fun encode(ir: VideoIR, context: ConversionContext): ByteArray =
-    FfmpegVideoEngine.encode(
+  override suspend fun encode(
+    ir: VideoIR,
+    format: VideoFormat,
+    options: VideoEncodeOptions,
+    context: TransmuteContext,
+  ): ByteArray {
+    require(format == VideoFormat.MKV) { "JvmMkvCodec only supports MKV, got $format" }
+    return FfmpegVideoEngine.encode(
       ir,
       videoCodec = "libx264",
       audioCodec = "aac",
@@ -168,4 +204,5 @@ internal class JvmMkvCodec : VideoCodec {
       ext = "mkv",
       context = context,
     )
+  }
 }

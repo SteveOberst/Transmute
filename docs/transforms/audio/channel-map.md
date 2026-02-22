@@ -14,7 +14,7 @@ Remap audio channels by specifying which source channel feeds each output channe
 
 ```kotlin
 // Duplicate left channel to both outputs
-Transmute.audio(bytes) { channelMap(intArrayOf(0, 0)) }
+Transmute.audio { channelMap(intArrayOf(0, 0)) }.transmute(bytes).bytes
 ```
 
 ### Pipeline

@@ -1,12 +1,13 @@
-package dev.transmute.image.codecs.android
+﻿package dev.transmute.image.codecs.android
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import dev.transmute.core.ConversionContext
 import dev.transmute.core.ImageFormat
+import dev.transmute.core.TransmuteContext
 import dev.transmute.image.*
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
+import kotlin.math.roundToInt
 
 class AndroidBitmapImageDecoder : ImageDecoder {
   override val supportedFormats: Set<ImageFormat> = setOf(
@@ -56,13 +57,14 @@ class AndroidBitmapImageDecoder : ImageDecoder {
         brand == "mif1" || brand == "msf1" -> ImageFormat.HEIF
         brand == "hevc" || brand == "hevx" -> ImageFormat.HEIC
         brand == "avif" || brand == "avis" -> ImageFormat.AVIF
-        else -> ImageFormat.HEIF
+        brand == "heif" || brand == "heis" -> ImageFormat.HEIF
+        else -> null
       }
     }
     return null
   }
 
-  override suspend fun decode(source: ByteArray, context: ConversionContext): ImageIR {
+  override suspend fun decode(source: ByteArray, options: ImageDecodeOptions, context: TransmuteContext): ImageIR {
     val opts = BitmapFactory.Options().apply {
       inPreferredConfig = Bitmap.Config.ARGB_8888
     }
@@ -111,14 +113,30 @@ class AndroidBitmapImageEncoder : ImageEncoder {
     ImageFormat.WEBP,
   )
 
-  override suspend fun encode(ir: ImageIR, context: ConversionContext): ByteArray {
+  override suspend fun encode(
+    ir: ImageIR,
+    format: ImageFormat,
+    options: ImageEncodeOptions,
+    context: TransmuteContext,
+  ): ByteArray {
     val buffer = ir.buffer as? ByteArrayPixelBuffer
       ?: error("AndroidBitmapImageEncoder requires ByteArrayPixelBuffer")
     require(ir.pixelFormat == PixelFormat.RGBA_8888) { "Only RGBA_8888 is supported" }
 
-    val quality = ((context.scratchpad["image.quality"] as? Float) ?: 0.85f)
-      .coerceIn(0f, 1f)
-    val qInt = (quality * 100).toInt().coerceIn(0, 100)
+    require(format in supportedFormats) { "Unsupported format $format" }
+
+    val qInt = when (format) {
+      ImageFormat.JPEG -> {
+        val quality = (options as? JpegEncodeOptions)?.quality ?: 0.85f
+        (quality * 100f).roundToInt().coerceIn(0, 100)
+      }
+      // Android Bitmap WEBP encoder semantics vary by API level. Treat quality as best-effort.
+      ImageFormat.WEBP -> {
+        val quality = (options as? WebPEncodeOptions)?.quality ?: 0.85f
+        (quality * 100f).roundToInt().coerceIn(0, 100)
+      }
+      else -> 100
+    }
 
     val bgra = rgbaToBgra(buffer.data)
 
@@ -126,8 +144,7 @@ class AndroidBitmapImageEncoder : ImageEncoder {
     bitmap.copyPixelsFromBuffer(ByteBuffer.wrap(bgra))
 
     val out = ByteArrayOutputStream()
-    val outputFormat = context.scratchpad["image.output.format"] as? ImageFormat
-    val compressFormat = when (outputFormat) {
+    val compressFormat = when (format) {
       ImageFormat.PNG -> Bitmap.CompressFormat.PNG
       ImageFormat.WEBP -> {
         if (android.os.Build.VERSION.SDK_INT >= 30) {
@@ -159,3 +176,6 @@ class AndroidBitmapImageEncoder : ImageEncoder {
     return out
   }
 }
+
+
+

@@ -4,7 +4,7 @@ import dev.transmute.audio.AudioHint
 import dev.transmute.audio.AudioIR
 import dev.transmute.audio.AudioSamples
 import dev.transmute.audio.AudioTransform
-import dev.transmute.core.ConversionContext
+import dev.transmute.core.TransmuteContext
 import dev.transmute.core.pipeline.TransformId
 import kotlin.math.abs
 import kotlin.math.pow
@@ -41,7 +41,7 @@ class AudioCompressorTransform(
 
   override val id = TransformId("audio.compressor")
 
-  override suspend fun apply(ir: AudioIR, context: ConversionContext): AudioIR {
+  override suspend fun apply(ir: AudioIR, context: TransmuteContext): AudioIR {
     if (ratio <= 1f) {
       context.logger.debug("AudioCompressorTransform: ratio ≤ 1 - skipping")
       return ir

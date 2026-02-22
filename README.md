@@ -18,33 +18,191 @@ Kotlin Multiplatform media conversion, compression and transformation - image, a
 ## Quick Start
 
 ```kotlin
-// Scale and convert to JPEG
-val jpeg = Transmute.image(pngBytes) {
-    scale(maxWidth = 1920, maxHeight = 1080)
-    quality(0.85f)
-    outputFormat(ImageFormat.JPEG)
+import dev.transmute.Transmute
+import dev.transmute.core.VideoFormat
+import dev.transmute.core.UnknownFormat
+import dev.transmute.image.JpegEncodeOptions
+import dev.transmute.image.transform.kernel.ResampleFilter
+import dev.transmute.video.DefaultVideoEncodeOptions
+
+suspend fun quickStart(
+    pngBytes: ByteArray,
+    wavBytes: ByteArray,
+    mp4Bytes: ByteArray,
+) {
+    // Scale and convert to JPEG
+    val jpegBytes = Transmute.image {
+        scale(maxWidth = 1920, maxHeight = 1080)
+        encodeOptions(JpegEncodeOptions(quality = 0.85f))
+    }.transmute(pngBytes).bytes
+
+    // Resize to exact dimensions with Lanczos resampling
+    val resizedBytes = Transmute.image {
+        resize(800, 600, filter = ResampleFilter.LANCZOS3)
+    }.transmute(pngBytes).bytes
+
+    // Normalize and trim audio (preserves input format if encodable, otherwise falls back to WAV)
+    val audioBytes = Transmute.audio {
+        normalize(targetPeak = 0.9f)
+        trim(startMs = 1000, endMs = 5000)
+        fade(fadeInMs = 100, fadeOutMs = 200)
+    }.transmute(wavBytes).bytes
+
+    // Resize video and force output format via encode options
+    val videoBytes = Transmute.video {
+        resize(maxWidth = 1280, maxHeight = 720)
+        trim(startMs = 0, endMs = 30_000)
+        encodeOptions(DefaultVideoEncodeOptions(outputFormat = VideoFormat.MP4))
+    }.transmute(mp4Bytes).bytes
+
+    // Detect format from raw bytes
+    val format = Transmute.detectFormat(pngBytes)
+    if (format == UnknownFormat) error("Could not detect format")
+}
+```
+
+## Building Transmuters
+
+Transmuters are reusable objects you build once and apply to many inputs.
+
+```kotlin
+import dev.transmute.Transmute
+import dev.transmute.core.ImageFormatTag
+import dev.transmute.image.DefaultImageDecodeOptions
+import dev.transmute.image.JpegEncodeOptions
+
+// Reusable dynamic-output image transmuter (output defaults to "same as input" unless encodeOptions force it)
+val thumbnailer = Transmute.image {
+    decodeOptions(DefaultImageDecodeOptions()) // optionally restrict acceptedInputFormats
+    scale(maxWidth = 512, maxHeight = 512)
+    encodeOptions(JpegEncodeOptions(quality = 0.85f))
 }
 
-// Resize to exact dimensions with Lanczos resampling
-val resized = Transmute.image(sourceBytes) {
-    resize(800, 600, filter = ResampleFilter.LANCZOS3)
+suspend fun makeThumb(bytes: ByteArray): ByteArray =
+  thumbnailer.transmute(bytes).bytes
+```
+
+Fixed-output transmuters expose a type-level output tag (useful for type-safe post-encode handlers in custom encode pipelines):
+
+```kotlin
+import dev.transmute.Transmute
+import dev.transmute.core.ImageFormatTag
+import dev.transmute.image.PngEncodeOptions
+
+val pngOnly = Transmute.imageTo(ImageFormatTag.Png) {
+    encodeOptions(PngEncodeOptions(compressionLevel = 6))
 }
 
-// Normalize and trim audio
-val audio = Transmute.audio(wavBytes) {
-    normalize(targetPeak = 0.9f)
-    trim(startMs = 1000, endMs = 5000)
-    fade(fadeInMs = 100, fadeOutMs = 200)
-}
+suspend fun toPng(bytes: ByteArray): ByteArray =
+  pngOnly.transmute(bytes).bytes
+```
 
-// Resize video
-val video = Transmute.video(mp4Bytes) {
-    resize(maxWidth = 1280, maxHeight = 720)
-    trim(startMs = 0, endMs = 30_000)
-}
+Decode pipelines are generic over `IN`, so you can accept custom inputs by supplying your own decode stage:
 
-// Detect format from raw bytes
-val format = Transmute.detectFormat(bytes)
+```kotlin
+import dev.transmute.Transmute
+import dev.transmute.core.ImageFormat
+import dev.transmute.core.ImageFormatTag
+import dev.transmute.core.pipeline.Decoded
+import dev.transmute.image.ImageIR
+import dev.transmute.image.PngEncodeOptions
+
+val irToPng = Transmute.imageToFrom<ImageIR, ImageFormatTag.Png>(ImageFormatTag.Png) {
+    decode { then { ir, _ -> Decoded(ImageFormat.UNKNOWN, ir) } } // identity decode
+    encodeOptions(PngEncodeOptions())
+}
+```
+
+## Docs
+
+- `docs/pipelines.md`
+- `docs/format-detection.md`
+- `docs/codecs/`
+- `docs/transforms/`
+
+## Advanced Pipelines
+
+Transmute uses fluent, pipelines for decode and encode. You can replace either stage entirely.
+
+### Format-Specific Encode Options
+
+Some formats expose dedicated encode options types:
+
+```kotlin
+import dev.transmute.Transmute
+import dev.transmute.core.ImageFormat
+import dev.transmute.core.MetadataPolicy
+import dev.transmute.image.HeifEncodeOptions
+import dev.transmute.image.JpegEncodeOptions
+import dev.transmute.image.WebPEncodeOptions
+
+suspend fun encodeOptionsExamples(inputBytes: ByteArray) {
+    val jpeg = Transmute.image {
+        encodeOptions(JpegEncodeOptions(quality = 0.9f, metadataPolicy = MetadataPolicy.PRESERVE))
+    }.transmute(inputBytes).bytes
+
+    val webpLossless = Transmute.image {
+        encodeOptions(WebPEncodeOptions(lossless = true))
+    }.transmute(inputBytes).bytes
+
+    val avif = Transmute.image {
+        encodeOptions(HeifEncodeOptions(outputFormat = ImageFormat.AVIF, quality = 0.8f))
+    }.transmute(inputBytes).bytes
+}
+```
+
+### Dynamic Encode Pipeline (choose output format at runtime)
+
+This example chooses PNG when the image is not opaque, otherwise JPEG, unless the caller explicitly forces an output format via `encodeOptions`.
+
+```kotlin
+import dev.transmute.Transmute
+import dev.transmute.core.ImageFormat
+import dev.transmute.image.AlphaSemantics
+import dev.transmute.image.DefaultImageEncodeOptions
+import dev.transmute.image.ImageDynamicEncodeHandler
+import dev.transmute.image.ImageOutputFormatSelector
+
+val smartOutput = Transmute.image {
+    encodeOptions(DefaultImageEncodeOptions()) // dynamic by default (outputFormat = null)
+
+    encode {
+        then(
+          ImageDynamicEncodeHandler(
+            outputFormatSelector = ImageOutputFormatSelector { decoded, options ->
+              options.outputFormat
+                ?: if (decoded.ir.alphaSemantics != AlphaSemantics.OPAQUE) ImageFormat.PNG else ImageFormat.JPEG
+            },
+          ),
+        )
+    }
+}
+```
+
+### Custom Input Type + Custom Decode Pipeline
+
+Decode pipelines are `IN -> Decoded<Format, IR>`. Here we accept a custom input type and map it to raw bytes before using the default decode handler.
+
+```kotlin
+import dev.transmute.Transmute
+import dev.transmute.core.ImageFormat
+import dev.transmute.image.DefaultImageDecodeOptions
+import dev.transmute.image.ImageDecodeHandler
+
+data class NamedBytes(val name: String, val bytes: ByteArray)
+
+val fromNamedBytes = Transmute.imageFrom<NamedBytes> {
+    decodeOptions(
+      DefaultImageDecodeOptions(
+        acceptedInputFormats = setOf(ImageFormat.JPEG, ImageFormat.PNG, ImageFormat.WEBP),
+      ),
+    )
+
+    decode {
+        then { input, _ -> input.bytes }
+          .then(ImageDecodeHandler())
+    }
+}
 ```
 
 ## Logging
@@ -68,9 +226,11 @@ TransmuteLogging.configure(LogLevel.DEBUG)
 TransmuteLogging.configure(LogLevel.INFO, myConversionLogger)
 
 // Per-operation logger override
-val result = Transmute.image(bytes) {
-    logger(myLogger)
-    scale(maxWidth = 800, maxHeight = 600)
+suspend fun withCustomLogger(bytes: ByteArray) {
+    val out = Transmute.image {
+        logger(myLogger)
+        scale(maxWidth = 800, maxHeight = 600)
+    }.transmute(bytes)
 }
 ```
 
@@ -92,14 +252,14 @@ dependencyResolutionManagement {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation("com.github.SteveOberst.Transmute:transmute-api:0.1.1")
+            implementation("com.github.SteveOberst.Transmute:transmute-api:<version>")
         }
     }
 }
 
 // or Android/JVM only
 dependencies {
-    implementation("com.github.SteveOberst.Transmute:transmute-api:0.1.1")
+    implementation("com.github.SteveOberst.Transmute:transmute-api:<version>")
 }
 ```
 
@@ -220,24 +380,34 @@ The bundled binary is extracted to `~/.transmute/ffmpeg/` on first use. Supporte
 
 ```kotlin
 // Register a custom codec
-class MyCodec : ImageCodec {
-    override val decodableFormats = setOf(ImageFormat.WEBP)
-    override val encodableFormats = setOf(ImageFormat.WEBP)
-    override fun sniff(data: ByteArray): ImageFormat? { /* magic bytes */ }
-    override suspend fun decode(source: ByteArray, context: ConversionContext): ImageIR { /* ... */ }
-    override suspend fun encode(ir: ImageIR, context: ConversionContext): ByteArray { /* ... */ }
+class MyWebpDecoder : ImageDecoder {
+    override val supportedFormats = setOf(ImageFormat.WEBP)
+    override fun sniff(data: ByteArray): ImageFormat? = /* magic bytes */ null
+    override suspend fun decode(source: ByteArray, options: ImageDecodeOptions, context: TransmuteContext): ImageIR = TODO()
 }
-ImageRegistries.register(MyCodec())
+
+class MyWebpEncoder : ImageEncoder {
+    override val supportedFormats = setOf(ImageFormat.WEBP)
+    override suspend fun encode(
+        ir: ImageIR,
+        format: ImageFormat,
+        options: ImageEncodeOptions,
+        context: TransmuteContext,
+    ): ByteArray = TODO()
+}
+ImageRegistries.decoders.register(MyWebpDecoder())
+ImageRegistries.encoders.register(MyWebpEncoder())
 
 // Custom transform - no registration needed
 class WatermarkTransform(private val logo: ByteArray) : Transform<ImageIR> {
     override val id = TransformId("image.watermark")
-    override suspend fun apply(ir: ImageIR, ctx: ConversionContext): ImageIR { /* ... */ }
+    override suspend fun apply(ir: ImageIR, ctx: TransmuteContext): ImageIR { /* ... */ }
 }
 
-Transmute.image(photo) {
+suspend fun applyWatermark(photo: ByteArray): ByteArray =
+  Transmute.image {
     transform { add(WatermarkTransform(logoPng)) }
-}
+  }.transmute(photo).bytes
 ```
 
 ## Contributing
@@ -245,7 +415,7 @@ Transmute.image(photo) {
 See [CONTRIBUTING.md](CONTRIBUTING.md) for setup instructions, coding conventions,
 and how to add codecs or transforms.
 
-**Uses [Conventional Commits](**https://www.conventionalcommits.org/) and [release-please](https://github.com/googleapis/release-please) for automated versioning.
+**Uses [Conventional Commits](https://www.conventionalcommits.org/) and [release-please](https://github.com/googleapis/release-please) for automated versioning.**
 
 ## License
 

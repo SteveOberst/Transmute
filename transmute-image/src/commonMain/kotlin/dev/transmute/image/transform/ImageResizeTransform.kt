@@ -1,6 +1,6 @@
 package dev.transmute.image.transform
 
-import dev.transmute.core.ConversionContext
+import dev.transmute.core.TransmuteContext
 import dev.transmute.core.pipeline.TransformId
 import dev.transmute.image.ByteArrayPixelBuffer
 import dev.transmute.image.ImageHint
@@ -49,7 +49,7 @@ class ImageResizeTransform(
 
   private val kernel: ResampleKernel = ResampleFactory.kernelFor(filter)
 
-  override suspend fun apply(ir: ImageIR, context: ConversionContext): ImageIR {
+  override suspend fun apply(ir: ImageIR, context: TransmuteContext): ImageIR {
     val srcW = ir.width
     val srcH = ir.height
 

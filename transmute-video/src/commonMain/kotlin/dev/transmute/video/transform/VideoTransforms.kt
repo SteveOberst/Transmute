@@ -1,6 +1,6 @@
 package dev.transmute.video.transform
 
-import dev.transmute.core.ConversionContext
+import dev.transmute.core.TransmuteContext
 import dev.transmute.core.pipeline.TransformId
 import dev.transmute.image.ByteArrayPixelBuffer
 import dev.transmute.image.PixelBuffer
@@ -29,7 +29,7 @@ class VideoTrimTransform(
 
   override val id = TransformId("video.trim")
 
-  override suspend fun apply(ir: VideoIR, context: ConversionContext): VideoIR {
+  override suspend fun apply(ir: VideoIR, context: TransmuteContext): VideoIR {
 
     val actualEnd = endMs ?: ir.durationMs
     val newDuration = actualEnd - startMs
@@ -90,7 +90,7 @@ class VideoResizeTransform(
 
   override val id = TransformId("video.resize")
 
-  override suspend fun apply(ir: VideoIR, context: ConversionContext): VideoIR {
+  override suspend fun apply(ir: VideoIR, context: TransmuteContext): VideoIR {
 
     val track = ir.videoTrack
     val aspectRatio = track.width.toDouble() / track.height
@@ -185,7 +185,7 @@ class VideoFrameRateTransform(
 
   override val id = TransformId("video.framerate")
 
-  override suspend fun apply(ir: VideoIR, context: ConversionContext): VideoIR {
+  override suspend fun apply(ir: VideoIR, context: TransmuteContext): VideoIR {
 
     return ir.copy(
       videoTrack = ir.videoTrack.copy(
@@ -237,7 +237,7 @@ class VideoRemoveAudioTransform : VideoTransform {
 
   override val id = TransformId("video.removeAudio")
 
-  override suspend fun apply(ir: VideoIR, context: ConversionContext): VideoIR {
+  override suspend fun apply(ir: VideoIR, context: TransmuteContext): VideoIR {
     return ir.copy(audioTrack = null)
   }
 }

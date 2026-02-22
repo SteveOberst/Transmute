@@ -13,7 +13,7 @@ Change the frame rate of a video.
 ### DSL
 
 ```kotlin
-Transmute.video(bytes) { frameRate(targetFps = 30.0) }
+Transmute.video { frameRate(targetFps = 30.0) }.transmute(bytes).bytes
 ```
 
 ### Pipeline

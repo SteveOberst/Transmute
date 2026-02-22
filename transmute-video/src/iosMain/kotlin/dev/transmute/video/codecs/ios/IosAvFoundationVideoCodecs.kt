@@ -6,7 +6,7 @@
 package dev.transmute.video.codecs.ios
 
 import dev.transmute.audio.AudioSamples
-import dev.transmute.core.ConversionContext
+import dev.transmute.core.TransmuteContext
 import dev.transmute.core.VideoFormat
 import dev.transmute.image.ByteArrayPixelBuffer
 import dev.transmute.image.PixelFormat
@@ -27,6 +27,7 @@ import platform.posix.memcpy
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
+import dev.transmute.video.VideoDecodeOptions
 
 // ---------------------------------------------------------------------------
 // Shared decode helpers
@@ -361,7 +362,7 @@ internal class IosMp4Codec : VideoCodec {
     }
   }
 
-  override suspend fun decode(source: ByteArray, context: ConversionContext): VideoIR {
+  override suspend fun decode(source: ByteArray, options: VideoDecodeOptions, context: TransmuteContext): VideoIR {
     val fileUrl = writeTempFile(source, "mp4")
     try {
       val frames = decodeVideoFrames(fileUrl)
@@ -387,7 +388,7 @@ internal class IosMp4Codec : VideoCodec {
     }
   }
 
-  override suspend fun encode(ir: VideoIR, context: ConversionContext): ByteArray =
+  override suspend fun encode(ir: VideoIR, context: TransmuteContext): ByteArray =
     encodeWithAvFoundation(ir, AVFileTypeMPEG4!!, "mp4")
 }
 
@@ -407,7 +408,7 @@ internal class IosMovCodec : VideoCodec {
     return if (brand == "qt  ") VideoFormat.MOV else null
   }
 
-  override suspend fun decode(source: ByteArray, context: ConversionContext): VideoIR {
+  override suspend fun decode(source: ByteArray, options: VideoDecodeOptions, context: TransmuteContext): VideoIR {
     val fileUrl = writeTempFile(source, "mov")
     try {
       val frames = decodeVideoFrames(fileUrl)
@@ -433,6 +434,6 @@ internal class IosMovCodec : VideoCodec {
     }
   }
 
-  override suspend fun encode(ir: VideoIR, context: ConversionContext): ByteArray =
+  override suspend fun encode(ir: VideoIR, context: TransmuteContext): ByteArray =
     encodeWithAvFoundation(ir, AVFileTypeQuickTimeMovie!!, "mov")
 }

@@ -11,7 +11,7 @@ None - rotation is derived from the embedded EXIF orientation.
 ### DSL
 
 ```kotlin
-Transmute.image(bytes) { rotate() }
+Transmute.image { rotate() }.transmute(bytes).bytes
 ```
 
 ### Pipeline

@@ -1,37 +1,37 @@
 # BMP
 
-BMP (Bitmap Image File) is an uncompressed raster image format. Transmute includes a **pure-Kotlin BMP encoder** that works identically across all platforms.
+BMP (Bitmap) is a simple, mostly uncompressed image format. It is large but easy to decode and encode, making it useful for debugging and interoperability with legacy systems.
 
 ## Platform Support
 
 | Platform | Decode | Encode | Engine |
 |----------|--------|--------|--------|
-| Android  | ✅     | ✅     | BitmapFactory (decode) / Pure-Kotlin (encode) |
-| Desktop  | ✅     | ✅     | ImageIO (decode) / Pure-Kotlin (encode) |
-| iOS      | ✅     | ✅     | CoreGraphics (decode) / Pure-Kotlin (encode) |
+| Android  | ✅     | ✅     | Pure Kotlin |
+| Desktop  | ✅     | ✅     | Pure Kotlin |
+| iOS      | ✅     | ✅     | Pure Kotlin |
 
 ## Usage
 
 ```kotlin
-// Convert any image to BMP
-val bmpBytes = Transmute.image(inputBytes) {
-    outputFormat(ImageFormat.BMP)
-}
+import dev.transmute.Transmute
+import dev.transmute.core.ImageFormat
+import dev.transmute.image.DefaultImageEncodeOptions
+import dev.transmute.image.JpegEncodeOptions
 
-// Decode BMP to another format
-val jpegBytes = Transmute.image(bmpBytes) {
-    outputFormat(ImageFormat.JPEG)
-    quality(0.90f)
-}
+// Convert any image to BMP
+suspend fun convertToBmp(inputBytes: ByteArray): ByteArray =
+  Transmute.image {
+    encodeOptions(DefaultImageEncodeOptions(outputFormat = ImageFormat.BMP))
+  }.transmute(inputBytes).bytes
+
+// Decode BMP (re-encode to JPEG)
+suspend fun decodeToJpeg(bmpBytes: ByteArray): ByteArray =
+  Transmute.image {
+    encodeOptions(JpegEncodeOptions(quality = 0.85f))
+  }.transmute(bmpBytes).bytes
 ```
 
 ## Notes
 
-- The BMP **encoder** is pure Kotlin - consistent behavior across all platforms.³
-- Decoding uses each platform's native image decoder.
-- BMP files are uncompressed and can be very large.
-- `quality()` has no effect - BMP is always uncompressed.
-- Does not support transparency in encoded output.
-- Useful as an intermediate format when pixel-perfect fidelity is needed.
-
-> ³ See project README for details on the pure-Kotlin BMP encoder.
+- Very large files due to minimal compression.
+- Includes a pure Kotlin codec that works on all platforms.

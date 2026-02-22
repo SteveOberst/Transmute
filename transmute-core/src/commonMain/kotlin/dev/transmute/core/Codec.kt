@@ -6,8 +6,9 @@ package dev.transmute.core
  *
  * @param F The [MediaFormat] enum this decoder operates on.
  * @param IR The intermediate representation produced by decoding.
+ * @param D The [DecodeOptions] type accepted by this decoder.
  */
-interface Decoder<F : MediaFormat, IR> {
+interface Decoder<out F : MediaFormat, out IR, in D : DecodeOptions> {
 
   /** Formats this decoder can handle. */
   val decodableFormats: Set<F>
@@ -20,8 +21,14 @@ interface Decoder<F : MediaFormat, IR> {
    */
   fun sniff(data: ByteArray): F?
 
-  /** Decode raw bytes into the module's intermediate representation. */
-  suspend fun decode(source: ByteArray, context: ConversionContext): IR
+  /**
+   * Decode raw bytes into the module's intermediate representation.
+   *
+   * The [options] parameter carries format-specific decode hints
+   * (e.g. JPEG downscale factor). Pass the domain's default options
+   * when no special configuration is needed.
+   */
+  suspend fun decode(source: ByteArray, options: D, context: TransmuteContext): IR
 }
 
 /**
@@ -29,14 +36,20 @@ interface Decoder<F : MediaFormat, IR> {
  *
  * @param F The [MediaFormat] enum this encoder operates on.
  * @param IR The intermediate representation consumed by encoding.
+ * @param O The [EncodeOptions] type accepted by this encoder.
  */
-interface Encoder<F : MediaFormat, IR> {
+interface Encoder<F : MediaFormat, in IR, in O : EncodeOptions> {
 
   /** Formats this encoder can produce. */
   val encodableFormats: Set<F>
 
-  /** Encode the intermediate representation back to raw format bytes. */
-  suspend fun encode(ir: IR, context: ConversionContext): ByteArray
+  /**
+   * Encode the intermediate representation back to raw format bytes.
+   *
+   * The selected [format] and [options] are explicit to avoid relying on
+   * mutable out-of-band state in [TransmuteContext].
+   */
+  suspend fun encode(ir: IR, format: F, options: O, context: TransmuteContext): ByteArray
 }
 
 /**
@@ -48,28 +61,7 @@ interface Encoder<F : MediaFormat, IR> {
  *
  * @param F The [MediaFormat] enum this codec operates on (e.g. [ImageFormat]).
  * @param IR The intermediate representation produced by decoding (e.g. `ImageIR`).
+ * @param D The [DecodeOptions] type accepted by this codec's decoder side.
+ * @param O The [EncodeOptions] type accepted by this codec's encoder side.
  */
-interface Codec<F : MediaFormat, IR> : Decoder<F, IR>, Encoder<F, IR>
-
-/**
- * A codec that only decodes (no encode capability).
- *
- * Provides a default [encodableFormats] of empty and a throwing [encode].
- */
-interface DecoderCodec<F : MediaFormat, IR> : Codec<F, IR> {
-  override val encodableFormats: Set<F> get() = emptySet()
-  override suspend fun encode(ir: IR, context: ConversionContext): ByteArray =
-    error("${this::class.simpleName} is decode-only")
-}
-
-/**
- * A codec that only encodes (no decode capability).
- *
- * Provides a default [decodableFormats] of empty and a throwing [decode].
- */
-interface EncoderCodec<F : MediaFormat, IR> : Codec<F, IR> {
-  override val decodableFormats: Set<F> get() = emptySet()
-  override fun sniff(data: ByteArray): F? = null
-  override suspend fun decode(source: ByteArray, context: ConversionContext): IR =
-    error("${this::class.simpleName} is encode-only")
-}
+interface Codec<F : MediaFormat, IR, in D : DecodeOptions, in O : EncodeOptions> : Decoder<F, IR, D>, Encoder<F, IR, O>

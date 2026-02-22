@@ -1,34 +1,38 @@
-# HEIF / HEIC
+# HEIF/HEIC
 
-HEIF (High Efficiency Image File Format) and its HEIC variant use HEVC (H.265) compression to achieve significantly smaller file sizes than JPEG at equivalent quality. It is the default photo format on modern Apple devices.
+HEIF/HEIC are modern image formats used heavily in Apple ecosystems. They offer excellent compression efficiency while maintaining high visual quality.
 
 ## Platform Support
 
 | Platform | Decode | Encode | Engine |
 |----------|--------|--------|--------|
-| Android  | ✅     | ❌     | BitmapFactory (API 28+ decode) |
-| Desktop  | ✅     | ✅     | FFmpeg (requires libx265) |
-| iOS      | ✅     | ✅     | CoreGraphics / AVFoundation |
+| Android  | ✅     | ❌     | BitmapFactory (decode only) |
+| Desktop  | ✅     | ✅     | FFmpeg (bundled) |
+| iOS      | ✅     | ✅     | CoreGraphics (CGImage) |
 
 ## Usage
 
 ```kotlin
-// Convert to HEIF (Desktop/iOS only for encode)
-val heifBytes = Transmute.image(inputBytes) {
-    outputFormat(ImageFormat.HEIF)
-    quality(0.85f)
-}
+import dev.transmute.Transmute
+import dev.transmute.core.ImageFormat
+import dev.transmute.image.HeifEncodeOptions
+import dev.transmute.image.JpegEncodeOptions
 
-// Decode HEIF to another format (all platforms)
-val jpegBytes = Transmute.image(heifBytes) {
-    outputFormat(ImageFormat.JPEG)
-}
+// Convert any image to HEIF (Desktop/iOS)
+suspend fun convertToHeif(inputBytes: ByteArray): ByteArray =
+  Transmute.image {
+    encodeOptions(HeifEncodeOptions(outputFormat = ImageFormat.HEIF, quality = 0.8f))
+  }.transmute(inputBytes).bytes
+
+// Decode HEIF (re-encode to JPEG)
+suspend fun decodeToJpeg(heifBytes: ByteArray): ByteArray =
+  Transmute.image {
+    encodeOptions(JpegEncodeOptions(quality = 0.85f))
+  }.transmute(heifBytes).bytes
 ```
 
 ## Notes
 
-- Android can **decode** HEIF (API 28+) but cannot encode to it.
-- Desktop encoding requires the bundled FFmpeg to be built with `libx265`.
-- iOS has full native support since iOS 11.
-- HEIF supports alpha, depth maps, and multi-image sequences, though Transmute exposes single-image conversion only.
-- May involve HEVC/H.265 patent licensing considerations for distribution.
+- Android can decode HEIF/HEIC on modern devices but encode support is limited.
+- Desktop encoding relies on the bundled FFmpeg build.
+- iOS offers strong native HEIF/HEIC support.

@@ -1,6 +1,6 @@
 package dev.transmute.image.codecs.bmp
 
-import dev.transmute.core.ConversionContext
+import dev.transmute.core.TransmuteContext
 import dev.transmute.core.ImageFormat
 import dev.transmute.image.*
 
@@ -25,7 +25,7 @@ class BmpImageDecoder : ImageDecoder {
     return null
   }
 
-  override suspend fun decode(source: ByteArray, context: ConversionContext): ImageIR {
+  override suspend fun decode(source: ByteArray, options: ImageDecodeOptions, context: TransmuteContext): ImageIR {
     require(source.size >= 54) { "BMP too small" }
     require(source[0] == 'B'.code.toByte() && source[1] == 'M'.code.toByte()) { "Not a BMP" }
 
@@ -106,10 +106,17 @@ class BmpImageDecoder : ImageDecoder {
 class BmpImageEncoder : ImageEncoder {
   override val supportedFormats: Set<ImageFormat> = setOf(ImageFormat.BMP)
 
-  override suspend fun encode(ir: ImageIR, context: ConversionContext): ByteArray {
+  override suspend fun encode(
+    ir: ImageIR,
+    format: ImageFormat,
+    options: ImageEncodeOptions,
+    context: TransmuteContext,
+  ): ByteArray {
     val buffer = ir.buffer as? ByteArrayPixelBuffer
       ?: error("BmpImageEncoder requires ByteArrayPixelBuffer")
     require(ir.pixelFormat == PixelFormat.RGBA_8888) { "Only RGBA_8888 is supported" }
+
+    require(format == ImageFormat.BMP) { "BmpImageEncoder only supports BMP, got $format" }
 
     // Encode as 24-bit BI_RGB for maximal compatibility.
     val bytesPerPixel = 3

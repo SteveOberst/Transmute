@@ -4,10 +4,12 @@ import com.jcraft.jorbis.VorbisFile
 import com.jcraft.jorbis.VorbisFileAccess
 import de.sciss.jump3r.lowlevel.LameEncoder
 import dev.transmute.audio.AudioCodec
+import dev.transmute.audio.AudioDecodeOptions
+import dev.transmute.audio.AudioEncodeOptions
 import dev.transmute.audio.AudioIR
 import dev.transmute.audio.AudioSamples
 import dev.transmute.core.AudioFormat
-import dev.transmute.core.ConversionContext
+import dev.transmute.core.TransmuteContext
 import javazoom.jl.decoder.Bitstream
 import javazoom.jl.decoder.Decoder
 import javazoom.jl.decoder.SampleBuffer
@@ -47,7 +49,7 @@ class JvmMp3Codec : AudioCodec {
     return null
   }
 
-  override suspend fun decode(source: ByteArray, context: ConversionContext): AudioIR {
+  override suspend fun decode(source: ByteArray, options: AudioDecodeOptions, context: TransmuteContext): AudioIR {
     val bitstream = Bitstream(ByteArrayInputStream(source))
     val decoder = Decoder()
 
@@ -93,7 +95,13 @@ class JvmMp3Codec : AudioCodec {
     )
   }
 
-  override suspend fun encode(ir: AudioIR, context: ConversionContext): ByteArray {
+  override suspend fun encode(
+    ir: AudioIR,
+    format: AudioFormat,
+    options: AudioEncodeOptions,
+    context: TransmuteContext,
+  ): ByteArray {
+    require(format == AudioFormat.MP3) { "JvmMp3Codec only supports MP3, got $format" }
     val pcmBytes = floatToPcm16(ir.samples.data)
 
     val sourceFormat = JvmAudioFormat(
@@ -157,7 +165,7 @@ class JvmFlacCodec : AudioCodec {
     return null
   }
 
-  override suspend fun decode(source: ByteArray, context: ConversionContext): AudioIR {
+  override suspend fun decode(source: ByteArray, options: AudioDecodeOptions, context: TransmuteContext): AudioIR {
     val decoder = FLACDecoder(ByteArrayInputStream(source))
 
     var sampleRate = 0
@@ -211,7 +219,13 @@ class JvmFlacCodec : AudioCodec {
     )
   }
 
-  override suspend fun encode(ir: AudioIR, context: ConversionContext): ByteArray {
+  override suspend fun encode(
+    ir: AudioIR,
+    format: AudioFormat,
+    options: AudioEncodeOptions,
+    context: TransmuteContext,
+  ): ByteArray {
+    require(format == AudioFormat.FLAC) { "JvmFlacCodec only supports FLAC, got $format" }
     check(FfmpegAudioEngine.available) { "FLAC encoding requires FFmpeg on PATH" }
     return FfmpegAudioEngine.encode(
       ir, "flac", "flac", "flac",
@@ -265,7 +279,7 @@ class JvmOggVorbisCodec : AudioCodec {
     return AudioFormat.OGG
   }
 
-  override suspend fun decode(source: ByteArray, context: ConversionContext): AudioIR {
+  override suspend fun decode(source: ByteArray, options: AudioDecodeOptions, context: TransmuteContext): AudioIR {
     val vorbis = VorbisFile(ByteArrayInputStream(source), ByteArray(0), 0)
 
     val info = vorbis.getInfo(0)
@@ -318,7 +332,13 @@ class JvmOggVorbisCodec : AudioCodec {
     )
   }
 
-  override suspend fun encode(ir: AudioIR, context: ConversionContext): ByteArray {
+  override suspend fun encode(
+    ir: AudioIR,
+    format: AudioFormat,
+    options: AudioEncodeOptions,
+    context: TransmuteContext,
+  ): ByteArray {
+    require(format == AudioFormat.OGG) { "JvmOggVorbisCodec only supports OGG, got $format" }
     check(FfmpegAudioEngine.available) { "OGG/Vorbis encoding requires FFmpeg on PATH" }
     return FfmpegAudioEngine.encode(
       ir, "libvorbis", "ogg", "ogg", "128k",

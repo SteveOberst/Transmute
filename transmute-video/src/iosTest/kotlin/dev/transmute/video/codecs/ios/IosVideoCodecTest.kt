@@ -5,6 +5,7 @@ import dev.transmute.video.VideoTestHelpers
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertTrue
+import dev.transmute.video.DefaultVideoDecodeOptions
 
 /**
  * iOS integration tests for the AVFoundation-based video codecs.
@@ -42,7 +43,7 @@ class IosVideoCodecTest {
     assertTrue(encoded.isNotEmpty(), "MP4 encoded bytes should not be empty")
 
     val decoded = try {
-      codec.decode(encoded, ctx)
+      codec.decode(encoded, DefaultVideoDecodeOptions(), ctx)
     } catch (e: Throwable) {
       println("SKIP: MP4 decoding not available on this simulator: ${e::class.simpleName}: ${e.message}")
       return@runTest
@@ -67,7 +68,7 @@ class IosVideoCodecTest {
       return@runTest
     }
     val decoded = try {
-      codec.decode(encoded, ctx)
+      codec.decode(encoded, DefaultVideoDecodeOptions(), ctx)
     } catch (e: Throwable) {
       println("SKIP: MP4 decoding not available on this simulator: ${e::class.simpleName}: ${e.message}")
       return@runTest
@@ -103,7 +104,7 @@ class IosVideoCodecTest {
     assertTrue(encoded.isNotEmpty(), "MOV encoded bytes should not be empty")
 
     val decoded = try {
-      codec.decode(encoded, ctx)
+      codec.decode(encoded, DefaultVideoDecodeOptions(), ctx)
     } catch (e: Throwable) {
       println("SKIP: MOV decoding not available on this simulator: ${e::class.simpleName}: ${e.message}")
       return@runTest

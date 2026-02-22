@@ -1,4 +1,4 @@
-package dev.transmute.audio.codecs.android
+﻿package dev.transmute.audio.codecs.android
 
 import android.media.MediaCodec
 import android.media.MediaCodecInfo
@@ -23,10 +23,12 @@ import de.sciss.jump3r.mpg.Interface
 import de.sciss.jump3r.mpg.MPGLib
 import dev.transmute.audio.AudioCodec
 import dev.transmute.audio.AudioDecoder
+import dev.transmute.audio.AudioDecodeOptions
+import dev.transmute.audio.AudioEncodeOptions
 import dev.transmute.audio.AudioIR
 import dev.transmute.audio.AudioSamples
 import dev.transmute.core.AudioFormat
-import dev.transmute.core.ConversionContext
+import dev.transmute.core.TransmuteContext
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -52,7 +54,7 @@ private class ByteArrayMediaDataSource(private val bytes: ByteArray) : MediaData
  * Decodes any audio format supported by Android's [MediaCodec] pipeline
  * into an [AudioIR] of interleaved float samples.
  */
-private suspend fun decodeWithMediaCodec(source: ByteArray, context: ConversionContext): AudioIR {
+private suspend fun decodeWithMediaCodec(source: ByteArray, context: TransmuteContext): AudioIR {
   val extractor = MediaExtractor()
   val dataSource = ByteArrayMediaDataSource(source)
 
@@ -241,7 +243,7 @@ internal abstract class AndroidMediaCodecAudioDecoder(
 
   override val supportedFormats: Set<AudioFormat> = setOf(format)
 
-  override suspend fun decode(source: ByteArray, context: ConversionContext): AudioIR =
+  override suspend fun decode(source: ByteArray, options: AudioDecodeOptions, context: TransmuteContext): AudioIR =
     decodeWithMediaCodec(source, context)
 }
 
@@ -275,10 +277,16 @@ internal class AndroidMp3Codec : AudioCodec {
     return null
   }
 
-  override suspend fun decode(source: ByteArray, context: ConversionContext): AudioIR =
+  override suspend fun decode(source: ByteArray, options: AudioDecodeOptions, context: TransmuteContext): AudioIR =
     decodeWithMediaCodec(source, context)
 
-  override suspend fun encode(ir: AudioIR, context: ConversionContext): ByteArray {
+  override suspend fun encode(
+    ir: AudioIR,
+    format: AudioFormat,
+    options: AudioEncodeOptions,
+    context: TransmuteContext,
+  ): ByteArray {
+    require(format == AudioFormat.MP3) { "Unsupported format $format" }
     val samples = ir.samples.data
     val channels = ir.channelCount
     val sampleRate = ir.sampleRate
@@ -401,20 +409,26 @@ internal class AndroidFlacCodec : AudioCodec {
     return null
   }
 
-  override suspend fun decode(source: ByteArray, context: ConversionContext): AudioIR =
+  override suspend fun decode(source: ByteArray, options: AudioDecodeOptions, context: TransmuteContext): AudioIR =
     decodeWithMediaCodec(source, context)
 
-  override suspend fun encode(ir: AudioIR, context: ConversionContext): ByteArray {
+  override suspend fun encode(
+    ir: AudioIR,
+    format: AudioFormat,
+    options: AudioEncodeOptions,
+    context: TransmuteContext,
+  ): ByteArray {
+    require(format == AudioFormat.FLAC) { "Unsupported format $format" }
     val pcmBytes = floatToPcm16(ir.samples.data)
 
     val mime = "audio/flac"
-    val format = MediaFormat.createAudioFormat(mime, ir.sampleRate, ir.channelCount).apply {
+    val mediaFormat = MediaFormat.createAudioFormat(mime, ir.sampleRate, ir.channelCount).apply {
       setInteger(MediaFormat.KEY_FLAC_COMPRESSION_LEVEL, 5)
     }
 
     val codec = MediaCodec.createEncoderByType(mime)
     try {
-      codec.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
+      codec.configure(mediaFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
       codec.start()
 
       val bufferInfo = MediaCodec.BufferInfo()
@@ -504,10 +518,16 @@ internal class AndroidOpusCodec : AudioCodec {
     return null
   }
 
-  override suspend fun decode(source: ByteArray, context: ConversionContext): AudioIR =
+  override suspend fun decode(source: ByteArray, options: AudioDecodeOptions, context: TransmuteContext): AudioIR =
     decodeWithMediaCodec(source, context)
 
-  override suspend fun encode(ir: AudioIR, context: ConversionContext): ByteArray {
+  override suspend fun encode(
+    ir: AudioIR,
+    format: AudioFormat,
+    options: AudioEncodeOptions,
+    context: TransmuteContext,
+  ): ByteArray {
+    require(format == AudioFormat.OPUS) { "Unsupported format $format" }
     require(canEncode) {
       "OPUS encoding requires Android API 29+ (current: ${Build.VERSION.SDK_INT})"
     }
@@ -515,7 +535,7 @@ internal class AndroidOpusCodec : AudioCodec {
     val pcmBytes = floatToPcm16(ir.samples.data)
 
     val mime = "audio/opus"
-    val format = MediaFormat.createAudioFormat(mime, ir.sampleRate, ir.channelCount).apply {
+    val mediaFormat = MediaFormat.createAudioFormat(mime, ir.sampleRate, ir.channelCount).apply {
       setInteger(MediaFormat.KEY_BIT_RATE, 128_000)
     }
 
@@ -525,7 +545,7 @@ internal class AndroidOpusCodec : AudioCodec {
       val codec = MediaCodec.createEncoderByType(mime)
 
       try {
-        codec.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
+        codec.configure(mediaFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
         codec.start()
 
         val bufferInfo = MediaCodec.BufferInfo()
@@ -628,21 +648,27 @@ internal class AndroidAacCodec : AudioCodec {
     return null
   }
 
-  override suspend fun decode(source: ByteArray, context: ConversionContext): AudioIR =
+  override suspend fun decode(source: ByteArray, options: AudioDecodeOptions, context: TransmuteContext): AudioIR =
     decodeWithMediaCodec(source, context)
 
-  override suspend fun encode(ir: AudioIR, context: ConversionContext): ByteArray {
+  override suspend fun encode(
+    ir: AudioIR,
+    format: AudioFormat,
+    options: AudioEncodeOptions,
+    context: TransmuteContext,
+  ): ByteArray {
+    require(format == AudioFormat.AAC) { "Unsupported format $format" }
     val pcmBytes = floatToPcm16(ir.samples.data)
 
     val mime = "audio/mp4a-latm"
-    val format = MediaFormat.createAudioFormat(mime, ir.sampleRate, ir.channelCount).apply {
+    val mediaFormat = MediaFormat.createAudioFormat(mime, ir.sampleRate, ir.channelCount).apply {
       setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC)
       setInteger(MediaFormat.KEY_BIT_RATE, 128_000)
     }
 
     val codec = MediaCodec.createEncoderByType(mime)
     try {
-      codec.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
+      codec.configure(mediaFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
       codec.start()
 
       val bufferInfo = MediaCodec.BufferInfo()
@@ -706,7 +732,7 @@ internal class AndroidAacCodec : AudioCodec {
  * M4A codec using Android's [MediaCodec] and [MediaMuxer].
  *
  * Decodes M4A (AAC in MP4 container) via [MediaExtractor] / [MediaCodec].
- * Encodes to M4A via [MediaCodec] AAC-LC → [MediaMuxer] MP4 container.
+ * Encodes to M4A via [MediaCodec] AAC-LC -> [MediaMuxer] MP4 container.
  */
 internal class AndroidM4aCodec : AudioCodec {
 
@@ -714,21 +740,36 @@ internal class AndroidM4aCodec : AudioCodec {
   override val encodableFormats: Set<AudioFormat> = setOf(AudioFormat.M4A)
 
   override fun sniff(data: ByteArray): AudioFormat? {
-    if (data.size < 8) return null
-    // ftyp box: bytes 4–7 == "ftyp"
+    if (data.size < 12) return null
+    // ftyp box: bytes 4-7 == "ftyp"
     val ftyp = String(data, 4, 4, Charsets.US_ASCII)
-    if (ftyp == "ftyp") return AudioFormat.M4A
-    return null
+    if (ftyp != "ftyp") return null
+
+    val brand = String(data, 8, 4, Charsets.US_ASCII)
+    if (brand == "M4A " || brand == "M4B " || brand == "M4P " || brand == "M4V ") return AudioFormat.M4A
+
+    // Avoid misclassifying MP4 video as M4A if we see a video marker early.
+    val window = String(data, 0, minOf(data.size, 256 * 1024), Charsets.ISO_8859_1)
+    val hasVideo = window.contains("vide") || window.contains("avc1") || window.contains("hvc1")
+    if (hasVideo) return null
+
+    return AudioFormat.M4A
   }
 
-  override suspend fun decode(source: ByteArray, context: ConversionContext): AudioIR =
+  override suspend fun decode(source: ByteArray, options: AudioDecodeOptions, context: TransmuteContext): AudioIR =
     decodeWithMediaCodec(source, context)
 
-  override suspend fun encode(ir: AudioIR, context: ConversionContext): ByteArray {
+  override suspend fun encode(
+    ir: AudioIR,
+    format: AudioFormat,
+    options: AudioEncodeOptions,
+    context: TransmuteContext,
+  ): ByteArray {
+    require(format == AudioFormat.M4A) { "Unsupported format $format" }
     val pcmBytes = floatToPcm16(ir.samples.data)
 
     val mime = "audio/mp4a-latm"
-    val format = MediaFormat.createAudioFormat(mime, ir.sampleRate, ir.channelCount).apply {
+    val mediaFormat = MediaFormat.createAudioFormat(mime, ir.sampleRate, ir.channelCount).apply {
       setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC)
       setInteger(MediaFormat.KEY_BIT_RATE, 128_000)
     }
@@ -739,7 +780,7 @@ internal class AndroidM4aCodec : AudioCodec {
       val codec = MediaCodec.createEncoderByType(mime)
 
       try {
-        codec.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
+        codec.configure(mediaFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
         codec.start()
 
         val bufferInfo = MediaCodec.BufferInfo()
@@ -870,3 +911,4 @@ private class ByteArrayOutputStream(initialCapacity: Int = 4096) {
 
   fun toByteArray(): ByteArray = data.copyOf(size)
 }
+

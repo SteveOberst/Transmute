@@ -2,7 +2,10 @@ package dev.transmute.video
 
 import kotlin.concurrent.Volatile
 import dev.transmute.core.Codec
+import dev.transmute.core.Decoder
+import dev.transmute.core.Encoder
 import dev.transmute.core.VideoFormat
+import dev.transmute.core.TransmuteContext
 
 /**
  * Mutable registry for [VideoDecoder] instances.
@@ -18,13 +21,24 @@ class MutableVideoDecoderRegistry : VideoDecoderRegistry {
     }
   }
 
+  /** Register a core [Decoder] as a [VideoDecoder]. */
+  fun register(decoder: Decoder<VideoFormat, VideoIR, VideoDecodeOptions>) {
+    val wrapper = object : VideoDecoder {
+      override val supportedFormats = decoder.decodableFormats
+      override fun sniff(data: ByteArray) = decoder.sniff(data)
+      override suspend fun decode(source: ByteArray, options: VideoDecodeOptions, context: TransmuteContext) =
+        decoder.decode(source, options, context)
+    }
+    register(wrapper)
+  }
+
   /** Register a unified [Codec] as a decoder. */
-  fun register(codec: Codec<VideoFormat, VideoIR>) {
+  fun register(codec: Codec<VideoFormat, VideoIR, VideoDecodeOptions, VideoEncodeOptions>) {
     val wrapper = object : VideoDecoder {
       override val supportedFormats = codec.decodableFormats
       override fun sniff(data: ByteArray) = codec.sniff(data)
-      override suspend fun decode(source: ByteArray, context: dev.transmute.core.ConversionContext) =
-        codec.decode(source, context)
+      override suspend fun decode(source: ByteArray, options: VideoDecodeOptions, context: TransmuteContext) =
+        codec.decode(source, options, context)
     }
     decoderList.add(wrapper)
     for (format in codec.decodableFormats) {
@@ -51,17 +65,35 @@ class MutableVideoEncoderRegistry : VideoEncoderRegistry {
     }
   }
 
+  /** Register a core [Encoder] as a [VideoEncoder]. */
+  fun register(encoder: Encoder<VideoFormat, VideoIR, VideoEncodeOptions>) {
+    val wrapper = object : VideoEncoder {
+      override val supportedFormats = encoder.encodableFormats
+      override suspend fun encode(
+        ir: VideoIR,
+        format: VideoFormat,
+        options: VideoEncodeOptions,
+        context: TransmuteContext,
+      ) = encoder.encode(ir, format, options, context)
+    }
+    register(wrapper)
+  }
+
   fun register(format: VideoFormat, encoder: VideoEncoder) {
     encoders[format] = encoder
   }
 
   /** Register a unified [Codec] as an encoder. */
-  fun register(codec: Codec<VideoFormat, VideoIR>) {
+  fun register(codec: Codec<VideoFormat, VideoIR, VideoDecodeOptions, VideoEncodeOptions>) {
     for (format in codec.encodableFormats) {
       encoders[format] = object : VideoEncoder {
         override val supportedFormats = codec.encodableFormats
-        override suspend fun encode(ir: VideoIR, context: dev.transmute.core.ConversionContext) =
-          codec.encode(ir, context)
+        override suspend fun encode(
+          ir: VideoIR,
+          format: VideoFormat,
+          options: VideoEncodeOptions,
+          context: TransmuteContext,
+        ) = codec.encode(ir, format, options, context)
       }
     }
   }
@@ -80,8 +112,24 @@ object VideoRegistries {
   val decoders = MutableVideoDecoderRegistry()
   val encoders = MutableVideoEncoderRegistry()
 
+  fun register(decoder: VideoDecoder) {
+    decoders.register(decoder)
+  }
+
+  fun register(encoder: VideoEncoder) {
+    encoders.register(encoder)
+  }
+
+  fun register(decoder: Decoder<VideoFormat, VideoIR, VideoDecodeOptions>) {
+    decoders.register(decoder)
+  }
+
+  fun register(encoder: Encoder<VideoFormat, VideoIR, VideoEncodeOptions>) {
+    encoders.register(encoder)
+  }
+
   /** Register a unified codec for both decode, encode, and sniffing. */
-  fun register(codec: Codec<VideoFormat, VideoIR>) {
+  fun register(codec: Codec<VideoFormat, VideoIR, VideoDecodeOptions, VideoEncodeOptions>) {
     decoders.register(codec)
     encoders.register(codec)
   }
@@ -95,7 +143,11 @@ object VideoRegistries {
   /** Installs platform defaults if the registries look empty. */
   fun installDefaultsIfEmpty() {
     if (defaultsInstalled) return
-    installDefaults()
+    synchronized(this) {
+      if (defaultsInstalled) return
+      installDefaults()
+      defaultsInstalled = true
+    }
   }
 }
 

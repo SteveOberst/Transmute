@@ -16,7 +16,7 @@ Crop video frames to a rectangular sub-region.
 ### DSL
 
 ```kotlin
-Transmute.video(bytes) { crop(x = 0, y = 0, width = 640, height = 480) }
+Transmute.video { crop(x = 0, y = 0, width = 640, height = 480) }.transmute(bytes).bytes
 ```
 
 ### Pipeline

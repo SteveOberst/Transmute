@@ -14,7 +14,7 @@ Apply fade-in and/or fade-out amplitude envelopes.
 ### DSL
 
 ```kotlin
-Transmute.audio(bytes) { fade(fadeInMs = 100, fadeOutMs = 200) }
+Transmute.audio { fade(fadeInMs = 100, fadeOutMs = 200) }.transmute(bytes).bytes
 ```
 
 ### Pipeline

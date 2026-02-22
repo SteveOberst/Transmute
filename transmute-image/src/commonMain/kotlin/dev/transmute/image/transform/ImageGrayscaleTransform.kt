@@ -1,6 +1,6 @@
 package dev.transmute.image.transform
 
-import dev.transmute.core.ConversionContext
+import dev.transmute.core.TransmuteContext
 import dev.transmute.image.AlphaSemantics
 import dev.transmute.image.ByteArrayPixelBuffer
 import dev.transmute.image.ImageIR
@@ -25,7 +25,7 @@ class ImageGrayscaleTransform : ImageTransform {
 
   override val id: TransformId = TransformId("image.grayscale")
 
-  override suspend fun apply(ir: ImageIR, context: ConversionContext): ImageIR {
+  override suspend fun apply(ir: ImageIR, context: TransmuteContext): ImageIR {
     val srcBuffer = ir.buffer as? ByteArrayPixelBuffer
       ?: error("ImageGrayscaleTransform requires ByteArrayPixelBuffer, got ${ir.buffer::class.simpleName}")
 

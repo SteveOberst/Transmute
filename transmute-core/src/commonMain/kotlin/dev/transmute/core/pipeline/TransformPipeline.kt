@@ -1,7 +1,7 @@
 package dev.transmute.core.pipeline
 
 /**
- * Ordered, mutable pipeline of [Transform] steps with Netty-style
+ * Ordered, mutable pipeline of [Transform] steps with
  * positional insertion helpers.
  *
  * Transforms execute in list order during conversion.  The pipeline
@@ -10,12 +10,12 @@ package dev.transmute.core.pipeline
  * gives full positional control:
  *
  * ```kotlin
- * Transmute.video(buf) {
+ * Transmute.video {
  *   transform {
  *     add(Transformers.video().resize(640, 480))
  *     before<VideoResizeTransform>(Transformers.video().trim(0, 5000))
  *   }
- * }
+ * }.transmute(buf)
  * ```
  */
 class TransformPipeline<IR> {
@@ -32,7 +32,7 @@ class TransformPipeline<IR> {
   /** `true` when the pipeline contains no transforms. */
   val isEmpty: Boolean get() = _transforms.isEmpty()
 
-  // ── Append / prepend ──
+  // -- Append / prepend --
 
   /** Append [transform] at the end of the pipeline. */
   fun add(transform: Transform<IR>): TransformPipeline<IR> = apply { _transforms.add(transform) }
@@ -48,7 +48,7 @@ class TransformPipeline<IR> {
     _transforms.addAll(transforms)
   }
 
-  // ── Positional insertion ──
+  // -- Positional insertion --
 
   /**
    * Insert [transform] **before** the first occurrence of type [B].
@@ -84,7 +84,7 @@ class TransformPipeline<IR> {
   inline fun <reified B : Transform<IR>> addAfter(transform: Transform<IR>): TransformPipeline<IR> =
     after<B>(transform)
 
-  // ── Removal ──
+  // -- Removal --
 
   /** Remove the first occurrence of type [B]. Returns `true` if found. */
   inline fun <reified B : Transform<IR>> remove(): Boolean {
@@ -99,7 +99,7 @@ class TransformPipeline<IR> {
   /** Remove all transforms. */
   fun clear(): TransformPipeline<IR> = apply { _transforms.clear() }
 
-  // ── Replacement ──
+  // -- Replacement --
 
   /**
    * Replace the first occurrence of type [B] with [replacement].
@@ -112,7 +112,7 @@ class TransformPipeline<IR> {
     _transforms[index] = replacement
   }
 
-  // ── Queries ──
+  // -- Queries --
 
   /** `true` if the pipeline contains at least one transform of type [B]. */
   inline fun <reified B : Transform<IR>> has(): Boolean = _transforms.any { it is B }
@@ -120,7 +120,7 @@ class TransformPipeline<IR> {
   /** Return the first transform of type [B], or `null`. */
   inline fun <reified B : Transform<IR>> get(): B? = _transforms.firstOrNull { it is B } as? B
 
-  // ── Kotlin operators ──
+  // -- Kotlin operators --
 
   operator fun plusAssign(transform: Transform<IR>) { add(transform) }
   operator fun iterator(): Iterator<Transform<IR>> = _transforms.iterator()

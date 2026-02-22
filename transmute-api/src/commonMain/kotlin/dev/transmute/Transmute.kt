@@ -1,191 +1,159 @@
 package dev.transmute
 
 import dev.transmute.audio.AudioFormatDetector
+import dev.transmute.audio.AudioHint
 import dev.transmute.audio.AudioIR
-import dev.transmute.audio.AudioMetadataTransform
+import dev.transmute.audio.AudioDecodeOptions
+import dev.transmute.audio.AudioEncodeOptions
 import dev.transmute.audio.AudioRegistries
+import dev.transmute.audio.AudioTransform
+import dev.transmute.audio.DefaultAudioDecodeOptions
+import dev.transmute.audio.DefaultAudioEncodeOptions
+import dev.transmute.audio.AudioDecodeHandler
+import dev.transmute.audio.AudioDynamicEncodeHandler
+import dev.transmute.audio.AudioFixedEncodeHandler
+import dev.transmute.core.AnyFormatTag
 import dev.transmute.core.AudioFormat
-import dev.transmute.core.ConversionContext
-import dev.transmute.core.ConversionLogger
+import dev.transmute.core.AudioFormatTag
+import dev.transmute.core.DecodeOptions
+import dev.transmute.core.EncodeOptions
+import dev.transmute.core.TransmuteContext
+import dev.transmute.core.TransmuteLogger
+import dev.transmute.core.FormatTag
 import dev.transmute.core.ImageFormat
+import dev.transmute.core.ImageFormatTag
 import dev.transmute.core.MediaFormat
-import dev.transmute.core.MetadataPolicy
 import dev.transmute.core.TransmuteLogging
 import dev.transmute.core.VideoFormat
-import dev.transmute.image.ImageFormatDetector
-import dev.transmute.image.ImageIR
-import dev.transmute.image.ImageMetadataTransform
-import dev.transmute.image.ImageRegistries
-import dev.transmute.video.VideoFormatDetector
-import dev.transmute.video.VideoIR
-import dev.transmute.video.VideoMetadataTransform
-import dev.transmute.video.VideoRegistries
+import dev.transmute.core.VideoFormatTag
+import dev.transmute.core.pipeline.DecodePipeline
+import dev.transmute.core.pipeline.Decoded
+import dev.transmute.core.pipeline.EncodePipeline
+import dev.transmute.core.pipeline.EncodedBytes
+import dev.transmute.core.pipeline.PipelineBuilder
+import dev.transmute.core.pipeline.Transform
 import dev.transmute.core.pipeline.TransformPipeline
-import dev.transmute.audio.AudioHint
-import dev.transmute.audio.AudioTransform
+import dev.transmute.image.DefaultImageDecodeOptions
+import dev.transmute.image.DefaultImageEncodeOptions
+import dev.transmute.image.ImageDecodeOptions
+import dev.transmute.image.ImageEncodeOptions
+import dev.transmute.image.ImageFormatDetector
 import dev.transmute.image.ImageHint
+import dev.transmute.image.ImageIR
+import dev.transmute.image.ImageDecodeHandler
+import dev.transmute.image.ImageDynamicEncodeHandler
+import dev.transmute.image.ImageFixedEncodeHandler
+import dev.transmute.image.ImageRegistries
 import dev.transmute.image.ImageTransform
+import dev.transmute.image.JpegEncodeOptions
+import dev.transmute.video.DefaultVideoDecodeOptions
+import dev.transmute.video.DefaultVideoEncodeOptions
+import dev.transmute.video.VideoDecodeOptions
+import dev.transmute.video.VideoEncodeOptions
+import dev.transmute.video.VideoFormatDetector
 import dev.transmute.video.VideoHint
+import dev.transmute.video.VideoIR
+import dev.transmute.video.VideoDecodeHandler
+import dev.transmute.video.VideoDynamicEncodeHandler
+import dev.transmute.video.VideoFixedEncodeHandler
+import dev.transmute.video.VideoRegistries
 import dev.transmute.video.VideoTransform
-import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
-// ── TransmuteType: typed key for each media domain ──
+typealias DynamicImageTransmuter = ImageTransmuter<ByteArray, AnyFormatTag<ImageFormat>>
+typealias DynamicAudioTransmuter = AudioTransmuter<ByteArray, AnyFormatTag<AudioFormat>>
+typealias DynamicVideoTransmuter = VideoTransmuter<ByteArray, AnyFormatTag<VideoFormat>>
 
 /**
  * Discriminates the three media domains at the type level.
  *
- * Use as a key with [Transmute.transmute] for a fully-typed entry point:
- * ```kotlin
- * val result = Transmute.transmute(TransmuteType.Image, bytes) {
- *   scale(800, 600)
- *   outputFormat(ImageFormat.WEBP)
- * }
- * ```
+ * This dispatch type is for the *dynamic-output* transmuters.
+ * If you want a type-level output format (e.g. PNG-only post-encode handlers),
+ * build via `Transmute.imageTo(ImageFormatTag.Png) { ... }` instead.
  */
-sealed class TransmuteType<T : Transmuter<*>> {
-  data object Image : TransmuteType<ImageTransmuter>()
-  data object Audio : TransmuteType<AudioTransmuter>()
-  data object Video : TransmuteType<VideoTransmuter>()
+sealed class TransmuteType {
+  data object Image : TransmuteType()
+  data object Audio : TransmuteType()
+  data object Video : TransmuteType()
 }
 
-// ── Transmuter: base interface for all media transmuters ──
+/** Immutable, reusable conversion executor built by a builder DSL. */
+interface Transmuter<IN, F : MediaFormat, OUT : FormatTag<F>> {
+  /** Convert [source] into encoded bytes tagged with the resolved output format. */
+  suspend fun transmute(source: IN): EncodedBytes<F, OUT>
 
-/**
- * A configurable, suspending media-conversion pipeline.
- *
- * All three transmuters ([ImageTransmuter], [AudioTransmuter], [VideoTransmuter])
- * share the same output API surface.
- */
-interface Transmuter<Self : Transmuter<Self>> {
-
-  fun metadata(policy: MetadataPolicy): Self
-
-  fun onProgress(callback: (Float) -> Unit): Self
-
-  /**
-   * Run the pipeline on [source] and return the encoded bytes.
-   *
-   * The transmuter is stateless with respect to [source] and can be called
-   * repeatedly with different inputs after a single configuration pass.
-   */
-  suspend fun transmute(source: ByteArray): ByteArray
-
-  /**
-   * Run the pipeline on [source] and write the result into [buffer] at [offset].
-   *
-   * Useful for avoiding an extra copy when the caller already owns a buffer
-   * (e.g. writing into a memory-mapped file or a pre-allocated NIO ByteBuffer).
-   *
-   * @return The number of bytes written.
-   */
-  suspend fun transmuteInto(source: ByteArray, buffer: ByteArray, offset: Int = 0): Int
-
+  /** Convert [source] and copy the resulting bytes into [buffer]. Returns bytes written. */
+  suspend fun transmute(source: IN, buffer: ByteArray, offset: Int = 0): Int {
+    val bytes = transmute(source).bytes
+    require(offset >= 0 && offset <= buffer.size) { "offset out of bounds" }
+    require(bytes.size <= buffer.size - offset) {
+      "buffer too small: need ${bytes.size}, have ${buffer.size - offset}"
+    }
+    bytes.copyInto(buffer, destinationOffset = offset)
+    return bytes.size
+  }
 }
 
-// ── Transmute facade ──
-
-/**
- * Public API facade for Transmute.
- *
- * Transmuters are reusable builders — configure once, apply many times:
- *
- * ```kotlin
- * // 1. Reusable builder (configure once, apply to many inputs)
- * val transmuter = Transmute.image()
- *   .apply {
- *     scale(800, 600)
- *     outputFormat(ImageFormat.WEBP)
- *   }
- * val resultA = transmuter.transmute(bytesA)
- * val resultB = transmuter.transmute(bytesB)
- *
- * // 2. Filter: check whether the transmuter would change a given item
- * val hint = ImageHint(width = 400, height = 300, format = ImageFormat.JPEG)
- * if (transmuter.wouldTransmute(hint)) {
- *   val result = transmuter.transmute(bytes)
- * }
- *
- * // 3. One-shot DSL block (still supported for convenience)
- * val bytes = Transmute.image(myBytes) {
- *   scale(800, 600)
- *   outputFormat(ImageFormat.WEBP)
- * }
- *
- * // 4. Apply a pre-configured transmuter to a single source
- * val bytes = Transmute.image(myBytes, transmuter)
- *
- * // 5. Typed dispatch
- * val bytes = Transmute.transmute(TransmuteType.Image, myBytes) {
- *   scale(800, 600)
- * }
- * ```
- */
+/** Public API facade for Transmute. */
 object Transmute {
 
-  /** Create a reusable [ImageTransmuter] with no source bytes. Configure once, apply many times. */
-  fun image(): ImageTransmuter = ImageTransmuter()
+  // ---- Image ----
 
-  /**
-   * One-shot convenience: configure via [block] and transmute [source] immediately.
-   * Equivalent to `Transmute.image().apply(block).transmute(source)`.
-   */
-  suspend fun image(source: ByteArray, block: ImageTransmuter.() -> Unit): ByteArray =
-    ImageTransmuter().apply(block).transmute(source)
+  /** Build a dynamic-output image transmuter (output defaults to input format). */
+  fun image(block: DynamicImageTransmuterBuilder<ByteArray>.() -> Unit = {}): DynamicImageTransmuter =
+    DynamicImageTransmuterBuilder(defaultDecodePipeline = ::defaultImageByteArrayDecodePipeline).apply(block).build()
 
-  /** Apply a pre-configured [transmuter] to [source]. */
-  suspend fun image(source: ByteArray, transmuter: ImageTransmuter): ByteArray =
-    transmuter.transmute(source)
+  /** Build a dynamic-output image transmuter with an explicit input type. */
+  fun <IN> imageFrom(block: DynamicImageTransmuterBuilder<IN>.() -> Unit = {}): ImageTransmuter<IN, AnyFormatTag<ImageFormat>> =
+    DynamicImageTransmuterBuilder<IN>().apply(block).build()
 
-  /** Create a reusable [AudioTransmuter] with no source bytes. Configure once, apply many times. */
-  fun audio(): AudioTransmuter = AudioTransmuter()
+  /** Build a fixed-output image transmuter with a type-level output tag. */
+  fun <OUT : ImageFormatTag> imageTo(output: OUT, block: ImageTransmuterBuilder<ByteArray, OUT>.() -> Unit = {}): ImageTransmuter<ByteArray, OUT> =
+    ImageTransmuterBuilder(output, defaultDecodePipeline = ::defaultImageByteArrayDecodePipeline).apply(block).build()
 
-  /**
-   * One-shot convenience: configure via [block] and transmute [source] immediately.
-   * Equivalent to `Transmute.audio().apply(block).transmute(source)`.
-   */
-  suspend fun audio(source: ByteArray, block: AudioTransmuter.() -> Unit): ByteArray =
-    AudioTransmuter().apply(block).transmute(source)
+  /** Build a fixed-output image transmuter with an explicit input type. */
+  fun <IN, OUT : ImageFormatTag> imageToFrom(
+    output: OUT,
+    block: ImageTransmuterBuilder<IN, OUT>.() -> Unit = {},
+  ): ImageTransmuter<IN, OUT> = ImageTransmuterBuilder<IN, OUT>(output).apply(block).build()
 
-  /** Apply a pre-configured [transmuter] to [source]. */
-  suspend fun audio(source: ByteArray, transmuter: AudioTransmuter): ByteArray =
-    transmuter.transmute(source)
+  // ---- Audio ----
 
-  /** Create a reusable [VideoTransmuter] with no source bytes. Configure once, apply many times. */
-  fun video(): VideoTransmuter = VideoTransmuter()
+  fun audio(block: DynamicAudioTransmuterBuilder<ByteArray>.() -> Unit = {}): DynamicAudioTransmuter =
+    DynamicAudioTransmuterBuilder(defaultDecodePipeline = ::defaultAudioByteArrayDecodePipeline).apply(block).build()
 
-  /**
-   * One-shot convenience: configure via [block] and transmute [source] immediately.
-   * Equivalent to `Transmute.video().apply(block).transmute(source)`.
-   */
-  suspend fun video(source: ByteArray, block: VideoTransmuter.() -> Unit): ByteArray =
-    VideoTransmuter().apply(block).transmute(source)
+  fun <IN> audioFrom(block: DynamicAudioTransmuterBuilder<IN>.() -> Unit = {}): AudioTransmuter<IN, AnyFormatTag<AudioFormat>> =
+    DynamicAudioTransmuterBuilder<IN>().apply(block).build()
 
-  /** Apply a pre-configured [transmuter] to [source]. */
-  suspend fun video(source: ByteArray, transmuter: VideoTransmuter): ByteArray =
-    transmuter.transmute(source)
+  fun <OUT : AudioFormatTag> audioTo(output: OUT, block: AudioTransmuterBuilder<ByteArray, OUT>.() -> Unit = {}): AudioTransmuter<ByteArray, OUT> =
+    AudioTransmuterBuilder(output, defaultDecodePipeline = ::defaultAudioByteArrayDecodePipeline).apply(block).build()
 
-  /**
-   * Fully-typed transmutation entry point - lets callers parameterise the
-   * media domain without committing to a concrete transmuter class.
-   *
-   * ```
-   * Transmute.transmute(TransmuteType.Image, bytes) { scale(800, 600) }
-   * ```
-   */
-  @Suppress("UNCHECKED_CAST")
-  suspend fun <T : Transmuter<*>> transmute(
-    type: TransmuteType<T>,
-    source: ByteArray,
-    block: T.() -> Unit = {},
-  ): ByteArray {
-    val transmuter: T = when (type) {
-      TransmuteType.Image -> ImageTransmuter() as T
-      TransmuteType.Audio -> AudioTransmuter() as T
-      TransmuteType.Video -> VideoTransmuter() as T
-    }
-    transmuter.block()
-    return transmuter.transmute(source)
+  fun <IN, OUT : AudioFormatTag> audioToFrom(
+    output: OUT,
+    block: AudioTransmuterBuilder<IN, OUT>.() -> Unit = {},
+  ): AudioTransmuter<IN, OUT> = AudioTransmuterBuilder<IN, OUT>(output).apply(block).build()
+
+  // ---- Video ----
+
+  fun video(block: DynamicVideoTransmuterBuilder<ByteArray>.() -> Unit = {}): DynamicVideoTransmuter =
+    DynamicVideoTransmuterBuilder(defaultDecodePipeline = ::defaultVideoByteArrayDecodePipeline).apply(block).build()
+
+  fun <IN> videoFrom(block: DynamicVideoTransmuterBuilder<IN>.() -> Unit = {}): VideoTransmuter<IN, AnyFormatTag<VideoFormat>> =
+    DynamicVideoTransmuterBuilder<IN>().apply(block).build()
+
+  fun <OUT : VideoFormatTag> videoTo(output: OUT, block: VideoTransmuterBuilder<ByteArray, OUT>.() -> Unit = {}): VideoTransmuter<ByteArray, OUT> =
+    VideoTransmuterBuilder(output, defaultDecodePipeline = ::defaultVideoByteArrayDecodePipeline).apply(block).build()
+
+  fun <IN, OUT : VideoFormatTag> videoToFrom(
+    output: OUT,
+    block: VideoTransmuterBuilder<IN, OUT>.() -> Unit = {},
+  ): VideoTransmuter<IN, OUT> = VideoTransmuterBuilder<IN, OUT>(output).apply(block).build()
+
+  // ---- Typed dispatch ----
+
+  suspend fun transmute(type: TransmuteType, source: ByteArray): ByteArray = when (type) {
+    TransmuteType.Image -> image().transmute(source).bytes
+    TransmuteType.Audio -> audio().transmute(source).bytes
+    TransmuteType.Video -> video().transmute(source).bytes
   }
 
   fun detectImageFormat(bytes: ByteArray): ImageFormat = ImageFormatDetector.detect(bytes)
@@ -194,327 +162,577 @@ object Transmute {
 
   /** Auto-detect the media domain and format from raw bytes. */
   fun detectFormat(bytes: ByteArray): MediaFormat {
+    // ISO BMFF containers (MP4/MOV/M4A/HEIF/HEIC/AVIF) are ambiguous across domains.
+    // Handle them explicitly first to avoid cross-domain misclassification.
+    if (isBmff(bytes)) {
+      val img = ImageFormatDetector.detect(bytes)
+      if (img != ImageFormat.UNKNOWN) return img
+
+      val brand = bmffMajorBrand(bytes)
+      if (brand == "qt  ") return VideoFormat.MOV
+
+      val hasVideo = bmffHasVideoTrack(bytes)
+      val hasAudio = bmffHasAudioTrack(bytes)
+      if (hasVideo) return VideoFormat.MP4
+      if (hasAudio) return AudioFormat.M4A
+      // Fall through to other detectors.
+    }
+
     val img = ImageFormatDetector.detect(bytes)
     if (img != ImageFormat.UNKNOWN) return img
-    val aud = AudioFormatDetector.detect(bytes)
-    if (aud != AudioFormat.UNKNOWN) return aud
+
     val vid = VideoFormatDetector.detect(bytes)
     if (vid != VideoFormat.UNKNOWN) return vid
-    return ImageFormat.UNKNOWN
+
+    val aud = AudioFormatDetector.detect(bytes)
+    if (aud != AudioFormat.UNKNOWN) return aud
+
+    return dev.transmute.core.UnknownFormat
   }
 }
 
-// ── ImageTransmuter ──
+// -- Image ------------------------------------------------------------------
 
-class ImageTransmuter : Transmuter<ImageTransmuter> {
-  val pipeline = TransformPipeline<ImageIR>()
-  private var outputFormat: ImageFormat? = null
-  // Default to STRIP_ALL to avoid leaking GPS/camera data in shared images.
-  private var metadataPolicy: MetadataPolicy = MetadataPolicy.STRIP_ALL
-  private var progressCallback: ((Float) -> Unit)? = null
-  // 0.85 balances visual quality against file size for most lossy formats.
-  private var quality: Float = 0.85f
-  private var loggerOverride: ConversionLogger? = null
+private fun isBmff(bytes: ByteArray): Boolean =
+  bytes.size >= 8 &&
+    bytes[4] == 0x66.toByte() && bytes[5] == 0x74.toByte() &&
+    bytes[6] == 0x79.toByte() && bytes[7] == 0x70.toByte()
 
-  /** Override the global logger for this operation only. */
-  fun logger(logger: ConversionLogger): ImageTransmuter = apply { loggerOverride = logger }
+private fun bmffMajorBrand(bytes: ByteArray): String? {
+  if (!isBmff(bytes) || bytes.size < 12) return null
+  return (8 until 12).map { bytes[it].toInt().toChar() }.joinToString("")
+}
 
-  /**
-   * Direct pipeline access for fine-grained ordering control.
-   *
-   * ```kotlin
-   * Transmute.image(bytes) {
-   *   transform {
-   *     add(Transformers.image().scale(800, 600))
-   *     add(Transformers.image().crop(0, 0, 400, 400))
-   *     before<ImageCropTransform>(Transformers.image().rotate())
-   *   }
-   * }
-   * ```
-   */
-  fun transform(block: TransformPipeline<ImageIR>.() -> Unit): ImageTransmuter = apply {
-    pipeline.block()
-  }
+private fun bmffHasVideoTrack(bytes: ByteArray): Boolean {
+  val max = 256 * 1024
+  return containsAscii(bytes, "vide", max) || containsAscii(bytes, "avc1", max) || containsAscii(bytes, "hvc1", max)
+}
 
-  fun outputFormat(format: ImageFormat): ImageTransmuter = apply { outputFormat = format }
+private fun bmffHasAudioTrack(bytes: ByteArray): Boolean {
+  val max = 256 * 1024
+  return containsAscii(bytes, "soun", max) || containsAscii(bytes, "mp4a", max)
+}
 
-  /** Quality for lossy formats (e.g. JPEG/WebP). */
-  fun quality(value: Float): ImageTransmuter = apply { quality = value.coerceIn(0f, 1f) }
+private fun containsAscii(bytes: ByteArray, needleAscii: String, maxBytes: Int): Boolean {
+  val needle = needleAscii.encodeToByteArray()
+  val limit = minOf(bytes.size, maxBytes)
+  if (needle.isEmpty() || limit < needle.size) return false
 
-  override fun metadata(policy: MetadataPolicy): ImageTransmuter = apply { metadataPolicy = policy }
-
-  override fun onProgress(callback: (Float) -> Unit): ImageTransmuter = apply { progressCallback = callback }
-
-  /**
-   * Returns `true` if this transmuter would produce any change on an image described by [hint].
-   *
-   * All decisions are conservative: if a hint property is `null` (unknown), the corresponding
-   * transform is assumed to apply. Only returns `false` when it can be proven from the hint
-   * that every configured transform is a no-op.
-   */
-  fun wouldTransmute(hint: ImageHint): Boolean {
-    if (metadataPolicy == MetadataPolicy.STRIP_ALL) return true
-    if (outputFormat != null && outputFormat != hint.format) return true
-    return pipeline.transforms.any { (it as? ImageTransform)?.wouldTransform(hint) ?: true }
-  }
-
-  override suspend fun transmute(source: ByteArray): ByteArray {
-    val context = createContext().also {
-      it.scratchpad["image.quality"] = quality
+  outer@ for (i in 0..(limit - needle.size)) {
+    for (j in needle.indices) {
+      if (bytes[i + j] != needle[j]) continue@outer
     }
+    return true
+  }
+  return false
+}
 
+class DynamicImageTransmuterBuilder<IN> internal constructor(
+  private val defaultDecodePipeline: (() -> DecodePipeline<IN, Decoded<ImageFormat, ImageIR>>)? = null,
+) {
+  private val transformPipeline = TransformPipeline<ImageIR>()
+  private var loggerOverride: TransmuteLogger? = null
+  private var decodeOptions: ImageDecodeOptions = DefaultImageDecodeOptions()
+  private var encodeOptions: ImageEncodeOptions = DefaultImageEncodeOptions()
+  private var decodePipeline: DecodePipeline<IN, Decoded<ImageFormat, ImageIR>>? = null
+  private var encodePipeline: EncodePipeline<Decoded<ImageFormat, ImageIR>, EncodedBytes<ImageFormat, AnyFormatTag<ImageFormat>>>? = null
+
+  fun logger(logger: TransmuteLogger): DynamicImageTransmuterBuilder<IN> = apply { loggerOverride = logger }
+
+  fun decodeOptions(options: ImageDecodeOptions): DynamicImageTransmuterBuilder<IN> = apply {
+    decodeOptions = options
+  }
+
+  fun encodeOptions(options: ImageEncodeOptions): DynamicImageTransmuterBuilder<IN> = apply {
+    encodeOptions = options
+  }
+
+  fun transform(block: TransformPipeline<ImageIR>.() -> Unit): DynamicImageTransmuterBuilder<IN> = apply {
+    transformPipeline.block()
+  }
+
+  /**
+   * Configure the decode pipeline (ByteArray → decode → ImageIR).
+   *
+   * The decode stage is explicit (`decode()` or `decodeWith { ... }`), and the builder enforces
+   * the `ByteArray -> IR` type transition.
+   */
+  fun decode(
+    block: PipelineBuilder<IN, IN>.() -> PipelineBuilder<IN, Decoded<ImageFormat, ImageIR>>,
+  ): DynamicImageTransmuterBuilder<IN> = apply {
+    decodePipeline = PipelineBuilder.start<IN>().block().build()
+  }
+
+  /**
+   * Configure the encode pipeline (ImageIR → encode → EncodedBytes).
+   *
+   * For dynamic output, post-encode handlers receive `AnyFormatTag<ImageFormat>` (runtime-only).
+   */
+  fun encode(
+    block: PipelineBuilder<Decoded<ImageFormat, ImageIR>, Decoded<ImageFormat, ImageIR>>.() ->
+      PipelineBuilder<Decoded<ImageFormat, ImageIR>, EncodedBytes<ImageFormat, AnyFormatTag<ImageFormat>>>,
+  ): DynamicImageTransmuterBuilder<IN> = apply {
+    encodePipeline = PipelineBuilder.start<Decoded<ImageFormat, ImageIR>>().block().build()
+  }
+
+  fun build(): ImageTransmuter<IN, AnyFormatTag<ImageFormat>> {
+    val decode = decodePipeline
+      ?: defaultDecodePipeline?.invoke()
+      ?: error("No decode pipeline configured; call decode { ... }")
+    val encode = encodePipeline ?: defaultDynamicImageEncodePipeline()
+
+    return ImageTransmuter(
+      loggerOverride = loggerOverride,
+      transforms = transformPipeline.transforms,
+      decodePipeline = decode,
+      encodePipeline = encode,
+      decodeOptions = decodeOptions,
+      encodeOptions = encodeOptions,
+    )
+  }
+
+  private fun defaultDynamicImageEncodePipeline(): EncodePipeline<Decoded<ImageFormat, ImageIR>, EncodedBytes<ImageFormat, AnyFormatTag<ImageFormat>>> =
+    PipelineBuilder.start<Decoded<ImageFormat, ImageIR>>()
+      .then(ImageDynamicEncodeHandler())
+      .build()
+}
+
+class ImageTransmuterBuilder<IN, OUT : ImageFormatTag> internal constructor(
+  private val output: OUT,
+  private val defaultDecodePipeline: (() -> DecodePipeline<IN, Decoded<ImageFormat, ImageIR>>)? = null,
+) {
+  private val transformPipeline = TransformPipeline<ImageIR>()
+  private var loggerOverride: TransmuteLogger? = null
+  private var decodeOptions: ImageDecodeOptions = DefaultImageDecodeOptions()
+  private var encodeOptions: ImageEncodeOptions = DefaultImageEncodeOptions()
+  private var decodePipeline: DecodePipeline<IN, Decoded<ImageFormat, ImageIR>>? = null
+  private var encodePipeline: EncodePipeline<Decoded<ImageFormat, ImageIR>, EncodedBytes<ImageFormat, OUT>>? = null
+
+  fun logger(logger: TransmuteLogger): ImageTransmuterBuilder<IN, OUT> = apply { loggerOverride = logger }
+
+  fun decodeOptions(options: ImageDecodeOptions): ImageTransmuterBuilder<IN, OUT> = apply {
+    decodeOptions = options
+  }
+
+  /** Quality for JPEG encoding only (you probably want ImageFormatTag.Jpeg). */
+  fun quality(value: Float): ImageTransmuterBuilder<IN, OUT> = apply {
+    encodeOptions = JpegEncodeOptions(quality = value.coerceIn(0f, 1f))
+  }
+
+  fun encodeOptions(options: ImageEncodeOptions): ImageTransmuterBuilder<IN, OUT> = apply {
+    encodeOptions = options
+  }
+
+  fun transform(block: TransformPipeline<ImageIR>.() -> Unit): ImageTransmuterBuilder<IN, OUT> = apply {
+    transformPipeline.block()
+  }
+
+  fun decode(
+    block: PipelineBuilder<IN, IN>.() -> PipelineBuilder<IN, Decoded<ImageFormat, ImageIR>>,
+  ): ImageTransmuterBuilder<IN, OUT> = apply {
+    decodePipeline = PipelineBuilder.start<IN>().block().build()
+  }
+
+  /** Fixed output enables type-safe post-encode handlers via the `OUT` tag type. */
+  fun encode(
+    block: PipelineBuilder<Decoded<ImageFormat, ImageIR>, Decoded<ImageFormat, ImageIR>>.() ->
+      PipelineBuilder<Decoded<ImageFormat, ImageIR>, EncodedBytes<ImageFormat, OUT>>,
+  ): ImageTransmuterBuilder<IN, OUT> = apply {
+    encodePipeline = PipelineBuilder.start<Decoded<ImageFormat, ImageIR>>().block().build()
+  }
+
+  fun build(): ImageTransmuter<IN, OUT> {
+    val decode = decodePipeline
+      ?: defaultDecodePipeline?.invoke()
+      ?: error("No decode pipeline configured; call decode { ... }")
+    val encode = encodePipeline ?: defaultFixedImageEncodePipeline()
+
+    return ImageTransmuter(
+      loggerOverride = loggerOverride,
+      transforms = transformPipeline.transforms,
+      decodePipeline = decode,
+      encodePipeline = encode,
+      decodeOptions = decodeOptions,
+      encodeOptions = encodeOptions,
+    )
+  }
+
+  private fun defaultFixedImageEncodePipeline(): EncodePipeline<Decoded<ImageFormat, ImageIR>, EncodedBytes<ImageFormat, OUT>> =
+    PipelineBuilder.start<Decoded<ImageFormat, ImageIR>>()
+      .then(ImageFixedEncodeHandler(output))
+      .build()
+}
+
+class ImageTransmuter<IN, OUT : FormatTag<ImageFormat>> internal constructor(
+    private val loggerOverride: TransmuteLogger?,
+    private val transforms: List<Transform<ImageIR>>,
+    private val decodePipeline: DecodePipeline<IN, Decoded<ImageFormat, ImageIR>>,
+    private val encodePipeline: EncodePipeline<Decoded<ImageFormat, ImageIR>, EncodedBytes<ImageFormat, OUT>>,
+    private val decodeOptions: ImageDecodeOptions,
+    private val encodeOptions: ImageEncodeOptions,
+) : Transmuter<IN, ImageFormat, OUT> {
+
+  fun wouldTransmute(hint: ImageHint): Boolean {
+    return transforms.any { (it as? ImageTransform)?.wouldTransform(hint) ?: true }
+  }
+
+  override suspend fun transmute(source: IN): EncodedBytes<ImageFormat, OUT> {
+    val context = createContext(
+      loggerOverride = loggerOverride,
+      decodeOptions = decodeOptions,
+      encodeOptions = encodeOptions,
+    )
     ImageRegistries.installDefaultsIfEmpty()
 
-    val inputFormat = ImageFormatDetector.detect(source)
-    val outFormat = outputFormat ?: inputFormat
-    context.scratchpad["image.output.format"] = outFormat
+    val decoded = decodePipeline.run(source, context)
+    val inputFormat = decoded.format
+    var ir = decoded.ir
 
-    context.onProgress(0.1f)
-    val decoder = ImageRegistries.decoders.decoderFor(inputFormat)
-      ?: error("No image decoder for $inputFormat")
-    var ir = decoder.decode(source, context)
-
-    val steps = pipeline.transforms
-    val transformStep = 0.7f / steps.size.coerceAtLeast(1)
+    val steps = transforms
     steps.forEachIndexed { index, transform ->
       ir = transform.apply(ir, context)
-      context.onProgress(0.1f + (index + 1) * transformStep)
     }
 
-    ir = ImageMetadataTransform(metadataPolicy).apply(ir, context)
-
-    context.onProgress(0.9f)
-    val encoder = ImageRegistries.encoders.encoderFor(outFormat)
-      ?: error("No image encoder for $outFormat")
-    val result = encoder.encode(ir, context)
-    context.onProgress(1f)
-    return result
+    val encoded = encodePipeline.run(Decoded(inputFormat, ir), context)
+    return encoded
   }
-
-  override suspend fun transmuteInto(source: ByteArray, buffer: ByteArray, offset: Int): Int {
-    val bytes = transmute(source)
-    require(offset >= 0 && offset <= buffer.size) { "offset out of bounds" }
-    require(bytes.size <= buffer.size - offset) {
-      "buffer too small: need ${bytes.size}, have ${buffer.size - offset}"
-    }
-    bytes.copyInto(buffer, destinationOffset = offset)
-    return bytes.size
-  }
-
-  @OptIn(ExperimentalUuidApi::class)
-  private fun createContext() = ConversionContext(
-    jobId = Uuid.random().toString(),
-    coroutineJob = null,
-    metadataPolicy = metadataPolicy,
-    onProgress = progressCallback ?: {},
-    logger = loggerOverride ?: TransmuteLogging.logger,
-    scratchpad = mutableMapOf(),
-    timeBudgetMs = Long.MAX_VALUE,
-    memoryBudgetBytes = Long.MAX_VALUE,
-  )
 }
 
-// ── AudioTransmuter ──
+// -- Audio ------------------------------------------------------------------─
 
-class AudioTransmuter : Transmuter<AudioTransmuter> {
-  val pipeline = TransformPipeline<AudioIR>()
-  private var outputFormat: AudioFormat? = null
-  private var metadataPolicy: MetadataPolicy = MetadataPolicy.STRIP_ALL
-  private var progressCallback: ((Float) -> Unit)? = null
-  private var loggerOverride: ConversionLogger? = null
+class DynamicAudioTransmuterBuilder<IN> internal constructor(
+  private val defaultDecodePipeline: (() -> DecodePipeline<IN, Decoded<AudioFormat, AudioIR>>)? = null,
+) {
+  private val transformPipeline = TransformPipeline<AudioIR>()
+  private var loggerOverride: TransmuteLogger? = null
+  private var decodeOptions: AudioDecodeOptions = DefaultAudioDecodeOptions()
+  private var encodeOptions: AudioEncodeOptions = DefaultAudioEncodeOptions()
+  private var decodePipeline: DecodePipeline<IN, Decoded<AudioFormat, AudioIR>>? = null
+  private var encodePipeline: EncodePipeline<Decoded<AudioFormat, AudioIR>, EncodedBytes<AudioFormat, AnyFormatTag<AudioFormat>>>? = null
 
-  /** Override the global logger for this operation only. */
-  fun logger(logger: ConversionLogger): AudioTransmuter = apply { loggerOverride = logger }
+  fun logger(logger: TransmuteLogger): DynamicAudioTransmuterBuilder<IN> = apply { loggerOverride = logger }
 
-  /**
-   * Direct pipeline access for fine-grained ordering control.
-   *
-   * ```kotlin
-   * Transmute.audio(bytes) {
-   *   transform {
-   *     add(Transformers.audio().normalize())
-   *     add(Transformers.audio().trim(1000, 5000))
-   *     before<AudioTrimTransform>(Transformers.audio().fade(fadeInMs = 200))
-   *   }
-   * }
-   * ```
-   */
-  fun transform(block: TransformPipeline<AudioIR>.() -> Unit): AudioTransmuter = apply {
-    pipeline.block()
+  fun decodeOptions(options: AudioDecodeOptions): DynamicAudioTransmuterBuilder<IN> = apply {
+    decodeOptions = options
   }
 
-  fun outputFormat(format: AudioFormat): AudioTransmuter = apply { outputFormat = format }
+  fun encodeOptions(options: AudioEncodeOptions): DynamicAudioTransmuterBuilder<IN> = apply {
+    encodeOptions = options
+  }
 
-  override fun metadata(policy: MetadataPolicy): AudioTransmuter = apply { metadataPolicy = policy }
+  fun transform(block: TransformPipeline<AudioIR>.() -> Unit): DynamicAudioTransmuterBuilder<IN> = apply {
+    transformPipeline.block()
+  }
 
-  override fun onProgress(callback: (Float) -> Unit): AudioTransmuter = apply { progressCallback = callback }
+  fun decode(
+    block: PipelineBuilder<IN, IN>.() -> PipelineBuilder<IN, Decoded<AudioFormat, AudioIR>>,
+  ): DynamicAudioTransmuterBuilder<IN> = apply {
+    decodePipeline = PipelineBuilder.start<IN>().block().build()
+  }
 
-  /**
-   * Returns `true` if this transmuter would produce any change on an audio track described by [hint].
-   *
-   * All decisions are conservative: if a hint property is `null` (unknown), the corresponding
-   * transform is assumed to apply. Only returns `false` when it can be proven from the hint
-   * that every configured transform is a no-op.
-   */
+  fun encode(
+    block: PipelineBuilder<Decoded<AudioFormat, AudioIR>, Decoded<AudioFormat, AudioIR>>.() ->
+      PipelineBuilder<Decoded<AudioFormat, AudioIR>, EncodedBytes<AudioFormat, AnyFormatTag<AudioFormat>>>,
+  ): DynamicAudioTransmuterBuilder<IN> = apply {
+    encodePipeline = PipelineBuilder.start<Decoded<AudioFormat, AudioIR>>().block().build()
+  }
+
+  fun build(): AudioTransmuter<IN, AnyFormatTag<AudioFormat>> {
+    val decode = decodePipeline
+      ?: defaultDecodePipeline?.invoke()
+      ?: error("No decode pipeline configured; call decode { ... }")
+    val encode = encodePipeline ?: defaultDynamicAudioEncodePipeline()
+
+    return AudioTransmuter(
+      loggerOverride = loggerOverride,
+      transforms = transformPipeline.transforms,
+      decodePipeline = decode,
+      encodePipeline = encode,
+      decodeOptions = decodeOptions,
+      encodeOptions = encodeOptions,
+    )
+  }
+
+  private fun defaultDynamicAudioEncodePipeline(): EncodePipeline<Decoded<AudioFormat, AudioIR>, EncodedBytes<AudioFormat, AnyFormatTag<AudioFormat>>> =
+    PipelineBuilder.start<Decoded<AudioFormat, AudioIR>>()
+      .then(AudioDynamicEncodeHandler())
+      .build()
+}
+
+class AudioTransmuterBuilder<IN, OUT : AudioFormatTag> internal constructor(
+  private val output: OUT,
+  private val defaultDecodePipeline: (() -> DecodePipeline<IN, Decoded<AudioFormat, AudioIR>>)? = null,
+) {
+  private val transformPipeline = TransformPipeline<AudioIR>()
+  private var loggerOverride: TransmuteLogger? = null
+  private var decodeOptions: AudioDecodeOptions = DefaultAudioDecodeOptions()
+  private var encodeOptions: AudioEncodeOptions = DefaultAudioEncodeOptions()
+  private var decodePipeline: DecodePipeline<IN, Decoded<AudioFormat, AudioIR>>? = null
+  private var encodePipeline: EncodePipeline<Decoded<AudioFormat, AudioIR>, EncodedBytes<AudioFormat, OUT>>? = null
+
+  fun logger(logger: TransmuteLogger): AudioTransmuterBuilder<IN, OUT> = apply { loggerOverride = logger }
+
+  fun decodeOptions(options: AudioDecodeOptions): AudioTransmuterBuilder<IN, OUT> = apply {
+    decodeOptions = options
+  }
+
+  fun encodeOptions(options: AudioEncodeOptions): AudioTransmuterBuilder<IN, OUT> = apply {
+    encodeOptions = options
+  }
+
+  fun transform(block: TransformPipeline<AudioIR>.() -> Unit): AudioTransmuterBuilder<IN, OUT> = apply {
+    transformPipeline.block()
+  }
+
+  fun decode(
+    block: PipelineBuilder<IN, IN>.() -> PipelineBuilder<IN, Decoded<AudioFormat, AudioIR>>,
+  ): AudioTransmuterBuilder<IN, OUT> = apply {
+    decodePipeline = PipelineBuilder.start<IN>().block().build()
+  }
+
+  fun encode(
+    block: PipelineBuilder<Decoded<AudioFormat, AudioIR>, Decoded<AudioFormat, AudioIR>>.() ->
+      PipelineBuilder<Decoded<AudioFormat, AudioIR>, EncodedBytes<AudioFormat, OUT>>,
+  ): AudioTransmuterBuilder<IN, OUT> = apply {
+    encodePipeline = PipelineBuilder.start<Decoded<AudioFormat, AudioIR>>().block().build()
+  }
+
+  fun build(): AudioTransmuter<IN, OUT> {
+    val decode = decodePipeline
+      ?: defaultDecodePipeline?.invoke()
+      ?: error("No decode pipeline configured; call decode { ... }")
+    val encode = encodePipeline ?: defaultFixedAudioEncodePipeline()
+
+    return AudioTransmuter(
+      loggerOverride = loggerOverride,
+      transforms = transformPipeline.transforms,
+      decodePipeline = decode,
+      encodePipeline = encode,
+      decodeOptions = decodeOptions,
+      encodeOptions = encodeOptions,
+    )
+  }
+
+  private fun defaultFixedAudioEncodePipeline(): EncodePipeline<Decoded<AudioFormat, AudioIR>, EncodedBytes<AudioFormat, OUT>> =
+    PipelineBuilder.start<Decoded<AudioFormat, AudioIR>>()
+      .then(AudioFixedEncodeHandler(output))
+      .build()
+}
+
+class AudioTransmuter<IN, OUT : FormatTag<AudioFormat>> internal constructor(
+    private val loggerOverride: TransmuteLogger?,
+    private val transforms: List<Transform<AudioIR>>,
+    private val decodePipeline: DecodePipeline<IN, Decoded<AudioFormat, AudioIR>>,
+    private val encodePipeline: EncodePipeline<Decoded<AudioFormat, AudioIR>, EncodedBytes<AudioFormat, OUT>>,
+    private val decodeOptions: AudioDecodeOptions,
+    private val encodeOptions: AudioEncodeOptions,
+) : Transmuter<IN, AudioFormat, OUT> {
+
   fun wouldTransmute(hint: AudioHint): Boolean {
-    if (metadataPolicy == MetadataPolicy.STRIP_ALL) return true
-    if (outputFormat != null && outputFormat != hint.format) return true
-    return pipeline.transforms.any { (it as? AudioTransform)?.wouldTransform(hint) ?: true }
+    return transforms.any { (it as? AudioTransform)?.wouldTransform(hint) ?: true }
   }
 
-  override suspend fun transmute(source: ByteArray): ByteArray {
-    val context = createContext()
-
+  override suspend fun transmute(source: IN): EncodedBytes<AudioFormat, OUT> {
+    val context = createContext(
+      loggerOverride = loggerOverride,
+      decodeOptions = decodeOptions,
+      encodeOptions = encodeOptions,
+    )
     AudioRegistries.installDefaultsIfEmpty()
-    val decoderRegistry = AudioRegistries.decoders
-    val encoderRegistry = AudioRegistries.encoders
 
-    val inputFormat = AudioFormatDetector.detect(source)
-    // Fall back to WAV when no encoder exists for the input format,
-    // since WAV is the only format with a cross-platform pure-Kotlin encoder.
-    val outFormat = outputFormat ?: run {
-      if (encoderRegistry.encoderFor(inputFormat) != null) inputFormat else AudioFormat.WAV
-    }
+    val decoded = decodePipeline.run(source, context)
+    val inputFormat = decoded.format
+    var ir = decoded.ir
 
-    context.onProgress(0.1f)
-    val decoder = decoderRegistry.decoderFor(inputFormat)
-      ?: error("No audio decoder for $inputFormat")
-    var ir = decoder.decode(source, context)
-
-    val steps = pipeline.transforms
-    val transformStep = 0.7f / steps.size.coerceAtLeast(1)
+    val steps = transforms
     steps.forEachIndexed { index, transform ->
       ir = transform.apply(ir, context)
-      context.onProgress(0.1f + (index + 1) * transformStep)
     }
 
-    ir = AudioMetadataTransform(metadataPolicy).apply(ir, context)
-
-    context.onProgress(0.9f)
-    val encoder = encoderRegistry.encoderFor(outFormat)
-      ?: error("No audio encoder for $outFormat")
-    val result = encoder.encode(ir, context)
-    context.onProgress(1f)
-    return result
+    val encoded = encodePipeline.run(Decoded(inputFormat, ir), context)
+    return encoded
   }
-
-  override suspend fun transmuteInto(source: ByteArray, buffer: ByteArray, offset: Int): Int {
-    val bytes = transmute(source)
-    require(offset >= 0 && offset <= buffer.size) { "offset out of bounds" }
-    require(bytes.size <= buffer.size - offset) {
-      "buffer too small: need ${bytes.size}, have ${buffer.size - offset}"
-    }
-    bytes.copyInto(buffer, destinationOffset = offset)
-    return bytes.size
-  }
-
-  @OptIn(ExperimentalUuidApi::class)
-  private fun createContext() = ConversionContext(
-    jobId = Uuid.random().toString(),
-    coroutineJob = null,
-    metadataPolicy = metadataPolicy,
-    onProgress = progressCallback ?: {},
-    logger = loggerOverride ?: TransmuteLogging.logger,
-    scratchpad = mutableMapOf(),
-    timeBudgetMs = Long.MAX_VALUE,
-    memoryBudgetBytes = Long.MAX_VALUE,
-  )
 }
 
-// ── VideoTransmuter ──
+// -- Video ------------------------------------------------------------------─
 
-class VideoTransmuter : Transmuter<VideoTransmuter> {
-  val pipeline = TransformPipeline<VideoIR>()
-  private var outputFormat: VideoFormat? = null
-  private var metadataPolicy: MetadataPolicy = MetadataPolicy.STRIP_ALL
-  private var progressCallback: ((Float) -> Unit)? = null
-  private var loggerOverride: ConversionLogger? = null
+class DynamicVideoTransmuterBuilder<IN> internal constructor(
+  private val defaultDecodePipeline: (() -> DecodePipeline<IN, Decoded<VideoFormat, VideoIR>>)? = null,
+) {
+  private val transformPipeline = TransformPipeline<VideoIR>()
+  private var loggerOverride: TransmuteLogger? = null
+  private var decodeOptions: VideoDecodeOptions = DefaultVideoDecodeOptions()
+  private var encodeOptions: VideoEncodeOptions = DefaultVideoEncodeOptions()
+  private var decodePipeline: DecodePipeline<IN, Decoded<VideoFormat, VideoIR>>? = null
+  private var encodePipeline: EncodePipeline<Decoded<VideoFormat, VideoIR>, EncodedBytes<VideoFormat, AnyFormatTag<VideoFormat>>>? = null
 
-  /** Override the global logger for this operation only. */
-  fun logger(logger: ConversionLogger): VideoTransmuter = apply { loggerOverride = logger }
+  fun logger(logger: TransmuteLogger): DynamicVideoTransmuterBuilder<IN> = apply { loggerOverride = logger }
 
-  /**
-   * Direct pipeline access for fine-grained ordering control.
-   *
-   * ```kotlin
-   * Transmute.video(bytes) {
-   *   transform {
-   *     add(Transformers.video().resize(640, 480))
-   *     before<VideoResizeTransform>(Transformers.video().trim(0, 5000))
-   *   }
-   * }
-   * ```
-   */
-  fun transform(block: TransformPipeline<VideoIR>.() -> Unit): VideoTransmuter = apply {
-    pipeline.block()
+  fun decodeOptions(options: VideoDecodeOptions): DynamicVideoTransmuterBuilder<IN> = apply {
+    decodeOptions = options
   }
 
-  fun outputFormat(format: VideoFormat): VideoTransmuter = apply { outputFormat = format }
+  fun encodeOptions(options: VideoEncodeOptions): DynamicVideoTransmuterBuilder<IN> = apply {
+    encodeOptions = options
+  }
 
-  override fun metadata(policy: MetadataPolicy): VideoTransmuter = apply { metadataPolicy = policy }
+  fun transform(block: TransformPipeline<VideoIR>.() -> Unit): DynamicVideoTransmuterBuilder<IN> = apply {
+    transformPipeline.block()
+  }
 
-  override fun onProgress(callback: (Float) -> Unit): VideoTransmuter = apply { progressCallback = callback }
+  fun decode(
+    block: PipelineBuilder<IN, IN>.() -> PipelineBuilder<IN, Decoded<VideoFormat, VideoIR>>,
+  ): DynamicVideoTransmuterBuilder<IN> = apply {
+    decodePipeline = PipelineBuilder.start<IN>().block().build()
+  }
 
-  /**
-   * Returns `true` if this transmuter would produce any change on a video described by [hint].
-   *
-   * All decisions are conservative: if a hint property is `null` (unknown), the corresponding
-   * transform is assumed to apply. Only returns `false` when it can be proven from the hint
-   * that every configured transform is a no-op.
-   */
+  fun encode(
+    block: PipelineBuilder<Decoded<VideoFormat, VideoIR>, Decoded<VideoFormat, VideoIR>>.() ->
+      PipelineBuilder<Decoded<VideoFormat, VideoIR>, EncodedBytes<VideoFormat, AnyFormatTag<VideoFormat>>>,
+  ): DynamicVideoTransmuterBuilder<IN> = apply {
+    encodePipeline = PipelineBuilder.start<Decoded<VideoFormat, VideoIR>>().block().build()
+  }
+
+  fun build(): VideoTransmuter<IN, AnyFormatTag<VideoFormat>> {
+    val decode = decodePipeline
+      ?: defaultDecodePipeline?.invoke()
+      ?: error("No decode pipeline configured; call decode { ... }")
+    val encode = encodePipeline ?: defaultDynamicVideoEncodePipeline()
+
+    return VideoTransmuter(
+      loggerOverride = loggerOverride,
+      transforms = transformPipeline.transforms,
+      decodePipeline = decode,
+      encodePipeline = encode,
+      decodeOptions = decodeOptions,
+      encodeOptions = encodeOptions,
+    )
+  }
+
+  private fun defaultDynamicVideoEncodePipeline(): EncodePipeline<Decoded<VideoFormat, VideoIR>, EncodedBytes<VideoFormat, AnyFormatTag<VideoFormat>>> =
+    PipelineBuilder.start<Decoded<VideoFormat, VideoIR>>()
+      .then(VideoDynamicEncodeHandler())
+      .build()
+}
+
+class VideoTransmuterBuilder<IN, OUT : VideoFormatTag> internal constructor(
+  private val output: OUT,
+  private val defaultDecodePipeline: (() -> DecodePipeline<IN, Decoded<VideoFormat, VideoIR>>)? = null,
+) {
+  private val transformPipeline = TransformPipeline<VideoIR>()
+  private var loggerOverride: TransmuteLogger? = null
+  private var decodeOptions: VideoDecodeOptions = DefaultVideoDecodeOptions()
+  private var encodeOptions: VideoEncodeOptions = DefaultVideoEncodeOptions()
+  private var decodePipeline: DecodePipeline<IN, Decoded<VideoFormat, VideoIR>>? = null
+  private var encodePipeline: EncodePipeline<Decoded<VideoFormat, VideoIR>, EncodedBytes<VideoFormat, OUT>>? = null
+
+  fun logger(logger: TransmuteLogger): VideoTransmuterBuilder<IN, OUT> = apply { loggerOverride = logger }
+
+  fun decodeOptions(options: VideoDecodeOptions): VideoTransmuterBuilder<IN, OUT> = apply {
+    decodeOptions = options
+  }
+
+  fun encodeOptions(options: VideoEncodeOptions): VideoTransmuterBuilder<IN, OUT> = apply {
+    encodeOptions = options
+  }
+
+  fun transform(block: TransformPipeline<VideoIR>.() -> Unit): VideoTransmuterBuilder<IN, OUT> = apply {
+    transformPipeline.block()
+  }
+
+  fun decode(
+    block: PipelineBuilder<IN, IN>.() -> PipelineBuilder<IN, Decoded<VideoFormat, VideoIR>>,
+  ): VideoTransmuterBuilder<IN, OUT> = apply {
+    decodePipeline = PipelineBuilder.start<IN>().block().build()
+  }
+
+  fun encode(
+    block: PipelineBuilder<Decoded<VideoFormat, VideoIR>, Decoded<VideoFormat, VideoIR>>.() ->
+      PipelineBuilder<Decoded<VideoFormat, VideoIR>, EncodedBytes<VideoFormat, OUT>>,
+  ): VideoTransmuterBuilder<IN, OUT> = apply {
+    encodePipeline = PipelineBuilder.start<Decoded<VideoFormat, VideoIR>>().block().build()
+  }
+
+  fun build(): VideoTransmuter<IN, OUT> {
+    val decode = decodePipeline
+      ?: defaultDecodePipeline?.invoke()
+      ?: error("No decode pipeline configured; call decode { ... }")
+    val encode = encodePipeline ?: defaultFixedVideoEncodePipeline()
+
+    return VideoTransmuter(
+      loggerOverride = loggerOverride,
+      transforms = transformPipeline.transforms,
+      decodePipeline = decode,
+      encodePipeline = encode,
+      decodeOptions = decodeOptions,
+      encodeOptions = encodeOptions,
+    )
+  }
+
+  private fun defaultFixedVideoEncodePipeline(): EncodePipeline<Decoded<VideoFormat, VideoIR>, EncodedBytes<VideoFormat, OUT>> =
+    PipelineBuilder.start<Decoded<VideoFormat, VideoIR>>()
+      .then(VideoFixedEncodeHandler(output))
+      .build()
+}
+
+class VideoTransmuter<IN, OUT : FormatTag<VideoFormat>> internal constructor(
+    private val loggerOverride: TransmuteLogger?,
+    private val transforms: List<Transform<VideoIR>>,
+    private val decodePipeline: DecodePipeline<IN, Decoded<VideoFormat, VideoIR>>,
+    private val encodePipeline: EncodePipeline<Decoded<VideoFormat, VideoIR>, EncodedBytes<VideoFormat, OUT>>,
+    private val decodeOptions: VideoDecodeOptions,
+    private val encodeOptions: VideoEncodeOptions,
+) : Transmuter<IN, VideoFormat, OUT> {
+
   fun wouldTransmute(hint: VideoHint): Boolean {
-    if (metadataPolicy == MetadataPolicy.STRIP_ALL) return true
-    if (outputFormat != null && outputFormat != hint.format) return true
-    return pipeline.transforms.any { (it as? VideoTransform)?.wouldTransform(hint) ?: true }
+    return transforms.any { (it as? VideoTransform)?.wouldTransform(hint) ?: true }
   }
 
-  override suspend fun transmute(source: ByteArray): ByteArray {
-    val context = createContext()
+  override suspend fun transmute(source: IN): EncodedBytes<VideoFormat, OUT> {
+    val context = createContext(
+      loggerOverride = loggerOverride,
+      decodeOptions = decodeOptions,
+      encodeOptions = encodeOptions,
+    )
     VideoRegistries.installDefaultsIfEmpty()
-    val inputFormat = VideoFormatDetector.detect(source)
-    val outFormat = outputFormat ?: inputFormat
 
-    context.onProgress(0.1f)
-    val decoder = VideoRegistries.decoders.decoderFor(inputFormat)
-      ?: error("No video decoder for $inputFormat. Register a platform decoder.")
-    var ir = decoder.decode(source, context)
+    val decoded = decodePipeline.run(source, context)
+    val inputFormat = decoded.format
+    var ir = decoded.ir
 
-    val steps = pipeline.transforms
-    val transformStep = 0.7f / steps.size.coerceAtLeast(1)
+    val steps = transforms
     steps.forEachIndexed { index, transform ->
       ir = transform.apply(ir, context)
-      context.onProgress(0.1f + (index + 1) * transformStep)
     }
 
-    ir = VideoMetadataTransform(metadataPolicy).apply(ir, context)
-
-    context.onProgress(0.9f)
-    val encoder = VideoRegistries.encoders.encoderFor(outFormat)
-      ?: error("No video encoder for $outFormat. Register a platform encoder.")
-    val result = encoder.encode(ir, context)
-    context.onProgress(1f)
-    return result
+    val encoded = encodePipeline.run(Decoded(inputFormat, ir), context)
+    return encoded
   }
-
-  override suspend fun transmuteInto(source: ByteArray, buffer: ByteArray, offset: Int): Int {
-    val bytes = transmute(source)
-    require(offset >= 0 && offset <= buffer.size) { "offset out of bounds" }
-    require(bytes.size <= buffer.size - offset) {
-      "buffer too small: need ${bytes.size}, have ${buffer.size - offset}"
-    }
-    bytes.copyInto(buffer, destinationOffset = offset)
-    return bytes.size
-  }
-
-  @OptIn(ExperimentalUuidApi::class)
-  private fun createContext() = ConversionContext(
-    jobId = Uuid.random().toString(),
-    coroutineJob = null,
-    metadataPolicy = metadataPolicy,
-    onProgress = progressCallback ?: {},
-    logger = loggerOverride ?: TransmuteLogging.logger,
-    scratchpad = mutableMapOf(),
-    timeBudgetMs = Long.MAX_VALUE,
-    memoryBudgetBytes = Long.MAX_VALUE,
-  )
 }
+
+// -- Shared helpers --
+
+private fun defaultImageByteArrayDecodePipeline(): DecodePipeline<ByteArray, Decoded<ImageFormat, ImageIR>> =
+  PipelineBuilder.start<ByteArray>()
+    .then(ImageDecodeHandler())
+    .build()
+
+private fun defaultAudioByteArrayDecodePipeline(): DecodePipeline<ByteArray, Decoded<AudioFormat, AudioIR>> =
+  PipelineBuilder.start<ByteArray>()
+    .then(AudioDecodeHandler())
+    .build()
+
+private fun defaultVideoByteArrayDecodePipeline(): DecodePipeline<ByteArray, Decoded<VideoFormat, VideoIR>> =
+  PipelineBuilder.start<ByteArray>()
+    .then(VideoDecodeHandler())
+    .build()
+
+private fun createContext(
+    loggerOverride: TransmuteLogger?,
+    decodeOptions: DecodeOptions,
+    encodeOptions: EncodeOptions,
+): TransmuteContext = TransmuteContext(
+  logger = loggerOverride ?: TransmuteLogging.logger,
+  decodeOptions = decodeOptions,
+  encodeOptions = encodeOptions,
+)

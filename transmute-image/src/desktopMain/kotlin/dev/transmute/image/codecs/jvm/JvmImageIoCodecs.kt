@@ -1,6 +1,6 @@
 package dev.transmute.image.codecs.jvm
 
-import dev.transmute.core.ConversionContext
+import dev.transmute.core.TransmuteContext
 import dev.transmute.core.ImageFormat
 import dev.transmute.image.*
 import java.awt.Graphics2D
@@ -51,7 +51,7 @@ class JvmImageIoDecoder : ImageDecoder {
     return null
   }
 
-  override suspend fun decode(source: ByteArray, context: ConversionContext): ImageIR {
+  override suspend fun decode(source: ByteArray, options: ImageDecodeOptions, context: TransmuteContext): ImageIR {
     val input = ByteArrayInputStream(source)
     val img = ImageIO.read(input) ?: error("ImageIO could not decode image")
 
@@ -103,21 +103,36 @@ class JvmImageIoEncoder : ImageEncoder {
     ImageFormat.WEBP,
   )
 
-  override suspend fun encode(ir: ImageIR, context: ConversionContext): ByteArray {
+  override suspend fun encode(
+    ir: ImageIR,
+    format: ImageFormat,
+    options: ImageEncodeOptions,
+    context: TransmuteContext,
+  ): ByteArray {
     val buffer = ir.buffer as? ByteArrayPixelBuffer
       ?: error("JvmImageIoEncoder requires ByteArrayPixelBuffer")
     require(ir.pixelFormat == PixelFormat.RGBA_8888) { "Only RGBA_8888 is supported" }
 
-    val format = (context.scratchpad["image.output.format"] as? ImageFormat) ?: ImageFormat.PNG
-    val quality = (context.scratchpad["image.output.quality"] as? Number)?.toFloat()
-      ?: 0.85f
+    require(format in supportedFormats) { "Unsupported format $format" }
 
     return when (format) {
-      ImageFormat.JPEG -> encodeJpeg(buffer, ir.width, ir.height, ir.stride, quality)
+      ImageFormat.JPEG -> {
+        val quality = when (options) {
+          is JpegEncodeOptions -> options.quality
+          else -> 0.85f
+        }
+        encodeJpeg(buffer, ir.width, ir.height, ir.stride, quality)
+      }
       ImageFormat.PNG -> encodePng(buffer, ir.width, ir.height, ir.stride)
       ImageFormat.GIF -> encodeViaImageIo(buffer, ir.width, ir.height, ir.stride, "gif", dropAlpha = true)
       ImageFormat.TIFF -> encodeViaImageIo(buffer, ir.width, ir.height, ir.stride, "tiff", dropAlpha = false)
-      ImageFormat.WEBP -> encodeWebp(buffer, ir.width, ir.height, ir.stride, quality)
+      ImageFormat.WEBP -> {
+        val quality = when (options) {
+          is WebPEncodeOptions -> options.quality
+          else -> 0.80f
+        }
+        encodeWebp(buffer, ir.width, ir.height, ir.stride, quality)
+      }
       else -> encodePng(buffer, ir.width, ir.height, ir.stride)
     }
   }

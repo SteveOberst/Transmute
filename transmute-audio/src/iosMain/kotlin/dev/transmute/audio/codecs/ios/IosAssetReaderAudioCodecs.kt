@@ -7,7 +7,7 @@ import dev.transmute.audio.AudioDecoder
 import dev.transmute.audio.AudioIR
 import dev.transmute.audio.AudioSamples
 import dev.transmute.core.AudioFormat
-import dev.transmute.core.ConversionContext
+import dev.transmute.core.TransmuteContext
 import kotlinx.cinterop.*
 import platform.AVFoundation.*
 import platform.CoreAudioTypes.kAudioFormatFLAC
@@ -16,6 +16,7 @@ import platform.CoreAudioTypes.kAudioFormatMPEG4AAC
 import platform.CoreFoundation.CFRelease
 import platform.CoreMedia.*
 import platform.Foundation.*
+import dev.transmute.audio.AudioDecodeOptions
 
 // ---------------------------------------------------------------------------
 // Shared decode logic - AVAssetReader → float32 PCM.
@@ -24,7 +25,7 @@ import platform.Foundation.*
 private suspend fun decodeWithAssetReader(
   source: ByteArray,
   format: AudioFormat,
-  context: ConversionContext,
+  context: TransmuteContext,
 ): AudioIR {
   val tmpDir = NSTemporaryDirectory()
   val fileName = "transmute_${NSUUID().UUIDString}_${format.extension}"
@@ -147,7 +148,7 @@ private suspend fun decodeWithAssetReader(
  * AAC encoder. Both AAC and M4A output the same .m4a container; the
  * difference is semantic (AudioFormat tag).
  */
-private suspend fun encodeWithAssetWriter(ir: AudioIR, context: ConversionContext): ByteArray {
+private suspend fun encodeWithAssetWriter(ir: AudioIR, context: TransmuteContext): ByteArray {
   val sampleRate = ir.sampleRate
   val channelCount = ir.channelCount
   val samples = ir.samples.data
@@ -298,7 +299,7 @@ private fun buildWav(samples: FloatArray, sampleRate: Int, channels: Int): ByteA
  *
  * Writes IR to a temporary WAV, then pipes through the hardware FLAC encoder.
  */
-private suspend fun encodeFlacWithAssetWriter(ir: AudioIR, context: ConversionContext): ByteArray {
+private suspend fun encodeFlacWithAssetWriter(ir: AudioIR, context: TransmuteContext): ByteArray {
   val sampleRate = ir.sampleRate
   val channelCount = ir.channelCount
   val samples = ir.samples.data
@@ -420,7 +421,7 @@ internal abstract class IosAssetReaderAudioDecoder(
 
   override val supportedFormats: Set<AudioFormat> = setOf(format)
 
-  override suspend fun decode(source: ByteArray, context: ConversionContext): AudioIR =
+  override suspend fun decode(source: ByteArray, options: AudioDecodeOptions, context: TransmuteContext): AudioIR =
     decodeWithAssetReader(source, format, context)
 }
 
@@ -466,10 +467,10 @@ internal class IosFlacCodec : AudioCodec {
     return null
   }
 
-  override suspend fun decode(source: ByteArray, context: ConversionContext): AudioIR =
+  override suspend fun decode(source: ByteArray, options: AudioDecodeOptions, context: TransmuteContext): AudioIR =
     decodeWithAssetReader(source, AudioFormat.FLAC, context)
 
-  override suspend fun encode(ir: AudioIR, context: ConversionContext): ByteArray =
+  override suspend fun encode(ir: AudioIR, context: TransmuteContext): ByteArray =
     encodeFlacWithAssetWriter(ir, context)
 }
 
@@ -489,10 +490,10 @@ internal class IosAacCodec : AudioCodec {
     return null
   }
 
-  override suspend fun decode(source: ByteArray, context: ConversionContext): AudioIR =
+  override suspend fun decode(source: ByteArray, options: AudioDecodeOptions, context: TransmuteContext): AudioIR =
     decodeWithAssetReader(source, AudioFormat.AAC, context)
 
-  override suspend fun encode(ir: AudioIR, context: ConversionContext): ByteArray =
+  override suspend fun encode(ir: AudioIR, context: TransmuteContext): ByteArray =
     encodeWithAssetWriter(ir, context)
 }
 
@@ -505,16 +506,25 @@ internal class IosM4aCodec : AudioCodec {
   override val encodableFormats: Set<AudioFormat> = setOf(AudioFormat.M4A)
 
   override fun sniff(data: ByteArray): AudioFormat? {
-    if (data.size < 8) return null
+    if (data.size < 12) return null
     val ftyp = data.sliceArray(4..7)
-    if (ftyp.decodeToString() == "ftyp") return AudioFormat.M4A
-    return null
+    if (ftyp.decodeToString() != "ftyp") return null
+
+    val brand = data.sliceArray(8..11).decodeToString()
+    if (brand == "M4A " || brand == "M4B " || brand == "M4P " || brand == "M4V ") return AudioFormat.M4A
+
+    // Avoid misclassifying MP4 video as M4A if we see a video marker early.
+    val window = data.copyOfRange(0, minOf(data.size, 256 * 1024)).decodeToString()
+    val hasVideo = window.contains("vide") || window.contains("avc1") || window.contains("hvc1")
+    if (hasVideo) return null
+
+    return AudioFormat.M4A
   }
 
-  override suspend fun decode(source: ByteArray, context: ConversionContext): AudioIR =
+  override suspend fun decode(source: ByteArray, options: AudioDecodeOptions, context: TransmuteContext): AudioIR =
     decodeWithAssetReader(source, AudioFormat.M4A, context)
 
-  override suspend fun encode(ir: AudioIR, context: ConversionContext): ByteArray =
+  override suspend fun encode(ir: AudioIR, context: TransmuteContext): ByteArray =
     encodeWithAssetWriter(ir, context)
 }
 

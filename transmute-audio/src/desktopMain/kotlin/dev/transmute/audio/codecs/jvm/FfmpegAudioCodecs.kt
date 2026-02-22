@@ -1,9 +1,11 @@
 package dev.transmute.audio.codecs.jvm
 
 import dev.transmute.audio.AudioCodec
+import dev.transmute.audio.AudioDecodeOptions
+import dev.transmute.audio.AudioEncodeOptions
 import dev.transmute.audio.AudioIR
 import dev.transmute.core.AudioFormat
-import dev.transmute.core.ConversionContext
+import dev.transmute.core.TransmuteContext
 
 // ---------------------------------------------------------------------------
 // AAC codec (ADTS container, FFmpeg-backed)
@@ -29,11 +31,18 @@ internal class JvmAacCodec : AudioCodec {
     return null
   }
 
-  override suspend fun decode(source: ByteArray, context: ConversionContext): AudioIR =
+  override suspend fun decode(source: ByteArray, options: AudioDecodeOptions, context: TransmuteContext): AudioIR =
     FfmpegAudioEngine.decode(source, "aac", context)
 
-  override suspend fun encode(ir: AudioIR, context: ConversionContext): ByteArray =
-    FfmpegAudioEngine.encode(ir, "aac", "adts", "aac", "128k", context = context)
+  override suspend fun encode(
+    ir: AudioIR,
+    format: AudioFormat,
+    options: AudioEncodeOptions,
+    context: TransmuteContext,
+  ): ByteArray {
+    require(format == AudioFormat.AAC) { "JvmAacCodec only supports AAC, got $format" }
+    return FfmpegAudioEngine.encode(ir, "aac", "adts", "aac", "128k", context = context)
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -52,21 +61,35 @@ internal class JvmM4aCodec : AudioCodec {
   override val encodableFormats: Set<AudioFormat> = setOf(AudioFormat.M4A)
 
   override fun sniff(data: ByteArray): AudioFormat? {
-    if (data.size < 8) return null
+    if (data.size < 12) return null
     // ISO BMFF / MP4: bytes 4..7 = "ftyp"
-    if (data[4] == 0x66.toByte() && data[5] == 0x74.toByte() &&
-      data[6] == 0x79.toByte() && data[7] == 0x70.toByte()
-    ) {
-      return AudioFormat.M4A
-    }
-    return null
+    if (data[4] != 0x66.toByte() || data[5] != 0x74.toByte() ||
+      data[6] != 0x79.toByte() || data[7] != 0x70.toByte()
+    ) return null
+
+    val brand = (8 until 12).map { data[it].toInt().toChar() }.joinToString("")
+    if (brand == "M4A " || brand == "M4B " || brand == "M4P " || brand == "M4V ") return AudioFormat.M4A
+
+    // Avoid misclassifying MP4 video as M4A if we see a video marker early.
+    val window = data.copyOfRange(0, minOf(data.size, 256 * 1024)).decodeToString()
+    val hasVideo = window.contains("vide") || window.contains("avc1") || window.contains("hvc1")
+    if (hasVideo) return null
+
+    return AudioFormat.M4A
   }
 
-  override suspend fun decode(source: ByteArray, context: ConversionContext): AudioIR =
+  override suspend fun decode(source: ByteArray, options: AudioDecodeOptions, context: TransmuteContext): AudioIR =
     FfmpegAudioEngine.decode(source, "m4a", context)
 
-  override suspend fun encode(ir: AudioIR, context: ConversionContext): ByteArray =
-    FfmpegAudioEngine.encode(ir, "aac", "ipod", "m4a", "128k", context = context)
+  override suspend fun encode(
+    ir: AudioIR,
+    format: AudioFormat,
+    options: AudioEncodeOptions,
+    context: TransmuteContext,
+  ): ByteArray {
+    require(format == AudioFormat.M4A) { "JvmM4aCodec only supports M4A, got $format" }
+    return FfmpegAudioEngine.encode(ir, "aac", "ipod", "m4a", "128k", context = context)
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -102,9 +125,16 @@ internal class JvmOpusCodec : AudioCodec {
     return null
   }
 
-  override suspend fun decode(source: ByteArray, context: ConversionContext): AudioIR =
+  override suspend fun decode(source: ByteArray, options: AudioDecodeOptions, context: TransmuteContext): AudioIR =
     FfmpegAudioEngine.decode(source, "opus", context)
 
-  override suspend fun encode(ir: AudioIR, context: ConversionContext): ByteArray =
-    FfmpegAudioEngine.encode(ir, "libopus", "ogg", "opus", "128k", context = context)
+  override suspend fun encode(
+    ir: AudioIR,
+    format: AudioFormat,
+    options: AudioEncodeOptions,
+    context: TransmuteContext,
+  ): ByteArray {
+    require(format == AudioFormat.OPUS) { "JvmOpusCodec only supports OPUS, got $format" }
+    return FfmpegAudioEngine.encode(ir, "libopus", "ogg", "opus", "128k", context = context)
+  }
 }

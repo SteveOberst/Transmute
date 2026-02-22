@@ -1,17 +1,20 @@
 package dev.transmute.audio.codecs.jvm
 
+import dev.transmute.audio.AudioEncodeOptions
 import dev.transmute.audio.AudioTestHelpers
 import dev.transmute.core.AudioFormat
 import dev.transmute.core.PrintLogger
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
+import dev.transmute.audio.DefaultAudioDecodeOptions
+import dev.transmute.audio.DefaultAudioEncodeOptions
 
 class JvmOggVorbisCodecTest {
 
     private val log = PrintLogger
     private val codec = JvmOggVorbisCodec()
 
-    // ── Format declarations ──
+    // -- Format declarations --
 
     @Test
     fun decodableFormatsContainsOgg() {
@@ -27,7 +30,7 @@ class JvmOggVorbisCodecTest {
         }
     }
 
-    // ── Sniff ──
+    // -- Sniff --
 
     @Test
     fun sniffDetectsOggVorbisMagic() {
@@ -53,7 +56,7 @@ class JvmOggVorbisCodecTest {
         assertNull(codec.sniff(byteArrayOf(0x4F, 0x67, 0x67)))
     }
 
-    // ── Encode + decode round-trip (FFmpeg required for encode) ──
+    // -- Encode + decode round-trip (FFmpeg required for encode) --
 
     @Test
     fun encodeDecodeOggRoundTrip() = runTest {
@@ -71,7 +74,7 @@ class JvmOggVorbisCodecTest {
         )
 
         val encoded = try {
-            codec.encode(original, AudioTestHelpers.testContext())
+            codec.encode(original, AudioFormat.OGG, DefaultAudioEncodeOptions(), AudioTestHelpers.testContext())
         } catch (e: Exception) {
             if ("FFmpeg" in e.message.orEmpty() || "libvorbis" in e.message.orEmpty()) {
                 log.warn("SKIPPED: OGG/Vorbis encoding not available: ${e.message}")
@@ -86,7 +89,7 @@ class JvmOggVorbisCodecTest {
         assertEquals(0x67.toByte(), encoded[1])
 
         val decoded = try {
-            codec.decode(encoded, AudioTestHelpers.testContext())
+            codec.decode(encoded, DefaultAudioDecodeOptions(), AudioTestHelpers.testContext())
         } catch (e: Exception) {
             // JOrbis may not be able to decode OGG files produced by modern FFmpeg
             // builds on some platforms. Skip rather than fail the entire CI run.
@@ -107,7 +110,7 @@ class JvmOggVorbisCodecTest {
 
         val ir = AudioTestHelpers.sineWave(durationMs = 50)
         assertFailsWith<IllegalStateException> {
-            codec.encode(ir, AudioTestHelpers.testContext())
+            codec.encode(ir, AudioFormat.OGG, DefaultAudioEncodeOptions(), AudioTestHelpers.testContext())
         }
     }
 }

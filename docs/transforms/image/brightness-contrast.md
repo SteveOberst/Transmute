@@ -14,7 +14,7 @@ Adjust image brightness and contrast.
 ### DSL
 
 ```kotlin
-Transmute.image(bytes) { brightnessContrast(brightness = 10f, contrast = 1.2f) }
+Transmute.image { brightnessContrast(brightness = 10f, contrast = 1.2f) }.transmute(bytes).bytes
 ```
 
 ### Pipeline

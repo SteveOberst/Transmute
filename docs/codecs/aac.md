@@ -1,6 +1,6 @@
 # AAC
 
-AAC (Advanced Audio Coding) is a lossy audio format that provides better sound quality than MP3 at similar bitrates. It is the default audio codec for iOS, YouTube, and most streaming services.
+AAC (Advanced Audio Coding) is a modern lossy audio codec that provides better quality than MP3 at similar bitrates. It's the default audio codec used in MP4/M4A containers.
 
 ## Platform Support
 
@@ -8,27 +8,31 @@ AAC (Advanced Audio Coding) is a lossy audio format that provides better sound q
 |----------|--------|--------|--------|
 | Android  | ✅     | ✅     | MediaCodec |
 | Desktop  | ✅     | ✅     | FFmpeg (bundled) |
-| iOS      | ✅     | ✅     | AVFoundation / AVAssetWriter |
+| iOS      | ✅     | ✅     | AVFoundation |
 
 ## Usage
 
 ```kotlin
-// Convert audio to AAC
-val aacBytes = Transmute.audio(inputBytes) {
-    outputFormat(AudioFormat.AAC)
-}
+import dev.transmute.Transmute
+import dev.transmute.audio.DefaultAudioEncodeOptions
+import dev.transmute.core.AudioFormat
 
-// Decode AAC to WAV
-val wavBytes = Transmute.audio(aacBytes) {
-    outputFormat(AudioFormat.WAV)
-}
+// Convert audio to AAC
+suspend fun convertToAac(inputBytes: ByteArray): ByteArray =
+  Transmute.audio {
+    encodeOptions(DefaultAudioEncodeOptions(outputFormat = AudioFormat.AAC))
+  }.transmute(inputBytes).bytes
+
+// Decode AAC (re-encode to WAV)
+suspend fun decodeToWav(aacBytes: ByteArray): ByteArray =
+  Transmute.audio {
+    encodeOptions(DefaultAudioEncodeOptions(outputFormat = AudioFormat.WAV))
+  }.transmute(aacBytes).bytes
 ```
 
 ## Notes
 
-- Full encode + decode support on all platforms.
-- Android uses hardware-accelerated MediaCodec for both encoding and decoding.
-- Desktop relies on the bundled FFmpeg - no user setup needed.
-- iOS encodes via AVAssetWriter with native hardware acceleration.
-- Lossy compression - typically superior to MP3 at equivalent bitrates.
-- AAC output is commonly wrapped in an M4A/MP4 container.
+- Great balance of quality and compression.
+- Supported natively on Android and iOS.
+- Typically used inside MP4/M4A containers.
+- Desktop uses the bundled FFmpeg build.

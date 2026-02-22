@@ -1,34 +1,37 @@
-# OGG Vorbis
+# OGG (Vorbis)
 
-OGG Vorbis is an open-source, royalty-free lossy audio format. It generally offers better quality than MP3 at equivalent bitrates.
+Ogg Vorbis is an open-source lossy audio format. It provides good quality at lower bitrates and is commonly used in games and open ecosystems.
 
 ## Platform Support
 
 | Platform | Decode | Encode | Engine |
 |----------|--------|--------|--------|
-| Android  | ✅     | ❌     | MediaCodec (decode only) |
-| Desktop  | ✅     | ✅     | jorbis (decode) / FFmpeg (encode) |
-| iOS      | ❌     | ❌     | Not supported |
+| Android  | ✅     | ✅     | MediaCodec (decode) / FFmpeg (encode) |
+| Desktop  | ✅     | ✅     | FFmpeg (bundled) |
+| iOS      | ✅     | ❌     | AVFoundation (decode only) |
 
 ## Usage
 
 ```kotlin
-// Encode to OGG Vorbis (Desktop only)
-val oggBytes = Transmute.audio(inputBytes) {
-    outputFormat(AudioFormat.OGG)
-}
+import dev.transmute.Transmute
+import dev.transmute.audio.DefaultAudioEncodeOptions
+import dev.transmute.core.AudioFormat
 
-// Decode OGG to WAV (Android/Desktop)
-val wavBytes = Transmute.audio(oggBytes) {
-    outputFormat(AudioFormat.WAV)
-}
+// Convert audio to OGG (Vorbis) (Android/Desktop)
+suspend fun convertToOgg(inputBytes: ByteArray): ByteArray =
+  Transmute.audio {
+    encodeOptions(DefaultAudioEncodeOptions(outputFormat = AudioFormat.OGG))
+  }.transmute(inputBytes).bytes
+
+// Decode OGG on any platform (re-encode to WAV)
+suspend fun decodeToWav(oggBytes: ByteArray): ByteArray =
+  Transmute.audio {
+    encodeOptions(DefaultAudioEncodeOptions(outputFormat = AudioFormat.WAV))
+  }.transmute(oggBytes).bytes
 ```
 
 ## Notes
 
-- **iOS does not support OGG Vorbis** - neither decode nor encode.
-- Android can **decode** OGG but cannot encode to it.
-- Desktop decoding uses jorbis (pure-Java); encoding uses the bundled FFmpeg.
-- Royalty-free alternative to MP3 and AAC.
-- Commonly used in games, open-source projects, and web audio.
-- Consider AAC or OPUS as cross-platform alternatives if iOS support is needed.
+- Open and royalty-free.
+- iOS can decode OGG but cannot encode to it.
+- Desktop encoding relies on the bundled FFmpeg build.

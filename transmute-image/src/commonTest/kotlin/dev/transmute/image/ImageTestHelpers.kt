@@ -1,9 +1,6 @@
 package dev.transmute.image
 
-import dev.transmute.core.ConversionContext
-import dev.transmute.core.ConversionLogger
-import dev.transmute.core.ImageFormat
-import dev.transmute.core.MetadataPolicy
+import dev.transmute.core.TransmuteContext
 import dev.transmute.core.PrintLogger
 import kotlin.math.abs
 
@@ -11,20 +8,14 @@ import kotlin.math.abs
  * Shared test utilities for the image conversion module.
  *
  * Provides synthetic image generation, pixel comparison,
- * and a common [ConversionContext] for tests.
+ * and a common [TransmuteContext] for tests.
  */
 object ImageTestHelpers {
 
-  // --- ConversionContext ---
+  // --- TransmuteContext ---
 
-  /** Creates a minimal ConversionContext suitable for unit tests. */
-  fun testContext(
-    metadataPolicy: MetadataPolicy = MetadataPolicy.PRESERVE,
-  ) = ConversionContext(
-    jobId = "test",
-    metadataPolicy = metadataPolicy,
-    logger = PrintLogger,
-  )
+  /** Creates a minimal TransmuteContext suitable for unit tests. */
+  fun testContext() = TransmuteContext(logger = PrintLogger)
 
   // --- Synthetic image creation ---
 
@@ -218,23 +209,6 @@ object ImageTestHelpers {
     }
     return if (count > 0) totalDiff.toDouble() / count else 0.0
   }
-
-  // --- Test context helpers ---
-
-  /**
-   * Creates a [ConversionContext] with the given output format and optional quality
-   * set in the scratchpad.
-   */
-  fun testContextWith(
-    format: ImageFormat,
-    quality: Float? = null,
-    base: ConversionContext = testContext(),
-  ) = base.copy(
-    scratchpad = base.scratchpad.toMutableMap().apply {
-      this["image.output.format"] = format
-      if (quality != null) this["image.output.quality"] = quality else remove("image.output.quality")
-    },
-  )
 
   // --- Alpha normalization ---
 

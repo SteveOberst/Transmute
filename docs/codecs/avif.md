@@ -1,35 +1,38 @@
 # AVIF
 
-AVIF (AV1 Image File Format) is a next-generation image format based on the AV1 video codec. It offers excellent compression efficiency, often surpassing HEIF and WebP, and is royalty-free.
+AVIF is a next-generation image format based on AV1. It provides excellent compression efficiency and high quality, especially for photographic content.
 
 ## Platform Support
 
 | Platform | Decode | Encode | Engine |
 |----------|--------|--------|--------|
-| Android  | ✅     | ❌     | BitmapFactory (API 31+ decode) |
-| Desktop  | ✅     | ✅     | FFmpeg (requires libaom) |
-| iOS      | ✅     | ✅     | CoreGraphics (iOS 16+) |
+| Android  | ✅     | ❌     | ImageDecoder (decode only) |
+| Desktop  | ✅     | ✅     | FFmpeg (bundled) |
+| iOS      | ✅     | ✅     | CoreGraphics (CGImage) |
 
 ## Usage
 
 ```kotlin
-// Convert to AVIF (Desktop/iOS only for encode)
-val avifBytes = Transmute.image(inputBytes) {
-    outputFormat(ImageFormat.AVIF)
-    quality(0.80f)
-}
+import dev.transmute.Transmute
+import dev.transmute.core.ImageFormat
+import dev.transmute.image.HeifEncodeOptions
+import dev.transmute.image.PngEncodeOptions
 
-// Decode AVIF to another format
-val pngBytes = Transmute.image(avifBytes) {
-    outputFormat(ImageFormat.PNG)
-}
+// Convert any image to AVIF (Desktop/iOS)
+suspend fun convertToAvif(inputBytes: ByteArray): ByteArray =
+  Transmute.image {
+    encodeOptions(HeifEncodeOptions(outputFormat = ImageFormat.AVIF, quality = 0.8f))
+  }.transmute(inputBytes).bytes
+
+// Decode AVIF (re-encode to PNG)
+suspend fun decodeToPng(avifBytes: ByteArray): ByteArray =
+  Transmute.image {
+    encodeOptions(PngEncodeOptions())
+  }.transmute(avifBytes).bytes
 ```
 
 ## Notes
 
-- Android can **decode** AVIF on API 31+ but cannot encode to it.
-- Desktop encoding requires the bundled FFmpeg with `libaom-av1` support.
-- iOS has full AVIF support starting with iOS 16.
-- Encoding can be noticeably slower than JPEG/WebP due to AV1 complexity.
-- Royalty-free - no patent licensing concerns unlike HEIF.
-- Supports HDR, wide color gamut, and alpha transparency.
+- Android decode support depends on OS version; encoding support is limited.
+- Desktop encoding relies on the bundled FFmpeg build.
+- iOS offers AVIF support on newer versions.

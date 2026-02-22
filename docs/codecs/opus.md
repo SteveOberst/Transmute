@@ -1,35 +1,37 @@
 # OPUS
 
-OPUS is a versatile, open-source, royalty-free lossy audio codec. It excels at both speech and music, offering superior quality at low bitrates compared to MP3, AAC, and Vorbis.
+Opus is a modern audio codec optimized for interactive speech and music over the internet. It delivers excellent quality across a wide range of bitrates and is widely used in VoIP and streaming.
 
 ## Platform Support
 
 | Platform | Decode | Encode | Engine |
 |----------|--------|--------|--------|
-| Android  | ✅     | ✅*    | MediaCodec (*encode requires API 29+) |
+| Android  | ✅     | ✅     | MediaCodec (decode) / FFmpeg (encode) |
 | Desktop  | ✅     | ✅     | FFmpeg (bundled) |
-| iOS      | ❌     | ❌     | Not supported |
+| iOS      | ✅     | ❌     | AVFoundation (decode only) |
 
 ## Usage
 
 ```kotlin
-// Encode to OPUS (Android API 29+ / Desktop)
-val opusBytes = Transmute.audio(inputBytes) {
-    outputFormat(AudioFormat.OPUS)
-}
+import dev.transmute.Transmute
+import dev.transmute.audio.DefaultAudioEncodeOptions
+import dev.transmute.core.AudioFormat
 
-// Decode OPUS to WAV (Android / Desktop)
-val wavBytes = Transmute.audio(opusBytes) {
-    outputFormat(AudioFormat.WAV)
-}
+// Convert audio to OPUS (Android/Desktop)
+suspend fun convertToOpus(inputBytes: ByteArray): ByteArray =
+  Transmute.audio {
+    encodeOptions(DefaultAudioEncodeOptions(outputFormat = AudioFormat.OPUS))
+  }.transmute(inputBytes).bytes
+
+// Decode OPUS on any platform (re-encode to WAV)
+suspend fun decodeToWav(opusBytes: ByteArray): ByteArray =
+  Transmute.audio {
+    encodeOptions(DefaultAudioEncodeOptions(outputFormat = AudioFormat.WAV))
+  }.transmute(opusBytes).bytes
 ```
 
 ## Notes
 
-- **iOS does not support OPUS** - neither decode nor encode.
-- Android decoding works on any supported API level; **encoding requires API 29+**.
-- Desktop uses the bundled FFmpeg for full encode + decode.
-- Best-in-class quality at low bitrates (6–510 kbps).
-- Royalty-free and standardized as RFC 6716.
-- Commonly used in WebRTC, VoIP, and streaming applications.
-- OPUS audio is typically wrapped in an OGG or WebM container.
+- Excellent quality at low bitrates.
+- Great for speech, music, and mixed content.
+- Desktop encoding relies on the bundled FFmpeg build.

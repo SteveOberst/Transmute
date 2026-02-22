@@ -11,7 +11,7 @@ class ImageResizeTransformTest {
 
   private val ctx = ImageTestHelpers.testContext()
 
-  // ── Downscale ──
+  // -- Downscale --
 
   @Test
   fun downscaleProducesExactTargetDimensions() = runTest {
@@ -46,7 +46,7 @@ class ImageResizeTransformTest {
     assertTrue(diff <= 2, "Solid color resize peak diff $diff should be ≤ 2")
   }
 
-  // ── Upscale ──
+  // -- Upscale --
 
   @Test
   fun upscaleProducesExactTargetDimensions() = runTest {
@@ -69,7 +69,7 @@ class ImageResizeTransformTest {
     assertEquals(32, result.height)
   }
 
-  // ── Identity ──
+  // -- Identity --
 
   @Test
   fun sameSizeReturnsUnchanged() = runTest {
@@ -82,7 +82,7 @@ class ImageResizeTransformTest {
     assertEquals(0, ImageTestHelpers.peakDifference(src, result))
   }
 
-  // ── Filters ──
+  // -- Filters --
 
   @Test
   fun allFiltersProduceCorrectDimensions() = runTest {
@@ -95,7 +95,7 @@ class ImageResizeTransformTest {
     }
   }
 
-  // ── Non-uniform scale ──
+  // -- Non-uniform scale --
 
   @Test
   fun nonUniformScaleProducesCorrectDimensions() = runTest {
@@ -107,7 +107,7 @@ class ImageResizeTransformTest {
     assertEquals(25, result.height)
   }
 
-  // ── Transform ID ──
+  // -- Transform ID --
 
   @Test
   fun transformIdIsCorrect() {

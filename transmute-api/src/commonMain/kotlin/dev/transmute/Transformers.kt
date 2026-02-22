@@ -13,12 +13,12 @@ import dev.transmute.video.transform.*
  * [TransformPipeline][dev.transmute.core.pipeline.TransformPipeline]:
  *
  * ```kotlin
- * Transmute.video(buf) {
+ * Transmute.video {
  *   transform {
  *     add(Transformers.video().resize(640, 480))
  *     before<VideoResizeTransform>(Transformers.video().trim(0, 5000))
  *   }
- * }
+ * }.transmute(buf)
  * ```
  *
  * Custom transforms that implement [Transform][dev.transmute.core.pipeline.Transform]
@@ -37,7 +37,7 @@ object Transformers {
   fun video(): VideoTransforms = VideoTransforms
 }
 
-// ── Image transform factory ──
+// -- Image transform factory --
 
 /** Creates image [Transform][dev.transmute.core.pipeline.Transform] instances. */
 object ImageTransforms {
@@ -83,7 +83,7 @@ object ImageTransforms {
   fun opacity(opacity: Float) = ImageOpacityTransform(opacity)
 }
 
-// ── Audio transform factory ──
+// -- Audio transform factory --
 
 /** Creates audio [Transform][dev.transmute.core.pipeline.Transform] instances. */
 object AudioTransforms {
@@ -133,7 +133,7 @@ object AudioTransforms {
   fun channelMap(mapping: IntArray) = AudioChannelMapTransform(mapping)
 }
 
-// ── Video transform factory ──
+// -- Video transform factory --
 
 /** Creates video [Transform][dev.transmute.core.pipeline.Transform] instances. */
 object VideoTransforms {

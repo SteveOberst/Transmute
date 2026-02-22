@@ -2,19 +2,24 @@
 
 package dev.transmute.image.codecs.ios
 
-import dev.transmute.core.ConversionContext
+import dev.transmute.core.TransmuteContext
 import dev.transmute.core.ImageFormat
 import dev.transmute.image.*
 import kotlinx.cinterop.*
 import platform.CoreFoundation.CFDataCreate
 import platform.CoreFoundation.CFDataCreateMutable
+import platform.CoreFoundation.CFDictionaryCreateMutable
+import platform.CoreFoundation.CFDictionarySetValue
+import platform.CoreFoundation.CFNumberCreate
 import platform.CoreFoundation.CFRelease
 import platform.CoreFoundation.CFDataGetBytePtr
 import platform.CoreFoundation.CFDataGetLength
 import platform.CoreFoundation.CFStringCreateWithCString
+import platform.CoreFoundation.kCFNumberDoubleType
 import platform.CoreFoundation.kCFStringEncodingUTF8
 import platform.CoreGraphics.*
 import platform.ImageIO.*
+import dev.transmute.image.ImageDecodeOptions
 
 class IosImageIoDecoder : ImageDecoder {
   override val supportedFormats: Set<ImageFormat> = setOf(
@@ -64,13 +69,14 @@ class IosImageIoDecoder : ImageDecoder {
         brand == "mif1" || brand == "msf1" -> ImageFormat.HEIF
         brand == "hevc" || brand == "hevx" -> ImageFormat.HEIC
         brand == "avif" || brand == "avis" -> ImageFormat.AVIF
-        else -> ImageFormat.HEIF
+        brand == "heif" || brand == "heis" -> ImageFormat.HEIF
+        else -> null
       }
     }
     return null
   }
 
-  override suspend fun decode(source: ByteArray, context: ConversionContext): ImageIR {
+  override suspend fun decode(source: ByteArray, options: ImageDecodeOptions, context: TransmuteContext): ImageIR {
     val cfData = source.usePinned { pinned ->
       CFDataCreate(null, pinned.addressOf(0).reinterpret(), source.size.toLong())
     } ?: error("CFDataCreate failed")
@@ -142,12 +148,17 @@ class IosImageIoEncoder : ImageEncoder {
     ImageFormat.BMP,
   )
 
-  override suspend fun encode(ir: ImageIR, context: ConversionContext): ByteArray {
+  override suspend fun encode(
+    ir: ImageIR,
+    format: ImageFormat,
+    options: ImageEncodeOptions,
+    context: TransmuteContext,
+  ): ByteArray {
     val buffer = ir.buffer as? ByteArrayPixelBuffer
       ?: error("IosImageIoEncoder requires ByteArrayPixelBuffer")
     require(ir.pixelFormat == PixelFormat.RGBA_8888) { "Only RGBA_8888 is supported" }
 
-    val format = (context.scratchpad["image.output.format"] as? ImageFormat) ?: ImageFormat.PNG
+    require(format in supportedFormats) { "Unsupported format $format" }
     val utiString = when (format) {
       ImageFormat.JPEG -> "public.jpeg"
       ImageFormat.PNG -> "public.png"
@@ -197,9 +208,27 @@ class IosImageIoEncoder : ImageEncoder {
       val dest = CGImageDestinationCreateWithData(mutableData, uti, 1u, null)
         ?: error("CGImageDestinationCreateWithData failed")
 
-      CGImageDestinationAddImage(dest, cgImage, null)
+      val props = if (format == ImageFormat.JPEG) {
+        val q = ((options as? JpegEncodeOptions)?.quality ?: 0.85f).coerceIn(0f, 1f).toDouble()
+        val num = memScoped { CFNumberCreate(null, kCFNumberDoubleType, alloc<DoubleVar>().apply { value = q }.ptr) }
+          ?: error("CFNumberCreate failed")
+        val dict = CFDictionaryCreateMutable(null, 0, null, null)
+          ?: error("CFDictionaryCreateMutable failed")
+        CFDictionarySetValue(dict, kCGImageDestinationLossyCompressionQuality, num)
+        // CFDictionary retains values; release our local reference.
+        CFRelease(num)
+        dict
+      } else {
+        null
+      }
+
+      CGImageDestinationAddImage(dest, cgImage, props)
       val ok = CGImageDestinationFinalize(dest)
       if (!ok) error("CGImageDestinationFinalize failed")
+
+      if (props != null) {
+        CFRelease(props)
+      }
 
       val len = CFDataGetLength(mutableData).toInt()
       val ptr = CFDataGetBytePtr(mutableData) ?: error("CFDataGetBytePtr failed")

@@ -13,7 +13,7 @@ Change playback speed without altering pitch.
 ### DSL
 
 ```kotlin
-Transmute.audio(bytes) { speed(1.5f) }
+Transmute.audio { speed(1.5f) }.transmute(bytes).bytes
 ```
 
 ### Pipeline

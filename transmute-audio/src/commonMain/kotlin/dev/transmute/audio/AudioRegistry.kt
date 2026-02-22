@@ -5,6 +5,9 @@ import dev.transmute.audio.codecs.WavDecoder
 import dev.transmute.audio.codecs.WavEncoder
 import dev.transmute.core.AudioFormat
 import dev.transmute.core.Codec
+import dev.transmute.core.Decoder
+import dev.transmute.core.Encoder
+import dev.transmute.core.TransmuteContext
 
 /**
  * Mutable registry for [AudioDecoder] instances.
@@ -20,13 +23,24 @@ class MutableAudioDecoderRegistry : AudioDecoderRegistry {
     }
   }
 
+  /** Register a core [Decoder] as an [AudioDecoder]. */
+  fun register(decoder: Decoder<AudioFormat, AudioIR, AudioDecodeOptions>) {
+    val wrapper = object : AudioDecoder {
+      override val supportedFormats = decoder.decodableFormats
+      override fun sniff(data: ByteArray) = decoder.sniff(data)
+      override suspend fun decode(source: ByteArray, options: AudioDecodeOptions, context: TransmuteContext) =
+        decoder.decode(source, options, context)
+    }
+    register(wrapper)
+  }
+
   /** Register a unified [Codec] as a decoder. */
-  fun register(codec: Codec<AudioFormat, AudioIR>) {
+  fun register(codec: Codec<AudioFormat, AudioIR, AudioDecodeOptions, AudioEncodeOptions>) {
     val wrapper = object : AudioDecoder {
       override val supportedFormats = codec.decodableFormats
       override fun sniff(data: ByteArray) = codec.sniff(data)
-      override suspend fun decode(source: ByteArray, context: dev.transmute.core.ConversionContext) =
-        codec.decode(source, context)
+      override suspend fun decode(source: ByteArray, options: AudioDecodeOptions, context: TransmuteContext) =
+        codec.decode(source, options, context)
     }
     decoderList.add(wrapper)
     for (format in codec.decodableFormats) {
@@ -53,13 +67,31 @@ class MutableAudioEncoderRegistry : AudioEncoderRegistry {
     }
   }
 
+  /** Register a core [Encoder] as an [AudioEncoder]. */
+  fun register(encoder: Encoder<AudioFormat, AudioIR, AudioEncodeOptions>) {
+    val wrapper = object : AudioEncoder {
+      override val supportedFormats = encoder.encodableFormats
+      override suspend fun encode(
+        ir: AudioIR,
+        format: AudioFormat,
+        options: AudioEncodeOptions,
+        context: TransmuteContext,
+      ) = encoder.encode(ir, format, options, context)
+    }
+    register(wrapper)
+  }
+
   /** Register a unified [Codec] as an encoder. */
-  fun register(codec: Codec<AudioFormat, AudioIR>) {
+  fun register(codec: Codec<AudioFormat, AudioIR, AudioDecodeOptions, AudioEncodeOptions>) {
     for (format in codec.encodableFormats) {
       encoders[format] = object : AudioEncoder {
         override val supportedFormats = codec.encodableFormats
-        override suspend fun encode(ir: AudioIR, context: dev.transmute.core.ConversionContext) =
-          codec.encode(ir, context)
+        override suspend fun encode(
+          ir: AudioIR,
+          format: AudioFormat,
+          options: AudioEncodeOptions,
+          context: TransmuteContext,
+        ) = codec.encode(ir, format, options, context)
       }
     }
   }
@@ -78,8 +110,24 @@ object AudioRegistries {
   val decoders = MutableAudioDecoderRegistry()
   val encoders = MutableAudioEncoderRegistry()
 
+  fun register(decoder: AudioDecoder) {
+    decoders.register(decoder)
+  }
+
+  fun register(encoder: AudioEncoder) {
+    encoders.register(encoder)
+  }
+
+  fun register(decoder: Decoder<AudioFormat, AudioIR, AudioDecodeOptions>) {
+    decoders.register(decoder)
+  }
+
+  fun register(encoder: Encoder<AudioFormat, AudioIR, AudioEncodeOptions>) {
+    encoders.register(encoder)
+  }
+
   /** Register a unified codec for both decode, encode, and sniffing. */
-  fun register(codec: Codec<AudioFormat, AudioIR>) {
+  fun register(codec: Codec<AudioFormat, AudioIR, AudioDecodeOptions, AudioEncodeOptions>) {
     decoders.register(codec)
     encoders.register(codec)
   }
@@ -99,7 +147,11 @@ object AudioRegistries {
   /** Installs defaults if the registries look empty. */
   fun installDefaultsIfEmpty() {
     if (defaultsInstalled) return
-    installDefaults()
+    synchronized(this) {
+      if (defaultsInstalled) return
+      installDefaults()
+      defaultsInstalled = true
+    }
   }
 }
 

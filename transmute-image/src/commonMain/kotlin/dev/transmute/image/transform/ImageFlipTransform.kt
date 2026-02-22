@@ -1,6 +1,6 @@
 package dev.transmute.image.transform
 
-import dev.transmute.core.ConversionContext
+import dev.transmute.core.TransmuteContext
 import dev.transmute.image.ByteArrayPixelBuffer
 import dev.transmute.image.ImageIR
 import dev.transmute.image.ImageHint
@@ -26,7 +26,7 @@ class ImageFlipTransform(
 
   override val id: TransformId = TransformId("image.flip")
 
-  override suspend fun apply(ir: ImageIR, context: ConversionContext): ImageIR {
+  override suspend fun apply(ir: ImageIR, context: TransmuteContext): ImageIR {
     if (!horizontal && !vertical) {
       context.logger.debug("ImageFlipTransform: no flip axis specified - skipping")
       return ir

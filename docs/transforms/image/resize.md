@@ -26,7 +26,7 @@ Resize an image to exact dimensions with a configurable resample filter.
 ### DSL
 
 ```kotlin
-Transmute.image(bytes) { resize(800, 600, filter = ResampleFilter.LANCZOS3) }
+Transmute.image { resize(800, 600, filter = ResampleFilter.LANCZOS3) }.transmute(bytes).bytes
 ```
 
 ### Pipeline

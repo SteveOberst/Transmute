@@ -55,13 +55,13 @@ object TransmuteLogging {
   private var _level: LogLevel = LogLevel.OFF
 
   @Volatile
-  private var _logger: ConversionLogger = ConversionLogger.Noop
+  private var _logger: TransmuteLogger = TransmuteLogger.Noop
 
   /** Current global log level. */
   val level: LogLevel get() = _level
 
   /** Active logger instance (already level-filtered). */
-  val logger: ConversionLogger get() = _logger
+  val logger: TransmuteLogger get() = _logger
 
   /**
    * Configure global logging.
@@ -69,16 +69,16 @@ object TransmuteLogging {
    * @param level  Minimum severity to emit. [LogLevel.OFF] silences everything.
    * @param output Backend that receives filtered messages. Defaults to [PrintLogger].
    */
-  fun configure(level: LogLevel, output: ConversionLogger = PrintLogger) {
+  fun configure(level: LogLevel, output: TransmuteLogger = PrintLogger) {
     _level = level
-    _logger = if (level == LogLevel.OFF) ConversionLogger.Noop
+    _logger = if (level == LogLevel.OFF) TransmuteLogger.Noop
               else LevelFilterLogger(level, output)
   }
 
   /** Reset to default silent state. */
   fun reset() {
     _level = LogLevel.OFF
-    _logger = ConversionLogger.Noop
+    _logger = TransmuteLogger.Noop
   }
 
   /**
@@ -86,23 +86,23 @@ object TransmuteLogging {
    *
    * Useful for per-operation overrides without changing the global config:
    * ```kotlin
-   * Transmute.image(bytes) {
+   * Transmute.image {
    *   logger(TransmuteLogging.printLogger(LogLevel.DEBUG))
-   * }
+   * }.transmute(bytes)
    * ```
    */
-  fun printLogger(level: LogLevel): ConversionLogger =
-    if (level == LogLevel.OFF) ConversionLogger.Noop
+  fun printLogger(level: LogLevel): TransmuteLogger =
+    if (level == LogLevel.OFF) TransmuteLogger.Noop
     else LevelFilterLogger(level, PrintLogger)
 }
 
 /**
- * [ConversionLogger] that writes to standard output with level prefixes.
+ * [TransmuteLogger] that writes to standard output with level prefixes.
  *
  * All messages are written as `[transmute:<LEVEL>] <message>`.
  * Throwable stack traces are appended on error.
  */
-object PrintLogger : ConversionLogger {
+object PrintLogger : TransmuteLogger {
   override fun debug(message: String) { println("[transmute:DEBUG] $message") }
   override fun info(message: String)  { println("[transmute:INFO]  $message") }
   override fun warn(message: String)  { println("[transmute:WARN]  $message") }
@@ -116,9 +116,9 @@ object PrintLogger : ConversionLogger {
  * Decorator that suppresses messages below [minLevel].
  */
 internal class LevelFilterLogger(
-  private val minLevel: LogLevel,
-  private val delegate: ConversionLogger,
-) : ConversionLogger {
+    private val minLevel: LogLevel,
+    private val delegate: TransmuteLogger,
+) : TransmuteLogger {
   override fun debug(message: String) { if (minLevel <= LogLevel.DEBUG) delegate.debug(message) }
   override fun info(message: String)  { if (minLevel <= LogLevel.INFO)  delegate.info(message) }
   override fun warn(message: String)  { if (minLevel <= LogLevel.WARN)  delegate.warn(message) }

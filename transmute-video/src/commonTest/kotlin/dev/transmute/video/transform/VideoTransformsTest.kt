@@ -160,7 +160,7 @@ class VideoRemoveAudioTransformTest {
   }
 }
 
-// ── Crop ──
+// -- Crop --
 
 class VideoCropTransformTest {
 
@@ -227,7 +227,7 @@ class VideoCropTransformTest {
   }
 }
 
-// ── Speed ──
+// -- Speed --
 
 class VideoSpeedTransformTest {
 
@@ -287,7 +287,7 @@ class VideoSpeedTransformTest {
   }
 }
 
-// ── Rotate ──
+// -- Rotate --
 
 class VideoRotateTransformTest {
 

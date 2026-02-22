@@ -1,35 +1,36 @@
 # MKV (Matroska)
 
-MKV (Matroska Video) is an open, flexible video container format that can hold virtually any combination of video, audio, subtitle, and metadata tracks.
+MKV (Matroska) is a flexible open container format commonly used for high-quality video files and archives.
 
 ## Platform Support
 
 | Platform | Decode | Encode | Engine |
 |----------|--------|--------|--------|
-| Android  | ❌     | ❌     | Not supported |
+| Android  | ✅     | ✅     | MediaCodec (decode) / FFmpeg (encode) |
 | Desktop  | ✅     | ✅     | FFmpeg (bundled) |
-| iOS      | ❌     | ❌     | Not supported |
+| iOS      | ✅     | ❌     | AVFoundation (decode only) |
 
 ## Usage
 
 ```kotlin
-// Convert to MKV (Desktop only)
-val mkvBytes = Transmute.video(inputBytes) {
-    outputFormat(VideoFormat.MKV)
-}
+import dev.transmute.Transmute
+import dev.transmute.core.VideoFormat
+import dev.transmute.video.DefaultVideoEncodeOptions
 
-// Convert MKV to MP4 (Desktop only)
-val mp4Bytes = Transmute.video(mkvBytes) {
-    outputFormat(VideoFormat.MP4)
-}
+// Convert video to MKV (Android/Desktop)
+suspend fun convertToMkv(inputBytes: ByteArray): ByteArray =
+  Transmute.video {
+    encodeOptions(DefaultVideoEncodeOptions(outputFormat = VideoFormat.MKV))
+  }.transmute(inputBytes).bytes
+
+// Decode MKV (re-encode to MP4)
+suspend fun convertToMp4(mkvBytes: ByteArray): ByteArray =
+  Transmute.video {
+    encodeOptions(DefaultVideoEncodeOptions(outputFormat = VideoFormat.MP4))
+  }.transmute(mkvBytes).bytes
 ```
 
 ## Notes
 
-- **Desktop only** - no Android or iOS support.
-- Requires the bundled FFmpeg on Desktop; no user setup needed.
-- Extremely flexible container - supports H.264, H.265, VP9, AV1, and many more codecs.
-- Open-source and royalty-free (Matroska specification).
-- Supports multiple audio tracks, subtitles, chapters, and rich metadata.
-- Popular for media archival and high-quality video distribution.
-- Consider MP4 if cross-platform playback is required.
+- Very flexible container; common in archival and enthusiast workflows.
+- Desktop encoding relies on the bundled FFmpeg build.

@@ -8,26 +8,26 @@ import kotlin.test.*
 
 class TransformPipelineTest {
 
-    // ── Test transform types ──
+    // -- Test transform types --
 
     private open class AlphaTransform(override val id: TransformId = TransformId("alpha")) :
         Transform<String> {
-        override suspend fun apply(ir: String, context: ConversionContext) = "$ir+alpha"
+        override suspend fun apply(ir: String, context: TransmuteContext) = "$ir+alpha"
     }
 
     private open class BetaTransform(override val id: TransformId = TransformId("beta")) :
         Transform<String> {
-        override suspend fun apply(ir: String, context: ConversionContext) = "$ir+beta"
+        override suspend fun apply(ir: String, context: TransmuteContext) = "$ir+beta"
     }
 
     private open class GammaTransform(override val id: TransformId = TransformId("gamma")) :
         Transform<String> {
-        override suspend fun apply(ir: String, context: ConversionContext) = "$ir+gamma"
+        override suspend fun apply(ir: String, context: TransmuteContext) = "$ir+gamma"
     }
 
     private fun pipeline() = TransformPipeline<String>()
 
-    // ── add / addLast / addFirst ──
+    // -- add / addLast / addFirst --
 
     @Test
     fun addAppendsToEnd() {
@@ -70,7 +70,7 @@ class TransformPipelineTest {
         assertEquals("gamma", p.transforms[2].id.value)
     }
 
-    // ── before / after ──
+    // -- before / after --
 
     @Test
     fun beforeInsertsBeforeTarget() {
@@ -114,7 +114,7 @@ class TransformPipelineTest {
         }
     }
 
-    // ── remove ──
+    // -- remove --
 
     @Test
     fun removeByTypeReturnsTrueAndRemoves() {
@@ -144,7 +144,7 @@ class TransformPipelineTest {
         assertEquals(1, p.size)
     }
 
-    // ── replace ──
+    // -- replace --
 
     @Test
     fun replaceSwapsFirstOccurrence() {
@@ -167,7 +167,7 @@ class TransformPipelineTest {
         }
     }
 
-    // ── has / get ──
+    // -- has / get --
 
     @Test
     fun hasReturnsTrueWhenPresent() {
@@ -198,7 +198,7 @@ class TransformPipelineTest {
         assertNull(p.get<GammaTransform>())
     }
 
-    // ── clear / isEmpty / size ──
+    // -- clear / isEmpty / size --
 
     @Test
     fun clearRemovesAll() {
@@ -222,7 +222,7 @@ class TransformPipelineTest {
         assertFalse(p.isEmpty)
     }
 
-    // ── operators ──
+    // -- operators --
 
     @Test
     fun plusAssignOperatorAdds() {
@@ -242,7 +242,7 @@ class TransformPipelineTest {
         assertEquals(listOf("alpha", "beta", "gamma"), ids)
     }
 
-    // ── toString ──
+    // -- toString --
 
     @Test
     fun toStringShowsTransformIds() {
@@ -252,7 +252,7 @@ class TransformPipelineTest {
         assertEquals("TransformPipeline(alpha, beta)", p.toString())
     }
 
-    // ── execution order ──
+    // -- execution order --
 
     @Test
     fun transformsExecuteInPipelineOrder() = runTest {
@@ -263,22 +263,12 @@ class TransformPipelineTest {
 
         var result = "start"
         for (t in p) {
-            result = t.apply(result, ConversionContext(
-                jobId = "test",
-                metadataPolicy = MetadataPolicy.PRESERVE,
-                coroutineJob = kotlinx.coroutines.Job(),
-                logger = object : ConversionLogger {
-                    override fun debug(message: String) {}
-                    override fun info(message: String) {}
-                    override fun warn(message: String) {}
-                    override fun error(message: String, throwable: Throwable?) {}
-                },
-            ))
+            result = t.apply(result, TransmuteContext(logger = TransmuteLogger.Noop))
         }
         assertEquals("start+alpha+beta+gamma", result)
     }
 
-    // ── fluent chaining ──
+    // -- fluent chaining --
 
     @Test
     fun fluentChainingAllowsMethodChain() {

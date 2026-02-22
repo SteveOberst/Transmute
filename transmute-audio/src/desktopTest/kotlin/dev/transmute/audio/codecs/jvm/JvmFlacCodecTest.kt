@@ -1,18 +1,21 @@
 package dev.transmute.audio.codecs.jvm
 
+import dev.transmute.audio.AudioEncodeOptions
 import dev.transmute.audio.AudioTestHelpers
 import dev.transmute.core.AudioFormat
 import dev.transmute.core.PrintLogger
 import kotlinx.coroutines.test.runTest
 import kotlin.math.abs
 import kotlin.test.*
+import dev.transmute.audio.DefaultAudioDecodeOptions
+import dev.transmute.audio.DefaultAudioEncodeOptions
 
 class JvmFlacCodecTest {
 
     private val log = PrintLogger
     private val codec = JvmFlacCodec()
 
-    // ── Format declarations ──
+    // -- Format declarations --
 
     @Test
     fun decodableFormatsContainsFlac() {
@@ -28,7 +31,7 @@ class JvmFlacCodecTest {
         }
     }
 
-    // ── Sniff ──
+    // -- Sniff --
 
     @Test
     fun sniffDetectsFlacMagic() {
@@ -48,7 +51,7 @@ class JvmFlacCodecTest {
         assertNull(codec.sniff(byteArrayOf(0x66, 0x4C, 0x61)))
     }
 
-    // ── Encode + decode round-trip (FFmpeg required for encode) ──
+    // -- Encode + decode round-trip (FFmpeg required for encode) --
 
     @Test
     fun encodeDecodeFlacRoundTrip() = runTest {
@@ -65,13 +68,13 @@ class JvmFlacCodecTest {
             channelCount = 1,
         )
 
-        val encoded = codec.encode(original, AudioTestHelpers.testContext())
+        val encoded = codec.encode(original, AudioFormat.FLAC, DefaultAudioEncodeOptions(), AudioTestHelpers.testContext())
         assertTrue(encoded.isNotEmpty(), "Encoded FLAC should not be empty")
 
         val sniffResult = codec.sniff(encoded)
         assertEquals(AudioFormat.FLAC, sniffResult, "Encoded data should be recognized as FLAC")
 
-        val decoded = codec.decode(encoded, AudioTestHelpers.testContext())
+        val decoded = codec.decode(encoded, DefaultAudioDecodeOptions(), AudioTestHelpers.testContext())
         assertEquals(original.sampleRate, decoded.sampleRate)
         assertEquals(original.channelCount, decoded.channelCount)
 
@@ -93,7 +96,7 @@ class JvmFlacCodecTest {
 
         val ir = AudioTestHelpers.sineWave(durationMs = 50)
         assertFailsWith<IllegalStateException> {
-            codec.encode(ir, AudioTestHelpers.testContext())
+            codec.encode(ir, AudioFormat.FLAC, DefaultAudioEncodeOptions(), AudioTestHelpers.testContext())
         }
     }
 }

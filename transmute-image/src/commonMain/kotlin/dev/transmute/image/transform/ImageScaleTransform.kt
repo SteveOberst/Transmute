@@ -1,6 +1,6 @@
 package dev.transmute.image.transform
 
-import dev.transmute.core.ConversionContext
+import dev.transmute.core.TransmuteContext
 import dev.transmute.image.AlphaSemantics
 import dev.transmute.image.ByteArrayPixelBuffer
 import dev.transmute.image.ImageHint
@@ -33,7 +33,7 @@ class ImageScaleTransform(
 
   override val id: TransformId = TransformId("image-scale")
 
-  override suspend fun apply(ir: ImageIR, context: ConversionContext): ImageIR {
+  override suspend fun apply(ir: ImageIR, context: TransmuteContext): ImageIR {
     // Don't upscale - only downscale.
     if (ir.width <= maxWidth && ir.height <= maxHeight) {
       context.logger.debug("ImageScaleTransform: image ${ir.width}×${ir.height} already fits within $maxWidth×$maxHeight - skipping")

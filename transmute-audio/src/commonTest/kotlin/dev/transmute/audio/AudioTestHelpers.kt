@@ -1,8 +1,6 @@
 package dev.transmute.audio
 
-import dev.transmute.core.ConversionContext
-import dev.transmute.core.ConversionLogger
-import dev.transmute.core.MetadataPolicy
+import dev.transmute.core.TransmuteContext
 import dev.transmute.core.PrintLogger
 import kotlin.math.PI
 import kotlin.math.sin
@@ -14,20 +12,9 @@ import kotlin.random.Random
 object AudioTestHelpers {
 
   /**
-   * Creates a test [ConversionContext].
+   * Creates a test [TransmuteContext].
    */
-  fun testContext(
-    metadataPolicy: MetadataPolicy = MetadataPolicy.PRESERVE,
-  ): ConversionContext = ConversionContext(
-    jobId = "test-${Random.nextLong()}",
-    coroutineJob = null,
-    metadataPolicy = metadataPolicy,
-    onProgress = {},
-    logger = PrintLogger,
-    scratchpad = mutableMapOf(),
-    timeBudgetMs = Long.MAX_VALUE,
-    memoryBudgetBytes = Long.MAX_VALUE,
-  )
+  fun testContext(): TransmuteContext = TransmuteContext(logger = PrintLogger)
 
   /**
    * Generates a sine wave AudioIR for testing.

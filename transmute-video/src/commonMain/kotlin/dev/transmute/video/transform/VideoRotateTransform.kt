@@ -1,6 +1,6 @@
 package dev.transmute.video.transform
 
-import dev.transmute.core.ConversionContext
+import dev.transmute.core.TransmuteContext
 import dev.transmute.core.pipeline.TransformId
 import dev.transmute.image.ByteArrayPixelBuffer
 import dev.transmute.video.FrameStream
@@ -33,7 +33,7 @@ class VideoRotateTransform(
 
   override val id = TransformId("video.rotate")
 
-  override suspend fun apply(ir: VideoIR, context: ConversionContext): VideoIR {
+  override suspend fun apply(ir: VideoIR, context: TransmuteContext): VideoIR {
     context.logger.info("VideoRotateTransform: rotating ${degrees}° CW")
 
     val track = ir.videoTrack

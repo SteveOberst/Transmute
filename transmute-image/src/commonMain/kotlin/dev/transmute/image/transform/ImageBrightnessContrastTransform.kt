@@ -1,6 +1,6 @@
 package dev.transmute.image.transform
 
-import dev.transmute.core.ConversionContext
+import dev.transmute.core.TransmuteContext
 import dev.transmute.image.ByteArrayPixelBuffer
 import dev.transmute.image.ImageIR
 import dev.transmute.image.PixelFormat
@@ -31,7 +31,7 @@ class ImageBrightnessContrastTransform(
 
   override val id: TransformId = TransformId("image.brightness-contrast")
 
-  override suspend fun apply(ir: ImageIR, context: ConversionContext): ImageIR {
+  override suspend fun apply(ir: ImageIR, context: TransmuteContext): ImageIR {
     if (brightness == 0f && contrast == 1f) {
       context.logger.debug("ImageBrightnessContrastTransform: no adjustment - skipping")
       return ir

@@ -41,16 +41,11 @@ class VideoFormatDetectorTest {
 
   @Test
   fun detectWebM() {
+    val data = ByteArray(64)
     // EBML header magic bytes
-    val webmHeader = byteArrayOf(
-      0x1A.toByte(), 0x45.toByte(), 0xDF.toByte(), 0xA3.toByte(),
-      0x00, 0x00, 0x00, 0x00,
-    )
-    val result = VideoFormatDetector.detect(webmHeader)
-    // WebM codec is not available on all platforms (e.g. iOS)
-    if (result != VideoFormat.UNKNOWN) {
-      assertEquals(VideoFormat.WEBM, result)
-    }
+    data[0] = 0x1A.toByte(); data[1] = 0x45.toByte(); data[2] = 0xDF.toByte(); data[3] = 0xA3.toByte()
+    "webm".encodeToByteArray().copyInto(data, destinationOffset = 24)
+    assertEquals(VideoFormat.WEBM, VideoFormatDetector.detect(data))
   }
 
   @Test
@@ -61,11 +56,15 @@ class VideoFormatDetectorTest {
       0x00, 0x00, 0x00, 0x00,
       'A'.code.toByte(), 'V'.code.toByte(), 'I'.code.toByte(), ' '.code.toByte(),
     )
-    val result = VideoFormatDetector.detect(aviHeader)
-    // AVI codec is not available on all platforms (e.g. iOS)
-    if (result != VideoFormat.UNKNOWN) {
-      assertEquals(VideoFormat.AVI, result)
-    }
+    assertEquals(VideoFormat.AVI, VideoFormatDetector.detect(aviHeader))
+  }
+
+  @Test
+  fun detectMkv() {
+    val data = ByteArray(64)
+    data[0] = 0x1A.toByte(); data[1] = 0x45.toByte(); data[2] = 0xDF.toByte(); data[3] = 0xA3.toByte()
+    "matroska".encodeToByteArray().copyInto(data, destinationOffset = 24)
+    assertEquals(VideoFormat.MKV, VideoFormatDetector.detect(data))
   }
 
   @Test

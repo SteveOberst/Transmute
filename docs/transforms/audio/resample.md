@@ -13,7 +13,7 @@ Change the sample rate of audio data.
 ### DSL
 
 ```kotlin
-Transmute.audio(bytes) { resample(targetSampleRate = 22050) }
+Transmute.audio { resample(targetSampleRate = 22050) }.transmute(bytes).bytes
 ```
 
 ### Pipeline

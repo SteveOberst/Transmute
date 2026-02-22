@@ -13,18 +13,18 @@ PNG (Portable Network Graphics) is a lossless image format that supports transpa
 ## Usage
 
 ```kotlin
-// Convert any image to PNG
-val pngBytes = Transmute.image(inputBytes) {
-    outputFormat(ImageFormat.PNG)
-}
+import dev.transmute.Transmute
+import dev.transmute.image.PngEncodeOptions
 
-// quality() has no effect on PNG - compression is always lossless
+suspend fun convertToPng(inputBytes: ByteArray): ByteArray =
+  Transmute.image {
+    encodeOptions(PngEncodeOptions())
+  }.transmute(inputBytes).bytes
 ```
 
 ## Notes
 
 - Lossless compression - no quality degradation on re-encode.
 - Supports full alpha transparency (RGBA).
-- `quality()` parameter is ignored; PNG is always lossless.
 - File sizes are typically larger than JPEG for photographic content.
 - Universally supported across all platforms with no additional dependencies.

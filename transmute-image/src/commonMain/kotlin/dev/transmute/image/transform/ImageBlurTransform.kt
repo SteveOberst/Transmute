@@ -1,6 +1,6 @@
 package dev.transmute.image.transform
 
-import dev.transmute.core.ConversionContext
+import dev.transmute.core.TransmuteContext
 import dev.transmute.image.ByteArrayPixelBuffer
 import dev.transmute.image.ImageIR
 import dev.transmute.image.PixelFormat
@@ -30,7 +30,7 @@ class ImageBlurTransform(
 
   override val id: TransformId = TransformId("image.blur")
 
-  override suspend fun apply(ir: ImageIR, context: ConversionContext): ImageIR {
+  override suspend fun apply(ir: ImageIR, context: TransmuteContext): ImageIR {
     if (radius <= 0) {
       context.logger.debug("ImageBlurTransform: radius ≤ 0 - skipping")
       return ir

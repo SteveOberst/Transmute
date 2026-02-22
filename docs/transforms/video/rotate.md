@@ -13,7 +13,7 @@ Rotate video frames by a fixed angle clockwise.
 ### DSL
 
 ```kotlin
-Transmute.video(bytes) { rotate(degrees = 90) }
+Transmute.video { rotate(degrees = 90) }.transmute(bytes).bytes
 ```
 
 ### Pipeline
