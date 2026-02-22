@@ -1,7 +1,7 @@
 package dev.transmute.audio.codecs.jvm
 
-import dev.transmute.audio.DefaultAudioDecodeOptions
-import dev.transmute.audio.DefaultAudioEncodeOptions
+import dev.transmute.audio.CanonicalAudioDecodeOptions
+import dev.transmute.audio.CanonicalAudioEncodeOptions
 import dev.transmute.audio.AudioIR
 import dev.transmute.audio.codecs.WavDecoder
 import dev.transmute.audio.codecs.WavEncoder
@@ -56,7 +56,7 @@ internal object FfmpegAudioEngine {
   ): ByteArray = withContext(Dispatchers.IO) {
     check(available) { "FFmpeg is not available on this system" }
 
-    val wavBytes = wavEncoder.encode(ir, AudioFormat.WAV, DefaultAudioEncodeOptions(), context)
+    val wavBytes = wavEncoder.encode(ir, AudioFormat.WAV, CanonicalAudioEncodeOptions(), context)
     val tmpIn = File.createTempFile("transmute_in_", ".wav")
     val tmpOut = File.createTempFile("transmute_out_", ".$ext")
     try {
@@ -121,7 +121,7 @@ internal object FfmpegAudioEngine {
         "FFmpeg decode from $ext failed (exit ${process.exitValue()}): ${output.takeLast(500)}"
       }
 
-      wavDecoder.decode(tmpOut.readBytes(), DefaultAudioDecodeOptions(), context)
+      wavDecoder.decode(tmpOut.readBytes(), CanonicalAudioDecodeOptions(), context)
     } finally {
       tmpIn.delete()
       tmpOut.delete()

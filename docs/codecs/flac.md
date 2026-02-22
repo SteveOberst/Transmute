@@ -14,19 +14,20 @@ FLAC (Free Lossless Audio Codec) is a lossless audio format. It compresses audio
 
 ```kotlin
 import dev.transmute.Transmute
-import dev.transmute.audio.DefaultAudioEncodeOptions
+import dev.transmute.audio.CanonicalAudioEncodeOptions
 import dev.transmute.core.AudioFormat
+import dev.transmute.core.OutputFormat
 
 // Convert audio to FLAC (Android/Desktop)
 suspend fun convertToFlac(inputBytes: ByteArray): ByteArray =
   Transmute.audio {
-    encodeOptions(DefaultAudioEncodeOptions(outputFormat = AudioFormat.FLAC))
+    encodeOptions(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.FLAC)))
   }.transmute(inputBytes).bytes
 
 // Decode FLAC on any platform (re-encode to WAV)
 suspend fun decodeToWav(flacBytes: ByteArray): ByteArray =
   Transmute.audio {
-    encodeOptions(DefaultAudioEncodeOptions(outputFormat = AudioFormat.WAV))
+    encodeOptions(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.WAV)))
   }.transmute(flacBytes).bytes
 ```
 

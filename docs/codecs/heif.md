@@ -21,7 +21,7 @@ import dev.transmute.image.JpegEncodeOptions
 // Convert any image to HEIF (Desktop/iOS)
 suspend fun convertToHeif(inputBytes: ByteArray): ByteArray =
   Transmute.image {
-    encodeOptions(HeifEncodeOptions(outputFormat = ImageFormat.HEIF, quality = 0.8f))
+    encodeOptions(HeifEncodeOptions(format = ImageFormat.HEIF, quality = 0.8f))
   }.transmute(inputBytes).bytes
 
 // Decode HEIF (re-encode to JPEG)

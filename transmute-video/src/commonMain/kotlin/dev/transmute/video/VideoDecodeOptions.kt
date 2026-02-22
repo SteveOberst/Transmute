@@ -6,7 +6,7 @@ import dev.transmute.core.VideoFormat
 /**
  * Sealed hierarchy of video decoding options.
  *
- * Most decoders accept [DefaultVideoDecodeOptions].
+ * Most decoders accept [CanonicalVideoDecodeOptions].
  */
 sealed interface VideoDecodeOptions : DecodeOptions {
   /**
@@ -21,6 +21,6 @@ sealed interface VideoDecodeOptions : DecodeOptions {
 /**
  * Default decode options — no special configuration.
  */
-data class DefaultVideoDecodeOptions(
+data class CanonicalVideoDecodeOptions(
   override val acceptedInputFormats: Set<VideoFormat> = emptySet(),
 ) : VideoDecodeOptions

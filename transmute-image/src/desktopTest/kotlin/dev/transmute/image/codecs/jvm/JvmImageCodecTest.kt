@@ -1,7 +1,6 @@
 package dev.transmute.image.codecs.jvm
 
 import dev.transmute.core.ImageFormat
-import dev.transmute.image.ImageEncodeOptions
 import dev.transmute.image.ImageTestHelpers
 import dev.transmute.image.ImageTestHelpers.adjustAlphaForComparison
 import dev.transmute.image.ImageTestHelpers.horizontalGradient
@@ -16,8 +15,8 @@ import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import dev.transmute.image.DefaultImageEncodeOptions
-import dev.transmute.image.DefaultImageDecodeOptions
+import dev.transmute.image.CanonicalImageEncodeOptions
+import dev.transmute.image.CanonicalImageDecodeOptions
 import dev.transmute.image.JpegEncodeOptions
 
 /**
@@ -33,7 +32,7 @@ class JvmImageCodecTest {
   private val ctx = testContext()
 
   private suspend fun encodePng(ir: ImageIR): ByteArray =
-    encoder.encode(ir, ImageFormat.PNG, DefaultImageEncodeOptions(), ctx)
+    encoder.encode(ir, ImageFormat.PNG, CanonicalImageEncodeOptions(), ctx)
 
   private suspend fun encodeJpeg(ir: ImageIR, quality: Float): ByteArray =
     encoder.encode(ir, ImageFormat.JPEG, JpegEncodeOptions(quality = quality), ctx)
@@ -44,7 +43,7 @@ class JvmImageCodecTest {
   fun pngRoundTripIsLossless() = runTest {
     val original = solidColor(64, 64, r = 200, g = 100, b = 50)
     val encoded = encodePng(original)
-    val decoded = decoder.decode(encoded, DefaultImageDecodeOptions(), ctx)
+    val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
 
     assertEquals(64, decoded.width)
     assertEquals(64, decoded.height)
@@ -66,7 +65,7 @@ class JvmImageCodecTest {
   fun pngRoundTripGradientLossless() = runTest {
     val original = horizontalGradient(256, 10)
     val encoded = encodePng(original)
-    val decoded = decoder.decode(encoded, DefaultImageDecodeOptions(), ctx)
+    val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
 
     assertEquals(256, decoded.width)
     assertEquals(10, decoded.height)
@@ -91,7 +90,7 @@ class JvmImageCodecTest {
   fun jpegRoundTripSolidColorCloseToOriginal() = runTest {
     val original = solidColor(100, 100, r = 128, g = 64, b = 192)
     val encoded = encodeJpeg(original, quality = 0.95f)
-    val decoded = decoder.decode(encoded, DefaultImageDecodeOptions(), ctx)
+    val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
 
     assertEquals(100, decoded.width)
     assertEquals(100, decoded.height)
@@ -110,7 +109,7 @@ class JvmImageCodecTest {
       endR = 235, endG = 235, endB = 235,
     )
     val encoded = encodeJpeg(original, quality = 0.95f)
-    val decoded = decoder.decode(encoded, DefaultImageDecodeOptions(), ctx)
+    val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
 
     assertEquals(256, decoded.width)
     assertEquals(50, decoded.height)
@@ -141,8 +140,8 @@ class JvmImageCodecTest {
     val highEncoded = encodeJpeg(original, quality = 0.95f)
     val lowEncoded = encodeJpeg(original, quality = 0.40f)
 
-    val highDecoded = decoder.decode(highEncoded, DefaultImageDecodeOptions(), ctx)
-    val lowDecoded = decoder.decode(lowEncoded, DefaultImageDecodeOptions(), ctx)
+    val highDecoded = decoder.decode(highEncoded, CanonicalImageDecodeOptions(), ctx)
+    val lowDecoded = decoder.decode(lowEncoded, CanonicalImageDecodeOptions(), ctx)
 
     val highMae = meanAbsoluteError(
       adjustAlphaForComparison(original),
@@ -191,7 +190,7 @@ class JvmImageCodecTest {
     for ((w, h) in listOf(1 to 1, 7 to 13, 100 to 50, 640 to 480)) {
       val original = solidColor(w, h, 100, 100, 100)
       val encoded = encodeJpeg(original, quality = 0.90f)
-      val decoded = decoder.decode(encoded, DefaultImageDecodeOptions(), ctx)
+      val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
       assertEquals(w, decoded.width, "Width should be preserved for ${w}×${h}")
       assertEquals(h, decoded.height, "Height should be preserved for ${w}×${h}")
     }
@@ -202,7 +201,7 @@ class JvmImageCodecTest {
     for ((w, h) in listOf(1 to 1, 7 to 13, 100 to 50, 640 to 480)) {
       val original = solidColor(w, h, 100, 100, 100)
       val encoded = encodePng(original)
-      val decoded = decoder.decode(encoded, DefaultImageDecodeOptions(), ctx)
+      val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
       assertEquals(w, decoded.width, "Width should be preserved for ${w}×${h}")
       assertEquals(h, decoded.height, "Height should be preserved for ${w}×${h}")
     }
@@ -214,7 +213,7 @@ class JvmImageCodecTest {
   fun jpegCheckerboardRoundTrip() = runTest {
     val original = ImageTestHelpers.checkerboard(128, 128, blockSize = 16)
     val encoded = encodeJpeg(original, quality = 0.95f)
-    val decoded = decoder.decode(encoded, DefaultImageDecodeOptions(), ctx)
+    val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
 
     assertEquals(128, decoded.width)
     assertEquals(128, decoded.height)
@@ -247,7 +246,7 @@ class JvmImageCodecTest {
     assertTrue(encoded.size < 200 * 150 * 4, "JPEG should compress significantly")
 
     // Decode back
-    val decoded = decoder.decode(encoded, DefaultImageDecodeOptions(), ctx)
+    val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
     assertEquals(200, decoded.width)
     assertEquals(150, decoded.height)
 

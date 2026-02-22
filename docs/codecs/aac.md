@@ -14,19 +14,20 @@ AAC (Advanced Audio Coding) is a modern lossy audio codec that provides better q
 
 ```kotlin
 import dev.transmute.Transmute
-import dev.transmute.audio.DefaultAudioEncodeOptions
+import dev.transmute.audio.CanonicalAudioEncodeOptions
 import dev.transmute.core.AudioFormat
+import dev.transmute.core.OutputFormat
 
 // Convert audio to AAC
 suspend fun convertToAac(inputBytes: ByteArray): ByteArray =
   Transmute.audio {
-    encodeOptions(DefaultAudioEncodeOptions(outputFormat = AudioFormat.AAC))
+    encodeOptions(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.AAC)))
   }.transmute(inputBytes).bytes
 
 // Decode AAC (re-encode to WAV)
 suspend fun decodeToWav(aacBytes: ByteArray): ByteArray =
   Transmute.audio {
-    encodeOptions(DefaultAudioEncodeOptions(outputFormat = AudioFormat.WAV))
+    encodeOptions(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.WAV)))
   }.transmute(aacBytes).bytes
 ```
 

@@ -5,7 +5,7 @@ import dev.transmute.core.AudioFormat
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertTrue
-import dev.transmute.audio.DefaultAudioDecodeOptions
+import dev.transmute.audio.CanonicalAudioDecodeOptions
 
 /**
  * iOS integration tests for the AVFoundation-based audio codecs.
@@ -42,7 +42,7 @@ class IosAudioCodecTest {
     assertTrue(encoded.isNotEmpty(), "FLAC encoded bytes should not be empty")
 
     val decoded = try {
-      codec.decode(encoded, DefaultAudioDecodeOptions(), ctx)
+      codec.decode(encoded, CanonicalAudioDecodeOptions(), ctx)
     } catch (e: Throwable) {
       println("SKIP: FLAC decoding not available on this simulator: ${e::class.simpleName}: ${e.message}")
       return@runTest
@@ -72,7 +72,7 @@ class IosAudioCodecTest {
     assertTrue(encoded.isNotEmpty(), "AAC encoded bytes should not be empty")
 
     val decoded = try {
-      codec.decode(encoded, DefaultAudioDecodeOptions(), ctx)
+      codec.decode(encoded, CanonicalAudioDecodeOptions(), ctx)
     } catch (e: Throwable) {
       println("SKIP: AAC decoding not available on this simulator: ${e::class.simpleName}: ${e.message}")
       return@runTest
@@ -102,7 +102,7 @@ class IosAudioCodecTest {
     assertTrue(encoded.isNotEmpty(), "M4A encoded bytes should not be empty")
 
     val decoded = try {
-      codec.decode(encoded, DefaultAudioDecodeOptions(), ctx)
+      codec.decode(encoded, CanonicalAudioDecodeOptions(), ctx)
     } catch (e: Throwable) {
       println("SKIP: M4A decoding not available on this simulator: ${e::class.simpleName}: ${e.message}")
       return@runTest

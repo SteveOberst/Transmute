@@ -3,7 +3,6 @@ package dev.transmute.image.codecs.jvm
 import dev.transmute.core.ImageFormat
 import dev.transmute.core.PrintLogger
 import dev.transmute.image.ImageFormatDetector
-import dev.transmute.image.ImageEncodeOptions
 import dev.transmute.image.ImageTestHelpers
 import dev.transmute.image.ImageTestHelpers.adjustAlphaForComparison
 import dev.transmute.image.ImageTestHelpers.horizontalGradient
@@ -18,7 +17,7 @@ import javax.imageio.ImageIO
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import dev.transmute.image.DefaultImageDecodeOptions
+import dev.transmute.image.CanonicalImageDecodeOptions
 import dev.transmute.image.WebPEncodeOptions
 
 /**
@@ -123,7 +122,7 @@ class WebPCodecRoundtripTest {
       val encoded = encodeWebp(original, quality = 0.90f)
       assertTrue(encoded.isNotEmpty(), "WebP: encode output must not be empty")
 
-      val decoded = decoder.decode(encoded, DefaultImageDecodeOptions(), ctx)
+      val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
       assertEquals(64, decoded.width, "WebP: width mismatch after round-trip")
       assertEquals(64, decoded.height, "WebP: height mismatch after round-trip")
       assertEquals(PixelFormat.RGBA_8888, decoded.pixelFormat, "WebP: pixel format mismatch")
@@ -146,7 +145,7 @@ class WebPCodecRoundtripTest {
         endR = 235, endG = 235, endB = 235,
       )
       val encoded = encodeWebp(original, quality = 0.90f)
-      val decoded = decoder.decode(encoded, DefaultImageDecodeOptions(), ctx)
+      val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
 
       assertEquals(256, decoded.width, "WebP: gradient width mismatch")
       assertEquals(50, decoded.height, "WebP: gradient height mismatch")
@@ -168,7 +167,7 @@ class WebPCodecRoundtripTest {
       for ((w, h) in listOf(1 to 1, 7 to 13, 100 to 50, 640 to 480)) {
         val original = solidColor(w, h, 100, 100, 100)
         val encoded = encodeWebp(original)
-        val decoded = decoder.decode(encoded, DefaultImageDecodeOptions(), ctx)
+        val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
         assertEquals(w, decoded.width, "WebP: width not preserved for ${w}×${h}")
         assertEquals(h, decoded.height, "WebP: height not preserved for ${w}×${h}")
       }
@@ -186,7 +185,7 @@ class WebPCodecRoundtripTest {
         colorB = intArrayOf(0, 0, 0, 255),
       )
       val encoded = encodeWebp(original, quality = 0.95f)
-      val decoded = decoder.decode(encoded, DefaultImageDecodeOptions(), ctx)
+      val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
 
       assertEquals(64, decoded.width, "WebP: checkerboard width mismatch")
       assertEquals(64, decoded.height, "WebP: checkerboard height mismatch")

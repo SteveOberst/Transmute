@@ -9,8 +9,8 @@ import kotlinx.coroutines.test.runTest
 import kotlin.math.abs
 import kotlin.math.sin
 import kotlin.test.*
-import dev.transmute.audio.DefaultAudioDecodeOptions
-import dev.transmute.audio.DefaultAudioEncodeOptions
+import dev.transmute.audio.CanonicalAudioDecodeOptions
+import dev.transmute.audio.CanonicalAudioEncodeOptions
 
 class JvmMp3CodecTest {
 
@@ -72,14 +72,14 @@ class JvmMp3CodecTest {
             channelCount = 1,
         )
 
-        val encoded = codec.encode(original, AudioFormat.MP3, DefaultAudioEncodeOptions(), AudioTestHelpers.testContext())
+        val encoded = codec.encode(original, AudioFormat.MP3, CanonicalAudioEncodeOptions(), AudioTestHelpers.testContext())
         assertTrue(encoded.isNotEmpty(), "Encoded MP3 should not be empty")
 
         // Verify encoded data starts with MP3 magic bytes
         val sniffResult = codec.sniff(encoded)
         assertEquals(AudioFormat.MP3, sniffResult, "Encoded data should be recognized as MP3")
 
-        val decoded = codec.decode(encoded, DefaultAudioDecodeOptions(), AudioTestHelpers.testContext())
+        val decoded = codec.decode(encoded, CanonicalAudioDecodeOptions(), AudioTestHelpers.testContext())
         assertEquals(original.sampleRate, decoded.sampleRate, "Sample rate should be preserved")
         assertEquals(original.channelCount, decoded.channelCount, "Channel count should be preserved")
         assertTrue(decoded.samples.data.isNotEmpty(), "Decoded samples should not be empty")
@@ -99,10 +99,10 @@ class JvmMp3CodecTest {
             channelCount = 2,
         )
 
-        val encoded = codec.encode(original, AudioFormat.MP3, DefaultAudioEncodeOptions(), AudioTestHelpers.testContext())
+        val encoded = codec.encode(original, AudioFormat.MP3, CanonicalAudioEncodeOptions(), AudioTestHelpers.testContext())
         assertTrue(encoded.isNotEmpty())
 
-        val decoded = codec.decode(encoded, DefaultAudioDecodeOptions(), AudioTestHelpers.testContext())
+        val decoded = codec.decode(encoded, CanonicalAudioDecodeOptions(), AudioTestHelpers.testContext())
         assertEquals(original.sampleRate, decoded.sampleRate)
         assertEquals(original.channelCount, decoded.channelCount)
         assertTrue(decoded.samples.data.isNotEmpty())
@@ -118,7 +118,7 @@ class JvmMp3CodecTest {
             channelCount = 1,
         )
 
-        val encoded = codec.encode(original, AudioFormat.MP3, DefaultAudioEncodeOptions(), AudioTestHelpers.testContext())
+        val encoded = codec.encode(original, AudioFormat.MP3, CanonicalAudioEncodeOptions(), AudioTestHelpers.testContext())
         val rawSize = original.samples.data.size * 4 // Float = 4 bytes
         assertTrue(encoded.size < rawSize, "MP3 should be smaller than raw float data")
     }

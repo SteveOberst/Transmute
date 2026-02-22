@@ -6,8 +6,8 @@ import dev.transmute.core.AudioFormat
 import dev.transmute.core.PrintLogger
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
-import dev.transmute.audio.DefaultAudioDecodeOptions
-import dev.transmute.audio.DefaultAudioEncodeOptions
+import dev.transmute.audio.CanonicalAudioDecodeOptions
+import dev.transmute.audio.CanonicalAudioEncodeOptions
 
 class FfmpegAudioCodecsTest {
 
@@ -72,9 +72,9 @@ class FfmpegAudioCodecsTest {
             sampleRate = 44100,
             amplitude = 0.5f,
         )
-        val encoded = codec.encode(original, AudioFormat.AAC, DefaultAudioEncodeOptions(), AudioTestHelpers.testContext())
+        val encoded = codec.encode(original, AudioFormat.AAC, CanonicalAudioEncodeOptions(), AudioTestHelpers.testContext())
         assertTrue(encoded.isNotEmpty())
-        val decoded = codec.decode(encoded, DefaultAudioDecodeOptions(), AudioTestHelpers.testContext())
+        val decoded = codec.decode(encoded, CanonicalAudioDecodeOptions(), AudioTestHelpers.testContext())
         assertEquals(original.sampleRate, decoded.sampleRate)
         assertTrue(decoded.samples.data.isNotEmpty())
     }
@@ -121,9 +121,9 @@ class FfmpegAudioCodecsTest {
             sampleRate = 44100,
             amplitude = 0.5f,
         )
-        val encoded = codec.encode(original, AudioFormat.M4A, DefaultAudioEncodeOptions(), AudioTestHelpers.testContext())
+        val encoded = codec.encode(original, AudioFormat.M4A, CanonicalAudioEncodeOptions(), AudioTestHelpers.testContext())
         assertTrue(encoded.isNotEmpty())
-        val decoded = codec.decode(encoded, DefaultAudioDecodeOptions(), AudioTestHelpers.testContext())
+        val decoded = codec.decode(encoded, CanonicalAudioDecodeOptions(), AudioTestHelpers.testContext())
         assertEquals(original.sampleRate, decoded.sampleRate)
         assertTrue(decoded.samples.data.isNotEmpty())
     }
@@ -170,9 +170,9 @@ class FfmpegAudioCodecsTest {
             sampleRate = 48000, // Opus prefers 48kHz
             amplitude = 0.5f,
         )
-        val encoded = codec.encode(original, AudioFormat.OPUS, DefaultAudioEncodeOptions(), AudioTestHelpers.testContext())
+        val encoded = codec.encode(original, AudioFormat.OPUS, CanonicalAudioEncodeOptions(), AudioTestHelpers.testContext())
         assertTrue(encoded.isNotEmpty())
-        val decoded = codec.decode(encoded, DefaultAudioDecodeOptions(), AudioTestHelpers.testContext())
+        val decoded = codec.decode(encoded, CanonicalAudioDecodeOptions(), AudioTestHelpers.testContext())
         assertTrue(decoded.samples.data.isNotEmpty())
     }
 }

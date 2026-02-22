@@ -15,13 +15,14 @@ GIF (Graphics Interchange Format) is a legacy image format best known for simple
 ```kotlin
 import dev.transmute.Transmute
 import dev.transmute.core.ImageFormat
-import dev.transmute.image.DefaultImageEncodeOptions
+import dev.transmute.core.OutputFormat
+import dev.transmute.image.CanonicalImageEncodeOptions
 import dev.transmute.image.PngEncodeOptions
 
 // Convert any image to GIF (Desktop/iOS)
 suspend fun convertToGif(inputBytes: ByteArray): ByteArray =
   Transmute.image {
-    encodeOptions(DefaultImageEncodeOptions(outputFormat = ImageFormat.GIF))
+    encodeOptions(CanonicalImageEncodeOptions(outputFormat = OutputFormat.Exact(ImageFormat.GIF)))
   }.transmute(inputBytes).bytes
 
 // Decode GIF (re-encode to PNG)

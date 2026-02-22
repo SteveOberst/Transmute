@@ -3,14 +3,13 @@ package dev.transmute.image.codecs.jvm
 import dev.transmute.core.FfmpegResolver
 import dev.transmute.core.ImageFormat
 import dev.transmute.core.PrintLogger
-import dev.transmute.image.ImageEncodeOptions
 import dev.transmute.image.ImageTestHelpers
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import dev.transmute.image.DefaultImageEncodeOptions
-import dev.transmute.image.DefaultImageDecodeOptions
+import dev.transmute.image.CanonicalImageEncodeOptions
+import dev.transmute.image.CanonicalImageDecodeOptions
 
 /**
  * Integration tests for the FFmpeg-based image codecs (HEIF, HEIC, AVIF).
@@ -44,7 +43,7 @@ class FfmpegImageCodecsTest {
       val ctx = ImageTestHelpers.testContext()
 
       val encoded = try {
-        encoder.encode(original, ImageFormat.HEIF, DefaultImageEncodeOptions(), ctx)
+        encoder.encode(original, ImageFormat.HEIF, CanonicalImageEncodeOptions(), ctx)
       } catch (e: Exception) {
         // libx265 may not be available in this FFmpeg build
         if ("libx265" in e.message.orEmpty() || "Encoder" in e.message.orEmpty()) {
@@ -56,7 +55,7 @@ class FfmpegImageCodecsTest {
 
       assertTrue(encoded.isNotEmpty(), "Encoded HEIF should not be empty")
 
-      val decoded = decoder.decode(encoded, DefaultImageDecodeOptions(), ctx)
+      val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
       assertEquals(64, decoded.width, "Width should be preserved")
       assertEquals(48, decoded.height, "Height should be preserved")
     }
@@ -69,7 +68,7 @@ class FfmpegImageCodecsTest {
       val ctx = ImageTestHelpers.testContext()
 
       val encoded = try {
-        encoder.encode(original, ImageFormat.HEIF, DefaultImageEncodeOptions(), ctx)
+        encoder.encode(original, ImageFormat.HEIF, CanonicalImageEncodeOptions(), ctx)
       } catch (e: Exception) {
         if ("libx265" in e.message.orEmpty()) {
           log.warn("SKIPPED: HEIF encoder not available")
@@ -78,7 +77,7 @@ class FfmpegImageCodecsTest {
         throw e
       }
 
-      val decoded = decoder.decode(encoded, DefaultImageDecodeOptions(), ctx)
+      val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
       // Lossy codec - allow generous tolerance for HEIF
       val diff = ImageTestHelpers.peakDifference(original, decoded)
       assertTrue(diff < 30, "Peak difference $diff should be < 30 for solid color HEIF")
@@ -94,7 +93,7 @@ class FfmpegImageCodecsTest {
       val ctx = ImageTestHelpers.testContext()
 
       val encoded = try {
-        encoder.encode(original, ImageFormat.AVIF, DefaultImageEncodeOptions(), ctx)
+        encoder.encode(original, ImageFormat.AVIF, CanonicalImageEncodeOptions(), ctx)
       } catch (e: Exception) {
         if ("FFmpeg" in e.message.orEmpty() || "libaom-av1" in e.message.orEmpty() || "Encoder" in e.message.orEmpty()) {
           log.warn("SKIPPED: AVIF encoding not available: ${e.message}")
@@ -105,7 +104,7 @@ class FfmpegImageCodecsTest {
 
       assertTrue(encoded.isNotEmpty(), "Encoded AVIF should not be empty")
 
-      val decoded = decoder.decode(encoded, DefaultImageDecodeOptions(), ctx)
+      val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
       assertEquals(64, decoded.width, "Width should be preserved")
       assertEquals(48, decoded.height, "Height should be preserved")
     }
@@ -118,7 +117,7 @@ class FfmpegImageCodecsTest {
       val ctx = ImageTestHelpers.testContext()
 
       val encoded = try {
-        encoder.encode(original, ImageFormat.AVIF, DefaultImageEncodeOptions(), ctx)
+        encoder.encode(original, ImageFormat.AVIF, CanonicalImageEncodeOptions(), ctx)
       } catch (e: Exception) {
         if ("FFmpeg" in e.message.orEmpty() || "libaom-av1" in e.message.orEmpty()) {
           log.warn("SKIPPED: AVIF encoding not available: ${e.message}")
@@ -127,7 +126,7 @@ class FfmpegImageCodecsTest {
         throw e
       }
 
-      val decoded = decoder.decode(encoded, DefaultImageDecodeOptions(), ctx)
+      val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
       val mae = ImageTestHelpers.meanAbsoluteError(original, decoded)
       assertTrue(mae < 15.0, "MAE $mae should be < 15 for AVIF gradient at 95% quality")
     }

@@ -2,6 +2,7 @@ package dev.transmute.audio
 
 import dev.transmute.core.AnyFormatTag
 import dev.transmute.core.AudioFormat
+import dev.transmute.core.OutputFormat
 import dev.transmute.core.TransmuteContext
 import dev.transmute.core.pipeline.Decoded
 import dev.transmute.core.pipeline.EncodedBytes
@@ -22,7 +23,7 @@ class AudioDecodeHandler(
   override suspend fun handle(value: ByteArray, context: TransmuteContext): Decoded<AudioFormat, AudioIR> {
     AudioRegistries.installDefaultsIfEmpty()
 
-    val options = (context.decodeOptions as? AudioDecodeOptions) ?: DefaultAudioDecodeOptions()
+    val options = (context.decodeOptions as? AudioDecodeOptions) ?: CanonicalAudioDecodeOptions()
     val accepted = options.acceptedInputFormats
 
     val format = if (accepted.size == 1) accepted.first() else detector(value)
@@ -40,7 +41,7 @@ class AudioDecodeHandler(
  * Dynamic audio encode handler.
  *
  * Chooses output format as:
- * - `encodeOptions.outputFormat` if non-null, else
+ * - explicit `encodeOptions.outputFormat`, else
  * - the input format if encodable, otherwise WAV.
  *
  * Applies [AudioEncodeOptions.metadataPolicy] during encoding (not as a transform step).
@@ -57,10 +58,13 @@ class AudioDynamicEncodeHandler(
   ): EncodedBytes<AudioFormat, AnyFormatTag<AudioFormat>> {
     AudioRegistries.installDefaultsIfEmpty()
 
-    val requested = (context.encodeOptions as? AudioEncodeOptions) ?: DefaultAudioEncodeOptions()
-    val outFormat = requested.outputFormat ?: run {
-      val inFormat = value.format
-      if (encoders.encoderFor(inFormat) != null) inFormat else AudioFormat.WAV
+    val requested = (context.encodeOptions as? AudioEncodeOptions) ?: CanonicalAudioEncodeOptions()
+    val outFormat = when (val declared = requested.outputFormat) {
+      OutputFormat.ORIGINAL -> {
+        val inFormat = value.format
+        if (encoders.encoderFor(inFormat) != null) inFormat else AudioFormat.WAV
+      }
+      is OutputFormat.Exact -> declared.format
     }
 
     val encoder = encoders.encoderFor(outFormat) ?: error("No audio encoder for $outFormat")
@@ -77,7 +81,7 @@ class AudioDynamicEncodeHandler(
  * Fixed-output audio encode handler.
  *
  * Reads [AudioEncodeOptions] from [TransmuteContext.encodeOptions] and enforces that any
- * non-null `outputFormat` matches the fixed output format.
+ * explicit `outputFormat` matches the fixed output format.
  */
 class AudioFixedEncodeHandler<OUT : dev.transmute.core.AudioFormatTag>(
   private val output: OUT,
@@ -87,10 +91,12 @@ class AudioFixedEncodeHandler<OUT : dev.transmute.core.AudioFormatTag>(
   override suspend fun handle(value: Decoded<AudioFormat, AudioIR>, context: TransmuteContext): EncodedBytes<AudioFormat, OUT> {
     AudioRegistries.installDefaultsIfEmpty()
 
-    val requested = (context.encodeOptions as? AudioEncodeOptions) ?: DefaultAudioEncodeOptions()
-    val declared = requested.outputFormat
-    require(declared == null || declared == output.format) {
-      "encodeOptions.outputFormat=$declared conflicts with fixed output=${output.format}"
+    val requested = (context.encodeOptions as? AudioEncodeOptions) ?: CanonicalAudioEncodeOptions()
+    when (val declared = requested.outputFormat) {
+      OutputFormat.ORIGINAL -> Unit
+      is OutputFormat.Exact -> require(declared.format == output.format) {
+        "encodeOptions.outputFormat=${declared.format} conflicts with fixed output=${output.format}"
+      }
     }
 
     val encoder = encoders.encoderFor(output.format) ?: error("No audio encoder for ${output.format}")
@@ -115,7 +121,7 @@ fun <IN> PipelineBuilder<IN, ByteArray>.then(
   decoder: AudioDecoder,
   detector: (ByteArray) -> AudioFormat = AudioFormatDetector::detect,
 ): PipelineBuilder<IN, Decoded<AudioFormat, AudioIR>> = then { bytes, ctx ->
-  val options = (ctx.decodeOptions as? AudioDecodeOptions) ?: DefaultAudioDecodeOptions()
+  val options = (ctx.decodeOptions as? AudioDecodeOptions) ?: CanonicalAudioDecodeOptions()
   val accepted = options.acceptedInputFormats
 
   val format = when {
@@ -137,16 +143,19 @@ fun <IN> PipelineBuilder<IN, ByteArray>.then(
  * Adds an encode step using a specific [AudioEncoder].
  *
  * Output selection:
- * - `encodeOptions.outputFormat` when non-null, else
+ * - explicit `encodeOptions.outputFormat`, else
  * - the input format if encodable, otherwise WAV.
  */
 fun <IN> PipelineBuilder<IN, Decoded<AudioFormat, AudioIR>>.then(
   encoder: AudioEncoder,
 ): PipelineBuilder<IN, EncodedBytes<AudioFormat, AnyFormatTag<AudioFormat>>> = then { decoded, ctx ->
-  val requested = (ctx.encodeOptions as? AudioEncodeOptions) ?: DefaultAudioEncodeOptions()
-  val outFormat = requested.outputFormat ?: run {
-    val inFormat = decoded.format
-    if (inFormat in encoder.supportedFormats) inFormat else AudioFormat.WAV
+  val requested = (ctx.encodeOptions as? AudioEncodeOptions) ?: CanonicalAudioEncodeOptions()
+  val outFormat = when (val declared = requested.outputFormat) {
+    OutputFormat.ORIGINAL -> {
+      val inFormat = decoded.format
+      if (inFormat in encoder.supportedFormats) inFormat else AudioFormat.WAV
+    }
+    is OutputFormat.Exact -> declared.format
   }
 
   require(outFormat in encoder.supportedFormats) {
@@ -170,10 +179,12 @@ fun <IN, OUT : dev.transmute.core.AudioFormatTag> PipelineBuilder<IN, Decoded<Au
   encoder: AudioEncoder,
   output: OUT,
 ): PipelineBuilder<IN, EncodedBytes<AudioFormat, OUT>> = then { decoded, ctx ->
-  val requested = (ctx.encodeOptions as? AudioEncodeOptions) ?: DefaultAudioEncodeOptions()
-  val declared = requested.outputFormat
-  require(declared == null || declared == output.format) {
-    "encodeOptions.outputFormat=$declared conflicts with fixed output=${output.format}"
+  val requested = (ctx.encodeOptions as? AudioEncodeOptions) ?: CanonicalAudioEncodeOptions()
+  when (val declared = requested.outputFormat) {
+    OutputFormat.ORIGINAL -> Unit
+    is OutputFormat.Exact -> require(declared.format == output.format) {
+      "encodeOptions.outputFormat=${declared.format} conflicts with fixed output=${output.format}"
+    }
   }
 
   require(output.format in encoder.supportedFormats) {

@@ -6,7 +6,7 @@ import dev.transmute.core.ImageFormat
 /**
  * Sealed hierarchy of image decoding options.
  *
- * Most decoders accept [DefaultImageDecodeOptions]. Format-specific
+ * Most decoders accept [CanonicalImageDecodeOptions]. Format-specific
  * subtypes can be added as needed (e.g. JPEG subsampling hints).
  */
 sealed interface ImageDecodeOptions : DecodeOptions {
@@ -20,8 +20,8 @@ sealed interface ImageDecodeOptions : DecodeOptions {
 }
 
 /**
- * Default decode options — no special configuration.
+ * Format-agnostic decode options — no special configuration.
  */
-data class DefaultImageDecodeOptions(
+data class CanonicalImageDecodeOptions(
   override val acceptedInputFormats: Set<ImageFormat> = emptySet(),
 ) : ImageDecodeOptions

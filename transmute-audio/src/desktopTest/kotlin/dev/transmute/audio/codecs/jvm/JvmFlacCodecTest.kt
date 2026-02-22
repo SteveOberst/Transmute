@@ -7,8 +7,8 @@ import dev.transmute.core.PrintLogger
 import kotlinx.coroutines.test.runTest
 import kotlin.math.abs
 import kotlin.test.*
-import dev.transmute.audio.DefaultAudioDecodeOptions
-import dev.transmute.audio.DefaultAudioEncodeOptions
+import dev.transmute.audio.CanonicalAudioDecodeOptions
+import dev.transmute.audio.CanonicalAudioEncodeOptions
 
 class JvmFlacCodecTest {
 
@@ -68,13 +68,13 @@ class JvmFlacCodecTest {
             channelCount = 1,
         )
 
-        val encoded = codec.encode(original, AudioFormat.FLAC, DefaultAudioEncodeOptions(), AudioTestHelpers.testContext())
+        val encoded = codec.encode(original, AudioFormat.FLAC, CanonicalAudioEncodeOptions(), AudioTestHelpers.testContext())
         assertTrue(encoded.isNotEmpty(), "Encoded FLAC should not be empty")
 
         val sniffResult = codec.sniff(encoded)
         assertEquals(AudioFormat.FLAC, sniffResult, "Encoded data should be recognized as FLAC")
 
-        val decoded = codec.decode(encoded, DefaultAudioDecodeOptions(), AudioTestHelpers.testContext())
+        val decoded = codec.decode(encoded, CanonicalAudioDecodeOptions(), AudioTestHelpers.testContext())
         assertEquals(original.sampleRate, decoded.sampleRate)
         assertEquals(original.channelCount, decoded.channelCount)
 
@@ -96,7 +96,7 @@ class JvmFlacCodecTest {
 
         val ir = AudioTestHelpers.sineWave(durationMs = 50)
         assertFailsWith<IllegalStateException> {
-            codec.encode(ir, AudioFormat.FLAC, DefaultAudioEncodeOptions(), AudioTestHelpers.testContext())
+            codec.encode(ir, AudioFormat.FLAC, CanonicalAudioEncodeOptions(), AudioTestHelpers.testContext())
         }
     }
 }

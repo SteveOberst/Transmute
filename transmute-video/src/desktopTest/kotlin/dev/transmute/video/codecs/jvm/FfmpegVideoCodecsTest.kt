@@ -12,8 +12,8 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlinx.coroutines.test.runTest
-import dev.transmute.video.DefaultVideoDecodeOptions
-import dev.transmute.video.DefaultVideoEncodeOptions
+import dev.transmute.video.CanonicalVideoDecodeOptions
+import dev.transmute.video.CanonicalVideoEncodeOptions
 
 /**
  * Integration tests for FFmpeg-backed video codecs on desktop/JVM.
@@ -52,10 +52,10 @@ class FfmpegVideoCodecsTest {
       val ctx = VideoTestHelpers.testContext()
       val codec = JvmMp4Codec()
 
-      val encoded = codec.encode(original, VideoFormat.MP4, DefaultVideoEncodeOptions(), ctx)
+      val encoded = codec.encode(original, VideoFormat.MP4, CanonicalVideoEncodeOptions(), ctx)
       assertTrue(encoded.isNotEmpty(), "MP4: encoded output must not be empty")
 
-      val decoded = codec.decode(encoded, DefaultVideoDecodeOptions(), ctx)
+      val decoded = codec.decode(encoded, CanonicalVideoDecodeOptions(), ctx)
       assertEquals(64, decoded.videoTrack.width, "MP4: width mismatch after round-trip")
       assertEquals(48, decoded.videoTrack.height, "MP4: height mismatch after round-trip")
       assertTrue(decoded.videoTrack.frames.frameCount > 0, "MP4: must have at least 1 frame")
@@ -67,7 +67,7 @@ class FfmpegVideoCodecsTest {
     requireFfmpeg {
       val ir = VideoTestHelpers.syntheticVideo(width = 32, height = 32, durationMs = 200)
       val ctx = VideoTestHelpers.testContext()
-      val encoded = JvmMp4Codec().encode(ir, VideoFormat.MP4, DefaultVideoEncodeOptions(), ctx)
+      val encoded = JvmMp4Codec().encode(ir, VideoFormat.MP4, CanonicalVideoEncodeOptions(), ctx)
 
       assertEquals(
         VideoFormat.MP4,
@@ -86,8 +86,8 @@ class FfmpegVideoCodecsTest {
       val ctx = VideoTestHelpers.testContext()
       val codec = JvmMp4Codec()
 
-      val encoded = codec.encode(original, VideoFormat.MP4, DefaultVideoEncodeOptions(), ctx)
-      val decoded = codec.decode(encoded, DefaultVideoDecodeOptions(), ctx)
+      val encoded = codec.encode(original, VideoFormat.MP4, CanonicalVideoEncodeOptions(), ctx)
+      val decoded = codec.decode(encoded, CanonicalVideoDecodeOptions(), ctx)
 
       assertTrue(decoded.audioTrack != null, "MP4: audio track should be preserved")
       assertTrue(
@@ -108,10 +108,10 @@ class FfmpegVideoCodecsTest {
       val ctx = VideoTestHelpers.testContext()
       val codec = JvmMovCodec()
 
-      val encoded = codec.encode(original, VideoFormat.MOV, DefaultVideoEncodeOptions(), ctx)
+      val encoded = codec.encode(original, VideoFormat.MOV, CanonicalVideoEncodeOptions(), ctx)
       assertTrue(encoded.isNotEmpty(), "MOV: encoded output must not be empty")
 
-      val decoded = codec.decode(encoded, DefaultVideoDecodeOptions(), ctx)
+      val decoded = codec.decode(encoded, CanonicalVideoDecodeOptions(), ctx)
       assertEquals(80, decoded.videoTrack.width, "MOV: width mismatch")
       assertEquals(60, decoded.videoTrack.height, "MOV: height mismatch")
     }
@@ -128,10 +128,10 @@ class FfmpegVideoCodecsTest {
       val ctx = VideoTestHelpers.testContext()
       val codec = JvmWebmCodec()
 
-      val encoded = codec.encode(original, VideoFormat.WEBM, DefaultVideoEncodeOptions(), ctx)
+      val encoded = codec.encode(original, VideoFormat.WEBM, CanonicalVideoEncodeOptions(), ctx)
       assertTrue(encoded.isNotEmpty(), "WebM: encoded output must not be empty")
 
-      val decoded = codec.decode(encoded, DefaultVideoDecodeOptions(), ctx)
+      val decoded = codec.decode(encoded, CanonicalVideoDecodeOptions(), ctx)
       assertEquals(64, decoded.videoTrack.width, "WebM: width mismatch")
       assertEquals(48, decoded.videoTrack.height, "WebM: height mismatch")
     }
@@ -142,7 +142,7 @@ class FfmpegVideoCodecsTest {
     requireFfmpeg {
       val ir = VideoTestHelpers.syntheticVideo(width = 32, height = 32, durationMs = 200)
       val ctx = VideoTestHelpers.testContext()
-      val encoded = JvmWebmCodec().encode(ir, VideoFormat.WEBM, DefaultVideoEncodeOptions(), ctx)
+      val encoded = JvmWebmCodec().encode(ir, VideoFormat.WEBM, CanonicalVideoEncodeOptions(), ctx)
 
       assertEquals(
         VideoFormat.WEBM,
@@ -163,10 +163,10 @@ class FfmpegVideoCodecsTest {
       val ctx = VideoTestHelpers.testContext()
       val codec = JvmAviCodec()
 
-      val encoded = codec.encode(original, VideoFormat.AVI, DefaultVideoEncodeOptions(), ctx)
+      val encoded = codec.encode(original, VideoFormat.AVI, CanonicalVideoEncodeOptions(), ctx)
       assertTrue(encoded.isNotEmpty(), "AVI: encoded output must not be empty")
 
-      val decoded = codec.decode(encoded, DefaultVideoDecodeOptions(), ctx)
+      val decoded = codec.decode(encoded, CanonicalVideoDecodeOptions(), ctx)
       assertEquals(64, decoded.videoTrack.width, "AVI: width mismatch")
       assertEquals(48, decoded.videoTrack.height, "AVI: height mismatch")
     }
@@ -177,7 +177,7 @@ class FfmpegVideoCodecsTest {
     requireFfmpeg {
       val ir = VideoTestHelpers.syntheticVideo(width = 32, height = 32, durationMs = 200)
       val ctx = VideoTestHelpers.testContext()
-      val encoded = JvmAviCodec().encode(ir, VideoFormat.AVI, DefaultVideoEncodeOptions(), ctx)
+      val encoded = JvmAviCodec().encode(ir, VideoFormat.AVI, CanonicalVideoEncodeOptions(), ctx)
 
       assertEquals(
         VideoFormat.AVI,
@@ -198,10 +198,10 @@ class FfmpegVideoCodecsTest {
       val ctx = VideoTestHelpers.testContext()
       val codec = JvmMkvCodec()
 
-      val encoded = codec.encode(original, VideoFormat.MKV, DefaultVideoEncodeOptions(), ctx)
+      val encoded = codec.encode(original, VideoFormat.MKV, CanonicalVideoEncodeOptions(), ctx)
       assertTrue(encoded.isNotEmpty(), "MKV: encoded output must not be empty")
 
-      val decoded = codec.decode(encoded, DefaultVideoDecodeOptions(), ctx)
+      val decoded = codec.decode(encoded, CanonicalVideoDecodeOptions(), ctx)
       assertEquals(64, decoded.videoTrack.width, "MKV: width mismatch")
       assertEquals(48, decoded.videoTrack.height, "MKV: height mismatch")
     }
@@ -218,8 +218,8 @@ class FfmpegVideoCodecsTest {
       val ctx = VideoTestHelpers.testContext()
       val codec = JvmMp4Codec()
 
-      val encoded = codec.encode(original, VideoFormat.MP4, DefaultVideoEncodeOptions(), ctx)
-      val decoded = codec.decode(encoded, DefaultVideoDecodeOptions(), ctx)
+      val encoded = codec.encode(original, VideoFormat.MP4, CanonicalVideoEncodeOptions(), ctx)
+      val decoded = codec.decode(encoded, CanonicalVideoDecodeOptions(), ctx)
 
       val firstFrame = decoded.videoTrack.frames.nextFrame()
       assertTrue(firstFrame != null, "MP4: should have at least one frame after round-trip")

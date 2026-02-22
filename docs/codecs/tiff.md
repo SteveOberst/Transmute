@@ -15,13 +15,14 @@ TIFF is a flexible image container format used in professional imaging workflows
 ```kotlin
 import dev.transmute.Transmute
 import dev.transmute.core.ImageFormat
-import dev.transmute.image.DefaultImageEncodeOptions
+import dev.transmute.core.OutputFormat
+import dev.transmute.image.CanonicalImageEncodeOptions
 import dev.transmute.image.JpegEncodeOptions
 
 // Convert any image to TIFF (Desktop/iOS)
 suspend fun convertToTiff(inputBytes: ByteArray): ByteArray =
   Transmute.image {
-    encodeOptions(DefaultImageEncodeOptions(outputFormat = ImageFormat.TIFF))
+    encodeOptions(CanonicalImageEncodeOptions(outputFormat = OutputFormat.Exact(ImageFormat.TIFF)))
   }.transmute(inputBytes).bytes
 
 // Decode TIFF (re-encode to JPEG)

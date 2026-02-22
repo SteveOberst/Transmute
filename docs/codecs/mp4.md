@@ -15,18 +15,19 @@ MP4 is the most widely-used video container format, typically containing H.264 (
 ```kotlin
 import dev.transmute.Transmute
 import dev.transmute.core.VideoFormat
-import dev.transmute.video.DefaultVideoEncodeOptions
+import dev.transmute.core.OutputFormat
+import dev.transmute.video.CanonicalVideoEncodeOptions
 
 // Convert video to MP4
 suspend fun convertToMp4(inputBytes: ByteArray): ByteArray =
   Transmute.video {
-    encodeOptions(DefaultVideoEncodeOptions(outputFormat = VideoFormat.MP4))
+    encodeOptions(CanonicalVideoEncodeOptions(outputFormat = OutputFormat.Exact(VideoFormat.MP4)))
   }.transmute(inputBytes).bytes
 
 // Decode MP4 to another format (re-encode to WebM)
 suspend fun convertToWebm(mp4Bytes: ByteArray): ByteArray =
   Transmute.video {
-    encodeOptions(DefaultVideoEncodeOptions(outputFormat = VideoFormat.WEBM))
+    encodeOptions(CanonicalVideoEncodeOptions(outputFormat = OutputFormat.Exact(VideoFormat.WEBM)))
   }.transmute(mp4Bytes).bytes
 ```
 

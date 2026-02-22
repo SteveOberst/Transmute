@@ -6,7 +6,7 @@ import dev.transmute.core.AudioFormat
 /**
  * Sealed hierarchy of audio decoding options.
  *
- * Most decoders accept [DefaultAudioDecodeOptions].
+ * Most decoders accept [CanonicalAudioDecodeOptions].
  */
 sealed interface AudioDecodeOptions : DecodeOptions {
   /**
@@ -21,6 +21,6 @@ sealed interface AudioDecodeOptions : DecodeOptions {
 /**
  * Default decode options — no special configuration.
  */
-data class DefaultAudioDecodeOptions(
+data class CanonicalAudioDecodeOptions(
   override val acceptedInputFormats: Set<AudioFormat> = emptySet(),
 ) : AudioDecodeOptions

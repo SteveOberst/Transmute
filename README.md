@@ -11,20 +11,14 @@ Kotlin Multiplatform media conversion, compression and transformation - image, a
 - Single `commonMain` API for image, audio, and video conversion across Android, Desktop (JVM), and iOS
 - Bundled FFmpeg for desktop - no external install required
 - Pure-Kotlin WAV and BMP codecs that work on all platforms without native dependencies
+- Pipeline-based decode/transform/encode: decode produces an IR, transforms operate on the IR, encode consumes the IR (swap default handlers or build custom typed pipelines)
 - Image resample filters: Nearest, Bilinear, Mitchell, Catmull-Rom, Lanczos3 (with anti-alias for downscale)
 - 27 transforms across all three media types (scale, crop, rotate, blur, normalize, trim, fade, gain, speed, compressor, etc.)
 - Configurable logging with level filtering and pluggable logger backends
 
 ## Quick Start
 
-```kotlin
-import dev.transmute.Transmute
-import dev.transmute.core.VideoFormat
-import dev.transmute.core.UnknownFormat
-import dev.transmute.image.JpegEncodeOptions
-import dev.transmute.image.transform.kernel.ResampleFilter
-import dev.transmute.video.DefaultVideoEncodeOptions
-
+```kotlin       
 suspend fun quickStart(
     pngBytes: ByteArray,
     wavBytes: ByteArray,
@@ -52,7 +46,7 @@ suspend fun quickStart(
     val videoBytes = Transmute.video {
         resize(maxWidth = 1280, maxHeight = 720)
         trim(startMs = 0, endMs = 30_000)
-        encodeOptions(DefaultVideoEncodeOptions(outputFormat = VideoFormat.MP4))
+        encodeOptions(CanonicalVideoEncodeOptions(outputFormat = OutputFormat.Exact(VideoFormat.MP4)))
     }.transmute(mp4Bytes).bytes
 
     // Detect format from raw bytes
@@ -66,14 +60,9 @@ suspend fun quickStart(
 Transmuters are reusable objects you build once and apply to many inputs.
 
 ```kotlin
-import dev.transmute.Transmute
-import dev.transmute.core.ImageFormatTag
-import dev.transmute.image.DefaultImageDecodeOptions
-import dev.transmute.image.JpegEncodeOptions
-
 // Reusable dynamic-output image transmuter (output defaults to "same as input" unless encodeOptions force it)
 val thumbnailer = Transmute.image {
-    decodeOptions(DefaultImageDecodeOptions()) // optionally restrict acceptedInputFormats
+    decodeOptions(CanonicalImageDecodeOptions()) // optionally restrict acceptedInputFormats
     scale(maxWidth = 512, maxHeight = 512)
     encodeOptions(JpegEncodeOptions(quality = 0.85f))
 }
@@ -85,10 +74,6 @@ suspend fun makeThumb(bytes: ByteArray): ByteArray =
 Fixed-output transmuters expose a type-level output tag (useful for type-safe post-encode handlers in custom encode pipelines):
 
 ```kotlin
-import dev.transmute.Transmute
-import dev.transmute.core.ImageFormatTag
-import dev.transmute.image.PngEncodeOptions
-
 val pngOnly = Transmute.imageTo(ImageFormatTag.Png) {
     encodeOptions(PngEncodeOptions(compressionLevel = 6))
 }
@@ -98,20 +83,7 @@ suspend fun toPng(bytes: ByteArray): ByteArray =
 ```
 
 Decode pipelines are generic over `IN`, so you can accept custom inputs by supplying your own decode stage:
-
-```kotlin
-import dev.transmute.Transmute
-import dev.transmute.core.ImageFormat
-import dev.transmute.core.ImageFormatTag
-import dev.transmute.core.pipeline.Decoded
-import dev.transmute.image.ImageIR
-import dev.transmute.image.PngEncodeOptions
-
-val irToPng = Transmute.imageToFrom<ImageIR, ImageFormatTag.Png>(ImageFormatTag.Png) {
-    decode { then { ir, _ -> Decoded(ImageFormat.UNKNOWN, ir) } } // identity decode
-    encodeOptions(PngEncodeOptions())
-}
-```
+See “Advanced Pipelines” below for a full example.
 
 ## Docs
 
@@ -129,13 +101,6 @@ Transmute uses fluent, pipelines for decode and encode. You can replace either s
 Some formats expose dedicated encode options types:
 
 ```kotlin
-import dev.transmute.Transmute
-import dev.transmute.core.ImageFormat
-import dev.transmute.core.MetadataPolicy
-import dev.transmute.image.HeifEncodeOptions
-import dev.transmute.image.JpegEncodeOptions
-import dev.transmute.image.WebPEncodeOptions
-
 suspend fun encodeOptionsExamples(inputBytes: ByteArray) {
     val jpeg = Transmute.image {
         encodeOptions(JpegEncodeOptions(quality = 0.9f, metadataPolicy = MetadataPolicy.PRESERVE))
@@ -146,7 +111,7 @@ suspend fun encodeOptionsExamples(inputBytes: ByteArray) {
     }.transmute(inputBytes).bytes
 
     val avif = Transmute.image {
-        encodeOptions(HeifEncodeOptions(outputFormat = ImageFormat.AVIF, quality = 0.8f))
+        encodeOptions(HeifEncodeOptions(format = ImageFormat.AVIF, quality = 0.8f))
     }.transmute(inputBytes).bytes
 }
 ```
@@ -156,25 +121,24 @@ suspend fun encodeOptionsExamples(inputBytes: ByteArray) {
 This example chooses PNG when the image is not opaque, otherwise JPEG, unless the caller explicitly forces an output format via `encodeOptions`.
 
 ```kotlin
-import dev.transmute.Transmute
-import dev.transmute.core.ImageFormat
-import dev.transmute.image.AlphaSemantics
-import dev.transmute.image.DefaultImageEncodeOptions
-import dev.transmute.image.ImageDynamicEncodeHandler
-import dev.transmute.image.ImageOutputFormatSelector
-
 val smartOutput = Transmute.image {
-    encodeOptions(DefaultImageEncodeOptions()) // dynamic by default (outputFormat = null)
+    encodeOptions(CanonicalImageEncodeOptions(outputFormat = OutputFormat.ORIGINAL))
 
     encode {
-        then(
+        startWith(
           ImageDynamicEncodeHandler(
             outputFormatSelector = ImageOutputFormatSelector { decoded, options ->
-              options.outputFormat
-                ?: if (decoded.ir.alphaSemantics != AlphaSemantics.OPAQUE) ImageFormat.PNG else ImageFormat.JPEG
+              when (val requested = options.outputFormat) {
+                OutputFormat.ORIGINAL ->
+                  if (decoded.ir.alphaSemantics != AlphaSemantics.OPAQUE) ImageFormat.PNG else ImageFormat.JPEG
+                is OutputFormat.Exact -> requested.format
+              }
             },
           ),
-        )
+        ).then { out, ctx ->
+          ctx.logger.info("encoded ${out.format} -> ${out.bytes.size} bytes")
+          out
+        }
     }
 }
 ```
@@ -184,22 +148,18 @@ val smartOutput = Transmute.image {
 Decode pipelines are `IN -> Decoded<Format, IR>`. Here we accept a custom input type and map it to raw bytes before using the default decode handler.
 
 ```kotlin
-import dev.transmute.Transmute
-import dev.transmute.core.ImageFormat
-import dev.transmute.image.DefaultImageDecodeOptions
-import dev.transmute.image.ImageDecodeHandler
 
 data class NamedBytes(val name: String, val bytes: ByteArray)
 
 val fromNamedBytes = Transmute.imageFrom<NamedBytes> {
     decodeOptions(
-      DefaultImageDecodeOptions(
+      CanonicalImageDecodeOptions(
         acceptedInputFormats = setOf(ImageFormat.JPEG, ImageFormat.PNG, ImageFormat.WEBP),
       ),
     )
 
     decode {
-        then { input, _ -> input.bytes }
+        startWith { input, _ -> input.bytes }
           .then(ImageDecodeHandler())
     }
 }
@@ -210,8 +170,6 @@ val fromNamedBytes = Transmute.imageFrom<NamedBytes> {
 Transmute uses a structured logging API. By default, logging is set to `INFO` level.
 
 ```kotlin
-import dev.transmute.core.TransmuteLogging
-import dev.transmute.core.LogLevel
 
 // Silence all logging
 TransmuteLogging.configure(LogLevel.OFF)

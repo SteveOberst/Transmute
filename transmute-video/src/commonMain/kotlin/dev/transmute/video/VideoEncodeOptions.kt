@@ -2,12 +2,13 @@ package dev.transmute.video
 
 import dev.transmute.core.EncodeOptions
 import dev.transmute.core.MetadataPolicy
+import dev.transmute.core.OutputFormat
 import dev.transmute.core.VideoFormat
 
 /**
  * Sealed hierarchy of video encoding options.
  *
- * Most video formats use [DefaultVideoEncodeOptions] until
+ * Most video formats use [CanonicalVideoEncodeOptions] until
  * format-specific knobs (bitrate, resolution, codec profile, etc.) are needed.
  */
 sealed interface VideoEncodeOptions : EncodeOptions {
@@ -19,18 +20,18 @@ sealed interface VideoEncodeOptions : EncodeOptions {
   val metadataPolicy: MetadataPolicy
 
   /**
-   * Optional output-format override for *dynamic-output* transmuters.
+   * Output-format selection for *dynamic-output* transmuters.
    *
-   * When `null`, the default behavior is "same as input" (or whatever the encode pipeline selects).
-   * Fixed-output transmuters ignore this value.
+   * Use [OutputFormat.ORIGINAL] to fall back to the input format.
+   * Fixed-output transmuters ignore this value (and may validate it).
    */
-  val outputFormat: VideoFormat?
+  val outputFormat: OutputFormat<VideoFormat>
 }
 
 /**
  * Default encode options for video formats with no special configuration.
  */
-data class DefaultVideoEncodeOptions(
+data class CanonicalVideoEncodeOptions(
   override val metadataPolicy: MetadataPolicy = MetadataPolicy.STRIP_ALL,
-  override val outputFormat: VideoFormat? = null,
+  override val outputFormat: OutputFormat<VideoFormat> = OutputFormat.ORIGINAL,
 ) : VideoEncodeOptions

@@ -21,7 +21,7 @@ import dev.transmute.image.PngEncodeOptions
 // Convert any image to AVIF (Desktop/iOS)
 suspend fun convertToAvif(inputBytes: ByteArray): ByteArray =
   Transmute.image {
-    encodeOptions(HeifEncodeOptions(outputFormat = ImageFormat.AVIF, quality = 0.8f))
+    encodeOptions(HeifEncodeOptions(format = ImageFormat.AVIF, quality = 0.8f))
   }.transmute(inputBytes).bytes
 
 // Decode AVIF (re-encode to PNG)

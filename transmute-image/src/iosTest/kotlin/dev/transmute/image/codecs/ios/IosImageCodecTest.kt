@@ -1,8 +1,9 @@
 package dev.transmute.image.codecs.ios
 
 import dev.transmute.core.ImageFormat
+import dev.transmute.core.OutputFormat
 import dev.transmute.image.ImageTestHelpers
-import dev.transmute.image.DefaultImageEncodeOptions
+import dev.transmute.image.CanonicalImageEncodeOptions
 import dev.transmute.image.HeifEncodeOptions
 import dev.transmute.image.JpegEncodeOptions
 import dev.transmute.image.PngEncodeOptions
@@ -11,7 +12,7 @@ import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import dev.transmute.image.DefaultImageDecodeOptions
+import dev.transmute.image.CanonicalImageDecodeOptions
 
 /**
  * iOS integration tests for [IosImageIoDecoder] and [IosImageIoEncoder].
@@ -35,7 +36,7 @@ class IosImageCodecTest {
     val encoded = encoder.encode(original, ImageFormat.JPEG, JpegEncodeOptions(), ctx)
     assertTrue(encoded.isNotEmpty(), "JPEG encoded bytes should not be empty")
 
-    val decoded = decoder.decode(encoded, DefaultImageDecodeOptions(), ctx)
+    val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
     assertEquals(64, decoded.width, "Width should be preserved")
     assertEquals(48, decoded.height, "Height should be preserved")
   }
@@ -45,7 +46,7 @@ class IosImageCodecTest {
     val original = ImageTestHelpers.solidColor(32, 32, r = 128, g = 128, b = 128)
     val ctx = ImageTestHelpers.testContext()
     val encoded = encoder.encode(original, ImageFormat.JPEG, JpegEncodeOptions(quality = 0.95f), ctx)
-    val decoded = decoder.decode(encoded, DefaultImageDecodeOptions(), ctx)
+    val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
     val diff = ImageTestHelpers.peakDifference(original, decoded)
     assertTrue(diff < 15,
       "JPEG solid color peak diff $diff should be < 15")
@@ -58,7 +59,7 @@ class IosImageCodecTest {
     val original = ImageTestHelpers.checkerboard(32, 32)
     val ctx = ImageTestHelpers.testContext()
     val encoded = encoder.encode(original, ImageFormat.PNG, PngEncodeOptions(), ctx)
-    val decoded = decoder.decode(encoded, DefaultImageDecodeOptions(), ctx)
+    val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
 
     assertEquals(32, decoded.width)
     assertEquals(32, decoded.height)
@@ -81,7 +82,7 @@ class IosImageCodecTest {
     }
     assertTrue(encoded.isNotEmpty(), "WebP encoded bytes should not be empty")
 
-    val decoded = decoder.decode(encoded, DefaultImageDecodeOptions(), ctx)
+    val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
     assertEquals(64, decoded.width)
     assertEquals(32, decoded.height)
   }
@@ -93,7 +94,7 @@ class IosImageCodecTest {
     val original = ImageTestHelpers.solidColor(64, 48, r = 100, g = 200, b = 50)
     val ctx = ImageTestHelpers.testContext()
     val encoded = try {
-      encoder.encode(original, ImageFormat.HEIF, HeifEncodeOptions(outputFormat = ImageFormat.HEIF), ctx)
+      encoder.encode(original, ImageFormat.HEIF, HeifEncodeOptions(format = ImageFormat.HEIF), ctx)
     } catch (_: IllegalStateException) {
       // HEIF encoding not supported on this simulator — skip.
       println("SKIP: HEIF encoding not available on this simulator")
@@ -101,7 +102,7 @@ class IosImageCodecTest {
     }
     assertTrue(encoded.isNotEmpty(), "HEIF encoded bytes should not be empty")
 
-    val decoded = decoder.decode(encoded, DefaultImageDecodeOptions(), ctx)
+    val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
     assertEquals(64, decoded.width, "Width should be preserved")
     assertEquals(48, decoded.height, "Height should be preserved")
   }
@@ -112,10 +113,11 @@ class IosImageCodecTest {
   fun tiffRoundTripPreservesDimensions() = runTest {
     val original = ImageTestHelpers.solidColor(32, 32, r = 0, g = 255, b = 0)
     val ctx = ImageTestHelpers.testContext()
-    val encoded = encoder.encode(original, ImageFormat.TIFF, DefaultImageEncodeOptions(outputFormat = ImageFormat.TIFF), ctx)
+    val encoded =
+      encoder.encode(original, ImageFormat.TIFF, CanonicalImageEncodeOptions(outputFormat = OutputFormat.Exact(ImageFormat.TIFF)), ctx)
     assertTrue(encoded.isNotEmpty(), "TIFF encoded bytes should not be empty")
 
-    val decoded = decoder.decode(encoded, DefaultImageDecodeOptions(), ctx)
+    val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
     assertEquals(32, decoded.width)
     assertEquals(32, decoded.height)
   }
@@ -126,10 +128,11 @@ class IosImageCodecTest {
   fun gifRoundTripPreservesDimensions() = runTest {
     val original = ImageTestHelpers.solidColor(16, 16, r = 255, g = 0, b = 0)
     val ctx = ImageTestHelpers.testContext()
-    val encoded = encoder.encode(original, ImageFormat.GIF, DefaultImageEncodeOptions(outputFormat = ImageFormat.GIF), ctx)
+    val encoded =
+      encoder.encode(original, ImageFormat.GIF, CanonicalImageEncodeOptions(outputFormat = OutputFormat.Exact(ImageFormat.GIF)), ctx)
     assertTrue(encoded.isNotEmpty(), "GIF encoded bytes should not be empty")
 
-    val decoded = decoder.decode(encoded, DefaultImageDecodeOptions(), ctx)
+    val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
     assertEquals(16, decoded.width)
     assertEquals(16, decoded.height)
   }
@@ -140,10 +143,11 @@ class IosImageCodecTest {
   fun bmpRoundTripPreservesDimensions() = runTest {
     val original = ImageTestHelpers.solidColor(32, 32, r = 0, g = 0, b = 255)
     val ctx = ImageTestHelpers.testContext()
-    val encoded = encoder.encode(original, ImageFormat.BMP, DefaultImageEncodeOptions(outputFormat = ImageFormat.BMP), ctx)
+    val encoded =
+      encoder.encode(original, ImageFormat.BMP, CanonicalImageEncodeOptions(outputFormat = OutputFormat.Exact(ImageFormat.BMP)), ctx)
     assertTrue(encoded.isNotEmpty(), "BMP encoded bytes should not be empty")
 
-    val decoded = decoder.decode(encoded, DefaultImageDecodeOptions(), ctx)
+    val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
     assertEquals(32, decoded.width)
     assertEquals(32, decoded.height)
   }

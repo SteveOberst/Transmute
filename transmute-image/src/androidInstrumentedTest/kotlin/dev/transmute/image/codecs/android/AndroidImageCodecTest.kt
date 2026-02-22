@@ -1,10 +1,7 @@
 package dev.transmute.image.codecs.android
 
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.os.Build
 import dev.transmute.core.ImageFormat
-import dev.transmute.image.ByteArrayPixelBuffer
 import dev.transmute.image.ImageTestHelpers
 import dev.transmute.image.JpegEncodeOptions
 import dev.transmute.image.PngEncodeOptions
@@ -17,9 +14,8 @@ import org.junit.rules.Timeout
 import org.junit.runner.RunWith
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
-import dev.transmute.image.DefaultImageDecodeOptions
+import dev.transmute.image.CanonicalImageDecodeOptions
 
 /**
  * Android instrumented tests for [AndroidBitmapImageDecoder] and
@@ -48,7 +44,7 @@ class AndroidImageCodecTest {
     val encoded = encoder.encode(original, ImageFormat.JPEG, JpegEncodeOptions(quality = 0.9f), ctx)
     assertTrue(encoded.isNotEmpty())
 
-    val decoded = decoder.decode(encoded, DefaultImageDecodeOptions(), ctx)
+    val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
     assertEquals(64, decoded.width)
     assertEquals(48, decoded.height)
   }
@@ -59,7 +55,7 @@ class AndroidImageCodecTest {
     val ctx = ImageTestHelpers.testContext()
 
     val encoded = encoder.encode(original, ImageFormat.JPEG, JpegEncodeOptions(quality = 0.95f), ctx)
-    val decoded = decoder.decode(encoded, DefaultImageDecodeOptions(), ctx)
+    val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
     val diff = ImageTestHelpers.peakDifference(original, decoded)
     val origPx = ImageTestHelpers.pixelAt(original, 0, 0)
     val decPx = ImageTestHelpers.pixelAt(decoded, 0, 0)
@@ -76,7 +72,7 @@ class AndroidImageCodecTest {
     val ctx = ImageTestHelpers.testContext()
 
     val encoded = encoder.encode(original, ImageFormat.PNG, PngEncodeOptions(), ctx)
-    val decoded = decoder.decode(encoded, DefaultImageDecodeOptions(), ctx)
+    val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
 
     assertEquals(32, decoded.width)
     assertEquals(32, decoded.height)
@@ -97,7 +93,7 @@ class AndroidImageCodecTest {
     val encoded = encoder.encode(original, ImageFormat.WEBP, WebPEncodeOptions(quality = 0.9f), ctx)
     assertTrue(encoded.isNotEmpty())
 
-    val decoded = decoder.decode(encoded, DefaultImageDecodeOptions(), ctx)
+    val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
     assertEquals(64, decoded.width)
     assertEquals(32, decoded.height)
   }
@@ -112,7 +108,7 @@ class AndroidImageCodecTest {
     val bmpBytes = bmpEncoder.encode(original, ctx)
     assertTrue(bmpBytes.isNotEmpty(), "BMP encoded bytes should not be empty")
 
-    val decoded = decoder.decode(bmpBytes, DefaultImageDecodeOptions(), ctx)
+    val decoded = decoder.decode(bmpBytes, CanonicalImageDecodeOptions(), ctx)
     assertEquals(32, decoded.width, "BMP: width should be 32")
     assertEquals(32, decoded.height, "BMP: height should be 32")
   }
@@ -139,7 +135,7 @@ class AndroidImageCodecTest {
     )
 
     val ctx = ImageTestHelpers.testContext()
-    val decoded = decoder.decode(gif, DefaultImageDecodeOptions(), ctx)
+    val decoded = decoder.decode(gif, CanonicalImageDecodeOptions(), ctx)
     assertEquals(1, decoded.width, "GIF: width should be 1")
     assertEquals(1, decoded.height, "GIF: height should be 1")
   }

@@ -6,8 +6,8 @@ import dev.transmute.core.AudioFormat
 import dev.transmute.core.PrintLogger
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
-import dev.transmute.audio.DefaultAudioDecodeOptions
-import dev.transmute.audio.DefaultAudioEncodeOptions
+import dev.transmute.audio.CanonicalAudioDecodeOptions
+import dev.transmute.audio.CanonicalAudioEncodeOptions
 
 class JvmOggVorbisCodecTest {
 
@@ -74,7 +74,7 @@ class JvmOggVorbisCodecTest {
         )
 
         val encoded = try {
-            codec.encode(original, AudioFormat.OGG, DefaultAudioEncodeOptions(), AudioTestHelpers.testContext())
+            codec.encode(original, AudioFormat.OGG, CanonicalAudioEncodeOptions(), AudioTestHelpers.testContext())
         } catch (e: Exception) {
             if ("FFmpeg" in e.message.orEmpty() || "libvorbis" in e.message.orEmpty()) {
                 log.warn("SKIPPED: OGG/Vorbis encoding not available: ${e.message}")
@@ -89,7 +89,7 @@ class JvmOggVorbisCodecTest {
         assertEquals(0x67.toByte(), encoded[1])
 
         val decoded = try {
-            codec.decode(encoded, DefaultAudioDecodeOptions(), AudioTestHelpers.testContext())
+            codec.decode(encoded, CanonicalAudioDecodeOptions(), AudioTestHelpers.testContext())
         } catch (e: Exception) {
             // JOrbis may not be able to decode OGG files produced by modern FFmpeg
             // builds on some platforms. Skip rather than fail the entire CI run.
@@ -110,7 +110,7 @@ class JvmOggVorbisCodecTest {
 
         val ir = AudioTestHelpers.sineWave(durationMs = 50)
         assertFailsWith<IllegalStateException> {
-            codec.encode(ir, AudioFormat.OGG, DefaultAudioEncodeOptions(), AudioTestHelpers.testContext())
+            codec.encode(ir, AudioFormat.OGG, CanonicalAudioEncodeOptions(), AudioTestHelpers.testContext())
         }
     }
 }

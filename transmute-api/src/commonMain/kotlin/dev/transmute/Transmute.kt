@@ -7,8 +7,8 @@ import dev.transmute.audio.AudioDecodeOptions
 import dev.transmute.audio.AudioEncodeOptions
 import dev.transmute.audio.AudioRegistries
 import dev.transmute.audio.AudioTransform
-import dev.transmute.audio.DefaultAudioDecodeOptions
-import dev.transmute.audio.DefaultAudioEncodeOptions
+import dev.transmute.audio.CanonicalAudioDecodeOptions
+import dev.transmute.audio.CanonicalAudioEncodeOptions
 import dev.transmute.audio.AudioDecodeHandler
 import dev.transmute.audio.AudioDynamicEncodeHandler
 import dev.transmute.audio.AudioFixedEncodeHandler
@@ -33,8 +33,8 @@ import dev.transmute.core.pipeline.EncodedBytes
 import dev.transmute.core.pipeline.PipelineBuilder
 import dev.transmute.core.pipeline.Transform
 import dev.transmute.core.pipeline.TransformPipeline
-import dev.transmute.image.DefaultImageDecodeOptions
-import dev.transmute.image.DefaultImageEncodeOptions
+import dev.transmute.image.CanonicalImageDecodeOptions
+import dev.transmute.image.CanonicalImageEncodeOptions
 import dev.transmute.image.ImageDecodeOptions
 import dev.transmute.image.ImageEncodeOptions
 import dev.transmute.image.ImageFormatDetector
@@ -46,8 +46,8 @@ import dev.transmute.image.ImageFixedEncodeHandler
 import dev.transmute.image.ImageRegistries
 import dev.transmute.image.ImageTransform
 import dev.transmute.image.JpegEncodeOptions
-import dev.transmute.video.DefaultVideoDecodeOptions
-import dev.transmute.video.DefaultVideoEncodeOptions
+import dev.transmute.video.CanonicalVideoDecodeOptions
+import dev.transmute.video.CanonicalVideoEncodeOptions
 import dev.transmute.video.VideoDecodeOptions
 import dev.transmute.video.VideoEncodeOptions
 import dev.transmute.video.VideoFormatDetector
@@ -232,8 +232,8 @@ class DynamicImageTransmuterBuilder<IN> internal constructor(
 ) {
   private val transformPipeline = TransformPipeline<ImageIR>()
   private var loggerOverride: TransmuteLogger? = null
-  private var decodeOptions: ImageDecodeOptions = DefaultImageDecodeOptions()
-  private var encodeOptions: ImageEncodeOptions = DefaultImageEncodeOptions()
+  private var decodeOptions: ImageDecodeOptions = CanonicalImageDecodeOptions()
+  private var encodeOptions: ImageEncodeOptions = CanonicalImageEncodeOptions()
   private var decodePipeline: DecodePipeline<IN, Decoded<ImageFormat, ImageIR>>? = null
   private var encodePipeline: EncodePipeline<Decoded<ImageFormat, ImageIR>, EncodedBytes<ImageFormat, AnyFormatTag<ImageFormat>>>? = null
 
@@ -303,8 +303,8 @@ class ImageTransmuterBuilder<IN, OUT : ImageFormatTag> internal constructor(
 ) {
   private val transformPipeline = TransformPipeline<ImageIR>()
   private var loggerOverride: TransmuteLogger? = null
-  private var decodeOptions: ImageDecodeOptions = DefaultImageDecodeOptions()
-  private var encodeOptions: ImageEncodeOptions = DefaultImageEncodeOptions()
+  private var decodeOptions: ImageDecodeOptions = CanonicalImageDecodeOptions()
+  private var encodeOptions: ImageEncodeOptions = CanonicalImageEncodeOptions()
   private var decodePipeline: DecodePipeline<IN, Decoded<ImageFormat, ImageIR>>? = null
   private var encodePipeline: EncodePipeline<Decoded<ImageFormat, ImageIR>, EncodedBytes<ImageFormat, OUT>>? = null
 
@@ -405,8 +405,8 @@ class DynamicAudioTransmuterBuilder<IN> internal constructor(
 ) {
   private val transformPipeline = TransformPipeline<AudioIR>()
   private var loggerOverride: TransmuteLogger? = null
-  private var decodeOptions: AudioDecodeOptions = DefaultAudioDecodeOptions()
-  private var encodeOptions: AudioEncodeOptions = DefaultAudioEncodeOptions()
+  private var decodeOptions: AudioDecodeOptions = CanonicalAudioDecodeOptions()
+  private var encodeOptions: AudioEncodeOptions = CanonicalAudioEncodeOptions()
   private var decodePipeline: DecodePipeline<IN, Decoded<AudioFormat, AudioIR>>? = null
   private var encodePipeline: EncodePipeline<Decoded<AudioFormat, AudioIR>, EncodedBytes<AudioFormat, AnyFormatTag<AudioFormat>>>? = null
 
@@ -465,8 +465,8 @@ class AudioTransmuterBuilder<IN, OUT : AudioFormatTag> internal constructor(
 ) {
   private val transformPipeline = TransformPipeline<AudioIR>()
   private var loggerOverride: TransmuteLogger? = null
-  private var decodeOptions: AudioDecodeOptions = DefaultAudioDecodeOptions()
-  private var encodeOptions: AudioEncodeOptions = DefaultAudioEncodeOptions()
+  private var decodeOptions: AudioDecodeOptions = CanonicalAudioDecodeOptions()
+  private var encodeOptions: AudioEncodeOptions = CanonicalAudioEncodeOptions()
   private var decodePipeline: DecodePipeline<IN, Decoded<AudioFormat, AudioIR>>? = null
   private var encodePipeline: EncodePipeline<Decoded<AudioFormat, AudioIR>, EncodedBytes<AudioFormat, OUT>>? = null
 
@@ -561,8 +561,8 @@ class DynamicVideoTransmuterBuilder<IN> internal constructor(
 ) {
   private val transformPipeline = TransformPipeline<VideoIR>()
   private var loggerOverride: TransmuteLogger? = null
-  private var decodeOptions: VideoDecodeOptions = DefaultVideoDecodeOptions()
-  private var encodeOptions: VideoEncodeOptions = DefaultVideoEncodeOptions()
+  private var decodeOptions: VideoDecodeOptions = CanonicalVideoDecodeOptions()
+  private var encodeOptions: VideoEncodeOptions = CanonicalVideoEncodeOptions()
   private var decodePipeline: DecodePipeline<IN, Decoded<VideoFormat, VideoIR>>? = null
   private var encodePipeline: EncodePipeline<Decoded<VideoFormat, VideoIR>, EncodedBytes<VideoFormat, AnyFormatTag<VideoFormat>>>? = null
 
@@ -621,8 +621,8 @@ class VideoTransmuterBuilder<IN, OUT : VideoFormatTag> internal constructor(
 ) {
   private val transformPipeline = TransformPipeline<VideoIR>()
   private var loggerOverride: TransmuteLogger? = null
-  private var decodeOptions: VideoDecodeOptions = DefaultVideoDecodeOptions()
-  private var encodeOptions: VideoEncodeOptions = DefaultVideoEncodeOptions()
+  private var decodeOptions: VideoDecodeOptions = CanonicalVideoDecodeOptions()
+  private var encodeOptions: VideoEncodeOptions = CanonicalVideoEncodeOptions()
   private var decodePipeline: DecodePipeline<IN, Decoded<VideoFormat, VideoIR>>? = null
   private var encodePipeline: EncodePipeline<Decoded<VideoFormat, VideoIR>, EncodedBytes<VideoFormat, OUT>>? = null
 

@@ -3,6 +3,7 @@ package dev.transmute.image
 import dev.transmute.core.EncodeOptions
 import dev.transmute.core.ImageFormat
 import dev.transmute.core.MetadataPolicy
+import dev.transmute.core.OutputFormat
 
 /**
  * Sealed hierarchy of image encoding options.
@@ -21,12 +22,12 @@ sealed interface ImageEncodeOptions : EncodeOptions {
   val metadataPolicy: MetadataPolicy
 
   /**
-   * Optional output-format override for *dynamic-output* transmuters.
+   * Output-format selection for *dynamic-output* transmuters.
    *
-   * When `null`, the default behavior is "same as input" (or whatever the encode pipeline selects).
-   * Fixed-output transmuters ignore this value.
+   * Use [OutputFormat.ORIGINAL] to fall back to the input format.
+   * Fixed-output transmuters ignore this value (and may validate it).
    */
-  val outputFormat: ImageFormat?
+  val outputFormat: OutputFormat<ImageFormat>
 
   companion object {
     /**
@@ -39,7 +40,7 @@ sealed interface ImageEncodeOptions : EncodeOptions {
       ImageFormat.PNG -> PngEncodeOptions()
       ImageFormat.WEBP -> WebPEncodeOptions()
       ImageFormat.HEIF, ImageFormat.HEIC, ImageFormat.AVIF -> HeifEncodeOptions()
-      else -> DefaultImageEncodeOptions()
+      else -> CanonicalImageEncodeOptions()
     }
   }
 }
@@ -54,7 +55,7 @@ data class JpegEncodeOptions(
   val quality: Float = 0.85f,
   override val metadataPolicy: MetadataPolicy = MetadataPolicy.STRIP_ALL,
 ) : ImageEncodeOptions {
-  override val outputFormat: ImageFormat = ImageFormat.JPEG
+  override val outputFormat: OutputFormat<ImageFormat> = OutputFormat.Exact(ImageFormat.JPEG)
 
   init {
     require(quality in 0f..1f) { "quality must be in [0, 1], was $quality" }
@@ -72,7 +73,7 @@ data class PngEncodeOptions(
   val compressionLevel: Int = 6,
   override val metadataPolicy: MetadataPolicy = MetadataPolicy.STRIP_ALL,
 ) : ImageEncodeOptions {
-  override val outputFormat: ImageFormat = ImageFormat.PNG
+  override val outputFormat: OutputFormat<ImageFormat> = OutputFormat.Exact(ImageFormat.PNG)
 
   init {
     require(compressionLevel in 0..9) { "compressionLevel must be in [0, 9], was $compressionLevel" }
@@ -90,7 +91,7 @@ data class WebPEncodeOptions(
   val lossless: Boolean = false,
   override val metadataPolicy: MetadataPolicy = MetadataPolicy.STRIP_ALL,
 ) : ImageEncodeOptions {
-  override val outputFormat: ImageFormat = ImageFormat.WEBP
+  override val outputFormat: OutputFormat<ImageFormat> = OutputFormat.Exact(ImageFormat.WEBP)
 
   init {
     require(quality in 0f..1f) { "quality must be in [0, 1], was $quality" }
@@ -105,34 +106,36 @@ data class WebPEncodeOptions(
 data class HeifEncodeOptions(
   val quality: Float = 0.80f,
   override val metadataPolicy: MetadataPolicy = MetadataPolicy.STRIP_ALL,
-  override val outputFormat: ImageFormat = ImageFormat.HEIF,
+  val format: ImageFormat = ImageFormat.HEIF,
 ) : ImageEncodeOptions {
+  override val outputFormat: OutputFormat<ImageFormat> = OutputFormat.Exact(format)
+
   init {
     require(quality in 0f..1f) { "quality must be in [0, 1], was $quality" }
-    require(outputFormat == ImageFormat.HEIF || outputFormat == ImageFormat.HEIC || outputFormat == ImageFormat.AVIF) {
-      "outputFormat must be HEIF, HEIC, or AVIF, was $outputFormat"
+    require(format == ImageFormat.HEIF || format == ImageFormat.HEIC || format == ImageFormat.AVIF) {
+      "format must be HEIF, HEIC, or AVIF, was $format"
     }
   }
 }
 
 /**
- * Fallback options for image formats with no format-specific knobs
+ * Format-agnostic options for image formats with no format-specific knobs
  * (BMP, GIF, TIFF, etc.).
  */
-data class DefaultImageEncodeOptions(
+data class CanonicalImageEncodeOptions(
   override val metadataPolicy: MetadataPolicy = MetadataPolicy.STRIP_ALL,
-  override val outputFormat: ImageFormat? = null,
+  override val outputFormat: OutputFormat<ImageFormat> = OutputFormat.ORIGINAL,
 ) : ImageEncodeOptions
 
 /**
  * Resolves [this] into the effective options to use for [outputFormat].
  *
- * In particular, [DefaultImageEncodeOptions] acts as a sentinel meaning
+ * In particular, [CanonicalImageEncodeOptions] acts as a sentinel meaning
  * "use the library defaults for the chosen output format", while still
  * allowing callers to specify shared concerns like [metadataPolicy].
  */
 fun ImageEncodeOptions.resolveFor(outputFormat: ImageFormat): ImageEncodeOptions = when (this) {
-  is DefaultImageEncodeOptions ->
+  is CanonicalImageEncodeOptions ->
     ImageEncodeOptions.defaultFor(outputFormat).withMetadataPolicy(metadataPolicy)
 
   else -> this
@@ -144,6 +147,5 @@ fun ImageEncodeOptions.withMetadataPolicy(metadataPolicy: MetadataPolicy): Image
   is PngEncodeOptions -> copy(metadataPolicy = metadataPolicy)
   is WebPEncodeOptions -> copy(metadataPolicy = metadataPolicy)
   is HeifEncodeOptions -> copy(metadataPolicy = metadataPolicy)
-  is DefaultImageEncodeOptions -> copy(metadataPolicy = metadataPolicy)
+  is CanonicalImageEncodeOptions -> copy(metadataPolicy = metadataPolicy)
 }
-

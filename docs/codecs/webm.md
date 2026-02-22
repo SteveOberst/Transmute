@@ -15,18 +15,19 @@ WebM is an open video container format often containing VP8/VP9 video and Opus/V
 ```kotlin
 import dev.transmute.Transmute
 import dev.transmute.core.VideoFormat
-import dev.transmute.video.DefaultVideoEncodeOptions
+import dev.transmute.core.OutputFormat
+import dev.transmute.video.CanonicalVideoEncodeOptions
 
 // Convert video to WebM (Android/Desktop)
 suspend fun convertToWebm(inputBytes: ByteArray): ByteArray =
   Transmute.video {
-    encodeOptions(DefaultVideoEncodeOptions(outputFormat = VideoFormat.WEBM))
+    encodeOptions(CanonicalVideoEncodeOptions(outputFormat = OutputFormat.Exact(VideoFormat.WEBM)))
   }.transmute(inputBytes).bytes
 
 // Decode WebM (re-encode to MP4)
 suspend fun convertToMp4(webmBytes: ByteArray): ByteArray =
   Transmute.video {
-    encodeOptions(DefaultVideoEncodeOptions(outputFormat = VideoFormat.MP4))
+    encodeOptions(CanonicalVideoEncodeOptions(outputFormat = OutputFormat.Exact(VideoFormat.MP4)))
   }.transmute(webmBytes).bytes
 ```
 

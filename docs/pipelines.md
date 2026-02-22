@@ -19,16 +19,17 @@ The default implementations are regular handler classes you can reuse in your ow
 ```kotlin
 import dev.transmute.Transmute
 import dev.transmute.core.ImageFormat
-import dev.transmute.image.DefaultImageDecodeOptions
+import dev.transmute.core.OutputFormat
+import dev.transmute.image.CanonicalImageDecodeOptions
 import dev.transmute.image.ImageDecodeHandler
 
 data class NamedBytes(val name: String, val bytes: ByteArray)
 
 val t = Transmute.imageFrom<NamedBytes> {
-  decodeOptions(DefaultImageDecodeOptions(acceptedInputFormats = setOf(ImageFormat.PNG, ImageFormat.JPEG)))
+  decodeOptions(CanonicalImageDecodeOptions(acceptedInputFormats = setOf(ImageFormat.PNG, ImageFormat.JPEG)))
 
   decode {
-    then { input, _ -> input.bytes }
+    startWith { input, _ -> input.bytes }
       .then(ImageDecodeHandler())
   }
 }
@@ -42,24 +43,30 @@ not a builder-level knob.
 ```kotlin
 import dev.transmute.Transmute
 import dev.transmute.core.ImageFormat
+import dev.transmute.core.OutputFormat
 import dev.transmute.image.AlphaSemantics
-import dev.transmute.image.DefaultImageEncodeOptions
+import dev.transmute.image.CanonicalImageEncodeOptions
 import dev.transmute.image.ImageDynamicEncodeHandler
 import dev.transmute.image.ImageOutputFormatSelector
 
 val t = Transmute.image {
-  encodeOptions(DefaultImageEncodeOptions()) // outputFormat = null => choose dynamically
+  encodeOptions(CanonicalImageEncodeOptions(outputFormat = OutputFormat.ORIGINAL))
 
   encode {
-    then(
+    startWith(
       ImageDynamicEncodeHandler(
         outputFormatSelector = ImageOutputFormatSelector { decoded, options ->
-          options.outputFormat
-            ?: if (decoded.ir.alphaSemantics != AlphaSemantics.OPAQUE) ImageFormat.PNG else ImageFormat.JPEG
+          when (val requested = options.outputFormat) {
+            OutputFormat.ORIGINAL ->
+              if (decoded.ir.alphaSemantics != AlphaSemantics.OPAQUE) ImageFormat.PNG else ImageFormat.JPEG
+            is OutputFormat.Exact -> requested.format
+          }
         },
       ),
-    )
+    ).then { out, ctx ->
+      ctx.logger.info("encoded ${out.format} -> ${out.bytes.size} bytes")
+      out
+    }
   }
 }
 ```
-

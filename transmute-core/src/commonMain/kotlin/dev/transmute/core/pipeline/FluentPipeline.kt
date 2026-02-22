@@ -27,7 +27,23 @@ class PipelineBuilder<IN, CUR> internal constructor(
   private val steps: List<suspend (Any?, TransmuteContext) -> Any?>,
 ) {
 
-  fun <NEXT> then(handler: PipelineHandler<CUR, NEXT>): PipelineBuilder<IN, NEXT> {
+  /**
+   * Alias for [then] intended for the first pipeline step to avoid starting a pipeline with `then(...)`.
+   *
+   * This is a pure naming convenience; it behaves identically to [then].
+   */
+  infix fun <NEXT> startWith(handler: PipelineHandler<CUR, NEXT>): PipelineBuilder<IN, NEXT> =
+    this then handler
+
+  /**
+   * Alias for [then] intended for the first pipeline step to avoid starting a pipeline with `then { ... }`.
+   *
+   * This is a pure naming convenience; it behaves identically to [then].
+   */
+  infix fun <NEXT> startWith(block: suspend (CUR, TransmuteContext) -> NEXT): PipelineBuilder<IN, NEXT> =
+    this then block
+
+  infix fun <NEXT> then(handler: PipelineHandler<CUR, NEXT>): PipelineBuilder<IN, NEXT> {
     val nextSteps = steps.toMutableList()
     nextSteps += { value, ctx ->
       @Suppress("UNCHECKED_CAST")
@@ -36,7 +52,7 @@ class PipelineBuilder<IN, CUR> internal constructor(
     return PipelineBuilder(nextSteps)
   }
 
-  fun <NEXT> then(block: suspend (CUR, TransmuteContext) -> NEXT): PipelineBuilder<IN, NEXT> =
+  infix fun <NEXT> then(block: suspend (CUR, TransmuteContext) -> NEXT): PipelineBuilder<IN, NEXT> =
     then(PipelineHandler { value, ctx -> block(value, ctx) })
 
   fun build(): Pipeline<IN, CUR> = Pipeline(steps = steps.toList())

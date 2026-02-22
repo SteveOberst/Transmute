@@ -10,8 +10,8 @@ import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import dev.transmute.audio.DefaultAudioDecodeOptions
-import dev.transmute.audio.DefaultAudioEncodeOptions
+import dev.transmute.audio.CanonicalAudioDecodeOptions
+import dev.transmute.audio.CanonicalAudioEncodeOptions
 
 class WavCodecTest {
 
@@ -35,8 +35,8 @@ class WavCodecTest {
       channelCount = 1,
     )
 
-    val encoded = encoder.encode(original, AudioFormat.WAV, DefaultAudioEncodeOptions(), context)
-    val decoded = decoder.decode(encoded, DefaultAudioDecodeOptions(), context)
+    val encoded = encoder.encode(original, AudioFormat.WAV, CanonicalAudioEncodeOptions(), context)
+    val decoded = decoder.decode(encoded, CanonicalAudioDecodeOptions(), context)
 
     assertEquals(original.sampleRate, decoded.sampleRate)
     assertEquals(original.channelCount, decoded.channelCount)
@@ -59,8 +59,8 @@ class WavCodecTest {
       channelCount = 2,
     )
 
-    val encoded = encoder.encode(original, AudioFormat.WAV, DefaultAudioEncodeOptions(), context)
-    val decoded = decoder.decode(encoded, DefaultAudioDecodeOptions(), context)
+    val encoded = encoder.encode(original, AudioFormat.WAV, CanonicalAudioEncodeOptions(), context)
+    val decoded = decoder.decode(encoded, CanonicalAudioDecodeOptions(), context)
 
     assertEquals(original.sampleRate, decoded.sampleRate)
     assertEquals(original.channelCount, decoded.channelCount)
@@ -77,8 +77,8 @@ class WavCodecTest {
 
     for (rate in rates) {
       val original = sineWave(sampleRate = rate, durationMs = 10)
-      val encoded = encoder.encode(original, AudioFormat.WAV, DefaultAudioEncodeOptions(), context)
-      val decoded = decoder.decode(encoded, DefaultAudioDecodeOptions(), context)
+      val encoded = encoder.encode(original, AudioFormat.WAV, CanonicalAudioEncodeOptions(), context)
+      val decoded = decoder.decode(encoded, CanonicalAudioDecodeOptions(), context)
       assertEquals(rate, decoded.sampleRate, "Sample rate $rate not preserved")
     }
   }
@@ -87,8 +87,8 @@ class WavCodecTest {
   fun handlesSmallAudio() = runTest {
     // Very short audio: 10 samples
     val tiny = sineWave(durationMs = 1, sampleRate = 8000)
-    val encoded = encoder.encode(tiny, AudioFormat.WAV, DefaultAudioEncodeOptions(), context)
-    val decoded = decoder.decode(encoded, DefaultAudioDecodeOptions(), context)
+    val encoded = encoder.encode(tiny, AudioFormat.WAV, CanonicalAudioEncodeOptions(), context)
+    val decoded = decoder.decode(encoded, CanonicalAudioDecodeOptions(), context)
 
     assertTrue(decoded.samples.data.isNotEmpty())
   }
@@ -97,8 +97,8 @@ class WavCodecTest {
   fun clampingPreventsSaturation() = runTest {
     // Audio with samples > 1.0
     val overdriven = sineWave(amplitude = 1.5f, durationMs = 10)
-    val encoded = encoder.encode(overdriven, AudioFormat.WAV, DefaultAudioEncodeOptions(), context)
-    val decoded = decoder.decode(encoded, DefaultAudioDecodeOptions(), context)
+    val encoded = encoder.encode(overdriven, AudioFormat.WAV, CanonicalAudioEncodeOptions(), context)
+    val decoded = decoder.decode(encoded, CanonicalAudioDecodeOptions(), context)
 
     // All decoded samples should be in [-1, 1]
     for (sample in decoded.samples.data) {

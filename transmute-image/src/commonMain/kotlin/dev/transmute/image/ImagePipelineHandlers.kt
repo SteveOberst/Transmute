@@ -2,6 +2,8 @@ package dev.transmute.image
 
 import dev.transmute.core.AnyFormatTag
 import dev.transmute.core.ImageFormat
+import dev.transmute.core.OutputFormat
+import dev.transmute.core.resolve
 import dev.transmute.core.TransmuteContext
 import dev.transmute.core.pipeline.Decoded
 import dev.transmute.core.pipeline.EncodedBytes
@@ -22,7 +24,7 @@ class ImageDecodeHandler(
   override suspend fun handle(value: ByteArray, context: TransmuteContext): Decoded<ImageFormat, ImageIR> {
     ImageRegistries.installDefaultsIfEmpty()
 
-    val options = (context.decodeOptions as? ImageDecodeOptions) ?: DefaultImageDecodeOptions()
+    val options = (context.decodeOptions as? ImageDecodeOptions) ?: CanonicalImageDecodeOptions()
     val accepted = options.acceptedInputFormats
 
     val format = if (accepted.size == 1) accepted.first() else detector(value)
@@ -40,7 +42,7 @@ class ImageDecodeHandler(
  * Dynamic image encode handler.
  *
  * Chooses output format as:
- * - `encodeOptions.outputFormat` if non-null, else
+ * - `encodeOptions.outputFormat` when explicit, else
  * - the input format from [Decoded.format].
  *
  * Applies [ImageEncodeOptions.metadataPolicy] during encoding (not as a transform step).
@@ -50,7 +52,7 @@ class ImageDecodeHandler(
 class ImageDynamicEncodeHandler(
   private val encoders: ImageEncoderRegistry = ImageRegistries.encoders,
   private val outputFormatSelector: ImageOutputFormatSelector = ImageOutputFormatSelector { decoded, options ->
-    options.outputFormat ?: decoded.format
+    options.outputFormat.resolve(decoded.format)
   },
 ) : PipelineHandler<Decoded<ImageFormat, ImageIR>, EncodedBytes<ImageFormat, AnyFormatTag<ImageFormat>>> {
 
@@ -60,7 +62,7 @@ class ImageDynamicEncodeHandler(
   ): EncodedBytes<ImageFormat, AnyFormatTag<ImageFormat>> {
     ImageRegistries.installDefaultsIfEmpty()
 
-    val requested = (context.encodeOptions as? ImageEncodeOptions) ?: DefaultImageEncodeOptions()
+    val requested = (context.encodeOptions as? ImageEncodeOptions) ?: CanonicalImageEncodeOptions()
     val outFormat = outputFormatSelector.select(value, requested)
     val effective = requested.resolveFor(outFormat)
 
@@ -82,7 +84,7 @@ fun interface ImageOutputFormatSelector {
  * Fixed-output image encode handler.
  *
  * Reads [ImageEncodeOptions] from [TransmuteContext.encodeOptions] and enforces that any
- * non-null `outputFormat` matches the fixed output format.
+ * explicit `outputFormat` matches the fixed output format.
  */
 class ImageFixedEncodeHandler<OUT : dev.transmute.core.ImageFormatTag>(
   private val output: OUT,
@@ -92,10 +94,12 @@ class ImageFixedEncodeHandler<OUT : dev.transmute.core.ImageFormatTag>(
   override suspend fun handle(value: Decoded<ImageFormat, ImageIR>, context: TransmuteContext): EncodedBytes<ImageFormat, OUT> {
     ImageRegistries.installDefaultsIfEmpty()
 
-    val requested = (context.encodeOptions as? ImageEncodeOptions) ?: DefaultImageEncodeOptions()
-    val declared = requested.outputFormat
-    require(declared == null || declared == output.format) {
-      "encodeOptions.outputFormat=$declared conflicts with fixed output=${output.format}"
+    val requested = (context.encodeOptions as? ImageEncodeOptions) ?: CanonicalImageEncodeOptions()
+    when (val declared = requested.outputFormat) {
+      OutputFormat.ORIGINAL -> Unit
+      is OutputFormat.Exact -> require(declared.format == output.format) {
+        "encodeOptions.outputFormat=${declared.format} conflicts with fixed output=${output.format}"
+      }
     }
 
     val effective = requested.resolveFor(output.format)
@@ -123,7 +127,7 @@ fun <IN> PipelineBuilder<IN, ByteArray>.then(
   decoder: ImageDecoder,
   detector: (ByteArray) -> ImageFormat = ImageFormatDetector::detect,
 ): PipelineBuilder<IN, Decoded<ImageFormat, ImageIR>> = then { bytes, ctx ->
-  val options = (ctx.decodeOptions as? ImageDecodeOptions) ?: DefaultImageDecodeOptions()
+  val options = (ctx.decodeOptions as? ImageDecodeOptions) ?: CanonicalImageDecodeOptions()
   val accepted = options.acceptedInputFormats
 
   val format = when {
@@ -145,14 +149,14 @@ fun <IN> PipelineBuilder<IN, ByteArray>.then(
  * Adds an encode step using a specific [ImageEncoder].
  *
  * Output selection:
- * - `encodeOptions.outputFormat` when non-null, else
- * - the input format from [Decoded.format].
+ * - explicit `encodeOptions.outputFormat`, else
+ * - the input format from [Decoded.format] (ORIGINAL).
  */
 fun <IN> PipelineBuilder<IN, Decoded<ImageFormat, ImageIR>>.then(
   encoder: ImageEncoder,
 ): PipelineBuilder<IN, EncodedBytes<ImageFormat, AnyFormatTag<ImageFormat>>> = then { decoded, ctx ->
-  val requested = (ctx.encodeOptions as? ImageEncodeOptions) ?: DefaultImageEncodeOptions()
-  val outFormat = requested.outputFormat ?: decoded.format
+  val requested = (ctx.encodeOptions as? ImageEncodeOptions) ?: CanonicalImageEncodeOptions()
+  val outFormat = requested.outputFormat.resolve(decoded.format)
   val effective = requested.resolveFor(outFormat)
 
   require(outFormat in encoder.supportedFormats) {
@@ -176,10 +180,12 @@ fun <IN, OUT : dev.transmute.core.ImageFormatTag> PipelineBuilder<IN, Decoded<Im
   encoder: ImageEncoder,
   output: OUT,
 ): PipelineBuilder<IN, EncodedBytes<ImageFormat, OUT>> = then { decoded, ctx ->
-  val requested = (ctx.encodeOptions as? ImageEncodeOptions) ?: DefaultImageEncodeOptions()
-  val declared = requested.outputFormat
-  require(declared == null || declared == output.format) {
-    "encodeOptions.outputFormat=$declared conflicts with fixed output=${output.format}"
+  val requested = (ctx.encodeOptions as? ImageEncodeOptions) ?: CanonicalImageEncodeOptions()
+  when (val declared = requested.outputFormat) {
+    OutputFormat.ORIGINAL -> Unit
+    is OutputFormat.Exact -> require(declared.format == output.format) {
+      "encodeOptions.outputFormat=${declared.format} conflicts with fixed output=${output.format}"
+    }
   }
   val effective = requested.resolveFor(output.format)
 
