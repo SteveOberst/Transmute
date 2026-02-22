@@ -1,6 +1,5 @@
 package dev.transmute.audio
 
-import dev.transmute.core.AudioFormat
 import dev.transmute.core.EncodeOptions
 import dev.transmute.core.MetadataPolicy
 import dev.transmute.core.OutputFormat

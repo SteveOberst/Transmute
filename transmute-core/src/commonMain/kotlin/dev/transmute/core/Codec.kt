@@ -8,7 +8,7 @@ package dev.transmute.core
  * @param IR The intermediate representation produced by decoding.
  * @param D The [DecodeOptions] type accepted by this decoder.
  */
-interface Decoder<out F : MediaFormat, out IR, in D : DecodeOptions> {
+interface Decoder<out F : MediaFormat<*, *>, out IR, in D : DecodeOptions> {
 
   /** Formats this decoder can handle. */
   val decodableFormats: Set<F>
@@ -19,7 +19,7 @@ interface Decoder<out F : MediaFormat, out IR, in D : DecodeOptions> {
    *
    * Implementations should be cheap (check magic bytes, not parse the whole file).
    */
-  fun sniff(data: ByteArray): F?
+  fun sniff(data: Bytes): F?
 
   /**
    * Decode raw bytes into the module's intermediate representation.
@@ -28,7 +28,7 @@ interface Decoder<out F : MediaFormat, out IR, in D : DecodeOptions> {
    * (e.g. JPEG downscale factor). Pass the domain's default options
    * when no special configuration is needed.
    */
-  suspend fun decode(source: ByteArray, options: D, context: TransmuteContext): IR
+  suspend fun decode(source: Bytes, options: D, context: TransmuteContext): IR
 }
 
 /**
@@ -38,7 +38,7 @@ interface Decoder<out F : MediaFormat, out IR, in D : DecodeOptions> {
  * @param IR The intermediate representation consumed by encoding.
  * @param O The [EncodeOptions] type accepted by this encoder.
  */
-interface Encoder<F : MediaFormat, in IR, in O : EncodeOptions> {
+interface Encoder<F : MediaFormat<*, *>, in IR, in O : EncodeOptions> {
 
   /** Formats this encoder can produce. */
   val encodableFormats: Set<F>
@@ -49,7 +49,7 @@ interface Encoder<F : MediaFormat, in IR, in O : EncodeOptions> {
    * The selected [format] and [options] are explicit to avoid relying on
    * mutable out-of-band state in [TransmuteContext].
    */
-  suspend fun encode(ir: IR, format: F, options: O, context: TransmuteContext): ByteArray
+  suspend fun encode(ir: IR, format: F, options: O, context: TransmuteContext): Bytes
 }
 
 /**
@@ -64,4 +64,4 @@ interface Encoder<F : MediaFormat, in IR, in O : EncodeOptions> {
  * @param D The [DecodeOptions] type accepted by this codec's decoder side.
  * @param O The [EncodeOptions] type accepted by this codec's encoder side.
  */
-interface Codec<F : MediaFormat, IR, in D : DecodeOptions, in O : EncodeOptions> : Decoder<F, IR, D>, Encoder<F, IR, O>
+interface Codec<F : MediaFormat<*, *>, IR, in D : DecodeOptions, in O : EncodeOptions> : Decoder<F, IR, D>, Encoder<F, IR, O>

@@ -1,5 +1,6 @@
 package dev.transmute
 
+import dev.transmute.video.VideoFormat
 import dev.transmute.video.transform.VideoCropTransform
 import dev.transmute.video.transform.VideoFrameRateTransform
 import dev.transmute.video.transform.VideoRemoveAudioTransform
@@ -13,7 +14,7 @@ fun <IN> DynamicVideoTransmuterBuilder<IN>.trim(startMs: Long, endMs: Long? = nu
   transform { add(VideoTrimTransform(startMs, endMs)) }
 }
 
-fun <IN, OUT : dev.transmute.core.VideoFormatTag> VideoTransmuterBuilder<IN, OUT>.trim(
+fun <IN, OUT : VideoFormat> VideoTransmuterBuilder<IN, OUT>.trim(
   startMs: Long,
   endMs: Long? = null,
 ): VideoTransmuterBuilder<IN, OUT> = apply {
@@ -25,7 +26,7 @@ fun <IN> DynamicVideoTransmuterBuilder<IN>.resize(maxWidth: Int, maxHeight: Int)
   transform { add(VideoResizeTransform(maxWidth, maxHeight)) }
 }
 
-fun <IN, OUT : dev.transmute.core.VideoFormatTag> VideoTransmuterBuilder<IN, OUT>.resize(
+fun <IN, OUT : VideoFormat> VideoTransmuterBuilder<IN, OUT>.resize(
   maxWidth: Int,
   maxHeight: Int,
 ): VideoTransmuterBuilder<IN, OUT> = apply {
@@ -37,7 +38,7 @@ fun <IN> DynamicVideoTransmuterBuilder<IN>.frameRate(fps: Double): DynamicVideoT
   transform { add(VideoFrameRateTransform(fps)) }
 }
 
-fun <IN, OUT : dev.transmute.core.VideoFormatTag> VideoTransmuterBuilder<IN, OUT>.frameRate(fps: Double): VideoTransmuterBuilder<IN, OUT> = apply {
+fun <IN, OUT : VideoFormat> VideoTransmuterBuilder<IN, OUT>.frameRate(fps: Double): VideoTransmuterBuilder<IN, OUT> = apply {
   transform { add(VideoFrameRateTransform(fps)) }
 }
 
@@ -46,7 +47,7 @@ fun <IN> DynamicVideoTransmuterBuilder<IN>.removeAudio(): DynamicVideoTransmuter
   transform { add(VideoRemoveAudioTransform()) }
 }
 
-fun <IN, OUT : dev.transmute.core.VideoFormatTag> VideoTransmuterBuilder<IN, OUT>.removeAudio(): VideoTransmuterBuilder<IN, OUT> = apply {
+fun <IN, OUT : VideoFormat> VideoTransmuterBuilder<IN, OUT>.removeAudio(): VideoTransmuterBuilder<IN, OUT> = apply {
   transform { add(VideoRemoveAudioTransform()) }
 }
 
@@ -55,7 +56,7 @@ fun <IN> DynamicVideoTransmuterBuilder<IN>.crop(x: Int, y: Int, width: Int, heig
   transform { add(VideoCropTransform(x, y, width, height)) }
 }
 
-fun <IN, OUT : dev.transmute.core.VideoFormatTag> VideoTransmuterBuilder<IN, OUT>.crop(
+fun <IN, OUT : VideoFormat> VideoTransmuterBuilder<IN, OUT>.crop(
   x: Int,
   y: Int,
   width: Int,
@@ -69,7 +70,7 @@ fun <IN> DynamicVideoTransmuterBuilder<IN>.speed(speed: Float): DynamicVideoTran
   transform { add(VideoSpeedTransform(speed)) }
 }
 
-fun <IN, OUT : dev.transmute.core.VideoFormatTag> VideoTransmuterBuilder<IN, OUT>.speed(speed: Float): VideoTransmuterBuilder<IN, OUT> = apply {
+fun <IN, OUT : VideoFormat> VideoTransmuterBuilder<IN, OUT>.speed(speed: Float): VideoTransmuterBuilder<IN, OUT> = apply {
   transform { add(VideoSpeedTransform(speed)) }
 }
 
@@ -78,6 +79,6 @@ fun <IN> DynamicVideoTransmuterBuilder<IN>.rotate(degrees: Int): DynamicVideoTra
   transform { add(VideoRotateTransform(degrees)) }
 }
 
-fun <IN, OUT : dev.transmute.core.VideoFormatTag> VideoTransmuterBuilder<IN, OUT>.rotate(degrees: Int): VideoTransmuterBuilder<IN, OUT> = apply {
+fun <IN, OUT : VideoFormat> VideoTransmuterBuilder<IN, OUT>.rotate(degrees: Int): VideoTransmuterBuilder<IN, OUT> = apply {
   transform { add(VideoRotateTransform(degrees)) }
 }

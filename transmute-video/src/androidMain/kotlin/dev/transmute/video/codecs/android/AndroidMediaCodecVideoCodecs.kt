@@ -7,14 +7,16 @@ import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.media.MediaMuxer
 import dev.transmute.audio.AudioSamples
+import dev.transmute.core.Bytes
 import dev.transmute.core.TransmuteContext
-import dev.transmute.core.VideoFormat
+import dev.transmute.core.asBytes
 import dev.transmute.image.ByteArrayPixelBuffer
 import dev.transmute.image.PixelFormat
 import dev.transmute.video.AudioTrack
 import dev.transmute.video.ListFrameStream
 import dev.transmute.video.VideoCodec
 import dev.transmute.video.VideoFrame
+import dev.transmute.video.VideoFormat
 import dev.transmute.video.VideoIR
 import dev.transmute.video.VideoMetadata
 import dev.transmute.video.VideoTrack
@@ -572,29 +574,31 @@ private fun floatToPcm16(samples: FloatArray): ByteArray {
 // ---------------------------------------------------------------------------
 
 internal class AndroidMp4Codec : VideoCodec {
-  override val decodableFormats: Set<VideoFormat> = setOf(VideoFormat.MP4)
-  override val encodableFormats: Set<VideoFormat> = setOf(VideoFormat.MP4)
+  override val decodableFormats: Set<VideoFormat> = setOf(VideoFormat.Mp4)
+  override val encodableFormats: Set<VideoFormat> = setOf(VideoFormat.Mp4)
 
-  override fun sniff(data: ByteArray): VideoFormat? {
-    if (data.size < 12) return null
-    if (data[4] != 0x66.toByte() || data[5] != 0x74.toByte() ||
-      data[6] != 0x79.toByte() || data[7] != 0x70.toByte()) return null
-    val brand = (8 until 12).map { data[it].toInt().toChar() }.joinToString("")
+  override fun sniff(data: Bytes): VideoFormat? {
+    val bytes = data.data
+    if (bytes.size < 12) return null
+    if (bytes[4] != 0x66.toByte() || bytes[5] != 0x74.toByte() ||
+      bytes[6] != 0x79.toByte() || bytes[7] != 0x70.toByte()) return null
+    val brand = (8 until 12).map { bytes[it].toInt().toChar() }.joinToString("")
     return when {
       brand.startsWith("mp4") || brand == "isom" || brand == "M4V " ||
         brand == "avc1" || brand == "iso2" || brand == "iso5" ||
-        brand == "iso6" || brand == "mmp4" -> VideoFormat.MP4
-      brand.startsWith("3gp") || brand.startsWith("3g2") -> VideoFormat.MP4
+        brand == "iso6" || brand == "mmp4" -> VideoFormat.Mp4
+      brand.startsWith("3gp") || brand.startsWith("3g2") -> VideoFormat.Mp4
       else -> null
     }
   }
 
-  override suspend fun decode(source: ByteArray, options: VideoDecodeOptions, context: TransmuteContext): VideoIR {
-    val (frames, audioInfo) = decodeVideoWithMediaCodec(source)
+  override suspend fun decode(source: Bytes, options: VideoDecodeOptions, context: TransmuteContext): VideoIR {
+    val bytes = source.data
+    val (frames, audioInfo) = decodeVideoWithMediaCodec(bytes)
     require(frames.isNotEmpty()) { "No video frames decoded" }
 
     val audioSamples = if (audioInfo.first >= 0) {
-      decodeAudioWithMediaCodec(source)
+      decodeAudioWithMediaCodec(bytes)
     } else null
 
     val width = frames.first().width
@@ -615,14 +619,14 @@ internal class AndroidMp4Codec : VideoCodec {
     )
   }
 
-  override suspend fun encode(ir: VideoIR, format: VideoFormat, options: VideoEncodeOptions, context: TransmuteContext): ByteArray =
+  override suspend fun encode(ir: VideoIR, format: VideoFormat, options: VideoEncodeOptions, context: TransmuteContext): Bytes =
     encodeVideoWithMediaCodec(
       ir,
       outputFormat = MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4,
       videoMime = "video/avc",
       audioMime = if (ir.audioTrack != null) "audio/mp4a-latm" else null,
       ext = "mp4",
-    )
+    ).asBytes()
 }
 
 // ---------------------------------------------------------------------------
@@ -630,24 +634,26 @@ internal class AndroidMp4Codec : VideoCodec {
 // ---------------------------------------------------------------------------
 
 internal class AndroidMovCodec : VideoCodec {
-  override val decodableFormats: Set<VideoFormat> = setOf(VideoFormat.MOV)
-  override val encodableFormats: Set<VideoFormat> = setOf(VideoFormat.MOV)
+  override val decodableFormats: Set<VideoFormat> = setOf(VideoFormat.Mov)
+  override val encodableFormats: Set<VideoFormat> = setOf(VideoFormat.Mov)
 
-  override fun sniff(data: ByteArray): VideoFormat? {
-    if (data.size < 12) return null
-    if (data[4] != 0x66.toByte() || data[5] != 0x74.toByte() ||
-      data[6] != 0x79.toByte() || data[7] != 0x70.toByte()) return null
-    val brand = (8 until 12).map { data[it].toInt().toChar() }.joinToString("")
-    return if (brand == "qt  ") VideoFormat.MOV else null
+  override fun sniff(data: Bytes): VideoFormat? {
+    val bytes = data.data
+    if (bytes.size < 12) return null
+    if (bytes[4] != 0x66.toByte() || bytes[5] != 0x74.toByte() ||
+      bytes[6] != 0x79.toByte() || bytes[7] != 0x70.toByte()) return null
+    val brand = (8 until 12).map { bytes[it].toInt().toChar() }.joinToString("")
+    return if (brand == "qt  ") VideoFormat.Mov else null
   }
 
-  override suspend fun decode(source: ByteArray, options: VideoDecodeOptions, context: TransmuteContext): VideoIR {
+  override suspend fun decode(source: Bytes, options: VideoDecodeOptions, context: TransmuteContext): VideoIR {
     // MOV and MP4 share the same container on Android
-    val (frames, audioInfo) = decodeVideoWithMediaCodec(source)
+    val bytes = source.data
+    val (frames, audioInfo) = decodeVideoWithMediaCodec(bytes)
     require(frames.isNotEmpty()) { "No video frames decoded" }
 
     val audioSamples = if (audioInfo.first >= 0) {
-      decodeAudioWithMediaCodec(source)
+      decodeAudioWithMediaCodec(bytes)
     } else null
 
     val width = frames.first().width
@@ -668,14 +674,14 @@ internal class AndroidMovCodec : VideoCodec {
     )
   }
 
-  override suspend fun encode(ir: VideoIR, format: VideoFormat, options: VideoEncodeOptions, context: TransmuteContext): ByteArray =
+  override suspend fun encode(ir: VideoIR, format: VideoFormat, options: VideoEncodeOptions, context: TransmuteContext): Bytes =
     encodeVideoWithMediaCodec(
       ir,
       outputFormat = MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4,
       videoMime = "video/avc",
       audioMime = if (ir.audioTrack != null) "audio/mp4a-latm" else null,
       ext = "mov",
-    )
+    ).asBytes()
 }
 
 // ---------------------------------------------------------------------------
@@ -683,26 +689,28 @@ internal class AndroidMovCodec : VideoCodec {
 // ---------------------------------------------------------------------------
 
 internal class AndroidWebmDecoder : dev.transmute.video.VideoDecoder {
-  override val supportedFormats: Set<VideoFormat> = setOf(VideoFormat.WEBM)
+  override val supportedFormats: Set<VideoFormat> = setOf(VideoFormat.Webm)
 
-  override fun sniff(data: ByteArray): VideoFormat? {
-    if (data.size < 4) return null
-    if (data[0] != 0x1A.toByte() || data[1] != 0x45.toByte() ||
-      data[2] != 0xDF.toByte() || data[3] != 0xA3.toByte()) return null
-    if (data.size >= 40) {
-      val content = data.copyOfRange(0, minOf(data.size, 64)).decodeToString()
+  override fun sniff(data: Bytes): VideoFormat? {
+    val bytes = data.data
+    if (bytes.size < 4) return null
+    if (bytes[0] != 0x1A.toByte() || bytes[1] != 0x45.toByte() ||
+      bytes[2] != 0xDF.toByte() || bytes[3] != 0xA3.toByte()) return null
+    if (bytes.size >= 40) {
+      val content = bytes.copyOfRange(0, minOf(bytes.size, 64)).decodeToString()
       if (content.contains("matroska")) return null // MKV, not WebM
-      if (content.contains("webm")) return VideoFormat.WEBM
+      if (content.contains("webm")) return VideoFormat.Webm
     }
-    return VideoFormat.WEBM
+    return VideoFormat.Webm
   }
 
-  override suspend fun decode(source: ByteArray, options: VideoDecodeOptions, context: TransmuteContext): VideoIR {
-    val (frames, audioInfo) = decodeVideoWithMediaCodec(source)
+  override suspend fun decode(source: Bytes, options: VideoDecodeOptions, context: TransmuteContext): VideoIR {
+    val bytes = source.data
+    val (frames, audioInfo) = decodeVideoWithMediaCodec(bytes)
     require(frames.isNotEmpty()) { "No video frames decoded from WebM" }
 
     val audioSamples = if (audioInfo.first >= 0) {
-      decodeAudioWithMediaCodec(source)
+      decodeAudioWithMediaCodec(bytes)
     } else null
 
     val width = frames.first().width

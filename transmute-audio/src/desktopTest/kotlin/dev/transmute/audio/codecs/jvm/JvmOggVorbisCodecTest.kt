@@ -1,9 +1,9 @@
 package dev.transmute.audio.codecs.jvm
 
-import dev.transmute.audio.AudioEncodeOptions
+import dev.transmute.audio.AudioFormat
 import dev.transmute.audio.AudioTestHelpers
-import dev.transmute.core.AudioFormat
 import dev.transmute.core.PrintLogger
+import dev.transmute.core.asBytes
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 import dev.transmute.audio.CanonicalAudioDecodeOptions
@@ -18,13 +18,13 @@ class JvmOggVorbisCodecTest {
 
     @Test
     fun decodableFormatsContainsOgg() {
-        assertTrue(AudioFormat.OGG in codec.decodableFormats)
+        assertTrue(AudioFormat.Ogg in codec.decodableFormats)
     }
 
     @Test
     fun encodableFormatsReflectsFfmpegAvailability() {
         if (FfmpegAudioEngine.available) {
-            assertTrue(AudioFormat.OGG in codec.encodableFormats)
+            assertTrue(AudioFormat.Ogg in codec.encodableFormats)
         } else {
             assertTrue(codec.encodableFormats.isEmpty())
         }
@@ -42,18 +42,18 @@ class JvmOggVorbisCodecTest {
         data[28] = 0x01
         data[29] = 0x76; data[30] = 0x6F; data[31] = 0x72
         data[32] = 0x62; data[33] = 0x69; data[34] = 0x73
-        assertEquals(AudioFormat.OGG, codec.sniff(data))
+        assertEquals(AudioFormat.Ogg, codec.sniff(data.asBytes()))
     }
 
     @Test
     fun sniffReturnsNullForNonOgg() {
         val data = byteArrayOf(0x49, 0x44, 0x33, 0x04, 0x00, 0x00)
-        assertNull(codec.sniff(data))
+        assertNull(codec.sniff(data.asBytes()))
     }
 
     @Test
     fun sniffReturnsNullForShortData() {
-        assertNull(codec.sniff(byteArrayOf(0x4F, 0x67, 0x67)))
+        assertNull(codec.sniff(byteArrayOf(0x4F, 0x67, 0x67).asBytes()))
     }
 
     // -- Encode + decode round-trip (FFmpeg required for encode) --
@@ -74,7 +74,7 @@ class JvmOggVorbisCodecTest {
         )
 
         val encoded = try {
-            codec.encode(original, AudioFormat.OGG, CanonicalAudioEncodeOptions(), AudioTestHelpers.testContext())
+            codec.encode(original, AudioFormat.Ogg, CanonicalAudioEncodeOptions(), AudioTestHelpers.testContext())
         } catch (e: Exception) {
             if ("FFmpeg" in e.message.orEmpty() || "libvorbis" in e.message.orEmpty()) {
                 log.warn("SKIPPED: OGG/Vorbis encoding not available: ${e.message}")
@@ -85,8 +85,8 @@ class JvmOggVorbisCodecTest {
         assertTrue(encoded.isNotEmpty(), "Encoded OGG should not be empty")
 
         // OGG starts with "OggS"
-        assertEquals(0x4F.toByte(), encoded[0])
-        assertEquals(0x67.toByte(), encoded[1])
+        assertEquals(0x4F.toByte(), encoded.data[0])
+        assertEquals(0x67.toByte(), encoded.data[1])
 
         val decoded = try {
             codec.decode(encoded, CanonicalAudioDecodeOptions(), AudioTestHelpers.testContext())
@@ -110,7 +110,7 @@ class JvmOggVorbisCodecTest {
 
         val ir = AudioTestHelpers.sineWave(durationMs = 50)
         assertFailsWith<IllegalStateException> {
-            codec.encode(ir, AudioFormat.OGG, CanonicalAudioEncodeOptions(), AudioTestHelpers.testContext())
+            codec.encode(ir, AudioFormat.Ogg, CanonicalAudioEncodeOptions(), AudioTestHelpers.testContext())
         }
     }
 }

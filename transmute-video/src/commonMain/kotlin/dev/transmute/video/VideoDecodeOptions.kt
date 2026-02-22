@@ -1,7 +1,6 @@
 package dev.transmute.video
 
 import dev.transmute.core.DecodeOptions
-import dev.transmute.core.VideoFormat
 
 /**
  * Sealed hierarchy of video decoding options.

@@ -1,7 +1,5 @@
 package dev.transmute.video
 
-import dev.transmute.core.VideoFormat
-
 /**
  * Lightweight metadata snapshot for a video item.
  *

@@ -1,6 +1,6 @@
 package dev.transmute.audio
 
-import dev.transmute.core.AudioFormat
+import dev.transmute.core.Bytes
 import dev.transmute.core.Codec
 import dev.transmute.core.TransmuteContext
 
@@ -14,8 +14,8 @@ interface AudioCodec : Codec<AudioFormat, AudioIR, AudioDecodeOptions, AudioEnco
 
 interface AudioDecoder {
   val supportedFormats: Set<AudioFormat>
-  fun sniff(data: ByteArray): AudioFormat? = null
-  suspend fun decode(source: ByteArray, options: AudioDecodeOptions, context: TransmuteContext): AudioIR
+  fun sniff(data: Bytes): AudioFormat? = null
+  suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: TransmuteContext): AudioIR
 }
 
 interface AudioDecoderRegistry {
@@ -24,7 +24,7 @@ interface AudioDecoderRegistry {
 
 interface AudioEncoder {
   val supportedFormats: Set<AudioFormat>
-  suspend fun encode(ir: AudioIR, format: AudioFormat, options: AudioEncodeOptions, context: TransmuteContext): ByteArray
+  suspend fun encode(ir: AudioIR, format: AudioFormat, options: AudioEncodeOptions, context: TransmuteContext): Bytes
 }
 
 interface AudioEncoderRegistry {
@@ -36,29 +36,29 @@ interface AudioEncoderRegistry {
 class AudioCodecAdapter(
   private val decoder: AudioDecoder,
   private val encoder: AudioEncoder,
-  private val sniffer: ((ByteArray) -> AudioFormat?)? = null,
+  private val sniffer: ((Bytes) -> AudioFormat?)? = null,
 ) : AudioCodec {
   override val decodableFormats: Set<AudioFormat> get() = decoder.supportedFormats
   override val encodableFormats: Set<AudioFormat> get() = encoder.supportedFormats
-  override fun sniff(data: ByteArray): AudioFormat? = sniffer?.invoke(data)
-  override suspend fun decode(source: ByteArray, options: AudioDecodeOptions, context: TransmuteContext): AudioIR =
+  override fun sniff(data: Bytes): AudioFormat? = sniffer?.invoke(data)
+  override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: TransmuteContext): AudioIR =
     decoder.decode(source, options, context)
   override suspend fun encode(
     ir: AudioIR,
     format: AudioFormat,
     options: AudioEncodeOptions,
     context: TransmuteContext,
-  ): ByteArray = encoder.encode(ir, format, options, context)
+  ): Bytes = encoder.encode(ir, format, options, context)
 }
 
 class AudioDecoderCodecAdapter(
   private val decoder: AudioDecoder,
-  private val sniffer: ((ByteArray) -> AudioFormat?)? = null,
+  private val sniffer: ((Bytes) -> AudioFormat?)? = null,
 ) : Codec<AudioFormat, AudioIR, AudioDecodeOptions, AudioEncodeOptions> {
   override val decodableFormats: Set<AudioFormat> get() = decoder.supportedFormats
   override val encodableFormats: Set<AudioFormat> get() = emptySet()
-  override fun sniff(data: ByteArray): AudioFormat? = sniffer?.invoke(data)
-  override suspend fun decode(source: ByteArray, options: AudioDecodeOptions, context: TransmuteContext): AudioIR =
+  override fun sniff(data: Bytes): AudioFormat? = sniffer?.invoke(data)
+  override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: TransmuteContext): AudioIR =
     decoder.decode(source, options, context)
 
   override suspend fun encode(
@@ -66,7 +66,7 @@ class AudioDecoderCodecAdapter(
     format: AudioFormat,
     options: AudioEncodeOptions,
     context: TransmuteContext,
-  ): ByteArray = error("${this::class.simpleName} is decode-only")
+  ): Bytes = error("${this::class.simpleName} is decode-only")
 }
 
 class AudioEncoderCodecAdapter(
@@ -75,8 +75,8 @@ class AudioEncoderCodecAdapter(
   override val encodableFormats: Set<AudioFormat> get() = encoder.supportedFormats
 
   override val decodableFormats: Set<AudioFormat> get() = emptySet()
-  override fun sniff(data: ByteArray): AudioFormat? = null
-  override suspend fun decode(source: ByteArray, options: AudioDecodeOptions, context: TransmuteContext): AudioIR =
+  override fun sniff(data: Bytes): AudioFormat? = null
+  override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: TransmuteContext): AudioIR =
     error("${this::class.simpleName} is encode-only")
 
   override suspend fun encode(
@@ -84,5 +84,5 @@ class AudioEncoderCodecAdapter(
     format: AudioFormat,
     options: AudioEncodeOptions,
     context: TransmuteContext,
-  ): ByteArray = encoder.encode(ir, format, options, context)
+  ): Bytes = encoder.encode(ir, format, options, context)
 }

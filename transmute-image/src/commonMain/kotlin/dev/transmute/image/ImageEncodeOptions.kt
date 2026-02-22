@@ -1,7 +1,6 @@
 package dev.transmute.image
 
 import dev.transmute.core.EncodeOptions
-import dev.transmute.core.ImageFormat
 import dev.transmute.core.MetadataPolicy
 import dev.transmute.core.OutputFormat
 
@@ -36,10 +35,10 @@ sealed interface ImageEncodeOptions : EncodeOptions {
      * Useful when the caller specifies an output format but no explicit options.
      */
     fun defaultFor(format: ImageFormat): ImageEncodeOptions = when (format) {
-      ImageFormat.JPEG -> JpegEncodeOptions()
-      ImageFormat.PNG -> PngEncodeOptions()
-      ImageFormat.WEBP -> WebPEncodeOptions()
-      ImageFormat.HEIF, ImageFormat.HEIC, ImageFormat.AVIF -> HeifEncodeOptions()
+      ImageFormat.Jpeg -> JpegEncodeOptions()
+      ImageFormat.Png -> PngEncodeOptions()
+      ImageFormat.Webp -> WebPEncodeOptions()
+      ImageFormat.Heif, ImageFormat.Heic, ImageFormat.Avif -> HeifEncodeOptions()
       else -> CanonicalImageEncodeOptions()
     }
   }
@@ -55,7 +54,7 @@ data class JpegEncodeOptions(
   val quality: Float = 0.85f,
   override val metadataPolicy: MetadataPolicy = MetadataPolicy.STRIP_ALL,
 ) : ImageEncodeOptions {
-  override val outputFormat: OutputFormat<ImageFormat> = OutputFormat.Exact(ImageFormat.JPEG)
+  override val outputFormat: OutputFormat<ImageFormat> = OutputFormat.Exact(ImageFormat.Jpeg)
 
   init {
     require(quality in 0f..1f) { "quality must be in [0, 1], was $quality" }
@@ -73,7 +72,7 @@ data class PngEncodeOptions(
   val compressionLevel: Int = 6,
   override val metadataPolicy: MetadataPolicy = MetadataPolicy.STRIP_ALL,
 ) : ImageEncodeOptions {
-  override val outputFormat: OutputFormat<ImageFormat> = OutputFormat.Exact(ImageFormat.PNG)
+  override val outputFormat: OutputFormat<ImageFormat> = OutputFormat.Exact(ImageFormat.Png)
 
   init {
     require(compressionLevel in 0..9) { "compressionLevel must be in [0, 9], was $compressionLevel" }
@@ -91,7 +90,7 @@ data class WebPEncodeOptions(
   val lossless: Boolean = false,
   override val metadataPolicy: MetadataPolicy = MetadataPolicy.STRIP_ALL,
 ) : ImageEncodeOptions {
-  override val outputFormat: OutputFormat<ImageFormat> = OutputFormat.Exact(ImageFormat.WEBP)
+  override val outputFormat: OutputFormat<ImageFormat> = OutputFormat.Exact(ImageFormat.Webp)
 
   init {
     require(quality in 0f..1f) { "quality must be in [0, 1], was $quality" }
@@ -106,13 +105,13 @@ data class WebPEncodeOptions(
 data class HeifEncodeOptions(
   val quality: Float = 0.80f,
   override val metadataPolicy: MetadataPolicy = MetadataPolicy.STRIP_ALL,
-  val format: ImageFormat = ImageFormat.HEIF,
+  val format: ImageFormat = ImageFormat.Heif,
 ) : ImageEncodeOptions {
   override val outputFormat: OutputFormat<ImageFormat> = OutputFormat.Exact(format)
 
   init {
     require(quality in 0f..1f) { "quality must be in [0, 1], was $quality" }
-    require(format == ImageFormat.HEIF || format == ImageFormat.HEIC || format == ImageFormat.AVIF) {
+    require(format == ImageFormat.Heif || format == ImageFormat.Heic || format == ImageFormat.Avif) {
       "format must be HEIF, HEIC, or AVIF, was $format"
     }
   }

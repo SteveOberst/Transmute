@@ -15,20 +15,21 @@ WAV (Waveform Audio File Format) is an uncompressed (or lightly compressed) audi
 ```kotlin
 import dev.transmute.Transmute
 import dev.transmute.audio.CanonicalAudioEncodeOptions
-import dev.transmute.core.AudioFormat
 import dev.transmute.core.OutputFormat
+import dev.transmute.core.asBytes
+import dev.transmute.audio.AudioFormat
 
 // Convert any audio to WAV
 suspend fun convertToWav(inputBytes: ByteArray): ByteArray =
   Transmute.audio {
-    encodeOptions(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.WAV)))
-  }.transmute(inputBytes).bytes
+    encodeOptions(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.Wav)))
+  }.transmute(inputBytes.asBytes()).bytes.data
 
 // Convert WAV to AAC
 suspend fun convertToAac(wavBytes: ByteArray): ByteArray =
   Transmute.audio {
-    encodeOptions(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.AAC)))
-  }.transmute(wavBytes).bytes
+    encodeOptions(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.Aac)))
+  }.transmute(wavBytes.asBytes()).bytes.data
 ```
 
 ## Notes

@@ -25,10 +25,12 @@ import dev.transmute.audio.AudioCodec
 import dev.transmute.audio.AudioDecoder
 import dev.transmute.audio.AudioDecodeOptions
 import dev.transmute.audio.AudioEncodeOptions
+import dev.transmute.audio.AudioFormat
 import dev.transmute.audio.AudioIR
 import dev.transmute.audio.AudioSamples
-import dev.transmute.core.AudioFormat
+import dev.transmute.core.Bytes
 import dev.transmute.core.TransmuteContext
+import dev.transmute.core.asBytes
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -243,26 +245,27 @@ internal abstract class AndroidMediaCodecAudioDecoder(
 
   override val supportedFormats: Set<AudioFormat> = setOf(format)
 
-  override suspend fun decode(source: ByteArray, options: AudioDecodeOptions, context: TransmuteContext): AudioIR =
-    decodeWithMediaCodec(source, context)
+  override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: TransmuteContext): AudioIR =
+    decodeWithMediaCodec(source.data, context)
 }
 
 internal class AndroidMp3Codec : AudioCodec {
 
-  override val decodableFormats: Set<AudioFormat> = setOf(AudioFormat.MP3)
-  override val encodableFormats: Set<AudioFormat> = setOf(AudioFormat.MP3)
+  override val decodableFormats: Set<AudioFormat> = setOf(AudioFormat.Mp3)
+  override val encodableFormats: Set<AudioFormat> = setOf(AudioFormat.Mp3)
 
-  override fun sniff(data: ByteArray): AudioFormat? {
-    if (data.size < 3) return null
+  override fun sniff(data: Bytes): AudioFormat? {
+    val bytes = data.data
+    if (bytes.size < 3) return null
     // ID3v2 tag header
-    if (data[0] == 0x49.toByte() && data[1] == 0x44.toByte() && data[2] == 0x33.toByte()) {
-      return AudioFormat.MP3
+    if (bytes[0] == 0x49.toByte() && bytes[1] == 0x44.toByte() && bytes[2] == 0x33.toByte()) {
+      return AudioFormat.Mp3
     }
     // MPEG audio frame sync word (first 11 bits set)
     // NOTE: AAC ADTS headers also start with 0xFF Fx and can be mis-detected as MP3
     // unless we validate the MPEG audio layer bits.
-    if (data.size >= 2 && (data[0].toInt() and 0xFF) == 0xFF) {
-      val b1 = data[1].toInt() and 0xFF
+    if (bytes.size >= 2 && (bytes[0].toInt() and 0xFF) == 0xFF) {
+      val b1 = bytes[1].toInt() and 0xFF
       if ((b1 and 0xE0) == 0xE0) {
         val versionBits = (b1 shr 3) and 0x03
         val layerBits = (b1 shr 1) and 0x03
@@ -270,23 +273,23 @@ internal class AndroidMp3Codec : AudioCodec {
         // versionBits == 0b01 is reserved; layerBits == 0b00 is invalid for MPEG audio.
         // ADTS uses layerBits == 0, so this excludes AAC.
         if (versionBits != 0x01 && layerBits != 0x00) {
-          return AudioFormat.MP3
+          return AudioFormat.Mp3
         }
       }
     }
     return null
   }
 
-  override suspend fun decode(source: ByteArray, options: AudioDecodeOptions, context: TransmuteContext): AudioIR =
-    decodeWithMediaCodec(source, context)
+  override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: TransmuteContext): AudioIR =
+    decodeWithMediaCodec(source.data, context)
 
   override suspend fun encode(
     ir: AudioIR,
     format: AudioFormat,
     options: AudioEncodeOptions,
     context: TransmuteContext,
-  ): ByteArray {
-    require(format == AudioFormat.MP3) { "Unsupported format $format" }
+  ): Bytes {
+    require(format == AudioFormat.Mp3) { "Unsupported format $format" }
     val samples = ir.samples.data
     val channels = ir.channelCount
     val sampleRate = ir.sampleRate
@@ -360,24 +363,25 @@ internal class AndroidMp3Codec : AudioCodec {
       val flushed = lame.lame_encode_flush(gfp, mp3Buf, 0, mp3BufSize)
       if (flushed > 0) out.write(mp3Buf.copyOf(flushed))
 
-      return out.toByteArray()
+      return out.toByteArray().asBytes()
     } finally {
       lame.lame_close(gfp)
     }
   }
 }
 
-internal class AndroidOggDecoder : AndroidMediaCodecAudioDecoder(AudioFormat.OGG) {
-  override fun sniff(data: ByteArray): AudioFormat? {
-    if (data.size < 4) return null
-    if (data[0] == 'O'.code.toByte() && data[1] == 'g'.code.toByte() &&
-      data[2] == 'g'.code.toByte() && data[3] == 'S'.code.toByte()) {
+internal class AndroidOggDecoder : AndroidMediaCodecAudioDecoder(AudioFormat.Ogg) {
+  override fun sniff(data: Bytes): AudioFormat? {
+    val bytes = data.data
+    if (bytes.size < 4) return null
+    if (bytes[0] == 'O'.code.toByte() && bytes[1] == 'g'.code.toByte() &&
+      bytes[2] == 'g'.code.toByte() && bytes[3] == 'S'.code.toByte()) {
       // Check for Opus inside OGG
-      if (data.size >= 36) {
-        val header = String(data, 28, 8, Charsets.US_ASCII)
+      if (bytes.size >= 36) {
+        val header = String(bytes, 28, 8, Charsets.US_ASCII)
         if (header == "OpusHead") return null // Let OpusCodec handle it
       }
-      return AudioFormat.OGG
+      return AudioFormat.Ogg
     }
     return null
   }
@@ -395,30 +399,31 @@ internal class AndroidOggDecoder : AndroidMediaCodecAudioDecoder(AudioFormat.OGG
  */
 internal class AndroidFlacCodec : AudioCodec {
 
-  override val decodableFormats: Set<AudioFormat> = setOf(AudioFormat.FLAC)
-  override val encodableFormats: Set<AudioFormat> = setOf(AudioFormat.FLAC)
+  override val decodableFormats: Set<AudioFormat> = setOf(AudioFormat.Flac)
+  override val encodableFormats: Set<AudioFormat> = setOf(AudioFormat.Flac)
 
-  override fun sniff(data: ByteArray): AudioFormat? {
-    if (data.size < 4) return null
+  override fun sniff(data: Bytes): AudioFormat? {
+    val bytes = data.data
+    if (bytes.size < 4) return null
     // FLAC stream marker: "fLaC" (0x664C6143)
-    if (data[0] == 0x66.toByte() && data[1] == 0x4C.toByte() &&
-      data[2] == 0x61.toByte() && data[3] == 0x43.toByte()
+    if (bytes[0] == 0x66.toByte() && bytes[1] == 0x4C.toByte() &&
+      bytes[2] == 0x61.toByte() && bytes[3] == 0x43.toByte()
     ) {
-      return AudioFormat.FLAC
+      return AudioFormat.Flac
     }
     return null
   }
 
-  override suspend fun decode(source: ByteArray, options: AudioDecodeOptions, context: TransmuteContext): AudioIR =
-    decodeWithMediaCodec(source, context)
+  override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: TransmuteContext): AudioIR =
+    decodeWithMediaCodec(source.data, context)
 
   override suspend fun encode(
     ir: AudioIR,
     format: AudioFormat,
     options: AudioEncodeOptions,
     context: TransmuteContext,
-  ): ByteArray {
-    require(format == AudioFormat.FLAC) { "Unsupported format $format" }
+  ): Bytes {
+    require(format == AudioFormat.Flac) { "Unsupported format $format" }
     val pcmBytes = floatToPcm16(ir.samples.data)
 
     val mime = "audio/flac"
@@ -477,7 +482,7 @@ internal class AndroidFlacCodec : AudioCodec {
         }
       }
 
-      return output.toByteArray()
+      return output.toByteArray().asBytes()
     } finally {
       runCatching { codec.stop() }
       runCatching { codec.release() }
@@ -499,35 +504,36 @@ internal class AndroidOpusCodec : AudioCodec {
     val canEncode: Boolean = Build.VERSION.SDK_INT >= 29
   }
 
-  override val decodableFormats: Set<AudioFormat> = setOf(AudioFormat.OPUS)
+  override val decodableFormats: Set<AudioFormat> = setOf(AudioFormat.Opus)
   override val encodableFormats: Set<AudioFormat> =
-    if (canEncode) setOf(AudioFormat.OPUS) else emptySet()
+    if (canEncode) setOf(AudioFormat.Opus) else emptySet()
 
-  override fun sniff(data: ByteArray): AudioFormat? {
-    if (data.size < 4) return null
+  override fun sniff(data: Bytes): AudioFormat? {
+    val bytes = data.data
+    if (bytes.size < 4) return null
     // OGG container: "OggS" magic
-    if (data[0] == 'O'.code.toByte() && data[1] == 'g'.code.toByte() &&
-      data[2] == 'g'.code.toByte() && data[3] == 'S'.code.toByte()
+    if (bytes[0] == 'O'.code.toByte() && bytes[1] == 'g'.code.toByte() &&
+      bytes[2] == 'g'.code.toByte() && bytes[3] == 'S'.code.toByte()
     ) {
       // Could be OGG/Vorbis too - check for "OpusHead" in first page.
-      if (data.size >= 36) {
-        val header = String(data, 28, 8, Charsets.US_ASCII)
-        if (header == "OpusHead") return AudioFormat.OPUS
+      if (bytes.size >= 36) {
+        val header = String(bytes, 28, 8, Charsets.US_ASCII)
+        if (header == "OpusHead") return AudioFormat.Opus
       }
     }
     return null
   }
 
-  override suspend fun decode(source: ByteArray, options: AudioDecodeOptions, context: TransmuteContext): AudioIR =
-    decodeWithMediaCodec(source, context)
+  override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: TransmuteContext): AudioIR =
+    decodeWithMediaCodec(source.data, context)
 
   override suspend fun encode(
     ir: AudioIR,
     format: AudioFormat,
     options: AudioEncodeOptions,
     context: TransmuteContext,
-  ): ByteArray {
-    require(format == AudioFormat.OPUS) { "Unsupported format $format" }
+  ): Bytes {
+    require(format == AudioFormat.Opus) { "Unsupported format $format" }
     require(canEncode) {
       "OPUS encoding requires Android API 29+ (current: ${Build.VERSION.SDK_INT})"
     }
@@ -621,7 +627,7 @@ internal class AndroidOpusCodec : AudioCodec {
         runCatching { muxer.release() }
       }
 
-      return tmpFile.readBytes()
+      return tmpFile.readBytes().asBytes()
     } finally {
       tmpFile.delete()
     }
@@ -636,28 +642,29 @@ internal class AndroidOpusCodec : AudioCodec {
  */
 internal class AndroidAacCodec : AudioCodec {
 
-  override val decodableFormats: Set<AudioFormat> = setOf(AudioFormat.AAC)
-  override val encodableFormats: Set<AudioFormat> = setOf(AudioFormat.AAC)
+  override val decodableFormats: Set<AudioFormat> = setOf(AudioFormat.Aac)
+  override val encodableFormats: Set<AudioFormat> = setOf(AudioFormat.Aac)
 
-  override fun sniff(data: ByteArray): AudioFormat? {
-    if (data.size < 2) return null
+  override fun sniff(data: Bytes): AudioFormat? {
+    val bytes = data.data
+    if (bytes.size < 2) return null
     // ADTS sync word: 0xFFF (12 bits)
-    if ((data[0].toInt() and 0xFF) == 0xFF && (data[1].toInt() and 0xF0) == 0xF0) {
-      return AudioFormat.AAC
+    if ((bytes[0].toInt() and 0xFF) == 0xFF && (bytes[1].toInt() and 0xF0) == 0xF0) {
+      return AudioFormat.Aac
     }
     return null
   }
 
-  override suspend fun decode(source: ByteArray, options: AudioDecodeOptions, context: TransmuteContext): AudioIR =
-    decodeWithMediaCodec(source, context)
+  override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: TransmuteContext): AudioIR =
+    decodeWithMediaCodec(source.data, context)
 
   override suspend fun encode(
     ir: AudioIR,
     format: AudioFormat,
     options: AudioEncodeOptions,
     context: TransmuteContext,
-  ): ByteArray {
-    require(format == AudioFormat.AAC) { "Unsupported format $format" }
+  ): Bytes {
+    require(format == AudioFormat.Aac) { "Unsupported format $format" }
     val pcmBytes = floatToPcm16(ir.samples.data)
 
     val mime = "audio/mp4a-latm"
@@ -720,7 +727,7 @@ internal class AndroidAacCodec : AudioCodec {
         }
       }
 
-      return output.toByteArray()
+      return output.toByteArray().asBytes()
     } finally {
       runCatching { codec.stop() }
       runCatching { codec.release() }
@@ -736,36 +743,37 @@ internal class AndroidAacCodec : AudioCodec {
  */
 internal class AndroidM4aCodec : AudioCodec {
 
-  override val decodableFormats: Set<AudioFormat> = setOf(AudioFormat.M4A)
-  override val encodableFormats: Set<AudioFormat> = setOf(AudioFormat.M4A)
+  override val decodableFormats: Set<AudioFormat> = setOf(AudioFormat.M4a)
+  override val encodableFormats: Set<AudioFormat> = setOf(AudioFormat.M4a)
 
-  override fun sniff(data: ByteArray): AudioFormat? {
-    if (data.size < 12) return null
+  override fun sniff(data: Bytes): AudioFormat? {
+    val bytes = data.data
+    if (bytes.size < 12) return null
     // ftyp box: bytes 4-7 == "ftyp"
-    val ftyp = String(data, 4, 4, Charsets.US_ASCII)
+    val ftyp = String(bytes, 4, 4, Charsets.US_ASCII)
     if (ftyp != "ftyp") return null
 
-    val brand = String(data, 8, 4, Charsets.US_ASCII)
-    if (brand == "M4A " || brand == "M4B " || brand == "M4P " || brand == "M4V ") return AudioFormat.M4A
+    val brand = String(bytes, 8, 4, Charsets.US_ASCII)
+    if (brand == "M4A " || brand == "M4B " || brand == "M4P " || brand == "M4V ") return AudioFormat.M4a
 
     // Avoid misclassifying MP4 video as M4A if we see a video marker early.
-    val window = String(data, 0, minOf(data.size, 256 * 1024), Charsets.ISO_8859_1)
+    val window = String(bytes, 0, minOf(bytes.size, 256 * 1024), Charsets.ISO_8859_1)
     val hasVideo = window.contains("vide") || window.contains("avc1") || window.contains("hvc1")
     if (hasVideo) return null
 
-    return AudioFormat.M4A
+    return AudioFormat.M4a
   }
 
-  override suspend fun decode(source: ByteArray, options: AudioDecodeOptions, context: TransmuteContext): AudioIR =
-    decodeWithMediaCodec(source, context)
+  override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: TransmuteContext): AudioIR =
+    decodeWithMediaCodec(source.data, context)
 
   override suspend fun encode(
     ir: AudioIR,
     format: AudioFormat,
     options: AudioEncodeOptions,
     context: TransmuteContext,
-  ): ByteArray {
-    require(format == AudioFormat.M4A) { "Unsupported format $format" }
+  ): Bytes {
+    require(format == AudioFormat.M4a) { "Unsupported format $format" }
     val pcmBytes = floatToPcm16(ir.samples.data)
 
     val mime = "audio/mp4a-latm"
@@ -856,7 +864,7 @@ internal class AndroidM4aCodec : AudioCodec {
         runCatching { muxer.release() }
       }
 
-      return tmpFile.readBytes()
+      return tmpFile.readBytes().asBytes()
     } finally {
       tmpFile.delete()
     }

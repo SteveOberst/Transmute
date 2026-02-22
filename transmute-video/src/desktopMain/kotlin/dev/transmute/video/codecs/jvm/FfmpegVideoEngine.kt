@@ -2,12 +2,13 @@ package dev.transmute.video.codecs.jvm
 
 import dev.transmute.audio.AudioIR
 import dev.transmute.audio.CanonicalAudioEncodeOptions
+import dev.transmute.audio.AudioFormat
 import dev.transmute.audio.AudioSamples
 import dev.transmute.audio.codecs.WavDecoder
 import dev.transmute.audio.codecs.WavEncoder
-import dev.transmute.core.AudioFormat
 import dev.transmute.core.TransmuteContext
 import dev.transmute.core.FfmpegResolver
+import dev.transmute.core.asBytes
 import dev.transmute.image.ByteArrayPixelBuffer
 import dev.transmute.image.PixelFormat
 import dev.transmute.video.AudioTrack
@@ -142,7 +143,7 @@ internal object FfmpegVideoEngine {
           "-vn", "-codec:a", "pcm_s16le",
           "-f", "wav", tmpAudio.absolutePath,
         )
-        val audioIR = wavDecoder.decode(tmpAudio.readBytes(), dev.transmute.audio.CanonicalAudioDecodeOptions(), context)
+        val audioIR = wavDecoder.decode(tmpAudio.readBytes().asBytes(), dev.transmute.audio.CanonicalAudioDecodeOptions(), context)
         AudioTrack(samples = audioIR.samples, sampleStream = null)
       } finally {
         tmpAudio.delete()
@@ -214,7 +215,7 @@ internal object FfmpegVideoEngine {
           channelCount = ir.audioTrack.samples.channelCount,
           durationMs = ir.durationMs,
         )
-        val wavBytes = wavEncoder.encode(audioIR, AudioFormat.WAV, CanonicalAudioEncodeOptions(), context)
+        val wavBytes = wavEncoder.encode(audioIR, AudioFormat.Wav, CanonicalAudioEncodeOptions(), context).data
         tmpAudio.writeBytes(wavBytes)
       }
 

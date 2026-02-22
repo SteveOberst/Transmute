@@ -1,10 +1,10 @@
 package dev.transmute.video.codecs.jvm
 
 import dev.transmute.core.PrintLogger
-import dev.transmute.core.VideoFormat
 import dev.transmute.image.ByteArrayPixelBuffer
 import dev.transmute.image.PixelFormat
 import dev.transmute.video.VideoEncodeOptions
+import dev.transmute.video.VideoFormat
 import dev.transmute.video.VideoFormatDetector
 import dev.transmute.video.VideoRegistries
 import dev.transmute.video.VideoTestHelpers
@@ -52,7 +52,7 @@ class FfmpegVideoCodecsTest {
       val ctx = VideoTestHelpers.testContext()
       val codec = JvmMp4Codec()
 
-      val encoded = codec.encode(original, VideoFormat.MP4, CanonicalVideoEncodeOptions(), ctx)
+      val encoded = codec.encode(original, VideoFormat.Mp4, CanonicalVideoEncodeOptions(), ctx)
       assertTrue(encoded.isNotEmpty(), "MP4: encoded output must not be empty")
 
       val decoded = codec.decode(encoded, CanonicalVideoDecodeOptions(), ctx)
@@ -67,10 +67,10 @@ class FfmpegVideoCodecsTest {
     requireFfmpeg {
       val ir = VideoTestHelpers.syntheticVideo(width = 32, height = 32, durationMs = 200)
       val ctx = VideoTestHelpers.testContext()
-      val encoded = JvmMp4Codec().encode(ir, VideoFormat.MP4, CanonicalVideoEncodeOptions(), ctx)
+      val encoded = JvmMp4Codec().encode(ir, VideoFormat.Mp4, CanonicalVideoEncodeOptions(), ctx)
 
       assertEquals(
-        VideoFormat.MP4,
+        VideoFormat.Mp4,
         VideoFormatDetector.detect(encoded),
         "MP4: encoded bytes should be detected as MP4",
       )
@@ -86,7 +86,7 @@ class FfmpegVideoCodecsTest {
       val ctx = VideoTestHelpers.testContext()
       val codec = JvmMp4Codec()
 
-      val encoded = codec.encode(original, VideoFormat.MP4, CanonicalVideoEncodeOptions(), ctx)
+      val encoded = codec.encode(original, VideoFormat.Mp4, CanonicalVideoEncodeOptions(), ctx)
       val decoded = codec.decode(encoded, CanonicalVideoDecodeOptions(), ctx)
 
       assertTrue(decoded.audioTrack != null, "MP4: audio track should be preserved")
@@ -108,7 +108,7 @@ class FfmpegVideoCodecsTest {
       val ctx = VideoTestHelpers.testContext()
       val codec = JvmMovCodec()
 
-      val encoded = codec.encode(original, VideoFormat.MOV, CanonicalVideoEncodeOptions(), ctx)
+      val encoded = codec.encode(original, VideoFormat.Mov, CanonicalVideoEncodeOptions(), ctx)
       assertTrue(encoded.isNotEmpty(), "MOV: encoded output must not be empty")
 
       val decoded = codec.decode(encoded, CanonicalVideoDecodeOptions(), ctx)
@@ -128,7 +128,7 @@ class FfmpegVideoCodecsTest {
       val ctx = VideoTestHelpers.testContext()
       val codec = JvmWebmCodec()
 
-      val encoded = codec.encode(original, VideoFormat.WEBM, CanonicalVideoEncodeOptions(), ctx)
+      val encoded = codec.encode(original, VideoFormat.Webm, CanonicalVideoEncodeOptions(), ctx)
       assertTrue(encoded.isNotEmpty(), "WebM: encoded output must not be empty")
 
       val decoded = codec.decode(encoded, CanonicalVideoDecodeOptions(), ctx)
@@ -142,10 +142,10 @@ class FfmpegVideoCodecsTest {
     requireFfmpeg {
       val ir = VideoTestHelpers.syntheticVideo(width = 32, height = 32, durationMs = 200)
       val ctx = VideoTestHelpers.testContext()
-      val encoded = JvmWebmCodec().encode(ir, VideoFormat.WEBM, CanonicalVideoEncodeOptions(), ctx)
+      val encoded = JvmWebmCodec().encode(ir, VideoFormat.Webm, CanonicalVideoEncodeOptions(), ctx)
 
       assertEquals(
-        VideoFormat.WEBM,
+        VideoFormat.Webm,
         VideoFormatDetector.detect(encoded),
         "WebM: encoded bytes should be detected as WEBM",
       )
@@ -163,7 +163,7 @@ class FfmpegVideoCodecsTest {
       val ctx = VideoTestHelpers.testContext()
       val codec = JvmAviCodec()
 
-      val encoded = codec.encode(original, VideoFormat.AVI, CanonicalVideoEncodeOptions(), ctx)
+      val encoded = codec.encode(original, VideoFormat.Avi, CanonicalVideoEncodeOptions(), ctx)
       assertTrue(encoded.isNotEmpty(), "AVI: encoded output must not be empty")
 
       val decoded = codec.decode(encoded, CanonicalVideoDecodeOptions(), ctx)
@@ -177,10 +177,10 @@ class FfmpegVideoCodecsTest {
     requireFfmpeg {
       val ir = VideoTestHelpers.syntheticVideo(width = 32, height = 32, durationMs = 200)
       val ctx = VideoTestHelpers.testContext()
-      val encoded = JvmAviCodec().encode(ir, VideoFormat.AVI, CanonicalVideoEncodeOptions(), ctx)
+      val encoded = JvmAviCodec().encode(ir, VideoFormat.Avi, CanonicalVideoEncodeOptions(), ctx)
 
       assertEquals(
-        VideoFormat.AVI,
+        VideoFormat.Avi,
         VideoFormatDetector.detect(encoded),
         "AVI: encoded bytes should be detected as AVI",
       )
@@ -198,7 +198,7 @@ class FfmpegVideoCodecsTest {
       val ctx = VideoTestHelpers.testContext()
       val codec = JvmMkvCodec()
 
-      val encoded = codec.encode(original, VideoFormat.MKV, CanonicalVideoEncodeOptions(), ctx)
+      val encoded = codec.encode(original, VideoFormat.Mkv, CanonicalVideoEncodeOptions(), ctx)
       assertTrue(encoded.isNotEmpty(), "MKV: encoded output must not be empty")
 
       val decoded = codec.decode(encoded, CanonicalVideoDecodeOptions(), ctx)
@@ -218,7 +218,7 @@ class FfmpegVideoCodecsTest {
       val ctx = VideoTestHelpers.testContext()
       val codec = JvmMp4Codec()
 
-      val encoded = codec.encode(original, VideoFormat.MP4, CanonicalVideoEncodeOptions(), ctx)
+      val encoded = codec.encode(original, VideoFormat.Mp4, CanonicalVideoEncodeOptions(), ctx)
       val decoded = codec.decode(encoded, CanonicalVideoDecodeOptions(), ctx)
 
       val firstFrame = decoded.videoTrack.frames.nextFrame()

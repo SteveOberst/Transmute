@@ -19,38 +19,50 @@ Kotlin Multiplatform media conversion, compression and transformation - image, a
 ## Quick Start
 
 ```kotlin       
+import dev.transmute.Transmute
+import dev.transmute.core.OutputFormat
+import dev.transmute.core.UnknownFormat
+import dev.transmute.core.asBytes
+import dev.transmute.image.JpegEncodeOptions
+import dev.transmute.image.ResampleFilter
+import dev.transmute.video.CanonicalVideoEncodeOptions
+import dev.transmute.video.VideoFormat
+
 suspend fun quickStart(
     pngBytes: ByteArray,
     wavBytes: ByteArray,
     mp4Bytes: ByteArray,
 ) {
+    // Transmute uses `Bytes` as the canonical binary type.
+    // Use `ByteArray.asBytes()` when your inputs are raw byte arrays.
+
     // Scale and convert to JPEG
     val jpegBytes = Transmute.image {
         scale(maxWidth = 1920, maxHeight = 1080)
         encodeOptions(JpegEncodeOptions(quality = 0.85f))
-    }.transmute(pngBytes).bytes
+    }.transmute(pngBytes.asBytes()).bytes.data
 
     // Resize to exact dimensions with Lanczos resampling
     val resizedBytes = Transmute.image {
         resize(800, 600, filter = ResampleFilter.LANCZOS3)
-    }.transmute(pngBytes).bytes
+    }.transmute(pngBytes.asBytes()).bytes.data
 
     // Normalize and trim audio (preserves input format if encodable, otherwise falls back to WAV)
     val audioBytes = Transmute.audio {
         normalize(targetPeak = 0.9f)
         trim(startMs = 1000, endMs = 5000)
         fade(fadeInMs = 100, fadeOutMs = 200)
-    }.transmute(wavBytes).bytes
+    }.transmute(wavBytes.asBytes()).bytes.data
 
     // Resize video and force output format via encode options
     val videoBytes = Transmute.video {
         resize(maxWidth = 1280, maxHeight = 720)
         trim(startMs = 0, endMs = 30_000)
-        encodeOptions(CanonicalVideoEncodeOptions(outputFormat = OutputFormat.Exact(VideoFormat.MP4)))
-    }.transmute(mp4Bytes).bytes
+        encodeOptions(CanonicalVideoEncodeOptions(outputFormat = OutputFormat.Exact(VideoFormat.Mp4)))
+    }.transmute(mp4Bytes.asBytes()).bytes.data
 
     // Detect format from raw bytes
-    val format = Transmute.detectFormat(pngBytes)
+    val format = Transmute.detectFormat(pngBytes.asBytes())
     if (format == UnknownFormat) error("Could not detect format")
 }
 ```
@@ -58,6 +70,7 @@ suspend fun quickStart(
 ## Building Transmuters
 
 Transmuters are reusable objects you build once and apply to many inputs.
+If your inputs are `ByteArray`, use `import dev.transmute.core.asBytes` and pass `bytes.asBytes()` to `transmute(...)`.
 
 ```kotlin
 // Reusable dynamic-output image transmuter (output defaults to "same as input" unless encodeOptions force it)
@@ -68,18 +81,18 @@ val thumbnailer = Transmute.image {
 }
 
 suspend fun makeThumb(bytes: ByteArray): ByteArray =
-  thumbnailer.transmute(bytes).bytes
+  thumbnailer.transmute(bytes.asBytes()).bytes.data
 ```
 
-Fixed-output transmuters expose a type-level output tag (useful for type-safe post-encode handlers in custom encode pipelines):
+Fixed-output transmuters expose a type-level output format object (useful for type-safe post-encode handlers in custom encode pipelines):
 
 ```kotlin
-val pngOnly = Transmute.imageTo(ImageFormatTag.Png) {
+val pngOnly = Transmute.imageTo(ImageFormat.Png) {
     encodeOptions(PngEncodeOptions(compressionLevel = 6))
 }
 
 suspend fun toPng(bytes: ByteArray): ByteArray =
-  pngOnly.transmute(bytes).bytes
+  pngOnly.transmute(bytes.asBytes()).bytes.data
 ```
 
 Decode pipelines are generic over `IN`, so you can accept custom inputs by supplying your own decode stage:
@@ -104,15 +117,15 @@ Some formats expose dedicated encode options types:
 suspend fun encodeOptionsExamples(inputBytes: ByteArray) {
     val jpeg = Transmute.image {
         encodeOptions(JpegEncodeOptions(quality = 0.9f, metadataPolicy = MetadataPolicy.PRESERVE))
-    }.transmute(inputBytes).bytes
+    }.transmute(inputBytes.asBytes()).bytes.data
 
     val webpLossless = Transmute.image {
         encodeOptions(WebPEncodeOptions(lossless = true))
-    }.transmute(inputBytes).bytes
+    }.transmute(inputBytes.asBytes()).bytes.data
 
     val avif = Transmute.image {
-        encodeOptions(HeifEncodeOptions(format = ImageFormat.AVIF, quality = 0.8f))
-    }.transmute(inputBytes).bytes
+        encodeOptions(HeifEncodeOptions(format = ImageFormat.Avif, quality = 0.8f))
+    }.transmute(inputBytes.asBytes()).bytes.data
 }
 ```
 
@@ -130,7 +143,7 @@ val smartOutput = Transmute.image {
             outputFormatSelector = ImageOutputFormatSelector { decoded, options ->
               when (val requested = options.outputFormat) {
                 OutputFormat.ORIGINAL ->
-                  if (decoded.ir.alphaSemantics != AlphaSemantics.OPAQUE) ImageFormat.PNG else ImageFormat.JPEG
+                  if (decoded.ir.alphaSemantics != AlphaSemantics.OPAQUE) ImageFormat.Png else ImageFormat.Jpeg
                 is OutputFormat.Exact -> requested.format
               }
             },
@@ -154,12 +167,12 @@ data class NamedBytes(val name: String, val bytes: ByteArray)
 val fromNamedBytes = Transmute.imageFrom<NamedBytes> {
     decodeOptions(
       CanonicalImageDecodeOptions(
-        acceptedInputFormats = setOf(ImageFormat.JPEG, ImageFormat.PNG, ImageFormat.WEBP),
+        acceptedInputFormats = setOf(ImageFormat.Jpeg, ImageFormat.Png, ImageFormat.Webp),
       ),
     )
 
     decode {
-        startWith { input, _ -> input.bytes }
+        startWith { input, _ -> input.bytes.asBytes() }
           .then(ImageDecodeHandler())
     }
 }
@@ -188,7 +201,7 @@ suspend fun withCustomLogger(bytes: ByteArray) {
     val out = Transmute.image {
         logger(myLogger)
         scale(maxWidth = 800, maxHeight = 600)
-    }.transmute(bytes)
+    }.transmute(bytes.asBytes())
 }
 ```
 
@@ -228,7 +241,7 @@ Individual modules are also available: `transmute-core`, `transmute-image`, `tra
 | Module            | Purpose                                                                             |
 |-------------------|-------------------------------------------------------------------------------------|
 | `transmute-api`   | Public facade - `Transmute` object, `Transformers` factory, DSL extension functions |
-| `transmute-core`  | Codec/Transform base types, pipeline, format enums, logging, `TransmuteConfig`      |
+| `transmute-core`  | Base types (`Bytes`, `MediaFormat`, codecs), pipeline, logging, `TransmuteConfig`   |
 | `transmute-image` | Image codecs (JPEG, PNG, WebP, HEIF, AVIF, GIF, BMP, TIFF) + transforms             |
 | `transmute-audio` | Audio codecs (WAV, MP3, AAC, FLAC, OGG, OPUS, M4A) + transforms                     |
 | `transmute-video` | Video codecs (MP4, MOV, WebM, AVI, MKV) + transforms                                |
@@ -337,24 +350,27 @@ The bundled binary is extracted to `~/.transmute/ffmpeg/` on first use. Supporte
 ## Custom Codecs & Transforms
 
 ```kotlin
+import dev.transmute.core.Bytes
+import dev.transmute.core.asBytes
+
 // Register a custom codec
 class MyWebpDecoder : ImageDecoder {
-    override val supportedFormats = setOf(ImageFormat.WEBP)
-    override fun sniff(data: ByteArray): ImageFormat? = /* magic bytes */ null
-    override suspend fun decode(source: ByteArray, options: ImageDecodeOptions, context: TransmuteContext): ImageIR = TODO()
+    override val supportedFormats = setOf(ImageFormat.Webp)
+    override fun sniff(data: Bytes): ImageFormat? = /* magic bytes */ null
+    override suspend fun decode(source: Bytes, options: ImageDecodeOptions, context: TransmuteContext): ImageIR = TODO()
 }
 
 class MyWebpEncoder : ImageEncoder {
-    override val supportedFormats = setOf(ImageFormat.WEBP)
+    override val supportedFormats = setOf(ImageFormat.Webp)
     override suspend fun encode(
         ir: ImageIR,
         format: ImageFormat,
         options: ImageEncodeOptions,
         context: TransmuteContext,
-    ): ByteArray = TODO()
+    ): Bytes = TODO()
 }
-ImageRegistries.decoders.register(MyWebpDecoder())
-ImageRegistries.encoders.register(MyWebpEncoder())
+ImageRegistries.register(MyWebpDecoder())
+ImageRegistries.register(MyWebpEncoder())
 
 // Custom transform - no registration needed
 class WatermarkTransform(private val logo: ByteArray) : Transform<ImageIR> {
@@ -365,7 +381,7 @@ class WatermarkTransform(private val logo: ByteArray) : Transform<ImageIR> {
 suspend fun applyWatermark(photo: ByteArray): ByteArray =
   Transmute.image {
     transform { add(WatermarkTransform(logoPng)) }
-  }.transmute(photo).bytes
+  }.transmute(photo.asBytes()).bytes.data
 ```
 
 ## Contributing

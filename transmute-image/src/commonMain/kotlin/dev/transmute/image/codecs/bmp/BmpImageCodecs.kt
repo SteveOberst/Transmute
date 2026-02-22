@@ -1,7 +1,7 @@
 package dev.transmute.image.codecs.bmp
 
+import dev.transmute.core.Bytes
 import dev.transmute.core.TransmuteContext
-import dev.transmute.core.ImageFormat
 import dev.transmute.image.*
 
 /**
@@ -18,43 +18,45 @@ import dev.transmute.image.*
  * - Paletted (1/4/8bpp) BMPs
  */
 class BmpImageDecoder : ImageDecoder {
-  override val supportedFormats: Set<ImageFormat> = setOf(ImageFormat.BMP)
+  override val supportedFormats: Set<ImageFormat> = setOf(ImageFormat.Bmp)
 
-  override fun sniff(data: ByteArray): ImageFormat? {
-    if (data.size >= 2 && data[0] == 0x42.toByte() && data[1] == 0x4D.toByte()) return ImageFormat.BMP
+  override fun sniff(data: Bytes): ImageFormat? {
+    val bytes = data.data
+    if (bytes.size >= 2 && bytes[0] == 0x42.toByte() && bytes[1] == 0x4D.toByte()) return ImageFormat.Bmp
     return null
   }
 
-  override suspend fun decode(source: ByteArray, options: ImageDecodeOptions, context: TransmuteContext): ImageIR {
-    require(source.size >= 54) { "BMP too small" }
-    require(source[0] == 'B'.code.toByte() && source[1] == 'M'.code.toByte()) { "Not a BMP" }
+  override suspend fun decode(source: Bytes, options: ImageDecodeOptions, context: TransmuteContext): ImageIR {
+    val bytes = source.data
+    require(bytes.size >= 54) { "BMP too small" }
+    require(bytes[0] == 'B'.code.toByte() && bytes[1] == 'M'.code.toByte()) { "Not a BMP" }
 
-    val pixelOffset = leInt(source, 10)
-    val dibHeaderSize = leInt(source, 14)
+    val pixelOffset = leInt(bytes, 10)
+    val dibHeaderSize = leInt(bytes, 14)
     require(dibHeaderSize >= 40) { "Unsupported DIB header size: $dibHeaderSize" }
 
-    val width = leInt(source, 18)
-    val rawHeight = leInt(source, 22)
+    val width = leInt(bytes, 18)
+    val rawHeight = leInt(bytes, 22)
     val topDown = rawHeight < 0
     val height = kotlin.math.abs(rawHeight)
 
-    val planes = leShort(source, 26)
+    val planes = leShort(bytes, 26)
     require(planes == 1) { "Invalid BMP planes: $planes" }
 
-    val bpp = leShort(source, 28)
+    val bpp = leShort(bytes, 28)
     require(bpp == 24 || bpp == 32) { "Unsupported BMP bpp: $bpp" }
 
-    val compression = leInt(source, 30)
+    val compression = leInt(bytes, 30)
     require(compression == 0) { "Unsupported BMP compression: $compression" }
 
     require(width > 0 && height > 0) { "Invalid BMP dimensions: ${width}x${height}" }
-    require(pixelOffset in 0..source.size) { "Invalid BMP pixel data offset" }
+    require(pixelOffset in 0..bytes.size) { "Invalid BMP pixel data offset" }
 
     val bytesPerPixel = bpp / 8
     val rowSizeUnpadded = width * bytesPerPixel
     val rowSize = ((rowSizeUnpadded + 3) / 4) * 4
     val needed = pixelOffset + rowSize * height
-    require(needed <= source.size) { "BMP truncated: need $needed bytes, have ${source.size}" }
+    require(needed <= bytes.size) { "BMP truncated: need $needed bytes, have ${bytes.size}" }
 
     val rgba = ByteArray(width * height * 4)
 
@@ -64,10 +66,10 @@ class BmpImageDecoder : ImageDecoder {
 
       for (x in 0 until width) {
         val srcIndex = rowStart + x * bytesPerPixel
-        val b = source[srcIndex]
-        val g = source[srcIndex + 1]
-        val r = source[srcIndex + 2]
-        val a = if (bytesPerPixel == 4) source[srcIndex + 3] else 0xFF.toByte()
+        val b = bytes[srcIndex]
+        val g = bytes[srcIndex + 1]
+        val r = bytes[srcIndex + 2]
+        val a = if (bytesPerPixel == 4) bytes[srcIndex + 3] else 0xFF.toByte()
 
         val dstIndex = (y * width + x) * 4
         rgba[dstIndex] = r
@@ -104,19 +106,19 @@ class BmpImageDecoder : ImageDecoder {
 }
 
 class BmpImageEncoder : ImageEncoder {
-  override val supportedFormats: Set<ImageFormat> = setOf(ImageFormat.BMP)
+  override val supportedFormats: Set<ImageFormat> = setOf(ImageFormat.Bmp)
 
   override suspend fun encode(
     ir: ImageIR,
     format: ImageFormat,
     options: ImageEncodeOptions,
     context: TransmuteContext,
-  ): ByteArray {
+  ): Bytes {
     val buffer = ir.buffer as? ByteArrayPixelBuffer
       ?: error("BmpImageEncoder requires ByteArrayPixelBuffer")
     require(ir.pixelFormat == PixelFormat.RGBA_8888) { "Only RGBA_8888 is supported" }
 
-    require(format == ImageFormat.BMP) { "BmpImageEncoder only supports BMP, got $format" }
+    require(format == ImageFormat.Bmp) { "BmpImageEncoder only supports BMP, got $format" }
 
     // Encode as 24-bit BI_RGB for maximal compatibility.
     val bytesPerPixel = 3
@@ -178,7 +180,7 @@ class BmpImageEncoder : ImageEncoder {
       }
     }
 
-    return out
+    return Bytes(out)
   }
 
   private fun putLeInt(bytes: ByteArray, offset: Int, value: Int) {

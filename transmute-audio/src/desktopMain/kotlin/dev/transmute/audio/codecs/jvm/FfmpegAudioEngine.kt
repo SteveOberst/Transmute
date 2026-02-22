@@ -2,12 +2,13 @@ package dev.transmute.audio.codecs.jvm
 
 import dev.transmute.audio.CanonicalAudioDecodeOptions
 import dev.transmute.audio.CanonicalAudioEncodeOptions
+import dev.transmute.audio.AudioFormat
 import dev.transmute.audio.AudioIR
 import dev.transmute.audio.codecs.WavDecoder
 import dev.transmute.audio.codecs.WavEncoder
-import dev.transmute.core.AudioFormat
 import dev.transmute.core.TransmuteContext
 import dev.transmute.core.FfmpegResolver
+import dev.transmute.core.asBytes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -56,7 +57,7 @@ internal object FfmpegAudioEngine {
   ): ByteArray = withContext(Dispatchers.IO) {
     check(available) { "FFmpeg is not available on this system" }
 
-    val wavBytes = wavEncoder.encode(ir, AudioFormat.WAV, CanonicalAudioEncodeOptions(), context)
+    val wavBytes = wavEncoder.encode(ir, AudioFormat.Wav, CanonicalAudioEncodeOptions(), context).data
     val tmpIn = File.createTempFile("transmute_in_", ".wav")
     val tmpOut = File.createTempFile("transmute_out_", ".$ext")
     try {
@@ -121,7 +122,7 @@ internal object FfmpegAudioEngine {
         "FFmpeg decode from $ext failed (exit ${process.exitValue()}): ${output.takeLast(500)}"
       }
 
-      wavDecoder.decode(tmpOut.readBytes(), CanonicalAudioDecodeOptions(), context)
+      wavDecoder.decode(tmpOut.readBytes().asBytes(), CanonicalAudioDecodeOptions(), context)
     } finally {
       tmpIn.delete()
       tmpOut.delete()

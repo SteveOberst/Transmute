@@ -11,7 +11,8 @@ None.
 ### DSL
 
 ```kotlin
-Transmute.audio { reverse() }.transmute(bytes).bytes
+import dev.transmute.core.asBytes
+Transmute.audio { reverse() }.transmute(bytes.asBytes()).bytes.data
 ```
 
 ### Pipeline

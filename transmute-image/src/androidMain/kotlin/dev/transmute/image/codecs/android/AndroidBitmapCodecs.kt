@@ -2,8 +2,9 @@
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import dev.transmute.core.ImageFormat
 import dev.transmute.core.TransmuteContext
+import dev.transmute.core.Bytes
+import dev.transmute.core.asBytes
 import dev.transmute.image.*
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
@@ -11,65 +12,67 @@ import kotlin.math.roundToInt
 
 class AndroidBitmapImageDecoder : ImageDecoder {
   override val supportedFormats: Set<ImageFormat> = setOf(
-    ImageFormat.JPEG,
-    ImageFormat.PNG,
-    ImageFormat.WEBP,
-    ImageFormat.GIF,
-    ImageFormat.BMP,
-    ImageFormat.TIFF,
-    ImageFormat.HEIF,
-    ImageFormat.HEIC,
-    ImageFormat.AVIF,
+    ImageFormat.Jpeg,
+    ImageFormat.Png,
+    ImageFormat.Webp,
+    ImageFormat.Gif,
+    ImageFormat.Bmp,
+    ImageFormat.Tiff,
+    ImageFormat.Heif,
+    ImageFormat.Heic,
+    ImageFormat.Avif,
   )
 
-  override fun sniff(data: ByteArray): ImageFormat? {
-    if (data.size < 4) return null
+  override fun sniff(data: Bytes): ImageFormat? {
+    val bytes = data.data
+    if (bytes.size < 4) return null
     // JPEG
-    if (data[0] == 0xFF.toByte() && data[1] == 0xD8.toByte() && data[2] == 0xFF.toByte())
-      return ImageFormat.JPEG
+    if (bytes[0] == 0xFF.toByte() && bytes[1] == 0xD8.toByte() && bytes[2] == 0xFF.toByte())
+      return ImageFormat.Jpeg
     // PNG
-    if (data.size >= 8 && data[0] == 0x89.toByte() && data[1] == 0x50.toByte() &&
-      data[2] == 0x4E.toByte() && data[3] == 0x47.toByte())
-      return ImageFormat.PNG
+    if (bytes.size >= 8 && bytes[0] == 0x89.toByte() && bytes[1] == 0x50.toByte() &&
+      bytes[2] == 0x4E.toByte() && bytes[3] == 0x47.toByte())
+      return ImageFormat.Png
     // GIF
-    if (data.size >= 6 && data[0] == 0x47.toByte() && data[1] == 0x49.toByte() &&
-      data[2] == 0x46.toByte() && data[3] == 0x38.toByte())
-      return ImageFormat.GIF
+    if (bytes.size >= 6 && bytes[0] == 0x47.toByte() && bytes[1] == 0x49.toByte() &&
+      bytes[2] == 0x46.toByte() && bytes[3] == 0x38.toByte())
+      return ImageFormat.Gif
     // BMP
-    if (data[0] == 0x42.toByte() && data[1] == 0x4D.toByte())
-      return ImageFormat.BMP
+    if (bytes[0] == 0x42.toByte() && bytes[1] == 0x4D.toByte())
+      return ImageFormat.Bmp
     // TIFF
-    if ((data[0] == 0x49.toByte() && data[1] == 0x49.toByte() && data[2] == 0x2A.toByte() && data[3] == 0x00.toByte()) ||
-      (data[0] == 0x4D.toByte() && data[1] == 0x4D.toByte() && data[2] == 0x00.toByte() && data[3] == 0x2A.toByte()))
-      return ImageFormat.TIFF
+    if ((bytes[0] == 0x49.toByte() && bytes[1] == 0x49.toByte() && bytes[2] == 0x2A.toByte() && bytes[3] == 0x00.toByte()) ||
+      (bytes[0] == 0x4D.toByte() && bytes[1] == 0x4D.toByte() && bytes[2] == 0x00.toByte() && bytes[3] == 0x2A.toByte()))
+      return ImageFormat.Tiff
     // WebP
-    if (data.size >= 12 && data[0] == 0x52.toByte() && data[1] == 0x49.toByte() &&
-      data[2] == 0x46.toByte() && data[3] == 0x46.toByte() &&
-      data[8] == 0x57.toByte() && data[9] == 0x45.toByte() &&
-      data[10] == 0x42.toByte() && data[11] == 0x50.toByte())
-      return ImageFormat.WEBP
+    if (bytes.size >= 12 && bytes[0] == 0x52.toByte() && bytes[1] == 0x49.toByte() &&
+      bytes[2] == 0x46.toByte() && bytes[3] == 0x46.toByte() &&
+      bytes[8] == 0x57.toByte() && bytes[9] == 0x45.toByte() &&
+      bytes[10] == 0x42.toByte() && bytes[11] == 0x50.toByte())
+      return ImageFormat.Webp
     // HEIF/HEIC/AVIF
-    if (data.size >= 12 && data[4] == 0x66.toByte() && data[5] == 0x74.toByte() &&
-      data[6] == 0x79.toByte() && data[7] == 0x70.toByte()) {
-      val brand = data.sliceArray(8 until 12).decodeToString()
+    if (bytes.size >= 12 && bytes[4] == 0x66.toByte() && bytes[5] == 0x74.toByte() &&
+      bytes[6] == 0x79.toByte() && bytes[7] == 0x70.toByte()) {
+      val brand = bytes.sliceArray(8 until 12).decodeToString()
       return when {
-        brand == "heic" || brand == "heix" -> ImageFormat.HEIC
-        brand == "mif1" || brand == "msf1" -> ImageFormat.HEIF
-        brand == "hevc" || brand == "hevx" -> ImageFormat.HEIC
-        brand == "avif" || brand == "avis" -> ImageFormat.AVIF
-        brand == "heif" || brand == "heis" -> ImageFormat.HEIF
+        brand == "heic" || brand == "heix" -> ImageFormat.Heic
+        brand == "mif1" || brand == "msf1" -> ImageFormat.Heif
+        brand == "hevc" || brand == "hevx" -> ImageFormat.Heic
+        brand == "avif" || brand == "avis" -> ImageFormat.Avif
+        brand == "heif" || brand == "heis" -> ImageFormat.Heif
         else -> null
       }
     }
     return null
   }
 
-  override suspend fun decode(source: ByteArray, options: ImageDecodeOptions, context: TransmuteContext): ImageIR {
+  override suspend fun decode(source: Bytes, options: ImageDecodeOptions, context: TransmuteContext): ImageIR {
     val opts = BitmapFactory.Options().apply {
       inPreferredConfig = Bitmap.Config.ARGB_8888
     }
 
-    val bitmap = BitmapFactory.decodeByteArray(source, 0, source.size, opts)
+    val bytes = source.data
+    val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, opts)
       ?: error("AndroidBitmapImageDecoder: BitmapFactory returned null")
 
     val width = bitmap.width
@@ -108,9 +111,9 @@ class AndroidBitmapImageDecoder : ImageDecoder {
 
 class AndroidBitmapImageEncoder : ImageEncoder {
   override val supportedFormats: Set<ImageFormat> = setOf(
-    ImageFormat.JPEG,
-    ImageFormat.PNG,
-    ImageFormat.WEBP,
+    ImageFormat.Jpeg,
+    ImageFormat.Png,
+    ImageFormat.Webp,
   )
 
   override suspend fun encode(
@@ -118,7 +121,7 @@ class AndroidBitmapImageEncoder : ImageEncoder {
     format: ImageFormat,
     options: ImageEncodeOptions,
     context: TransmuteContext,
-  ): ByteArray {
+  ): Bytes {
     val buffer = ir.buffer as? ByteArrayPixelBuffer
       ?: error("AndroidBitmapImageEncoder requires ByteArrayPixelBuffer")
     require(ir.pixelFormat == PixelFormat.RGBA_8888) { "Only RGBA_8888 is supported" }
@@ -126,12 +129,12 @@ class AndroidBitmapImageEncoder : ImageEncoder {
     require(format in supportedFormats) { "Unsupported format $format" }
 
     val qInt = when (format) {
-      ImageFormat.JPEG -> {
+      ImageFormat.Jpeg -> {
         val quality = (options as? JpegEncodeOptions)?.quality ?: 0.85f
         (quality * 100f).roundToInt().coerceIn(0, 100)
       }
       // Android Bitmap WEBP encoder semantics vary by API level. Treat quality as best-effort.
-      ImageFormat.WEBP -> {
+      ImageFormat.Webp -> {
         val quality = (options as? WebPEncodeOptions)?.quality ?: 0.85f
         (quality * 100f).roundToInt().coerceIn(0, 100)
       }
@@ -145,8 +148,8 @@ class AndroidBitmapImageEncoder : ImageEncoder {
 
     val out = ByteArrayOutputStream()
     val compressFormat = when (format) {
-      ImageFormat.PNG -> Bitmap.CompressFormat.PNG
-      ImageFormat.WEBP -> {
+      ImageFormat.Png -> Bitmap.CompressFormat.PNG
+      ImageFormat.Webp -> {
         if (android.os.Build.VERSION.SDK_INT >= 30) {
           Bitmap.CompressFormat.WEBP_LOSSY
         } else {
@@ -160,7 +163,7 @@ class AndroidBitmapImageEncoder : ImageEncoder {
     val ok = bitmap.compress(compressFormat, qInt, out)
     if (!ok) error("AndroidBitmapImageEncoder: bitmap.compress returned false")
 
-    return out.toByteArray()
+    return out.toByteArray().asBytes()
   }
 
   private fun rgbaToBgra(rgba: ByteArray): ByteArray {

@@ -6,10 +6,12 @@ import de.sciss.jump3r.lowlevel.LameEncoder
 import dev.transmute.audio.AudioCodec
 import dev.transmute.audio.AudioDecodeOptions
 import dev.transmute.audio.AudioEncodeOptions
+import dev.transmute.audio.AudioFormat
 import dev.transmute.audio.AudioIR
 import dev.transmute.audio.AudioSamples
-import dev.transmute.core.AudioFormat
+import dev.transmute.core.Bytes
 import dev.transmute.core.TransmuteContext
+import dev.transmute.core.asBytes
 import javazoom.jl.decoder.Bitstream
 import javazoom.jl.decoder.Decoder
 import javazoom.jl.decoder.SampleBuffer
@@ -27,30 +29,31 @@ import javax.sound.sampled.AudioFormat as JvmAudioFormat
  */
 class JvmMp3Codec : AudioCodec {
 
-  override val decodableFormats: Set<AudioFormat> = setOf(AudioFormat.MP3)
-  override val encodableFormats: Set<AudioFormat> = setOf(AudioFormat.MP3)
+  override val decodableFormats: Set<AudioFormat> = setOf(AudioFormat.Mp3)
+  override val encodableFormats: Set<AudioFormat> = setOf(AudioFormat.Mp3)
 
-  override fun sniff(data: ByteArray): AudioFormat? {
-    if (data.size < 3) return null
+  override fun sniff(data: Bytes): AudioFormat? {
+    val bytes = data.data
+    if (bytes.size < 3) return null
     // ID3v2 tag header
-    if (data[0] == 0x49.toByte() && data[1] == 0x44.toByte() && data[2] == 0x33.toByte()) {
-      return AudioFormat.MP3
+    if (bytes[0] == 0x49.toByte() && bytes[1] == 0x44.toByte() && bytes[2] == 0x33.toByte()) {
+      return AudioFormat.Mp3
     }
     // MPEG audio frame sync word (first 11 bits set).
     // Exclude layer==00 which is AAC ADTS, not MP3.
-    if (data.size >= 2) {
-      val b0 = data[0].toInt() and 0xFF
-      val b1 = data[1].toInt() and 0xFF
+    if (bytes.size >= 2) {
+      val b0 = bytes[0].toInt() and 0xFF
+      val b1 = bytes[1].toInt() and 0xFF
       if (b0 == 0xFF && (b1 and 0xE0) == 0xE0) {
         val layer = (b1 shr 1) and 0x03
-        if (layer != 0) return AudioFormat.MP3
+        if (layer != 0) return AudioFormat.Mp3
       }
     }
     return null
   }
 
-  override suspend fun decode(source: ByteArray, options: AudioDecodeOptions, context: TransmuteContext): AudioIR {
-    val bitstream = Bitstream(ByteArrayInputStream(source))
+  override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: TransmuteContext): AudioIR {
+    val bitstream = Bitstream(ByteArrayInputStream(source.data))
     val decoder = Decoder()
 
     var sampleRate = 0
@@ -100,8 +103,8 @@ class JvmMp3Codec : AudioCodec {
     format: AudioFormat,
     options: AudioEncodeOptions,
     context: TransmuteContext,
-  ): ByteArray {
-    require(format == AudioFormat.MP3) { "JvmMp3Codec only supports MP3, got $format" }
+  ): Bytes {
+    require(format == AudioFormat.Mp3) { "JvmMp3Codec only supports MP3, got $format" }
     val pcmBytes = floatToPcm16(ir.samples.data)
 
     val sourceFormat = JvmAudioFormat(
@@ -136,7 +139,7 @@ class JvmMp3Codec : AudioCodec {
       val flushed = lame.encodeFinish(mp3Buf)
       if (flushed > 0) out.write(mp3Buf, 0, flushed)
 
-      return out.toByteArray()
+      return out.toByteArray().asBytes()
     } finally {
       lame.close()
     }
@@ -150,23 +153,24 @@ class JvmMp3Codec : AudioCodec {
  */
 class JvmFlacCodec : AudioCodec {
 
-  override val decodableFormats: Set<AudioFormat> = setOf(AudioFormat.FLAC)
+  override val decodableFormats: Set<AudioFormat> = setOf(AudioFormat.Flac)
   override val encodableFormats: Set<AudioFormat> =
-    if (FfmpegAudioEngine.available) setOf(AudioFormat.FLAC) else emptySet()
+    if (FfmpegAudioEngine.available) setOf(AudioFormat.Flac) else emptySet()
 
-  override fun sniff(data: ByteArray): AudioFormat? {
-    if (data.size < 4) return null
+  override fun sniff(data: Bytes): AudioFormat? {
+    val bytes = data.data
+    if (bytes.size < 4) return null
     // FLAC stream marker: "fLaC" (0x664C6143)
-    if (data[0] == 0x66.toByte() && data[1] == 0x4C.toByte() &&
-      data[2] == 0x61.toByte() && data[3] == 0x43.toByte()
+    if (bytes[0] == 0x66.toByte() && bytes[1] == 0x4C.toByte() &&
+      bytes[2] == 0x61.toByte() && bytes[3] == 0x43.toByte()
     ) {
-      return AudioFormat.FLAC
+      return AudioFormat.Flac
     }
     return null
   }
 
-  override suspend fun decode(source: ByteArray, options: AudioDecodeOptions, context: TransmuteContext): AudioIR {
-    val decoder = FLACDecoder(ByteArrayInputStream(source))
+  override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: TransmuteContext): AudioIR {
+    val decoder = FLACDecoder(ByteArrayInputStream(source.data))
 
     var sampleRate = 0
     var channels = 0
@@ -224,15 +228,15 @@ class JvmFlacCodec : AudioCodec {
     format: AudioFormat,
     options: AudioEncodeOptions,
     context: TransmuteContext,
-  ): ByteArray {
-    require(format == AudioFormat.FLAC) { "JvmFlacCodec only supports FLAC, got $format" }
+  ): Bytes {
+    require(format == AudioFormat.Flac) { "JvmFlacCodec only supports FLAC, got $format" }
     check(FfmpegAudioEngine.available) { "FLAC encoding requires FFmpeg on PATH" }
     return FfmpegAudioEngine.encode(
       ir, "flac", "flac", "flac",
       bitrate = null,
       extraArgs = listOf("-compression_level", "5"),
       context = context,
-    )
+    ).asBytes()
   }
 
   private fun readLeSigned(bytes: ByteArray, offset: Int, size: Int): Int {
@@ -253,34 +257,35 @@ class JvmFlacCodec : AudioCodec {
  */
 class JvmOggVorbisCodec : AudioCodec {
 
-  override val decodableFormats: Set<AudioFormat> = setOf(AudioFormat.OGG)
+  override val decodableFormats: Set<AudioFormat> = setOf(AudioFormat.Ogg)
   override val encodableFormats: Set<AudioFormat> =
-    if (FfmpegAudioEngine.available) setOf(AudioFormat.OGG) else emptySet()
+    if (FfmpegAudioEngine.available) setOf(AudioFormat.Ogg) else emptySet()
 
-  override fun sniff(data: ByteArray): AudioFormat? {
-    if (data.size < 4) return null
+  override fun sniff(data: Bytes): AudioFormat? {
+    val bytes = data.data
+    if (bytes.size < 4) return null
     // OGG container magic: "OggS"
-    if (data[0] != 0x4F.toByte() || data[1] != 0x67.toByte() ||
-      data[2] != 0x67.toByte() || data[3] != 0x53.toByte()
+    if (bytes[0] != 0x4F.toByte() || bytes[1] != 0x67.toByte() ||
+      bytes[2] != 0x67.toByte() || bytes[3] != 0x53.toByte()
     ) return null
     // With enough data, confirm Vorbis identification header (type 0x01 + "vorbis").
-    if (data.size >= 35) {
-      if (data[28] == 0x01.toByte() &&
-        data[29] == 0x76.toByte() && data[30] == 0x6F.toByte() &&
-        data[31] == 0x72.toByte() && data[32] == 0x62.toByte() &&
-        data[33] == 0x69.toByte() && data[34] == 0x73.toByte()
+    if (bytes.size >= 35) {
+      if (bytes[28] == 0x01.toByte() &&
+        bytes[29] == 0x76.toByte() && bytes[30] == 0x6F.toByte() &&
+        bytes[31] == 0x72.toByte() && bytes[32] == 0x62.toByte() &&
+        bytes[33] == 0x69.toByte() && bytes[34] == 0x73.toByte()
       ) {
-        return AudioFormat.OGG
+        return AudioFormat.Ogg
       }
       // Enough data but no Vorbis header - might be Opus or another OGG codec.
       return null
     }
     // Short OGG header (can't determine inner codec) - report as OGG container.
-    return AudioFormat.OGG
+    return AudioFormat.Ogg
   }
 
-  override suspend fun decode(source: ByteArray, options: AudioDecodeOptions, context: TransmuteContext): AudioIR {
-    val vorbis = VorbisFile(ByteArrayInputStream(source), ByteArray(0), 0)
+  override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: TransmuteContext): AudioIR {
+    val vorbis = VorbisFile(ByteArrayInputStream(source.data), ByteArray(0), 0)
 
     val info = vorbis.getInfo(0)
       ?: error("OGG/Vorbis: stream info not available (file may be malformed or unsupported encoder)")
@@ -337,13 +342,13 @@ class JvmOggVorbisCodec : AudioCodec {
     format: AudioFormat,
     options: AudioEncodeOptions,
     context: TransmuteContext,
-  ): ByteArray {
-    require(format == AudioFormat.OGG) { "JvmOggVorbisCodec only supports OGG, got $format" }
+  ): Bytes {
+    require(format == AudioFormat.Ogg) { "JvmOggVorbisCodec only supports OGG, got $format" }
     check(FfmpegAudioEngine.available) { "OGG/Vorbis encoding requires FFmpeg on PATH" }
     return FfmpegAudioEngine.encode(
       ir, "libvorbis", "ogg", "ogg", "128k",
       context = context,
-    )
+    ).asBytes()
   }
 }
 

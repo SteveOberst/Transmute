@@ -1,7 +1,6 @@
 package dev.transmute.audio
 
 import dev.transmute.core.DecodeOptions
-import dev.transmute.core.AudioFormat
 
 /**
  * Sealed hierarchy of audio decoding options.

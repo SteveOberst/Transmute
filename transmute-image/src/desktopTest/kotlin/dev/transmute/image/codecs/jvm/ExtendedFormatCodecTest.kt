@@ -1,6 +1,6 @@
 package dev.transmute.image.codecs.jvm
 
-import dev.transmute.core.ImageFormat
+import dev.transmute.core.Bytes
 import dev.transmute.image.ImageFormatDetector
 import dev.transmute.image.ImageTestHelpers.adjustAlphaForComparison
 import dev.transmute.image.ImageTestHelpers.checkerboard
@@ -9,6 +9,7 @@ import dev.transmute.image.ImageTestHelpers.meanAbsoluteError
 import dev.transmute.image.ImageTestHelpers.pixelAt
 import dev.transmute.image.ImageTestHelpers.solidColor
 import dev.transmute.image.ImageTestHelpers.testContext
+import dev.transmute.image.ImageFormat
 import dev.transmute.image.ImageIR
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -30,18 +31,18 @@ class ExtendedFormatCodecTest {
   private val encoder = JvmImageIoEncoder()
   private val ctx = testContext()
 
-  private suspend fun encodeGif(ir: ImageIR): ByteArray =
-    encoder.encode(ir, ImageFormat.GIF, CanonicalImageEncodeOptions(), ctx)
+  private suspend fun encodeGif(ir: ImageIR): Bytes =
+    encoder.encode(ir, ImageFormat.Gif, CanonicalImageEncodeOptions(), ctx)
 
-  private suspend fun encodeTiff(ir: ImageIR): ByteArray =
-    encoder.encode(ir, ImageFormat.TIFF, CanonicalImageEncodeOptions(), ctx)
+  private suspend fun encodeTiff(ir: ImageIR): Bytes =
+    encoder.encode(ir, ImageFormat.Tiff, CanonicalImageEncodeOptions(), ctx)
 
   // --- WebP decode ---
 
   @Test
   fun webpDecoderDeclaredInSupportedFormats() {
     assertTrue(
-      ImageFormat.WEBP in decoder.supportedFormats,
+      ImageFormat.Webp in decoder.supportedFormats,
       "Decoder should list WEBP as a supported format",
     )
   }
@@ -53,7 +54,7 @@ class ExtendedFormatCodecTest {
     val original = solidColor(64, 64, r = 200, g = 100, b = 50)
     val encoded = encodeGif(original)
     val detected = ImageFormatDetector.detect(encoded)
-    assertEquals(ImageFormat.GIF, detected, "Encoded bytes should be detected as GIF")
+    assertEquals(ImageFormat.Gif, detected, "Encoded bytes should be detected as GIF")
 
     val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
     assertEquals(64, decoded.width)
@@ -105,7 +106,7 @@ class ExtendedFormatCodecTest {
     val original = solidColor(64, 64, r = 200, g = 100, b = 50)
     val encoded = encodeTiff(original)
     val detected = ImageFormatDetector.detect(encoded)
-    assertEquals(ImageFormat.TIFF, detected, "Encoded bytes should be detected as TIFF")
+    assertEquals(ImageFormat.Tiff, detected, "Encoded bytes should be detected as TIFF")
 
     val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
     assertEquals(64, decoded.width)
@@ -174,7 +175,7 @@ class ExtendedFormatCodecTest {
 
     assertEquals(40, fromGif.width)
     assertEquals(40, fromGif.height)
-    assertEquals(ImageFormat.GIF, ImageFormatDetector.detect(gifBytes))
+    assertEquals(ImageFormat.Gif, ImageFormatDetector.detect(gifBytes))
   }
 
   @Test
@@ -188,7 +189,7 @@ class ExtendedFormatCodecTest {
 
     assertEquals(100, fromTiff.width)
     assertEquals(20, fromTiff.height)
-    assertEquals(ImageFormat.TIFF, ImageFormatDetector.detect(tiffBytes))
+    assertEquals(ImageFormat.Tiff, ImageFormatDetector.detect(tiffBytes))
   }
 
 }

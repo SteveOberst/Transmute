@@ -1,7 +1,5 @@
 package dev.transmute.image
 
-import dev.transmute.core.ImageFormat
-
 /**
  * Lightweight metadata snapshot for an image item.
  *

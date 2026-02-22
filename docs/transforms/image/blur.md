@@ -13,7 +13,8 @@ Apply a box blur to an image.
 ### DSL
 
 ```kotlin
-Transmute.image { blur(radius = 2) }.transmute(bytes).bytes
+import dev.transmute.core.asBytes
+Transmute.image { blur(radius = 2) }.transmute(bytes.asBytes()).bytes.data
 ```
 
 ### Pipeline

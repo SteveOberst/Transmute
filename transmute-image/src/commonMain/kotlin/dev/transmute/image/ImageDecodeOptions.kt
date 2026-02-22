@@ -1,7 +1,6 @@
 package dev.transmute.image
 
 import dev.transmute.core.DecodeOptions
-import dev.transmute.core.ImageFormat
 
 /**
  * Sealed hierarchy of image decoding options.

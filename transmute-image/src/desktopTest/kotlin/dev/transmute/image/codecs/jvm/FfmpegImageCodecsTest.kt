@@ -1,8 +1,8 @@
 package dev.transmute.image.codecs.jvm
 
 import dev.transmute.core.FfmpegResolver
-import dev.transmute.core.ImageFormat
 import dev.transmute.core.PrintLogger
+import dev.transmute.image.ImageFormat
 import dev.transmute.image.ImageTestHelpers
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -43,7 +43,7 @@ class FfmpegImageCodecsTest {
       val ctx = ImageTestHelpers.testContext()
 
       val encoded = try {
-        encoder.encode(original, ImageFormat.HEIF, CanonicalImageEncodeOptions(), ctx)
+        encoder.encode(original, ImageFormat.Heif, CanonicalImageEncodeOptions(), ctx)
       } catch (e: Exception) {
         // libx265 may not be available in this FFmpeg build
         if ("libx265" in e.message.orEmpty() || "Encoder" in e.message.orEmpty()) {
@@ -68,7 +68,7 @@ class FfmpegImageCodecsTest {
       val ctx = ImageTestHelpers.testContext()
 
       val encoded = try {
-        encoder.encode(original, ImageFormat.HEIF, CanonicalImageEncodeOptions(), ctx)
+        encoder.encode(original, ImageFormat.Heif, CanonicalImageEncodeOptions(), ctx)
       } catch (e: Exception) {
         if ("libx265" in e.message.orEmpty()) {
           log.warn("SKIPPED: HEIF encoder not available")
@@ -93,7 +93,7 @@ class FfmpegImageCodecsTest {
       val ctx = ImageTestHelpers.testContext()
 
       val encoded = try {
-        encoder.encode(original, ImageFormat.AVIF, CanonicalImageEncodeOptions(), ctx)
+        encoder.encode(original, ImageFormat.Avif, CanonicalImageEncodeOptions(), ctx)
       } catch (e: Exception) {
         if ("FFmpeg" in e.message.orEmpty() || "libaom-av1" in e.message.orEmpty() || "Encoder" in e.message.orEmpty()) {
           log.warn("SKIPPED: AVIF encoding not available: ${e.message}")
@@ -117,7 +117,7 @@ class FfmpegImageCodecsTest {
       val ctx = ImageTestHelpers.testContext()
 
       val encoded = try {
-        encoder.encode(original, ImageFormat.AVIF, CanonicalImageEncodeOptions(), ctx)
+        encoder.encode(original, ImageFormat.Avif, CanonicalImageEncodeOptions(), ctx)
       } catch (e: Exception) {
         if ("FFmpeg" in e.message.orEmpty() || "libaom-av1" in e.message.orEmpty()) {
           log.warn("SKIPPED: AVIF encoding not available: ${e.message}")
@@ -137,16 +137,16 @@ class FfmpegImageCodecsTest {
   @Test
   fun decoderReportsCorrectSupportedFormats() {
     val formats = decoder.supportedFormats
-    assertTrue(ImageFormat.HEIF in formats)
-    assertTrue(ImageFormat.HEIC in formats)
-    assertTrue(ImageFormat.AVIF in formats)
+    assertTrue(ImageFormat.Heif in formats)
+    assertTrue(ImageFormat.Heic in formats)
+    assertTrue(ImageFormat.Avif in formats)
   }
 
   @Test
   fun encoderReportsCorrectSupportedFormats() {
     val formats = encoder.supportedFormats
-    assertTrue(ImageFormat.HEIF in formats)
-    assertTrue(ImageFormat.HEIC in formats)
-    assertTrue(ImageFormat.AVIF in formats)
+    assertTrue(ImageFormat.Heif in formats)
+    assertTrue(ImageFormat.Heic in formats)
+    assertTrue(ImageFormat.Avif in formats)
   }
 }

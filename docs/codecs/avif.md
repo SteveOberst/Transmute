@@ -14,21 +14,22 @@ AVIF is a next-generation image format based on AV1. It provides excellent compr
 
 ```kotlin
 import dev.transmute.Transmute
-import dev.transmute.core.ImageFormat
+import dev.transmute.core.asBytes
 import dev.transmute.image.HeifEncodeOptions
+import dev.transmute.image.ImageFormat
 import dev.transmute.image.PngEncodeOptions
 
 // Convert any image to AVIF (Desktop/iOS)
 suspend fun convertToAvif(inputBytes: ByteArray): ByteArray =
   Transmute.image {
-    encodeOptions(HeifEncodeOptions(format = ImageFormat.AVIF, quality = 0.8f))
-  }.transmute(inputBytes).bytes
+    encodeOptions(HeifEncodeOptions(format = ImageFormat.Avif, quality = 0.8f))
+  }.transmute(inputBytes.asBytes()).bytes.data
 
 // Decode AVIF (re-encode to PNG)
 suspend fun decodeToPng(avifBytes: ByteArray): ByteArray =
   Transmute.image {
     encodeOptions(PngEncodeOptions())
-  }.transmute(avifBytes).bytes
+  }.transmute(avifBytes.asBytes()).bytes.data
 ```
 
 ## Notes

@@ -1,10 +1,10 @@
 package dev.transmute.video
 
 import kotlin.concurrent.Volatile
+import dev.transmute.core.Bytes
 import dev.transmute.core.Codec
 import dev.transmute.core.Decoder
 import dev.transmute.core.Encoder
-import dev.transmute.core.VideoFormat
 import dev.transmute.core.TransmuteContext
 
 /**
@@ -25,8 +25,8 @@ class MutableVideoDecoderRegistry : VideoDecoderRegistry {
   fun register(decoder: Decoder<VideoFormat, VideoIR, VideoDecodeOptions>) {
     val wrapper = object : VideoDecoder {
       override val supportedFormats = decoder.decodableFormats
-      override fun sniff(data: ByteArray) = decoder.sniff(data)
-      override suspend fun decode(source: ByteArray, options: VideoDecodeOptions, context: TransmuteContext) =
+      override fun sniff(data: Bytes) = decoder.sniff(data)
+      override suspend fun decode(source: Bytes, options: VideoDecodeOptions, context: TransmuteContext) =
         decoder.decode(source, options, context)
     }
     register(wrapper)
@@ -36,8 +36,8 @@ class MutableVideoDecoderRegistry : VideoDecoderRegistry {
   fun register(codec: Codec<VideoFormat, VideoIR, VideoDecodeOptions, VideoEncodeOptions>) {
     val wrapper = object : VideoDecoder {
       override val supportedFormats = codec.decodableFormats
-      override fun sniff(data: ByteArray) = codec.sniff(data)
-      override suspend fun decode(source: ByteArray, options: VideoDecodeOptions, context: TransmuteContext) =
+      override fun sniff(data: Bytes) = codec.sniff(data)
+      override suspend fun decode(source: Bytes, options: VideoDecodeOptions, context: TransmuteContext) =
         codec.decode(source, options, context)
     }
     decoderList.add(wrapper)

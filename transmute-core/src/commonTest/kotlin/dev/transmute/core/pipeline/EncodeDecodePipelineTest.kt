@@ -1,6 +1,10 @@
 package dev.transmute.core.pipeline
 
-import dev.transmute.core.ImageFormat
+import dev.transmute.core.Bytes
+import dev.transmute.core.MediaFormat
+import dev.transmute.core.NoDecodeOptions
+import dev.transmute.core.NoEncodeOptions
+import dev.transmute.core.asBytes
 import dev.transmute.core.TransmuteContext
 import dev.transmute.core.TransmuteLogger
 import kotlinx.coroutines.test.runTest
@@ -9,19 +13,24 @@ import kotlin.test.assertEquals
 
 class EncodeDecodePipelineTest {
 
-  private data class NamedBytes(val name: String, val bytes: ByteArray)
+  private data class NamedBytes(val name: String, val bytes: Bytes)
+
+  private object TestFormat : MediaFormat<NoDecodeOptions, NoEncodeOptions> {
+    override val mimeType: String = "application/test"
+    override val extension: String = "test"
+  }
 
   @Test
   fun `decode pipeline runs byte then ir handlers`() = runTest {
     val ctx = TransmuteContext(logger = TransmuteLogger.Noop)
 
-    val pipeline: DecodePipeline<ByteArray, String> = PipelineBuilder.start<ByteArray>()
-      .startWith { bytes, _ -> bytes + byteArrayOf('!'.code.toByte()) }
-      .then { bytes, _ -> bytes.decodeToString() }
+    val pipeline: DecodePipeline<Bytes, String> = PipelineBuilder.start<Bytes>()
+      .startWith { bytes, _ -> (bytes.data + byteArrayOf('!'.code.toByte())).asBytes() }
+      .then { bytes, _ -> bytes.data.decodeToString() }
       .then { ir, _ -> ir + "-ir" }
       .build()
 
-    val out = pipeline.run("hi".encodeToByteArray(), ctx)
+    val out = pipeline.run("hi".encodeToByteArray().asBytes(), ctx)
     assertEquals("hi!-ir", out)
   }
 
@@ -32,10 +41,10 @@ class EncodeDecodePipelineTest {
     val pipeline: DecodePipeline<NamedBytes, String> =
       PipelineBuilder.start<NamedBytes>()
         .startWith { named, _ -> named.bytes }
-        .then { bytes, _ -> "${bytes.decodeToString()}@ok" }
+        .then { bytes, _ -> "${bytes.data.decodeToString()}@ok" }
         .build()
 
-    val out = pipeline.run(NamedBytes("x", "hi".encodeToByteArray()), ctx)
+    val out = pipeline.run(NamedBytes("x", "hi".encodeToByteArray().asBytes()), ctx)
     assertEquals("hi@ok", out)
   }
 
@@ -43,15 +52,15 @@ class EncodeDecodePipelineTest {
   fun `encode pipeline resolves output format and runs post-encode handlers`() = runTest {
     val ctx = TransmuteContext(logger = TransmuteLogger.Noop)
 
-    val pipeline: EncodePipeline<String, ByteArray> =
+    val pipeline: EncodePipeline<String, Bytes> =
       PipelineBuilder.start<String>()
         .startWith { ir, _ -> ir + "-pre" }
-        .then { ir, _ -> ir.encodeToByteArray() }
-        .then { bytes, _ -> bytes + byteArrayOf('!'.code.toByte()) }
+        .then { ir, _ -> ir.encodeToByteArray().asBytes() }
+        .then { bytes, _ -> (bytes.data + byteArrayOf('!'.code.toByte())).asBytes() }
         .build()
 
     val bytes = pipeline.run("hi", ctx)
-    assertEquals("hi-pre!", bytes.decodeToString())
+    assertEquals("hi-pre!", bytes.data.decodeToString())
   }
 
   @Test
@@ -71,10 +80,10 @@ class EncodeDecodePipelineTest {
   fun `round trip decode transforms encode preserves format and order`() = runTest {
     val ctx = TransmuteContext(logger = TransmuteLogger.Noop)
 
-    val decode: DecodePipeline<ByteArray, Decoded<ImageFormat, String>> =
-      PipelineBuilder.start<ByteArray>()
-        .startWith { bytes, _ -> bytes.decodeToString() }
-        .then { ir, _ -> Decoded(ImageFormat.PNG, ir) }
+    val decode: DecodePipeline<Bytes, Decoded<TestFormat, String>> =
+      PipelineBuilder.start<Bytes>()
+        .startWith { bytes, _ -> bytes.data.decodeToString() }
+        .then { ir, _ -> Decoded(TestFormat, ir) }
         .build()
 
     val transforms = TransformPipeline<String>().apply {
@@ -88,19 +97,19 @@ class EncodeDecodePipelineTest {
       })
     }.transforms
 
-    val encode: EncodePipeline<Decoded<ImageFormat, String>, EncodedBytes<ImageFormat, dev.transmute.core.AnyFormatTag<ImageFormat>>> =
-      PipelineBuilder.start<Decoded<ImageFormat, String>>()
+    val encode: EncodePipeline<Decoded<TestFormat, String>, EncodedBytes<TestFormat>> =
+      PipelineBuilder.start<Decoded<TestFormat, String>>()
         .startWith { decoded, _ ->
-          EncodedBytes(dev.transmute.core.AnyFormatTag(decoded.format), decoded.ir.encodeToByteArray())
+          EncodedBytes(decoded.format, decoded.ir.encodeToByteArray().asBytes())
         }
         .build()
 
-    val decoded = decode.run("hi".encodeToByteArray(), ctx)
+    val decoded = decode.run("hi".encodeToByteArray().asBytes(), ctx)
     var ir = decoded.ir
     for (t in transforms) ir = t.apply(ir, ctx)
     val encoded = encode.run(Decoded(decoded.format, ir), ctx)
 
-    assertEquals(ImageFormat.PNG, encoded.format)
-    assertEquals("(hi)!".encodeToByteArray().decodeToString(), encoded.bytes.decodeToString())
+    assertEquals(TestFormat, encoded.format)
+    assertEquals("(hi)!".encodeToByteArray().decodeToString(), encoded.bytes.data.decodeToString())
   }
 }

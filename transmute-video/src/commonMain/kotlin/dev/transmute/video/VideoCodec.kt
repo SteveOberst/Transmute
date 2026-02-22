@@ -1,7 +1,7 @@
 package dev.transmute.video
 
 import dev.transmute.core.Codec
-import dev.transmute.core.VideoFormat
+import dev.transmute.core.Bytes
 import dev.transmute.core.TransmuteContext
 
 /**
@@ -14,8 +14,8 @@ interface VideoCodec : Codec<VideoFormat, VideoIR, VideoDecodeOptions, VideoEnco
 
 interface VideoDecoder {
   val supportedFormats: Set<VideoFormat>
-  fun sniff(data: ByteArray): VideoFormat? = null
-  suspend fun decode(source: ByteArray, options: VideoDecodeOptions, context: TransmuteContext): VideoIR
+  fun sniff(data: Bytes): VideoFormat? = null
+  suspend fun decode(source: Bytes, options: VideoDecodeOptions, context: TransmuteContext): VideoIR
 }
 
 interface VideoDecoderRegistry {
@@ -24,7 +24,7 @@ interface VideoDecoderRegistry {
 
 interface VideoEncoder {
   val supportedFormats: Set<VideoFormat>
-  suspend fun encode(ir: VideoIR, format: VideoFormat, options: VideoEncodeOptions, context: TransmuteContext): ByteArray
+  suspend fun encode(ir: VideoIR, format: VideoFormat, options: VideoEncodeOptions, context: TransmuteContext): Bytes
 }
 
 interface VideoEncoderRegistry {
@@ -36,29 +36,29 @@ interface VideoEncoderRegistry {
 class VideoCodecAdapter(
   private val decoder: VideoDecoder,
   private val encoder: VideoEncoder,
-  private val sniffer: ((ByteArray) -> VideoFormat?)? = null,
+  private val sniffer: ((Bytes) -> VideoFormat?)? = null,
 ) : VideoCodec {
   override val decodableFormats: Set<VideoFormat> get() = decoder.supportedFormats
   override val encodableFormats: Set<VideoFormat> get() = encoder.supportedFormats
-  override fun sniff(data: ByteArray): VideoFormat? = sniffer?.invoke(data)
-  override suspend fun decode(source: ByteArray, options: VideoDecodeOptions, context: TransmuteContext): VideoIR =
+  override fun sniff(data: Bytes): VideoFormat? = sniffer?.invoke(data)
+  override suspend fun decode(source: Bytes, options: VideoDecodeOptions, context: TransmuteContext): VideoIR =
     decoder.decode(source, options, context)
   override suspend fun encode(
     ir: VideoIR,
     format: VideoFormat,
     options: VideoEncodeOptions,
     context: TransmuteContext,
-  ): ByteArray = encoder.encode(ir, format, options, context)
+  ): Bytes = encoder.encode(ir, format, options, context)
 }
 
 class VideoDecoderCodecAdapter(
   private val decoder: VideoDecoder,
-  private val sniffer: ((ByteArray) -> VideoFormat?)? = null,
+  private val sniffer: ((Bytes) -> VideoFormat?)? = null,
 ) : Codec<VideoFormat, VideoIR, VideoDecodeOptions, VideoEncodeOptions> {
   override val decodableFormats: Set<VideoFormat> get() = decoder.supportedFormats
   override val encodableFormats: Set<VideoFormat> get() = emptySet()
-  override fun sniff(data: ByteArray): VideoFormat? = sniffer?.invoke(data)
-  override suspend fun decode(source: ByteArray, options: VideoDecodeOptions, context: TransmuteContext): VideoIR =
+  override fun sniff(data: Bytes): VideoFormat? = sniffer?.invoke(data)
+  override suspend fun decode(source: Bytes, options: VideoDecodeOptions, context: TransmuteContext): VideoIR =
     decoder.decode(source, options, context)
 
   override suspend fun encode(
@@ -66,7 +66,7 @@ class VideoDecoderCodecAdapter(
     format: VideoFormat,
     options: VideoEncodeOptions,
     context: TransmuteContext,
-  ): ByteArray = error("${this::class.simpleName} is decode-only")
+  ): Bytes = error("${this::class.simpleName} is decode-only")
 }
 
 class VideoEncoderCodecAdapter(
@@ -75,8 +75,8 @@ class VideoEncoderCodecAdapter(
   override val encodableFormats: Set<VideoFormat> get() = encoder.supportedFormats
 
   override val decodableFormats: Set<VideoFormat> get() = emptySet()
-  override fun sniff(data: ByteArray): VideoFormat? = null
-  override suspend fun decode(source: ByteArray, options: VideoDecodeOptions, context: TransmuteContext): VideoIR =
+  override fun sniff(data: Bytes): VideoFormat? = null
+  override suspend fun decode(source: Bytes, options: VideoDecodeOptions, context: TransmuteContext): VideoIR =
     error("${this::class.simpleName} is encode-only")
 
   override suspend fun encode(
@@ -84,5 +84,5 @@ class VideoEncoderCodecAdapter(
     format: VideoFormat,
     options: VideoEncodeOptions,
     context: TransmuteContext,
-  ): ByteArray = encoder.encode(ir, format, options, context)
+  ): Bytes = encoder.encode(ir, format, options, context)
 }

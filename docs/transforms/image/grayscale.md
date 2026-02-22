@@ -11,7 +11,8 @@ None.
 ### DSL
 
 ```kotlin
-Transmute.image { grayscale() }.transmute(bytes).bytes
+import dev.transmute.core.asBytes
+Transmute.image { grayscale() }.transmute(bytes.asBytes()).bytes.data
 ```
 
 ### Pipeline

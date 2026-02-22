@@ -1,5 +1,6 @@
 package dev.transmute
 
+import dev.transmute.image.ImageFormat
 import dev.transmute.image.transform.ImageBlurTransform
 import dev.transmute.image.transform.ImageBrightnessContrastTransform
 import dev.transmute.image.transform.ImageCropTransform
@@ -17,7 +18,7 @@ fun <IN> DynamicImageTransmuterBuilder<IN>.scale(maxWidth: Int, maxHeight: Int):
 }
 
 /** Scale to fit within [maxWidth]×[maxHeight], preserving aspect ratio. No upscaling. */
-fun <IN, OUT : dev.transmute.core.ImageFormatTag> ImageTransmuterBuilder<IN, OUT>.scale(maxWidth: Int, maxHeight: Int): ImageTransmuterBuilder<IN, OUT> = apply {
+fun <IN, OUT : ImageFormat> ImageTransmuterBuilder<IN, OUT>.scale(maxWidth: Int, maxHeight: Int): ImageTransmuterBuilder<IN, OUT> = apply {
   transform { add(ImageScaleTransform(maxWidth, maxHeight)) }
 }
 
@@ -30,7 +31,7 @@ fun <IN> DynamicImageTransmuterBuilder<IN>.resize(
   transform { add(ImageResizeTransform(targetWidth, targetHeight, filter, allowUpscale)) }
 }
 
-fun <IN, OUT : dev.transmute.core.ImageFormatTag> ImageTransmuterBuilder<IN, OUT>.resize(
+fun <IN, OUT : ImageFormat> ImageTransmuterBuilder<IN, OUT>.resize(
   targetWidth: Int,
   targetHeight: Int,
   filter: ResampleFilter = ResampleFilter.BICUBIC_MITCHELL,
@@ -45,7 +46,7 @@ fun <IN> DynamicImageTransmuterBuilder<IN>.crop(x: Int, y: Int, width: Int, heig
 }
 
 /** Crop to the sub-region starting at ([x], [y]) with the given [width] and [height]. */
-fun <IN, OUT : dev.transmute.core.ImageFormatTag> ImageTransmuterBuilder<IN, OUT>.crop(
+fun <IN, OUT : ImageFormat> ImageTransmuterBuilder<IN, OUT>.crop(
   x: Int,
   y: Int,
   width: Int,
@@ -60,7 +61,7 @@ fun <IN> DynamicImageTransmuterBuilder<IN>.autoRotate(): DynamicImageTransmuterB
 }
 
 /** Auto-rotate based on EXIF orientation metadata in the IR. */
-fun <IN, OUT : dev.transmute.core.ImageFormatTag> ImageTransmuterBuilder<IN, OUT>.autoRotate(): ImageTransmuterBuilder<IN, OUT> = apply {
+fun <IN, OUT : ImageFormat> ImageTransmuterBuilder<IN, OUT>.autoRotate(): ImageTransmuterBuilder<IN, OUT> = apply {
   transform { add(ImageRotateTransform()) }
 }
 
@@ -70,7 +71,7 @@ fun <IN> DynamicImageTransmuterBuilder<IN>.grayscale(): DynamicImageTransmuterBu
 }
 
 /** Convert to grayscale using BT.709 luma coefficients. */
-fun <IN, OUT : dev.transmute.core.ImageFormatTag> ImageTransmuterBuilder<IN, OUT>.grayscale(): ImageTransmuterBuilder<IN, OUT> = apply {
+fun <IN, OUT : ImageFormat> ImageTransmuterBuilder<IN, OUT>.grayscale(): ImageTransmuterBuilder<IN, OUT> = apply {
   transform { add(ImageGrayscaleTransform()) }
 }
 
@@ -80,7 +81,7 @@ fun <IN> DynamicImageTransmuterBuilder<IN>.flip(horizontal: Boolean = false, ver
 }
 
 /** Flip horizontally and/or vertically. */
-fun <IN, OUT : dev.transmute.core.ImageFormatTag> ImageTransmuterBuilder<IN, OUT>.flip(
+fun <IN, OUT : ImageFormat> ImageTransmuterBuilder<IN, OUT>.flip(
   horizontal: Boolean = false,
   vertical: Boolean = false,
 ): ImageTransmuterBuilder<IN, OUT> = apply {
@@ -93,7 +94,7 @@ fun <IN> DynamicImageTransmuterBuilder<IN>.brightnessContrast(brightness: Float 
 }
 
 /** Adjust brightness (−255..+255) and/or contrast (0..3). */
-fun <IN, OUT : dev.transmute.core.ImageFormatTag> ImageTransmuterBuilder<IN, OUT>.brightnessContrast(
+fun <IN, OUT : ImageFormat> ImageTransmuterBuilder<IN, OUT>.brightnessContrast(
   brightness: Float = 0f,
   contrast: Float = 1f,
 ): ImageTransmuterBuilder<IN, OUT> = apply {
@@ -106,7 +107,7 @@ fun <IN> DynamicImageTransmuterBuilder<IN>.blur(radius: Int = 1): DynamicImageTr
 }
 
 /** Apply box blur with the given pixel [radius]. */
-fun <IN, OUT : dev.transmute.core.ImageFormatTag> ImageTransmuterBuilder<IN, OUT>.blur(radius: Int = 1): ImageTransmuterBuilder<IN, OUT> = apply {
+fun <IN, OUT : ImageFormat> ImageTransmuterBuilder<IN, OUT>.blur(radius: Int = 1): ImageTransmuterBuilder<IN, OUT> = apply {
   transform { add(ImageBlurTransform(radius)) }
 }
 
@@ -116,6 +117,6 @@ fun <IN> DynamicImageTransmuterBuilder<IN>.opacity(opacity: Float): DynamicImage
 }
 
 /** Adjust alpha channel opacity (0.0 = transparent, 1.0 = unchanged). */
-fun <IN, OUT : dev.transmute.core.ImageFormatTag> ImageTransmuterBuilder<IN, OUT>.opacity(opacity: Float): ImageTransmuterBuilder<IN, OUT> = apply {
+fun <IN, OUT : ImageFormat> ImageTransmuterBuilder<IN, OUT>.opacity(opacity: Float): ImageTransmuterBuilder<IN, OUT> = apply {
   transform { add(ImageOpacityTransform(opacity)) }
 }

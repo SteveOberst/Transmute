@@ -1,5 +1,6 @@
 package dev.transmute
 
+import dev.transmute.audio.AudioFormat
 import dev.transmute.audio.transform.AudioChannelMapTransform
 import dev.transmute.audio.transform.AudioCompressorTransform
 import dev.transmute.audio.transform.AudioFadeTransform
@@ -17,7 +18,7 @@ fun <IN> DynamicAudioTransmuterBuilder<IN>.normalize(targetPeak: Float = 0.95f):
   transform { add(AudioNormalizeTransform(targetPeak)) }
 }
 
-fun <IN, OUT : dev.transmute.core.AudioFormatTag> AudioTransmuterBuilder<IN, OUT>.normalize(
+fun <IN, OUT : AudioFormat> AudioTransmuterBuilder<IN, OUT>.normalize(
   targetPeak: Float = 0.95f,
 ): AudioTransmuterBuilder<IN, OUT> = apply {
   transform { add(AudioNormalizeTransform(targetPeak)) }
@@ -28,7 +29,7 @@ fun <IN> DynamicAudioTransmuterBuilder<IN>.resample(targetSampleRate: Int): Dyna
   transform { add(AudioResampleTransform(targetSampleRate)) }
 }
 
-fun <IN, OUT : dev.transmute.core.AudioFormatTag> AudioTransmuterBuilder<IN, OUT>.resample(
+fun <IN, OUT : AudioFormat> AudioTransmuterBuilder<IN, OUT>.resample(
   targetSampleRate: Int,
 ): AudioTransmuterBuilder<IN, OUT> = apply {
   transform { add(AudioResampleTransform(targetSampleRate)) }
@@ -39,7 +40,7 @@ fun <IN> DynamicAudioTransmuterBuilder<IN>.fade(fadeInMs: Long = 0, fadeOutMs: L
   transform { add(AudioFadeTransform(fadeInMs, fadeOutMs)) }
 }
 
-fun <IN, OUT : dev.transmute.core.AudioFormatTag> AudioTransmuterBuilder<IN, OUT>.fade(
+fun <IN, OUT : AudioFormat> AudioTransmuterBuilder<IN, OUT>.fade(
   fadeInMs: Long = 0,
   fadeOutMs: Long = 0,
 ): AudioTransmuterBuilder<IN, OUT> = apply {
@@ -51,7 +52,7 @@ fun <IN> DynamicAudioTransmuterBuilder<IN>.trim(startMs: Long, endMs: Long? = nu
   transform { add(AudioTrimTransform(startMs, endMs)) }
 }
 
-fun <IN, OUT : dev.transmute.core.AudioFormatTag> AudioTransmuterBuilder<IN, OUT>.trim(
+fun <IN, OUT : AudioFormat> AudioTransmuterBuilder<IN, OUT>.trim(
   startMs: Long,
   endMs: Long? = null,
 ): AudioTransmuterBuilder<IN, OUT> = apply {
@@ -63,7 +64,7 @@ fun <IN> DynamicAudioTransmuterBuilder<IN>.gain(db: Float): DynamicAudioTransmut
   transform { add(AudioGainTransform(db)) }
 }
 
-fun <IN, OUT : dev.transmute.core.AudioFormatTag> AudioTransmuterBuilder<IN, OUT>.gain(db: Float): AudioTransmuterBuilder<IN, OUT> = apply {
+fun <IN, OUT : AudioFormat> AudioTransmuterBuilder<IN, OUT>.gain(db: Float): AudioTransmuterBuilder<IN, OUT> = apply {
   transform { add(AudioGainTransform(db)) }
 }
 
@@ -72,7 +73,7 @@ fun <IN> DynamicAudioTransmuterBuilder<IN>.mono(): DynamicAudioTransmuterBuilder
   transform { add(AudioMonoTransform()) }
 }
 
-fun <IN, OUT : dev.transmute.core.AudioFormatTag> AudioTransmuterBuilder<IN, OUT>.mono(): AudioTransmuterBuilder<IN, OUT> = apply {
+fun <IN, OUT : AudioFormat> AudioTransmuterBuilder<IN, OUT>.mono(): AudioTransmuterBuilder<IN, OUT> = apply {
   transform { add(AudioMonoTransform()) }
 }
 
@@ -81,7 +82,7 @@ fun <IN> DynamicAudioTransmuterBuilder<IN>.reverse(): DynamicAudioTransmuterBuil
   transform { add(AudioReverseTransform()) }
 }
 
-fun <IN, OUT : dev.transmute.core.AudioFormatTag> AudioTransmuterBuilder<IN, OUT>.reverse(): AudioTransmuterBuilder<IN, OUT> = apply {
+fun <IN, OUT : AudioFormat> AudioTransmuterBuilder<IN, OUT>.reverse(): AudioTransmuterBuilder<IN, OUT> = apply {
   transform { add(AudioReverseTransform()) }
 }
 
@@ -90,7 +91,7 @@ fun <IN> DynamicAudioTransmuterBuilder<IN>.speed(speed: Float): DynamicAudioTran
   transform { add(AudioSpeedTransform(speed)) }
 }
 
-fun <IN, OUT : dev.transmute.core.AudioFormatTag> AudioTransmuterBuilder<IN, OUT>.speed(speed: Float): AudioTransmuterBuilder<IN, OUT> = apply {
+fun <IN, OUT : AudioFormat> AudioTransmuterBuilder<IN, OUT>.speed(speed: Float): AudioTransmuterBuilder<IN, OUT> = apply {
   transform { add(AudioSpeedTransform(speed)) }
 }
 
@@ -104,7 +105,7 @@ fun <IN> DynamicAudioTransmuterBuilder<IN>.silenceTrim(
   transform { add(AudioSilenceTrimTransform(thresholdDb, minSilenceMs, trimStart, trimEnd)) }
 }
 
-fun <IN, OUT : dev.transmute.core.AudioFormatTag> AudioTransmuterBuilder<IN, OUT>.silenceTrim(
+fun <IN, OUT : AudioFormat> AudioTransmuterBuilder<IN, OUT>.silenceTrim(
   thresholdDb: Float = -40f,
   minSilenceMs: Long = 100,
   trimStart: Boolean = true,
@@ -124,7 +125,7 @@ fun <IN> DynamicAudioTransmuterBuilder<IN>.compressor(
   transform { add(AudioCompressorTransform(thresholdDb, ratio, attackMs, releaseMs, makeupGainDb)) }
 }
 
-fun <IN, OUT : dev.transmute.core.AudioFormatTag> AudioTransmuterBuilder<IN, OUT>.compressor(
+fun <IN, OUT : AudioFormat> AudioTransmuterBuilder<IN, OUT>.compressor(
   thresholdDb: Float = -20f,
   ratio: Float = 4f,
   attackMs: Float = 10f,
@@ -139,7 +140,7 @@ fun <IN> DynamicAudioTransmuterBuilder<IN>.channelMap(mapping: IntArray): Dynami
   transform { add(AudioChannelMapTransform(mapping)) }
 }
 
-fun <IN, OUT : dev.transmute.core.AudioFormatTag> AudioTransmuterBuilder<IN, OUT>.channelMap(
+fun <IN, OUT : AudioFormat> AudioTransmuterBuilder<IN, OUT>.channelMap(
   mapping: IntArray,
 ): AudioTransmuterBuilder<IN, OUT> = apply {
   transform { add(AudioChannelMapTransform(mapping)) }

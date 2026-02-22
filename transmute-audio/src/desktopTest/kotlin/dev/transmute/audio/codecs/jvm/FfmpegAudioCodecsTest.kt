@@ -1,9 +1,9 @@
 package dev.transmute.audio.codecs.jvm
 
-import dev.transmute.audio.AudioEncodeOptions
+import dev.transmute.audio.AudioFormat
 import dev.transmute.audio.AudioTestHelpers
-import dev.transmute.core.AudioFormat
 import dev.transmute.core.PrintLogger
+import dev.transmute.core.asBytes
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 import dev.transmute.audio.CanonicalAudioDecodeOptions
@@ -32,8 +32,8 @@ class FfmpegAudioCodecsTest {
             return
         }
         val codec = JvmAacCodec()
-        assertTrue(AudioFormat.AAC in codec.decodableFormats)
-        assertTrue(AudioFormat.AAC in codec.encodableFormats)
+        assertTrue(AudioFormat.Aac in codec.decodableFormats)
+        assertTrue(AudioFormat.Aac in codec.encodableFormats)
     }
 
     @Test
@@ -45,7 +45,7 @@ class FfmpegAudioCodecsTest {
         val codec = JvmAacCodec()
         // ADTS sync: 0xFF 0xF1
         val adts = byteArrayOf(0xFF.toByte(), 0xF1.toByte(), 0x50, 0x80.toByte())
-        assertEquals(AudioFormat.AAC, codec.sniff(adts))
+        assertEquals(AudioFormat.Aac, codec.sniff(adts.asBytes()))
     }
 
     @Test
@@ -56,7 +56,7 @@ class FfmpegAudioCodecsTest {
         }
         val codec = JvmAacCodec()
         val mp3 = byteArrayOf(0x49, 0x44, 0x33, 0x04, 0x00, 0x00)
-        assertNull(codec.sniff(mp3))
+        assertNull(codec.sniff(mp3.asBytes()))
     }
 
     @Test
@@ -72,7 +72,7 @@ class FfmpegAudioCodecsTest {
             sampleRate = 44100,
             amplitude = 0.5f,
         )
-        val encoded = codec.encode(original, AudioFormat.AAC, CanonicalAudioEncodeOptions(), AudioTestHelpers.testContext())
+        val encoded = codec.encode(original, AudioFormat.Aac, CanonicalAudioEncodeOptions(), AudioTestHelpers.testContext())
         assertTrue(encoded.isNotEmpty())
         val decoded = codec.decode(encoded, CanonicalAudioDecodeOptions(), AudioTestHelpers.testContext())
         assertEquals(original.sampleRate, decoded.sampleRate)
@@ -88,8 +88,8 @@ class FfmpegAudioCodecsTest {
             return
         }
         val codec = JvmM4aCodec()
-        assertTrue(AudioFormat.M4A in codec.decodableFormats)
-        assertTrue(AudioFormat.M4A in codec.encodableFormats)
+        assertTrue(AudioFormat.M4a in codec.decodableFormats)
+        assertTrue(AudioFormat.M4a in codec.encodableFormats)
     }
 
     @Test
@@ -105,7 +105,7 @@ class FfmpegAudioCodecsTest {
         data[4] = 0x66; data[5] = 0x74; data[6] = 0x79; data[7] = 0x70
         // "M4A " brand at offset 8
         data[8] = 0x4D; data[9] = 0x34; data[10] = 0x41; data[11] = 0x20
-        assertEquals(AudioFormat.M4A, codec.sniff(data))
+        assertEquals(AudioFormat.M4a, codec.sniff(data.asBytes()))
     }
 
     @Test
@@ -121,7 +121,7 @@ class FfmpegAudioCodecsTest {
             sampleRate = 44100,
             amplitude = 0.5f,
         )
-        val encoded = codec.encode(original, AudioFormat.M4A, CanonicalAudioEncodeOptions(), AudioTestHelpers.testContext())
+        val encoded = codec.encode(original, AudioFormat.M4a, CanonicalAudioEncodeOptions(), AudioTestHelpers.testContext())
         assertTrue(encoded.isNotEmpty())
         val decoded = codec.decode(encoded, CanonicalAudioDecodeOptions(), AudioTestHelpers.testContext())
         assertEquals(original.sampleRate, decoded.sampleRate)
@@ -137,8 +137,8 @@ class FfmpegAudioCodecsTest {
             return
         }
         val codec = JvmOpusCodec()
-        assertTrue(AudioFormat.OPUS in codec.decodableFormats)
-        assertTrue(AudioFormat.OPUS in codec.encodableFormats)
+        assertTrue(AudioFormat.Opus in codec.decodableFormats)
+        assertTrue(AudioFormat.Opus in codec.encodableFormats)
     }
 
     @Test
@@ -154,7 +154,7 @@ class FfmpegAudioCodecsTest {
         // "OpusHead" at offset 28
         val opus = "OpusHead".toByteArray()
         for (i in opus.indices) data[28 + i] = opus[i]
-        assertEquals(AudioFormat.OPUS, codec.sniff(data))
+        assertEquals(AudioFormat.Opus, codec.sniff(data.asBytes()))
     }
 
     @Test
@@ -170,7 +170,7 @@ class FfmpegAudioCodecsTest {
             sampleRate = 48000, // Opus prefers 48kHz
             amplitude = 0.5f,
         )
-        val encoded = codec.encode(original, AudioFormat.OPUS, CanonicalAudioEncodeOptions(), AudioTestHelpers.testContext())
+        val encoded = codec.encode(original, AudioFormat.Opus, CanonicalAudioEncodeOptions(), AudioTestHelpers.testContext())
         assertTrue(encoded.isNotEmpty())
         val decoded = codec.decode(encoded, CanonicalAudioDecodeOptions(), AudioTestHelpers.testContext())
         assertTrue(decoded.samples.data.isNotEmpty())

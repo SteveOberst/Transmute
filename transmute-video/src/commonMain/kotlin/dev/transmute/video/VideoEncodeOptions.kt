@@ -3,7 +3,6 @@ package dev.transmute.video
 import dev.transmute.core.EncodeOptions
 import dev.transmute.core.MetadataPolicy
 import dev.transmute.core.OutputFormat
-import dev.transmute.core.VideoFormat
 
 /**
  * Sealed hierarchy of video encoding options.

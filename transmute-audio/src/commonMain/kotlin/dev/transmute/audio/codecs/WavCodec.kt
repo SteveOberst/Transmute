@@ -4,10 +4,11 @@ import dev.transmute.audio.AudioDecodeOptions
 import dev.transmute.audio.AudioDecoder
 import dev.transmute.audio.AudioEncodeOptions
 import dev.transmute.audio.AudioEncoder
+import dev.transmute.audio.AudioFormat
 import dev.transmute.audio.AudioIR
 import dev.transmute.audio.AudioMetadata
 import dev.transmute.audio.AudioSamples
-import dev.transmute.core.AudioFormat
+import dev.transmute.core.Bytes
 import dev.transmute.core.TransmuteContext
 
 /**
@@ -17,25 +18,27 @@ import dev.transmute.core.TransmuteContext
  */
 class WavDecoder : AudioDecoder {
 
-  override val supportedFormats: Set<AudioFormat> = setOf(AudioFormat.WAV)
+  override val supportedFormats: Set<AudioFormat> = setOf(AudioFormat.Wav)
 
-  override fun sniff(data: ByteArray): AudioFormat? {
-    if (data.size < 12) return null
-    if (data[0] == 'R'.code.toByte() && data[1] == 'I'.code.toByte() &&
-      data[2] == 'F'.code.toByte() && data[3] == 'F'.code.toByte() &&
-      data[8] == 'W'.code.toByte() && data[9] == 'A'.code.toByte() &&
-      data[10] == 'V'.code.toByte() && data[11] == 'E'.code.toByte()) return AudioFormat.WAV
+  override fun sniff(data: Bytes): AudioFormat? {
+    val bytes = data.data
+    if (bytes.size < 12) return null
+    if (bytes[0] == 'R'.code.toByte() && bytes[1] == 'I'.code.toByte() &&
+      bytes[2] == 'F'.code.toByte() && bytes[3] == 'F'.code.toByte() &&
+      bytes[8] == 'W'.code.toByte() && bytes[9] == 'A'.code.toByte() &&
+      bytes[10] == 'V'.code.toByte() && bytes[11] == 'E'.code.toByte()) return AudioFormat.Wav
     return null
   }
 
-  override suspend fun decode(source: ByteArray, options: AudioDecodeOptions, context: TransmuteContext): AudioIR {
-    require(source.size >= 44) { "WAV file too small: ${source.size} bytes" }
+  override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: TransmuteContext): AudioIR {
+    val bytes = source.data
+    require(bytes.size >= 44) { "WAV file too small: ${bytes.size} bytes" }
 
     // Parse RIFF header
-    val riff = source.readString(0, 4)
+    val riff = bytes.readString(0, 4)
     require(riff == "RIFF") { "Invalid RIFF header: $riff" }
 
-    val wave = source.readString(8, 4)
+    val wave = bytes.readString(8, 4)
     require(wave == "WAVE") { "Invalid WAVE format: $wave" }
 
     // Find fmt chunk
@@ -46,21 +49,21 @@ class WavDecoder : AudioDecoder {
     var bitsPerSample = 0
     var dataBytes: ByteArray? = null
 
-    while (pos < source.size - 8) {
-      val chunkId = source.readString(pos, 4)
-      val chunkSize = source.readInt32LE(pos + 4)
+    while (pos < bytes.size - 8) {
+      val chunkId = bytes.readString(pos, 4)
+      val chunkSize = bytes.readInt32LE(pos + 4)
 
       when (chunkId) {
         "fmt " -> {
-          audioFormat = source.readInt16LE(pos + 8)
-          channelCount = source.readInt16LE(pos + 10)
-          sampleRate = source.readInt32LE(pos + 12)
-          // byteRate = source.readInt32LE(pos + 16)
-          // blockAlign = source.readInt16LE(pos + 20)
-          bitsPerSample = source.readInt16LE(pos + 22)
+          audioFormat = bytes.readInt16LE(pos + 8)
+          channelCount = bytes.readInt16LE(pos + 10)
+          sampleRate = bytes.readInt32LE(pos + 12)
+          // byteRate = bytes.readInt32LE(pos + 16)
+          // blockAlign = bytes.readInt16LE(pos + 20)
+          bitsPerSample = bytes.readInt16LE(pos + 22)
         }
         "data" -> {
-          dataBytes = source.copyOfRange(pos + 8, minOf(pos + 8 + chunkSize, source.size))
+          dataBytes = bytes.copyOfRange(pos + 8, minOf(pos + 8 + chunkSize, bytes.size))
         }
       }
       pos += 8 + chunkSize
@@ -157,15 +160,15 @@ class WavDecoder : AudioDecoder {
  */
 class WavEncoder : AudioEncoder {
 
-  override val supportedFormats: Set<AudioFormat> = setOf(AudioFormat.WAV)
+  override val supportedFormats: Set<AudioFormat> = setOf(AudioFormat.Wav)
 
   override suspend fun encode(
     ir: AudioIR,
     format: AudioFormat,
     options: AudioEncodeOptions,
     context: TransmuteContext,
-  ): ByteArray {
-    require(format == AudioFormat.WAV) { "WavEncoder only supports WAV, got $format" }
+  ): Bytes {
+    require(format == AudioFormat.Wav) { "WavEncoder only supports WAV, got $format" }
     val samples = ir.samples.data
     val sampleRate = ir.sampleRate
     val channelCount = ir.channelCount
@@ -205,7 +208,7 @@ class WavEncoder : AudioEncoder {
       output.writeInt16LE(44 + i * 2, pcm.toInt())
     }
 
-    return output
+    return Bytes(output)
   }
 }
 

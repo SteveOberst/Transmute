@@ -15,20 +15,21 @@ MP3 (MPEG-1 Audio Layer III) is the most widely-used lossy audio compression for
 ```kotlin
 import dev.transmute.Transmute
 import dev.transmute.audio.CanonicalAudioEncodeOptions
-import dev.transmute.core.AudioFormat
 import dev.transmute.core.OutputFormat
+import dev.transmute.core.asBytes
+import dev.transmute.audio.AudioFormat
 
 // Convert audio to MP3 (Android/Desktop)
 suspend fun convertToMp3(inputBytes: ByteArray): ByteArray =
   Transmute.audio {
-    encodeOptions(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.MP3)))
-  }.transmute(inputBytes).bytes
+    encodeOptions(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.Mp3)))
+  }.transmute(inputBytes.asBytes()).bytes.data
 
 // Decode MP3 on any platform (re-encode to WAV)
 suspend fun decodeToWav(mp3Bytes: ByteArray): ByteArray =
   Transmute.audio {
-    encodeOptions(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.WAV)))
-  }.transmute(mp3Bytes).bytes
+    encodeOptions(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.Wav)))
+  }.transmute(mp3Bytes.asBytes()).bytes.data
 ```
 
 ## Notes

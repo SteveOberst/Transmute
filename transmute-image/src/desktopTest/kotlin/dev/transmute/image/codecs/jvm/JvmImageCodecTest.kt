@@ -1,6 +1,6 @@
 package dev.transmute.image.codecs.jvm
 
-import dev.transmute.core.ImageFormat
+import dev.transmute.core.Bytes
 import dev.transmute.image.ImageTestHelpers
 import dev.transmute.image.ImageTestHelpers.adjustAlphaForComparison
 import dev.transmute.image.ImageTestHelpers.horizontalGradient
@@ -9,6 +9,7 @@ import dev.transmute.image.ImageTestHelpers.peakDifference
 import dev.transmute.image.ImageTestHelpers.pixelAt
 import dev.transmute.image.ImageTestHelpers.solidColor
 import dev.transmute.image.ImageTestHelpers.testContext
+import dev.transmute.image.ImageFormat
 import dev.transmute.image.ImageIR
 import dev.transmute.image.PixelFormat
 import kotlinx.coroutines.test.runTest
@@ -31,11 +32,11 @@ class JvmImageCodecTest {
   private val encoder = JvmImageIoEncoder()
   private val ctx = testContext()
 
-  private suspend fun encodePng(ir: ImageIR): ByteArray =
-    encoder.encode(ir, ImageFormat.PNG, CanonicalImageEncodeOptions(), ctx)
+  private suspend fun encodePng(ir: ImageIR): Bytes =
+    encoder.encode(ir, ImageFormat.Png, CanonicalImageEncodeOptions(), ctx)
 
-  private suspend fun encodeJpeg(ir: ImageIR, quality: Float): ByteArray =
-    encoder.encode(ir, ImageFormat.JPEG, JpegEncodeOptions(quality = quality), ctx)
+  private suspend fun encodeJpeg(ir: ImageIR, quality: Float): Bytes =
+    encoder.encode(ir, ImageFormat.Jpeg, JpegEncodeOptions(quality = quality), ctx)
 
   // --- PNG round-trip (lossless) ---
 

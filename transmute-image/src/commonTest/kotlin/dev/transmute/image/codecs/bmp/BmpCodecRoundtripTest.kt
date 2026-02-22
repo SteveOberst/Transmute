@@ -1,7 +1,7 @@
 package dev.transmute.image.codecs.bmp
 
-import dev.transmute.core.ImageFormat
 import dev.transmute.image.ByteArrayPixelBuffer
+import dev.transmute.image.ImageFormat
 import dev.transmute.image.ImageTestHelpers
 import dev.transmute.image.ImageTestHelpers.horizontalGradient
 import dev.transmute.image.ImageTestHelpers.meanAbsoluteError
@@ -42,11 +42,11 @@ class BmpCodecRoundtripTest {
   @Test
   fun encodedBmpStartsWithMagicBytes() = runTest {
     val ir = solidColor(16, 16, r = 128, g = 64, b = 32)
-    val encoded = encoder.encode(ir, ImageFormat.BMP, CanonicalImageEncodeOptions(), ctx)
+    val encoded = encoder.encode(ir, ImageFormat.Bmp, CanonicalImageEncodeOptions(), ctx)
 
     assertTrue(encoded.size > 54, "BMP: encoded output should be > 54 bytes (header size), got ${encoded.size}")
-    assertEquals('B'.code.toByte(), encoded[0], "BMP: first byte should be 'B'")
-    assertEquals('M'.code.toByte(), encoded[1], "BMP: second byte should be 'M'")
+    assertEquals('B'.code.toByte(), encoded.data[0], "BMP: first byte should be 'B'")
+    assertEquals('M'.code.toByte(), encoded.data[1], "BMP: second byte should be 'M'")
   }
 
   // --- Lossless round-trip: solid color ---
@@ -54,7 +54,7 @@ class BmpCodecRoundtripTest {
   @Test
   fun roundTripSolidColorIsLossless() = runTest {
     val original = solidColor(32, 32, r = 200, g = 100, b = 50)
-    val encoded = encoder.encode(original, ImageFormat.BMP, CanonicalImageEncodeOptions(), ctx)
+    val encoded = encoder.encode(original, ImageFormat.Bmp, CanonicalImageEncodeOptions(), ctx)
     assertTrue(encoded.isNotEmpty(), "BMP: encode output must not be empty")
 
     val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
@@ -79,7 +79,7 @@ class BmpCodecRoundtripTest {
   @Test
   fun roundTripGradientIsLossless() = runTest {
     val original = horizontalGradient(256, 10)
-    val encoded = encoder.encode(original, ImageFormat.BMP, CanonicalImageEncodeOptions(), ctx)
+    val encoded = encoder.encode(original, ImageFormat.Bmp, CanonicalImageEncodeOptions(), ctx)
     val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
 
     assertEquals(256, decoded.width, "BMP: gradient width mismatch")
@@ -107,7 +107,7 @@ class BmpCodecRoundtripTest {
     val sizes = listOf(1 to 1, 7 to 13, 32 to 32, 100 to 50, 640 to 480)
     for ((w, h) in sizes) {
       val original = solidColor(w, h, 128, 128, 128)
-      val encoded = encoder.encode(original, ImageFormat.BMP, CanonicalImageEncodeOptions(), ctx)
+      val encoded = encoder.encode(original, ImageFormat.Bmp, CanonicalImageEncodeOptions(), ctx)
       val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
       assertEquals(w, decoded.width, "BMP: width not preserved for ${w}×${h}")
       assertEquals(h, decoded.height, "BMP: height not preserved for ${w}×${h}")
@@ -123,7 +123,7 @@ class BmpCodecRoundtripTest {
       colorA = intArrayOf(255, 0, 0, 255),
       colorB = intArrayOf(0, 0, 255, 255),
     )
-    val encoded = encoder.encode(original, ImageFormat.BMP, CanonicalImageEncodeOptions(), ctx)
+    val encoded = encoder.encode(original, ImageFormat.Bmp, CanonicalImageEncodeOptions(), ctx)
     val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
 
     assertEquals(64, decoded.width, "BMP: checkerboard width mismatch")
@@ -150,7 +150,7 @@ class BmpCodecRoundtripTest {
       startR = 10, startG = 50, startB = 200,
       endR = 245, endG = 200, endB = 10,
     )
-    val encoded = encoder.encode(original, ImageFormat.BMP, CanonicalImageEncodeOptions(), ctx)
+    val encoded = encoder.encode(original, ImageFormat.Bmp, CanonicalImageEncodeOptions(), ctx)
     val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
 
     val mae = meanAbsoluteError(

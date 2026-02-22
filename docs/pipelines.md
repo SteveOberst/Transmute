@@ -18,18 +18,19 @@ The default implementations are regular handler classes you can reuse in your ow
 
 ```kotlin
 import dev.transmute.Transmute
-import dev.transmute.core.ImageFormat
 import dev.transmute.core.OutputFormat
+import dev.transmute.core.asBytes
 import dev.transmute.image.CanonicalImageDecodeOptions
+import dev.transmute.image.ImageFormat
 import dev.transmute.image.ImageDecodeHandler
 
 data class NamedBytes(val name: String, val bytes: ByteArray)
 
 val t = Transmute.imageFrom<NamedBytes> {
-  decodeOptions(CanonicalImageDecodeOptions(acceptedInputFormats = setOf(ImageFormat.PNG, ImageFormat.JPEG)))
+  decodeOptions(CanonicalImageDecodeOptions(acceptedInputFormats = setOf(ImageFormat.Png, ImageFormat.Jpeg)))
 
   decode {
-    startWith { input, _ -> input.bytes }
+    startWith { input, _ -> input.bytes.asBytes() }
       .then(ImageDecodeHandler())
   }
 }
@@ -42,10 +43,10 @@ not a builder-level knob.
 
 ```kotlin
 import dev.transmute.Transmute
-import dev.transmute.core.ImageFormat
 import dev.transmute.core.OutputFormat
 import dev.transmute.image.AlphaSemantics
 import dev.transmute.image.CanonicalImageEncodeOptions
+import dev.transmute.image.ImageFormat
 import dev.transmute.image.ImageDynamicEncodeHandler
 import dev.transmute.image.ImageOutputFormatSelector
 
@@ -58,7 +59,7 @@ val t = Transmute.image {
         outputFormatSelector = ImageOutputFormatSelector { decoded, options ->
           when (val requested = options.outputFormat) {
             OutputFormat.ORIGINAL ->
-              if (decoded.ir.alphaSemantics != AlphaSemantics.OPAQUE) ImageFormat.PNG else ImageFormat.JPEG
+              if (decoded.ir.alphaSemantics != AlphaSemantics.OPAQUE) ImageFormat.Png else ImageFormat.Jpeg
             is OutputFormat.Exact -> requested.format
           }
         },

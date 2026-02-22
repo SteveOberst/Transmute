@@ -1,6 +1,6 @@
 package dev.transmute.image
 
-import dev.transmute.core.ImageFormat
+import dev.transmute.core.Bytes
 
 /**
  * Detects image format from raw bytes via registered decoders/codecs.
@@ -14,14 +14,14 @@ object ImageFormatDetector {
    * Sniffs the format from the first bytes of an image file.
    *
    * Requires at least 12 bytes for reliable detection (HEIF/WebP need
-   * the RIFF/ftyp box). Returns [ImageFormat.UNKNOWN] for unrecognised data.
+   * the RIFF/ftyp box). Returns [ImageFormat.Unknown] for unrecognised data.
    */
-  fun detect(data: ByteArray): ImageFormat {
+  fun detect(data: Bytes): ImageFormat {
     ImageRegistries.installDefaultsIfEmpty()
     for (decoder in ImageRegistries.decoders.allDecoders) {
       decoder.sniff(data)?.let { return it }
     }
-    return ImageFormat.UNKNOWN
+    return ImageFormat.Unknown
   }
 
   /**
@@ -29,9 +29,9 @@ object ImageFormatDetector {
    * Important for choosing the right encoder - JPEG/HEIC don't support alpha.
    */
   fun supportsAlpha(format: ImageFormat): Boolean = when (format) {
-    ImageFormat.PNG, ImageFormat.WEBP, ImageFormat.GIF, ImageFormat.AVIF -> true
-    ImageFormat.JPEG, ImageFormat.HEIF, ImageFormat.HEIC, ImageFormat.BMP,
-    ImageFormat.TIFF, ImageFormat.UNKNOWN -> false
+    ImageFormat.Png, ImageFormat.Webp, ImageFormat.Gif, ImageFormat.Avif -> true
+    ImageFormat.Jpeg, ImageFormat.Heif, ImageFormat.Heic, ImageFormat.Bmp,
+    ImageFormat.Tiff, ImageFormat.Unknown -> false
   }
 
   /**
@@ -39,9 +39,9 @@ object ImageFormatDetector {
    * Useful for deciding whether re-encoding saves space.
    */
   fun isLossy(format: ImageFormat): Boolean = when (format) {
-    ImageFormat.JPEG, ImageFormat.HEIF, ImageFormat.HEIC, ImageFormat.AVIF -> true
-    ImageFormat.PNG, ImageFormat.GIF, ImageFormat.BMP, ImageFormat.TIFF -> false
-    ImageFormat.WEBP -> true // WebP supports both, but defaults to lossy
-    ImageFormat.UNKNOWN -> false
+    ImageFormat.Jpeg, ImageFormat.Heif, ImageFormat.Heic, ImageFormat.Avif -> true
+    ImageFormat.Png, ImageFormat.Gif, ImageFormat.Bmp, ImageFormat.Tiff -> false
+    ImageFormat.Webp -> true // WebP supports both, but defaults to lossy
+    ImageFormat.Unknown -> false
   }
 }

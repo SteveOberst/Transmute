@@ -16,7 +16,8 @@ Crop an image to a rectangular sub-region.
 ### DSL
 
 ```kotlin
-Transmute.image { crop(x = 100, y = 50, width = 400, height = 300) }.transmute(bytes).bytes
+import dev.transmute.core.asBytes
+Transmute.image { crop(x = 100, y = 50, width = 400, height = 300) }.transmute(bytes.asBytes()).bytes.data
 ```
 
 ### Pipeline

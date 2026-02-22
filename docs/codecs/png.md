@@ -14,12 +14,13 @@ PNG (Portable Network Graphics) is a lossless image format that supports transpa
 
 ```kotlin
 import dev.transmute.Transmute
+import dev.transmute.core.asBytes
 import dev.transmute.image.PngEncodeOptions
 
 suspend fun convertToPng(inputBytes: ByteArray): ByteArray =
   Transmute.image {
     encodeOptions(PngEncodeOptions())
-  }.transmute(inputBytes).bytes
+  }.transmute(inputBytes.asBytes()).bytes.data
 ```
 
 ## Notes

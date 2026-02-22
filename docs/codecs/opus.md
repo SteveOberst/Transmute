@@ -15,20 +15,21 @@ Opus is a modern audio codec optimized for interactive speech and music over the
 ```kotlin
 import dev.transmute.Transmute
 import dev.transmute.audio.CanonicalAudioEncodeOptions
-import dev.transmute.core.AudioFormat
 import dev.transmute.core.OutputFormat
+import dev.transmute.core.asBytes
+import dev.transmute.audio.AudioFormat
 
 // Convert audio to OPUS (Android/Desktop)
 suspend fun convertToOpus(inputBytes: ByteArray): ByteArray =
   Transmute.audio {
-    encodeOptions(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.OPUS)))
-  }.transmute(inputBytes).bytes
+    encodeOptions(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.Opus)))
+  }.transmute(inputBytes.asBytes()).bytes.data
 
 // Decode OPUS on any platform (re-encode to WAV)
 suspend fun decodeToWav(opusBytes: ByteArray): ByteArray =
   Transmute.audio {
-    encodeOptions(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.WAV)))
-  }.transmute(opusBytes).bytes
+    encodeOptions(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.Wav)))
+  }.transmute(opusBytes.asBytes()).bytes.data
 ```
 
 ## Notes

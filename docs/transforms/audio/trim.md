@@ -14,7 +14,8 @@ Trim audio to a specific time range.
 ### DSL
 
 ```kotlin
-Transmute.audio { trim(startMs = 1000, endMs = 5000) }.transmute(bytes).bytes
+import dev.transmute.core.asBytes
+Transmute.audio { trim(startMs = 1000, endMs = 5000) }.transmute(bytes.asBytes()).bytes.data
 ```
 
 ### Pipeline

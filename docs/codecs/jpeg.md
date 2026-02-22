@@ -14,17 +14,18 @@ JPEG (Joint Photographic Experts Group) is a widely-used lossy image compression
 
 ```kotlin
 import dev.transmute.Transmute
+import dev.transmute.core.asBytes
 import dev.transmute.image.JpegEncodeOptions
 
 suspend fun convertToJpeg(inputBytes: ByteArray): ByteArray =
   Transmute.image {
     encodeOptions(JpegEncodeOptions(quality = 0.85f)) // 0.0 – 1.0
-  }.transmute(inputBytes).bytes
+  }.transmute(inputBytes.asBytes()).bytes.data
 
 suspend fun compressMore(inputBytes: ByteArray): ByteArray =
   Transmute.image {
     encodeOptions(JpegEncodeOptions(quality = 0.5f))
-  }.transmute(inputBytes).bytes
+  }.transmute(inputBytes.asBytes()).bytes.data
 ```
 
 ## Notes

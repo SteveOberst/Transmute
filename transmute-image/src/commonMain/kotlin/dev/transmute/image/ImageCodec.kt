@@ -1,7 +1,7 @@
 package dev.transmute.image
 
 import dev.transmute.core.Codec
-import dev.transmute.core.ImageFormat
+import dev.transmute.core.Bytes
 import dev.transmute.core.TransmuteContext
 
 /**
@@ -15,8 +15,8 @@ interface ImageCodec : Codec<ImageFormat, ImageIR, ImageDecodeOptions, ImageEnco
 
 interface ImageDecoder {
   val supportedFormats: Set<ImageFormat>
-  fun sniff(data: ByteArray): ImageFormat? = null
-  suspend fun decode(source: ByteArray, options: ImageDecodeOptions, context: TransmuteContext): ImageIR
+  fun sniff(data: Bytes): ImageFormat? = null
+  suspend fun decode(source: Bytes, options: ImageDecodeOptions, context: TransmuteContext): ImageIR
 }
 
 interface ImageDecoderRegistry {
@@ -25,7 +25,7 @@ interface ImageDecoderRegistry {
 
 interface ImageEncoder {
   val supportedFormats: Set<ImageFormat>
-  suspend fun encode(ir: ImageIR, format: ImageFormat, options: ImageEncodeOptions, context: TransmuteContext): ByteArray
+  suspend fun encode(ir: ImageIR, format: ImageFormat, options: ImageEncodeOptions, context: TransmuteContext): Bytes
 }
 
 interface ImageEncoderRegistry {
@@ -40,19 +40,19 @@ interface ImageEncoderRegistry {
 class ImageCodecAdapter(
   private val decoder: ImageDecoder,
   private val encoder: ImageEncoder,
-  private val sniffer: ((ByteArray) -> ImageFormat?)? = null,
+  private val sniffer: ((Bytes) -> ImageFormat?)? = null,
 ) : ImageCodec {
   override val decodableFormats: Set<ImageFormat> get() = decoder.supportedFormats
   override val encodableFormats: Set<ImageFormat> get() = encoder.supportedFormats
-  override fun sniff(data: ByteArray): ImageFormat? = sniffer?.invoke(data)
-  override suspend fun decode(source: ByteArray, options: ImageDecodeOptions, context: TransmuteContext): ImageIR =
+  override fun sniff(data: Bytes): ImageFormat? = sniffer?.invoke(data)
+  override suspend fun decode(source: Bytes, options: ImageDecodeOptions, context: TransmuteContext): ImageIR =
     decoder.decode(source, options, context)
   override suspend fun encode(
     ir: ImageIR,
     format: ImageFormat,
     options: ImageEncodeOptions,
     context: TransmuteContext,
-  ): ByteArray = encoder.encode(ir, format, options, context)
+  ): Bytes = encoder.encode(ir, format, options, context)
 }
 
 /**
@@ -60,12 +60,12 @@ class ImageCodecAdapter(
  */
 class ImageDecoderCodecAdapter(
   private val decoder: ImageDecoder,
-  private val sniffer: ((ByteArray) -> ImageFormat?)? = null,
+  private val sniffer: ((Bytes) -> ImageFormat?)? = null,
 ) : Codec<ImageFormat, ImageIR, ImageDecodeOptions, ImageEncodeOptions> {
   override val decodableFormats: Set<ImageFormat> get() = decoder.supportedFormats
   override val encodableFormats: Set<ImageFormat> get() = emptySet()
-  override fun sniff(data: ByteArray): ImageFormat? = sniffer?.invoke(data)
-  override suspend fun decode(source: ByteArray, options: ImageDecodeOptions, context: TransmuteContext): ImageIR =
+  override fun sniff(data: Bytes): ImageFormat? = sniffer?.invoke(data)
+  override suspend fun decode(source: Bytes, options: ImageDecodeOptions, context: TransmuteContext): ImageIR =
     decoder.decode(source, options, context)
 
   override suspend fun encode(
@@ -73,7 +73,7 @@ class ImageDecoderCodecAdapter(
     format: ImageFormat,
     options: ImageEncodeOptions,
     context: TransmuteContext,
-  ): ByteArray = error("${this::class.simpleName} is decode-only")
+  ): Bytes = error("${this::class.simpleName} is decode-only")
 }
 
 /**
@@ -85,10 +85,10 @@ class ImageEncoderCodecAdapter(
   override val encodableFormats: Set<ImageFormat> get() = encoder.supportedFormats
   override val decodableFormats: Set<ImageFormat> get() = emptySet()
 
-  override fun sniff(data: ByteArray): ImageFormat? = null
+  override fun sniff(data: Bytes): ImageFormat? = null
 
   override suspend fun decode(
-    source: ByteArray,
+    source: Bytes,
     options: ImageDecodeOptions,
     context: TransmuteContext,
   ): ImageIR = error("${this::class.simpleName} is encode-only")
@@ -98,5 +98,5 @@ class ImageEncoderCodecAdapter(
     format: ImageFormat,
     options: ImageEncodeOptions,
     context: TransmuteContext,
-  ): ByteArray = encoder.encode(ir, format, options, context)
+  ): Bytes = encoder.encode(ir, format, options, context)
 }

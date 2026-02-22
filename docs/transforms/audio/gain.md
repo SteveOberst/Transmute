@@ -13,7 +13,8 @@ Apply a volume gain in decibels.
 ### DSL
 
 ```kotlin
-Transmute.audio { gain(db = 3f) }.transmute(bytes).bytes
+import dev.transmute.core.asBytes
+Transmute.audio { gain(db = 3f) }.transmute(bytes.asBytes()).bytes.data
 ```
 
 ### Pipeline

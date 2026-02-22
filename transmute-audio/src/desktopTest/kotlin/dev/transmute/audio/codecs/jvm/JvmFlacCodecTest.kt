@@ -1,9 +1,9 @@
 package dev.transmute.audio.codecs.jvm
 
-import dev.transmute.audio.AudioEncodeOptions
+import dev.transmute.audio.AudioFormat
 import dev.transmute.audio.AudioTestHelpers
-import dev.transmute.core.AudioFormat
 import dev.transmute.core.PrintLogger
+import dev.transmute.core.asBytes
 import kotlinx.coroutines.test.runTest
 import kotlin.math.abs
 import kotlin.test.*
@@ -19,13 +19,13 @@ class JvmFlacCodecTest {
 
     @Test
     fun decodableFormatsContainsFlac() {
-        assertTrue(AudioFormat.FLAC in codec.decodableFormats)
+        assertTrue(AudioFormat.Flac in codec.decodableFormats)
     }
 
     @Test
     fun encodableFormatsReflectsFfmpegAvailability() {
         if (FfmpegAudioEngine.available) {
-            assertTrue(AudioFormat.FLAC in codec.encodableFormats)
+            assertTrue(AudioFormat.Flac in codec.encodableFormats)
         } else {
             assertTrue(codec.encodableFormats.isEmpty())
         }
@@ -37,18 +37,18 @@ class JvmFlacCodecTest {
     fun sniffDetectsFlacMagic() {
         // "fLaC"
         val data = byteArrayOf(0x66, 0x4C, 0x61, 0x43, 0x00, 0x00, 0x00)
-        assertEquals(AudioFormat.FLAC, codec.sniff(data))
+        assertEquals(AudioFormat.Flac, codec.sniff(data.asBytes()))
     }
 
     @Test
     fun sniffReturnsNullForMp3() {
         val data = byteArrayOf(0x49, 0x44, 0x33, 0x04, 0x00, 0x00)
-        assertNull(codec.sniff(data))
+        assertNull(codec.sniff(data.asBytes()))
     }
 
     @Test
     fun sniffReturnsNullForShortData() {
-        assertNull(codec.sniff(byteArrayOf(0x66, 0x4C, 0x61)))
+        assertNull(codec.sniff(byteArrayOf(0x66, 0x4C, 0x61).asBytes()))
     }
 
     // -- Encode + decode round-trip (FFmpeg required for encode) --
@@ -68,11 +68,11 @@ class JvmFlacCodecTest {
             channelCount = 1,
         )
 
-        val encoded = codec.encode(original, AudioFormat.FLAC, CanonicalAudioEncodeOptions(), AudioTestHelpers.testContext())
+        val encoded = codec.encode(original, AudioFormat.Flac, CanonicalAudioEncodeOptions(), AudioTestHelpers.testContext())
         assertTrue(encoded.isNotEmpty(), "Encoded FLAC should not be empty")
 
         val sniffResult = codec.sniff(encoded)
-        assertEquals(AudioFormat.FLAC, sniffResult, "Encoded data should be recognized as FLAC")
+        assertEquals(AudioFormat.Flac, sniffResult, "Encoded data should be recognized as FLAC")
 
         val decoded = codec.decode(encoded, CanonicalAudioDecodeOptions(), AudioTestHelpers.testContext())
         assertEquals(original.sampleRate, decoded.sampleRate)
@@ -96,7 +96,7 @@ class JvmFlacCodecTest {
 
         val ir = AudioTestHelpers.sineWave(durationMs = 50)
         assertFailsWith<IllegalStateException> {
-            codec.encode(ir, AudioFormat.FLAC, CanonicalAudioEncodeOptions(), AudioTestHelpers.testContext())
+            codec.encode(ir, AudioFormat.Flac, CanonicalAudioEncodeOptions(), AudioTestHelpers.testContext())
         }
     }
 }

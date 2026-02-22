@@ -14,21 +14,22 @@ HEIF/HEIC are modern image formats used heavily in Apple ecosystems. They offer 
 
 ```kotlin
 import dev.transmute.Transmute
-import dev.transmute.core.ImageFormat
+import dev.transmute.core.asBytes
 import dev.transmute.image.HeifEncodeOptions
+import dev.transmute.image.ImageFormat
 import dev.transmute.image.JpegEncodeOptions
 
 // Convert any image to HEIF (Desktop/iOS)
 suspend fun convertToHeif(inputBytes: ByteArray): ByteArray =
   Transmute.image {
-    encodeOptions(HeifEncodeOptions(format = ImageFormat.HEIF, quality = 0.8f))
-  }.transmute(inputBytes).bytes
+    encodeOptions(HeifEncodeOptions(format = ImageFormat.Heif, quality = 0.8f))
+  }.transmute(inputBytes.asBytes()).bytes.data
 
 // Decode HEIF (re-encode to JPEG)
 suspend fun decodeToJpeg(heifBytes: ByteArray): ByteArray =
   Transmute.image {
     encodeOptions(JpegEncodeOptions(quality = 0.85f))
-  }.transmute(heifBytes).bytes
+  }.transmute(heifBytes.asBytes()).bytes.data
 ```
 
 ## Notes

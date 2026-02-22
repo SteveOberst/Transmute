@@ -1,7 +1,5 @@
 package dev.transmute.audio
 
-import dev.transmute.core.AudioFormat
-
 /**
  * Lightweight metadata snapshot for an audio item.
  *

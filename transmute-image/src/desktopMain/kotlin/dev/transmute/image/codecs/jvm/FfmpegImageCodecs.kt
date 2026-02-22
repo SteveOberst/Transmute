@@ -1,8 +1,9 @@
 package dev.transmute.image.codecs.jvm
 
+import dev.transmute.core.Bytes
 import dev.transmute.core.TransmuteContext
 import dev.transmute.core.FfmpegResolver
-import dev.transmute.core.ImageFormat
+import dev.transmute.core.asBytes
 import dev.transmute.image.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -31,22 +32,23 @@ import javax.imageio.ImageIO
  */
 class FfmpegImageDecoder : ImageDecoder {
   override val supportedFormats: Set<ImageFormat> = setOf(
-    ImageFormat.HEIF,
-    ImageFormat.HEIC,
-    ImageFormat.AVIF,
+    ImageFormat.Heif,
+    ImageFormat.Heic,
+    ImageFormat.Avif,
   )
 
-  override fun sniff(data: ByteArray): ImageFormat? {
-    if (data.size < 12) return null
+  override fun sniff(data: Bytes): ImageFormat? {
+    val bytes = data.data
+    if (bytes.size < 12) return null
     // ISO BMFF ftyp box
-    if (data[4] == 0x66.toByte() && data[5] == 0x74.toByte() &&
-      data[6] == 0x79.toByte() && data[7] == 0x70.toByte()) {
-      val brand = data.sliceArray(8 until 12).decodeToString()
+    if (bytes[4] == 0x66.toByte() && bytes[5] == 0x74.toByte() &&
+      bytes[6] == 0x79.toByte() && bytes[7] == 0x70.toByte()) {
+      val brand = bytes.sliceArray(8 until 12).decodeToString()
       return when {
-        brand == "heic" || brand == "heix" -> ImageFormat.HEIC
-        brand == "mif1" || brand == "msf1" -> ImageFormat.HEIF
-        brand == "hevc" || brand == "hevx" -> ImageFormat.HEIC
-        brand == "avif" || brand == "avis" -> ImageFormat.AVIF
+        brand == "heic" || brand == "heix" -> ImageFormat.Heic
+        brand == "mif1" || brand == "msf1" -> ImageFormat.Heif
+        brand == "hevc" || brand == "hevx" -> ImageFormat.Heic
+        brand == "avif" || brand == "avis" -> ImageFormat.Avif
         else -> null
       }
     }
@@ -54,7 +56,7 @@ class FfmpegImageDecoder : ImageDecoder {
   }
 
   override suspend fun decode(
-    source: ByteArray,
+    source: Bytes,
     options: ImageDecodeOptions,
     context: TransmuteContext,
   ): ImageIR = withContext(Dispatchers.IO) {
@@ -62,16 +64,16 @@ class FfmpegImageDecoder : ImageDecoder {
 
     val format = ImageFormatDetector.detect(source)
     val ext = when (format) {
-      ImageFormat.HEIF -> "heif"
-      ImageFormat.HEIC -> "heic"
-      ImageFormat.AVIF -> "avif"
+      ImageFormat.Heif -> "heif"
+      ImageFormat.Heic -> "heic"
+      ImageFormat.Avif -> "avif"
       else -> "bin"
     }
 
     val tmpIn = File.createTempFile("transmute_img_in_", ".$ext")
     val tmpOut = File.createTempFile("transmute_img_out_", ".png")
     try {
-      tmpIn.writeBytes(source)
+      tmpIn.writeBytes(source.data)
 
       val cmd = listOf(
         FfmpegResolver.ffmpegPath,
@@ -131,9 +133,9 @@ class FfmpegImageDecoder : ImageDecoder {
  */
 class FfmpegImageEncoder : ImageEncoder {
   override val supportedFormats: Set<ImageFormat> = setOf(
-    ImageFormat.HEIF,
-    ImageFormat.HEIC,
-    ImageFormat.AVIF,
+    ImageFormat.Heif,
+    ImageFormat.Heic,
+    ImageFormat.Avif,
   )
 
   override suspend fun encode(
@@ -141,7 +143,7 @@ class FfmpegImageEncoder : ImageEncoder {
     format: ImageFormat,
     options: ImageEncodeOptions,
     context: TransmuteContext,
-  ): ByteArray = withContext(Dispatchers.IO) {
+  ): Bytes = withContext(Dispatchers.IO) {
     check(FfmpegResolver.available) { "FFmpeg is not available" }
 
     val buffer = ir.buffer as? ByteArrayPixelBuffer
@@ -156,7 +158,7 @@ class FfmpegImageEncoder : ImageEncoder {
     // Write input as PNG temp
     val tmpIn = File.createTempFile("transmute_img_enc_in_", ".png")
     val ext = when (format) {
-      ImageFormat.AVIF -> "avif"
+      ImageFormat.Avif -> "avif"
       else -> "heif"
     }
     val tmpOut = File.createTempFile("transmute_img_enc_out_", ".$ext")
@@ -179,7 +181,7 @@ class FfmpegImageEncoder : ImageEncoder {
         add("-i"); add(tmpIn.absolutePath)
 
         when (format) {
-          ImageFormat.AVIF -> {
+          ImageFormat.Avif -> {
             add("-c:v"); add("libaom-av1")
             add("-crf"); add(crf.toString())
             add("-still-picture"); add("1")
@@ -203,7 +205,7 @@ class FfmpegImageEncoder : ImageEncoder {
         "FFmpeg image encode to $format failed: ${output.takeLast(500)}"
       }
 
-      tmpOut.readBytes()
+      tmpOut.readBytes().asBytes()
     } finally {
       tmpIn.delete()
       tmpOut.delete()

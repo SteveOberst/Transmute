@@ -14,21 +14,22 @@ MOV is Apple's QuickTime container format. It commonly contains H.264 video and 
 
 ```kotlin
 import dev.transmute.Transmute
-import dev.transmute.core.VideoFormat
 import dev.transmute.core.OutputFormat
+import dev.transmute.core.asBytes
 import dev.transmute.video.CanonicalVideoEncodeOptions
+import dev.transmute.video.VideoFormat
 
 // Convert video to MOV
 suspend fun convertToMov(inputBytes: ByteArray): ByteArray =
   Transmute.video {
-    encodeOptions(CanonicalVideoEncodeOptions(outputFormat = OutputFormat.Exact(VideoFormat.MOV)))
-  }.transmute(inputBytes).bytes
+    encodeOptions(CanonicalVideoEncodeOptions(outputFormat = OutputFormat.Exact(VideoFormat.Mov)))
+  }.transmute(inputBytes.asBytes()).bytes.data
 
 // Decode MOV (re-encode to MP4)
 suspend fun convertToMp4(movBytes: ByteArray): ByteArray =
   Transmute.video {
-    encodeOptions(CanonicalVideoEncodeOptions(outputFormat = OutputFormat.Exact(VideoFormat.MP4)))
-  }.transmute(movBytes).bytes
+    encodeOptions(CanonicalVideoEncodeOptions(outputFormat = OutputFormat.Exact(VideoFormat.Mp4)))
+  }.transmute(movBytes.asBytes()).bytes.data
 ```
 
 ## Notes

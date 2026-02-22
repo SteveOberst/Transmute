@@ -1,8 +1,8 @@
 package dev.transmute.image.codecs.jvm
 
-import dev.transmute.core.ImageFormat
 import dev.transmute.core.PrintLogger
 import dev.transmute.image.ImageFormatDetector
+import dev.transmute.image.ImageFormat
 import dev.transmute.image.ImageTestHelpers
 import dev.transmute.image.ImageTestHelpers.adjustAlphaForComparison
 import dev.transmute.image.ImageTestHelpers.horizontalGradient
@@ -50,8 +50,8 @@ class WebPCodecRoundtripTest {
   private val canEncodeWebp: Boolean =
     ImageIO.getImageWritersByFormatName("webp").asSequence().firstOrNull() != null
 
-  private suspend fun encodeWebp(ir: ImageIR, quality: Float = 0.85f): ByteArray =
-    encoder.encode(ir, ImageFormat.WEBP, WebPEncodeOptions(quality = quality), ctx)
+  private suspend fun encodeWebp(ir: ImageIR, quality: Float = 0.85f) =
+    encoder.encode(ir, ImageFormat.Webp, WebPEncodeOptions(quality = quality), ctx)
 
   private inline fun requireWebpWriter(block: () -> Unit) {
     if (!canEncodeWebp) {
@@ -66,7 +66,7 @@ class WebPCodecRoundtripTest {
   @Test
   fun decoderSupportsWebP() {
     assertTrue(
-      ImageFormat.WEBP in decoder.supportedFormats,
+      ImageFormat.Webp in decoder.supportedFormats,
       "WebP: JvmImageIoDecoder should list WEBP in supportedFormats",
     )
   }
@@ -74,7 +74,7 @@ class WebPCodecRoundtripTest {
   @Test
   fun encoderSupportsWebP() {
     assertTrue(
-      ImageFormat.WEBP in encoder.supportedFormats,
+      ImageFormat.Webp in encoder.supportedFormats,
       "WebP: JvmImageIoEncoder should list WEBP in supportedFormats",
     )
   }
@@ -89,14 +89,14 @@ class WebPCodecRoundtripTest {
 
       assertTrue(encoded.size > 12, "WebP: encoded output should be > 12 bytes, got ${encoded.size}")
       // WebP files start with RIFF....WEBP
-      assertEquals('R'.code.toByte(), encoded[0], "WebP: byte 0 should be 'R'")
-      assertEquals('I'.code.toByte(), encoded[1], "WebP: byte 1 should be 'I'")
-      assertEquals('F'.code.toByte(), encoded[2], "WebP: byte 2 should be 'F'")
-      assertEquals('F'.code.toByte(), encoded[3], "WebP: byte 3 should be 'F'")
-      assertEquals('W'.code.toByte(), encoded[8], "WebP: byte 8 should be 'W'")
-      assertEquals('E'.code.toByte(), encoded[9], "WebP: byte 9 should be 'E'")
-      assertEquals('B'.code.toByte(), encoded[10], "WebP: byte 10 should be 'B'")
-      assertEquals('P'.code.toByte(), encoded[11], "WebP: byte 11 should be 'P'")
+      assertEquals('R'.code.toByte(), encoded.data[0], "WebP: byte 0 should be 'R'")
+      assertEquals('I'.code.toByte(), encoded.data[1], "WebP: byte 1 should be 'I'")
+      assertEquals('F'.code.toByte(), encoded.data[2], "WebP: byte 2 should be 'F'")
+      assertEquals('F'.code.toByte(), encoded.data[3], "WebP: byte 3 should be 'F'")
+      assertEquals('W'.code.toByte(), encoded.data[8], "WebP: byte 8 should be 'W'")
+      assertEquals('E'.code.toByte(), encoded.data[9], "WebP: byte 9 should be 'E'")
+      assertEquals('B'.code.toByte(), encoded.data[10], "WebP: byte 10 should be 'B'")
+      assertEquals('P'.code.toByte(), encoded.data[11], "WebP: byte 11 should be 'P'")
     }
   }
 
@@ -106,7 +106,7 @@ class WebPCodecRoundtripTest {
       val ir = solidColor(64, 64, r = 200, g = 100, b = 50)
       val encoded = encodeWebp(ir)
       assertEquals(
-        ImageFormat.WEBP,
+        ImageFormat.Webp,
         ImageFormatDetector.detect(encoded),
         "WebP: encoded bytes should be detected as WEBP",
       )

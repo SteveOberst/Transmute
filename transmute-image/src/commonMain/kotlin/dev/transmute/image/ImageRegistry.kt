@@ -1,10 +1,10 @@
 package dev.transmute.image
 
 import kotlin.concurrent.Volatile
+import dev.transmute.core.Bytes
 import dev.transmute.core.Codec
 import dev.transmute.core.Decoder
 import dev.transmute.core.Encoder
-import dev.transmute.core.ImageFormat
 import dev.transmute.core.TransmuteContext
 import dev.transmute.image.codecs.bmp.BmpImageDecoder
 import dev.transmute.image.codecs.bmp.BmpImageEncoder
@@ -30,8 +30,8 @@ class MutableImageDecoderRegistry : ImageDecoderRegistry {
   fun register(decoder: Decoder<ImageFormat, ImageIR, ImageDecodeOptions>) {
     val wrapper = object : ImageDecoder {
       override val supportedFormats = decoder.decodableFormats
-      override fun sniff(data: ByteArray) = decoder.sniff(data)
-      override suspend fun decode(source: ByteArray, options: ImageDecodeOptions, context: TransmuteContext) =
+      override fun sniff(data: Bytes) = decoder.sniff(data)
+      override suspend fun decode(source: Bytes, options: ImageDecodeOptions, context: TransmuteContext) =
         decoder.decode(source, options, context)
     }
     register(wrapper)
@@ -41,8 +41,8 @@ class MutableImageDecoderRegistry : ImageDecoderRegistry {
   fun register(codec: Codec<ImageFormat, ImageIR, ImageDecodeOptions, ImageEncodeOptions>) {
     val wrapper = object : ImageDecoder {
       override val supportedFormats = codec.decodableFormats
-      override fun sniff(data: ByteArray) = codec.sniff(data)
-      override suspend fun decode(source: ByteArray, options: ImageDecodeOptions, context: TransmuteContext) =
+      override fun sniff(data: Bytes) = codec.sniff(data)
+      override suspend fun decode(source: Bytes, options: ImageDecodeOptions, context: TransmuteContext) =
         codec.decode(source, options, context)
     }
     decoderList.add(wrapper)
@@ -147,10 +147,10 @@ object ImageRegistries {
     installPlatformImageCodecs(decoders, encoders)
 
     // Cross-platform fallback codecs.
-    if (decoders.decoderFor(ImageFormat.BMP) == null) {
+    if (decoders.decoderFor(ImageFormat.Bmp) == null) {
       decoders.register(BmpImageDecoder())
     }
-    if (encoders.encoderFor(ImageFormat.BMP) == null) {
+    if (encoders.encoderFor(ImageFormat.Bmp) == null) {
       encoders.register(BmpImageEncoder())
     }
 

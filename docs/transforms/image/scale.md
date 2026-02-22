@@ -14,7 +14,8 @@ Fit an image within maximum bounds while preserving aspect ratio. Never upscales
 ### DSL
 
 ```kotlin
-Transmute.image { scale(maxWidth = 1920, maxHeight = 1080) }.transmute(bytes).bytes
+import dev.transmute.core.asBytes
+Transmute.image { scale(maxWidth = 1920, maxHeight = 1080) }.transmute(bytes.asBytes()).bytes.data
 ```
 
 ### Pipeline

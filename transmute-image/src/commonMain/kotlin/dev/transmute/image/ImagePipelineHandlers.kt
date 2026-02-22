@@ -1,7 +1,6 @@
 package dev.transmute.image
 
-import dev.transmute.core.AnyFormatTag
-import dev.transmute.core.ImageFormat
+import dev.transmute.core.Bytes
 import dev.transmute.core.OutputFormat
 import dev.transmute.core.resolve
 import dev.transmute.core.TransmuteContext
@@ -17,11 +16,11 @@ import dev.transmute.core.pipeline.PipelineBuilder
  * Reads [ImageDecodeOptions] from [TransmuteContext.decodeOptions].
  */
 class ImageDecodeHandler(
-  private val detector: (ByteArray) -> ImageFormat = ImageFormatDetector::detect,
+  private val detector: (Bytes) -> ImageFormat = ImageFormatDetector::detect,
   private val decoders: ImageDecoderRegistry = ImageRegistries.decoders,
-) : PipelineHandler<ByteArray, Decoded<ImageFormat, ImageIR>> {
+) : PipelineHandler<Bytes, Decoded<ImageFormat, ImageIR>> {
 
-  override suspend fun handle(value: ByteArray, context: TransmuteContext): Decoded<ImageFormat, ImageIR> {
+  override suspend fun handle(value: Bytes, context: TransmuteContext): Decoded<ImageFormat, ImageIR> {
     ImageRegistries.installDefaultsIfEmpty()
 
     val options = (context.decodeOptions as? ImageDecodeOptions) ?: CanonicalImageDecodeOptions()
@@ -54,12 +53,12 @@ class ImageDynamicEncodeHandler(
   private val outputFormatSelector: ImageOutputFormatSelector = ImageOutputFormatSelector { decoded, options ->
     options.outputFormat.resolve(decoded.format)
   },
-) : PipelineHandler<Decoded<ImageFormat, ImageIR>, EncodedBytes<ImageFormat, AnyFormatTag<ImageFormat>>> {
+) : PipelineHandler<Decoded<ImageFormat, ImageIR>, EncodedBytes<ImageFormat>> {
 
   override suspend fun handle(
     value: Decoded<ImageFormat, ImageIR>,
     context: TransmuteContext,
-  ): EncodedBytes<ImageFormat, AnyFormatTag<ImageFormat>> {
+  ): EncodedBytes<ImageFormat> {
     ImageRegistries.installDefaultsIfEmpty()
 
     val requested = (context.encodeOptions as? ImageEncodeOptions) ?: CanonicalImageEncodeOptions()
@@ -72,7 +71,7 @@ class ImageDynamicEncodeHandler(
       dev.transmute.core.MetadataPolicy.STRIP_ALL -> value.ir.copy(metadata = ImageMetadata())
     }
     val bytes = encoder.encode(stripped, outFormat, effective, context)
-    return EncodedBytes(formatTag = AnyFormatTag(outFormat), bytes = bytes)
+    return EncodedBytes(format = outFormat, bytes = bytes)
   }
 }
 
@@ -86,31 +85,31 @@ fun interface ImageOutputFormatSelector {
  * Reads [ImageEncodeOptions] from [TransmuteContext.encodeOptions] and enforces that any
  * explicit `outputFormat` matches the fixed output format.
  */
-class ImageFixedEncodeHandler<OUT : dev.transmute.core.ImageFormatTag>(
+class ImageFixedEncodeHandler<OUT : ImageFormat>(
   private val output: OUT,
   private val encoders: ImageEncoderRegistry = ImageRegistries.encoders,
-) : PipelineHandler<Decoded<ImageFormat, ImageIR>, EncodedBytes<ImageFormat, OUT>> {
+) : PipelineHandler<Decoded<ImageFormat, ImageIR>, EncodedBytes<OUT>> {
 
-  override suspend fun handle(value: Decoded<ImageFormat, ImageIR>, context: TransmuteContext): EncodedBytes<ImageFormat, OUT> {
+  override suspend fun handle(value: Decoded<ImageFormat, ImageIR>, context: TransmuteContext): EncodedBytes<OUT> {
     ImageRegistries.installDefaultsIfEmpty()
 
     val requested = (context.encodeOptions as? ImageEncodeOptions) ?: CanonicalImageEncodeOptions()
     when (val declared = requested.outputFormat) {
       OutputFormat.ORIGINAL -> Unit
-      is OutputFormat.Exact -> require(declared.format == output.format) {
-        "encodeOptions.outputFormat=${declared.format} conflicts with fixed output=${output.format}"
+      is OutputFormat.Exact -> require(declared.format == output) {
+        "encodeOptions.outputFormat=${declared.format} conflicts with fixed output=$output"
       }
     }
 
-    val effective = requested.resolveFor(output.format)
-    val encoder = encoders.encoderFor(output.format) ?: error("No image encoder for ${output.format}")
+    val effective = requested.resolveFor(output)
+    val encoder = encoders.encoderFor(output) ?: error("No image encoder for $output")
 
     val stripped = when (effective.metadataPolicy) {
       dev.transmute.core.MetadataPolicy.PRESERVE -> value.ir
       dev.transmute.core.MetadataPolicy.STRIP_ALL -> value.ir.copy(metadata = ImageMetadata())
     }
-    val bytes = encoder.encode(stripped, output.format, effective, context)
-    return EncodedBytes(formatTag = output, bytes = bytes)
+    val bytes = encoder.encode(stripped, output, effective, context)
+    return EncodedBytes(format = output, bytes = bytes)
   }
 }
 
@@ -123,16 +122,16 @@ class ImageFixedEncodeHandler<OUT : dev.transmute.core.ImageFormatTag>(
  * - [ImageDecoder.sniff] when available, else
  * - [ImageFormatDetector].
  */
-fun <IN> PipelineBuilder<IN, ByteArray>.then(
+fun <IN> PipelineBuilder<IN, Bytes>.then(
   decoder: ImageDecoder,
-  detector: (ByteArray) -> ImageFormat = ImageFormatDetector::detect,
-): PipelineBuilder<IN, Decoded<ImageFormat, ImageIR>> = then { bytes, ctx ->
+  detector: (Bytes) -> ImageFormat = ImageFormatDetector::detect,
+): PipelineBuilder<IN, Decoded<ImageFormat, ImageIR>> = then { raw, ctx ->
   val options = (ctx.decodeOptions as? ImageDecodeOptions) ?: CanonicalImageDecodeOptions()
   val accepted = options.acceptedInputFormats
 
   val format = when {
     accepted.size == 1 -> accepted.first()
-    else -> decoder.sniff(bytes) ?: detector(bytes)
+    else -> decoder.sniff(raw) ?: detector(raw)
   }
   if (accepted.isNotEmpty() && format !in accepted) {
     error("Detected image format $format not in acceptedInputFormats=$accepted")
@@ -141,7 +140,7 @@ fun <IN> PipelineBuilder<IN, ByteArray>.then(
     "Decoder ${decoder::class.simpleName} does not support format $format (supported=${decoder.supportedFormats})"
   }
 
-  val ir = decoder.decode(bytes, options, ctx)
+  val ir = decoder.decode(raw, options, ctx)
   Decoded(format, ir)
 }
 
@@ -154,7 +153,7 @@ fun <IN> PipelineBuilder<IN, ByteArray>.then(
  */
 fun <IN> PipelineBuilder<IN, Decoded<ImageFormat, ImageIR>>.then(
   encoder: ImageEncoder,
-): PipelineBuilder<IN, EncodedBytes<ImageFormat, AnyFormatTag<ImageFormat>>> = then { decoded, ctx ->
+): PipelineBuilder<IN, EncodedBytes<ImageFormat>> = then { decoded, ctx ->
   val requested = (ctx.encodeOptions as? ImageEncodeOptions) ?: CanonicalImageEncodeOptions()
   val outFormat = requested.outputFormat.resolve(decoded.format)
   val effective = requested.resolveFor(outFormat)
@@ -167,38 +166,32 @@ fun <IN> PipelineBuilder<IN, Decoded<ImageFormat, ImageIR>>.then(
     dev.transmute.core.MetadataPolicy.PRESERVE -> decoded.ir
     dev.transmute.core.MetadataPolicy.STRIP_ALL -> decoded.ir.copy(metadata = ImageMetadata())
   }
-  EncodedBytes(
-    formatTag = AnyFormatTag(outFormat),
-    bytes = encoder.encode(stripped, outFormat, effective, ctx),
-  )
+  EncodedBytes(format = outFormat, bytes = encoder.encode(stripped, outFormat, effective, ctx))
 }
 
 /**
- * Adds a fixed-output encode step using a specific [ImageEncoder] and [output] tag.
+ * Adds a fixed-output encode step using a specific [ImageEncoder] and [output] format.
  */
-fun <IN, OUT : dev.transmute.core.ImageFormatTag> PipelineBuilder<IN, Decoded<ImageFormat, ImageIR>>.then(
+fun <IN, OUT : ImageFormat> PipelineBuilder<IN, Decoded<ImageFormat, ImageIR>>.then(
   encoder: ImageEncoder,
   output: OUT,
-): PipelineBuilder<IN, EncodedBytes<ImageFormat, OUT>> = then { decoded, ctx ->
+): PipelineBuilder<IN, EncodedBytes<OUT>> = then { decoded, ctx ->
   val requested = (ctx.encodeOptions as? ImageEncodeOptions) ?: CanonicalImageEncodeOptions()
   when (val declared = requested.outputFormat) {
     OutputFormat.ORIGINAL -> Unit
-    is OutputFormat.Exact -> require(declared.format == output.format) {
-      "encodeOptions.outputFormat=${declared.format} conflicts with fixed output=${output.format}"
+    is OutputFormat.Exact -> require(declared.format == output) {
+      "encodeOptions.outputFormat=${declared.format} conflicts with fixed output=$output"
     }
   }
-  val effective = requested.resolveFor(output.format)
+  val effective = requested.resolveFor(output)
 
-  require(output.format in encoder.supportedFormats) {
-    "Encoder ${encoder::class.simpleName} does not support format ${output.format} (supported=${encoder.supportedFormats})"
+  require(output in encoder.supportedFormats) {
+    "Encoder ${encoder::class.simpleName} does not support format $output (supported=${encoder.supportedFormats})"
   }
 
   val stripped = when (effective.metadataPolicy) {
     dev.transmute.core.MetadataPolicy.PRESERVE -> decoded.ir
     dev.transmute.core.MetadataPolicy.STRIP_ALL -> decoded.ir.copy(metadata = ImageMetadata())
   }
-  EncodedBytes(
-    formatTag = output,
-    bytes = encoder.encode(stripped, output.format, effective, ctx),
-  )
+  EncodedBytes(format = output, bytes = encoder.encode(stripped, output, effective, ctx))
 }

@@ -3,7 +3,7 @@ package dev.transmute.audio
 import kotlin.concurrent.Volatile
 import dev.transmute.audio.codecs.WavDecoder
 import dev.transmute.audio.codecs.WavEncoder
-import dev.transmute.core.AudioFormat
+import dev.transmute.core.Bytes
 import dev.transmute.core.Codec
 import dev.transmute.core.Decoder
 import dev.transmute.core.Encoder
@@ -27,8 +27,8 @@ class MutableAudioDecoderRegistry : AudioDecoderRegistry {
   fun register(decoder: Decoder<AudioFormat, AudioIR, AudioDecodeOptions>) {
     val wrapper = object : AudioDecoder {
       override val supportedFormats = decoder.decodableFormats
-      override fun sniff(data: ByteArray) = decoder.sniff(data)
-      override suspend fun decode(source: ByteArray, options: AudioDecodeOptions, context: TransmuteContext) =
+      override fun sniff(data: Bytes) = decoder.sniff(data)
+      override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: TransmuteContext) =
         decoder.decode(source, options, context)
     }
     register(wrapper)
@@ -38,8 +38,8 @@ class MutableAudioDecoderRegistry : AudioDecoderRegistry {
   fun register(codec: Codec<AudioFormat, AudioIR, AudioDecodeOptions, AudioEncodeOptions>) {
     val wrapper = object : AudioDecoder {
       override val supportedFormats = codec.decodableFormats
-      override fun sniff(data: ByteArray) = codec.sniff(data)
-      override suspend fun decode(source: ByteArray, options: AudioDecodeOptions, context: TransmuteContext) =
+      override fun sniff(data: Bytes) = codec.sniff(data)
+      override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: TransmuteContext) =
         codec.decode(source, options, context)
     }
     decoderList.add(wrapper)

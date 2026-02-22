@@ -1,6 +1,7 @@
 package dev.transmute.audio.codecs.jvm
 
-import dev.transmute.core.AudioFormat
+import dev.transmute.audio.AudioFormat
+import dev.transmute.core.asBytes
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -18,33 +19,33 @@ class JvmAudioCodecSniffTest {
       'I'.code.toByte(), 'D'.code.toByte(), '3'.code.toByte(),
       0x04, 0x00, 0x00, 0x00,
     )
-    assertEquals(AudioFormat.MP3, mp3.sniff(data))
+    assertEquals(AudioFormat.Mp3, mp3.sniff(data.asBytes()))
   }
 
   @Test
   fun mp3SniffsFrameSync() {
     // 0xFF 0xFB = MPEG1, Layer III, no CRC
     val data = byteArrayOf(0xFF.toByte(), 0xFB.toByte(), 0x90.toByte(), 0x00)
-    assertEquals(AudioFormat.MP3, mp3.sniff(data))
+    assertEquals(AudioFormat.Mp3, mp3.sniff(data.asBytes()))
   }
 
   @Test
   fun mp3RejectsAacAdts() {
     // 0xFF 0xF1 = MPEG2, Layer 0 (AAC ADTS)
     val data = byteArrayOf(0xFF.toByte(), 0xF1.toByte(), 0x00, 0x00)
-    assertNull(mp3.sniff(data))
+    assertNull(mp3.sniff(data.asBytes()))
   }
 
   @Test
   fun mp3RejectsFlac() {
     val data = byteArrayOf(0x66, 0x4C, 0x61, 0x43)
-    assertNull(mp3.sniff(data))
+    assertNull(mp3.sniff(data.asBytes()))
   }
 
   @Test
   fun mp3RejectsTooShort() {
-    assertNull(mp3.sniff(ByteArray(0)))
-    assertNull(mp3.sniff(byteArrayOf(0x49, 0x44))) // "ID" without '3'
+    assertNull(mp3.sniff(ByteArray(0).asBytes()))
+    assertNull(mp3.sniff(byteArrayOf(0x49, 0x44).asBytes())) // "ID" without '3'
   }
 
   // ---- JvmFlacCodec ----
@@ -54,19 +55,19 @@ class JvmAudioCodecSniffTest {
   @Test
   fun flacSniffsFlacMarker() {
     val data = byteArrayOf(0x66, 0x4C, 0x61, 0x43) // "fLaC"
-    assertEquals(AudioFormat.FLAC, flac.sniff(data))
+    assertEquals(AudioFormat.Flac, flac.sniff(data.asBytes()))
   }
 
   @Test
   fun flacRejectsMp3() {
     val data = byteArrayOf(0xFF.toByte(), 0xFB.toByte(), 0x90.toByte(), 0x00)
-    assertNull(flac.sniff(data))
+    assertNull(flac.sniff(data.asBytes()))
   }
 
   @Test
   fun flacRejectsTooShort() {
-    assertNull(flac.sniff(byteArrayOf(0x66, 0x4C, 0x61))) // 3 bytes
-    assertNull(flac.sniff(ByteArray(0)))
+    assertNull(flac.sniff(byteArrayOf(0x66, 0x4C, 0x61).asBytes())) // 3 bytes
+    assertNull(flac.sniff(ByteArray(0).asBytes()))
   }
 
   // ---- JvmOggVorbisCodec ----
@@ -84,7 +85,7 @@ class JvmAudioCodecSniffTest {
     data[29] = 'v'.code.toByte(); data[30] = 'o'.code.toByte()
     data[31] = 'r'.code.toByte(); data[32] = 'b'.code.toByte()
     data[33] = 'i'.code.toByte(); data[34] = 's'.code.toByte()
-    assertEquals(AudioFormat.OGG, ogg.sniff(data))
+    assertEquals(AudioFormat.Ogg, ogg.sniff(data.asBytes()))
   }
 
   @Test
@@ -95,7 +96,7 @@ class JvmAudioCodecSniffTest {
     data[2] = 'g'.code.toByte(); data[3] = 'S'.code.toByte()
     data[28] = 'O'.code.toByte(); data[29] = 'p'.code.toByte()
     data[30] = 'u'.code.toByte(); data[31] = 's'.code.toByte()
-    assertNull(ogg.sniff(data))
+    assertNull(ogg.sniff(data.asBytes()))
   }
 
   @Test
@@ -104,13 +105,13 @@ class JvmAudioCodecSniffTest {
     val data = byteArrayOf(
       'O'.code.toByte(), 'g'.code.toByte(), 'g'.code.toByte(), 'S'.code.toByte(),
     )
-    assertEquals(AudioFormat.OGG, ogg.sniff(data))
+    assertEquals(AudioFormat.Ogg, ogg.sniff(data.asBytes()))
   }
 
   @Test
   fun oggRejectsTooShort() {
-    assertNull(ogg.sniff(ByteArray(3)))
-    assertNull(ogg.sniff(ByteArray(0)))
+    assertNull(ogg.sniff(ByteArray(3).asBytes()))
+    assertNull(ogg.sniff(ByteArray(0).asBytes()))
   }
 
   // ---- JvmAacCodec ----
@@ -121,27 +122,27 @@ class JvmAudioCodecSniffTest {
   fun aacSniffsAdts() {
     // 0xFF 0xF1 = MPEG-2, Layer 0 (AAC), protection absent
     val data = byteArrayOf(0xFF.toByte(), 0xF1.toByte(), 0x00, 0x00)
-    assertEquals(AudioFormat.AAC, aac.sniff(data))
+    assertEquals(AudioFormat.Aac, aac.sniff(data.asBytes()))
   }
 
   @Test
   fun aacSniffsAdtsWithCrc() {
     // 0xFF 0xF0 = MPEG-2, Layer 0 (AAC), protection present
     val data = byteArrayOf(0xFF.toByte(), 0xF0.toByte(), 0x00, 0x00)
-    assertEquals(AudioFormat.AAC, aac.sniff(data))
+    assertEquals(AudioFormat.Aac, aac.sniff(data.asBytes()))
   }
 
   @Test
   fun aacRejectsMp3Frame() {
     // 0xFF 0xFB = MPEG-1, Layer III (MP3)
     val data = byteArrayOf(0xFF.toByte(), 0xFB.toByte(), 0x90.toByte(), 0x00)
-    assertNull(aac.sniff(data))
+    assertNull(aac.sniff(data.asBytes()))
   }
 
   @Test
   fun aacRejectsTooShort() {
-    assertNull(aac.sniff(byteArrayOf(0xFF.toByte())))
-    assertNull(aac.sniff(ByteArray(0)))
+    assertNull(aac.sniff(byteArrayOf(0xFF.toByte()).asBytes()))
+    assertNull(aac.sniff(ByteArray(0).asBytes()))
   }
 
   // ---- JvmM4aCodec ----
@@ -154,19 +155,19 @@ class JvmAudioCodecSniffTest {
     data[4] = 0x66; data[5] = 0x74; data[6] = 0x79; data[7] = 0x70 // ftyp
     data[8] = 'M'.code.toByte(); data[9] = '4'.code.toByte()
     data[10] = 'A'.code.toByte(); data[11] = ' '.code.toByte()
-    assertEquals(AudioFormat.M4A, m4a.sniff(data))
+    assertEquals(AudioFormat.M4a, m4a.sniff(data.asBytes()))
   }
 
   @Test
   fun m4aRejectsTooShort() {
-    assertNull(m4a.sniff(ByteArray(7)))
-    assertNull(m4a.sniff(ByteArray(0)))
+    assertNull(m4a.sniff(ByteArray(7).asBytes()))
+    assertNull(m4a.sniff(ByteArray(0).asBytes()))
   }
 
   @Test
   fun m4aRejectsNoFtyp() {
     val data = ByteArray(16)
-    assertNull(m4a.sniff(data))
+    assertNull(m4a.sniff(data.asBytes()))
   }
 
   // ---- JvmOpusCodec ----
@@ -183,7 +184,7 @@ class JvmAudioCodecSniffTest {
     data[30] = 'u'.code.toByte(); data[31] = 's'.code.toByte()
     data[32] = 'H'.code.toByte(); data[33] = 'e'.code.toByte()
     data[34] = 'a'.code.toByte(); data[35] = 'd'.code.toByte()
-    assertEquals(AudioFormat.OPUS, opus.sniff(data))
+    assertEquals(AudioFormat.Opus, opus.sniff(data.asBytes()))
   }
 
   @Test
@@ -193,19 +194,19 @@ class JvmAudioCodecSniffTest {
     data[2] = 'g'.code.toByte(); data[3] = 'S'.code.toByte()
     data[28] = 0x01
     data[29] = 'v'.code.toByte(); data[30] = 'o'.code.toByte()
-    assertNull(opus.sniff(data))
+    assertNull(opus.sniff(data.asBytes()))
   }
 
   @Test
   fun opusRejectsTooShort() {
-    assertNull(opus.sniff(ByteArray(35)))
-    assertNull(opus.sniff(ByteArray(0)))
+    assertNull(opus.sniff(ByteArray(35).asBytes()))
+    assertNull(opus.sniff(ByteArray(0).asBytes()))
   }
 
   @Test
   fun opusRejectsNonOgg() {
     val data = ByteArray(36)
     data[0] = 'R'.code.toByte(); data[1] = 'I'.code.toByte()
-    assertNull(opus.sniff(data))
+    assertNull(opus.sniff(data.asBytes()))
   }
 }

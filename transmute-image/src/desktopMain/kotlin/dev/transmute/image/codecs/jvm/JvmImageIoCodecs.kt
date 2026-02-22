@@ -1,7 +1,8 @@
 package dev.transmute.image.codecs.jvm
 
+import dev.transmute.core.Bytes
 import dev.transmute.core.TransmuteContext
-import dev.transmute.core.ImageFormat
+import dev.transmute.core.asBytes
 import dev.transmute.image.*
 import java.awt.Graphics2D
 import java.awt.image.BufferedImage
@@ -14,45 +15,46 @@ import javax.imageio.ImageWriteParam
 
 class JvmImageIoDecoder : ImageDecoder {
   override val supportedFormats: Set<ImageFormat> = setOf(
-    ImageFormat.JPEG,
-    ImageFormat.PNG,
-    ImageFormat.GIF,
-    ImageFormat.BMP,
-    ImageFormat.TIFF,
-    ImageFormat.WEBP,
+    ImageFormat.Jpeg,
+    ImageFormat.Png,
+    ImageFormat.Gif,
+    ImageFormat.Bmp,
+    ImageFormat.Tiff,
+    ImageFormat.Webp,
   )
 
-  override fun sniff(data: ByteArray): ImageFormat? {
-    if (data.size < 4) return null
+  override fun sniff(data: Bytes): ImageFormat? {
+    val bytes = data.data
+    if (bytes.size < 4) return null
     // JPEG: FF D8 FF
-    if (data[0] == 0xFF.toByte() && data[1] == 0xD8.toByte() && data[2] == 0xFF.toByte())
-      return ImageFormat.JPEG
+    if (bytes[0] == 0xFF.toByte() && bytes[1] == 0xD8.toByte() && bytes[2] == 0xFF.toByte())
+      return ImageFormat.Jpeg
     // PNG: 89 50 4E 47
-    if (data.size >= 8 && data[0] == 0x89.toByte() && data[1] == 0x50.toByte() &&
-      data[2] == 0x4E.toByte() && data[3] == 0x47.toByte())
-      return ImageFormat.PNG
+    if (bytes.size >= 8 && bytes[0] == 0x89.toByte() && bytes[1] == 0x50.toByte() &&
+      bytes[2] == 0x4E.toByte() && bytes[3] == 0x47.toByte())
+      return ImageFormat.Png
     // GIF: GIF8
-    if (data.size >= 6 && data[0] == 0x47.toByte() && data[1] == 0x49.toByte() &&
-      data[2] == 0x46.toByte() && data[3] == 0x38.toByte())
-      return ImageFormat.GIF
+    if (bytes.size >= 6 && bytes[0] == 0x47.toByte() && bytes[1] == 0x49.toByte() &&
+      bytes[2] == 0x46.toByte() && bytes[3] == 0x38.toByte())
+      return ImageFormat.Gif
     // BMP: BM
-    if (data[0] == 0x42.toByte() && data[1] == 0x4D.toByte())
-      return ImageFormat.BMP
+    if (bytes[0] == 0x42.toByte() && bytes[1] == 0x4D.toByte())
+      return ImageFormat.Bmp
     // TIFF: II*\0 or MM\0*
-    if ((data[0] == 0x49.toByte() && data[1] == 0x49.toByte() && data[2] == 0x2A.toByte() && data[3] == 0x00.toByte()) ||
-      (data[0] == 0x4D.toByte() && data[1] == 0x4D.toByte() && data[2] == 0x00.toByte() && data[3] == 0x2A.toByte()))
-      return ImageFormat.TIFF
+    if ((bytes[0] == 0x49.toByte() && bytes[1] == 0x49.toByte() && bytes[2] == 0x2A.toByte() && bytes[3] == 0x00.toByte()) ||
+      (bytes[0] == 0x4D.toByte() && bytes[1] == 0x4D.toByte() && bytes[2] == 0x00.toByte() && bytes[3] == 0x2A.toByte()))
+      return ImageFormat.Tiff
     // WebP: RIFF....WEBP
-    if (data.size >= 12 && data[0] == 0x52.toByte() && data[1] == 0x49.toByte() &&
-      data[2] == 0x46.toByte() && data[3] == 0x46.toByte() &&
-      data[8] == 0x57.toByte() && data[9] == 0x45.toByte() &&
-      data[10] == 0x42.toByte() && data[11] == 0x50.toByte())
-      return ImageFormat.WEBP
+    if (bytes.size >= 12 && bytes[0] == 0x52.toByte() && bytes[1] == 0x49.toByte() &&
+      bytes[2] == 0x46.toByte() && bytes[3] == 0x46.toByte() &&
+      bytes[8] == 0x57.toByte() && bytes[9] == 0x45.toByte() &&
+      bytes[10] == 0x42.toByte() && bytes[11] == 0x50.toByte())
+      return ImageFormat.Webp
     return null
   }
 
-  override suspend fun decode(source: ByteArray, options: ImageDecodeOptions, context: TransmuteContext): ImageIR {
-    val input = ByteArrayInputStream(source)
+  override suspend fun decode(source: Bytes, options: ImageDecodeOptions, context: TransmuteContext): ImageIR {
+    val input = ByteArrayInputStream(source.data)
     val img = ImageIO.read(input) ?: error("ImageIO could not decode image")
 
     val converted = BufferedImage(img.width, img.height, BufferedImage.TYPE_4BYTE_ABGR)
@@ -96,11 +98,11 @@ class JvmImageIoDecoder : ImageDecoder {
 
 class JvmImageIoEncoder : ImageEncoder {
   override val supportedFormats: Set<ImageFormat> = setOf(
-    ImageFormat.JPEG,
-    ImageFormat.PNG,
-    ImageFormat.GIF,
-    ImageFormat.TIFF,
-    ImageFormat.WEBP,
+    ImageFormat.Jpeg,
+    ImageFormat.Png,
+    ImageFormat.Gif,
+    ImageFormat.Tiff,
+    ImageFormat.Webp,
   )
 
   override suspend fun encode(
@@ -108,7 +110,7 @@ class JvmImageIoEncoder : ImageEncoder {
     format: ImageFormat,
     options: ImageEncodeOptions,
     context: TransmuteContext,
-  ): ByteArray {
+  ): Bytes {
     val buffer = ir.buffer as? ByteArrayPixelBuffer
       ?: error("JvmImageIoEncoder requires ByteArrayPixelBuffer")
     require(ir.pixelFormat == PixelFormat.RGBA_8888) { "Only RGBA_8888 is supported" }
@@ -116,24 +118,24 @@ class JvmImageIoEncoder : ImageEncoder {
     require(format in supportedFormats) { "Unsupported format $format" }
 
     return when (format) {
-      ImageFormat.JPEG -> {
+      ImageFormat.Jpeg -> {
         val quality = when (options) {
           is JpegEncodeOptions -> options.quality
           else -> 0.85f
         }
-        encodeJpeg(buffer, ir.width, ir.height, ir.stride, quality)
+        encodeJpeg(buffer, ir.width, ir.height, ir.stride, quality).asBytes()
       }
-      ImageFormat.PNG -> encodePng(buffer, ir.width, ir.height, ir.stride)
-      ImageFormat.GIF -> encodeViaImageIo(buffer, ir.width, ir.height, ir.stride, "gif", dropAlpha = true)
-      ImageFormat.TIFF -> encodeViaImageIo(buffer, ir.width, ir.height, ir.stride, "tiff", dropAlpha = false)
-      ImageFormat.WEBP -> {
+      ImageFormat.Png -> encodePng(buffer, ir.width, ir.height, ir.stride).asBytes()
+      ImageFormat.Gif -> encodeViaImageIo(buffer, ir.width, ir.height, ir.stride, "gif", dropAlpha = true).asBytes()
+      ImageFormat.Tiff -> encodeViaImageIo(buffer, ir.width, ir.height, ir.stride, "tiff", dropAlpha = false).asBytes()
+      ImageFormat.Webp -> {
         val quality = when (options) {
           is WebPEncodeOptions -> options.quality
           else -> 0.80f
         }
-        encodeWebp(buffer, ir.width, ir.height, ir.stride, quality)
+        encodeWebp(buffer, ir.width, ir.height, ir.stride, quality).asBytes()
       }
-      else -> encodePng(buffer, ir.width, ir.height, ir.stride)
+      else -> encodePng(buffer, ir.width, ir.height, ir.stride).asBytes()
     }
   }
 
