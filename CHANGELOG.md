@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.3.0](https://github.com/SteveOberst/Transmute/compare/v0.2.0...v0.3.0) (2026-02-23)
+
+
+### ⚠ BREAKING CHANGES
+
+* Removed builder-level decodeOptions/encodeOptions in favor of decode { options(...) } / encode { options(...) } stage blocks. Added PipelineHandler '+' composition and tap handler to encourage class-first pipelines.
+* removed *FormatTag and ByteArray-centric codec/pipeline APIs in favor of module-specific format objects and the canonical Bytes wrapper. Updated pipelines, defaults, tests, and docs accordingly.
+* EncodeOptions outputFormat is now non-nullable via OutputFormat (ORIGINAL vs Exact), Default* encode/decode options renamed to Canonical*, and PipelineBuilder adds startWith()/infix then for clearer pipeline construction. Updated docs and expanded pipeline tests.
+* Refactors Transmute pipelines and public DSL; removes builder outputFormat()/metadata() APIs, replaces ConversionContext/ContextKey scratchpad with TransmuteContext + DecodeOptions/EncodeOptions, and updates default handlers + docs accordingly.
+
+### Features
+
+* allow += for same-type pipeline steps ([b200bac](https://github.com/SteveOberst/Transmute/commit/b200bac22547f4de217bb975cbf55dedcdf4121c))
+* options mutation blocks ([69de3ea](https://github.com/SteveOberst/Transmute/commit/69de3ea801f5ebc19a98145c588577e8ac9f3660))
+* OutputFormat + startWith pipeline DSL ([3af7e78](https://github.com/SteveOberst/Transmute/commit/3af7e78cdaf170ce933ba4888821d0769c350f64))
+* stage DSL for decode/encode ([389a078](https://github.com/SteveOberst/Transmute/commit/389a07860df8a59d01d8671650d6f246a79bbf44))
+* vNext pipeline-based transmuter API ([bc383a0](https://github.com/SteveOberst/Transmute/commit/bc383a078e8d38d07bf7cf1eb7a37a71887016a5))
+
+
+### Code Refactoring
+
+* typed formats and Bytes canonicalization ([f34f790](https://github.com/SteveOberst/Transmute/commit/f34f7902e466f1afc8e61249b50571e0e106faf4))
+
 ## [0.2.0](https://github.com/SteveOberst/Transmute/compare/v0.1.0...v0.2.0) (2026-02-19)
 
 
