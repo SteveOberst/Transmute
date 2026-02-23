@@ -163,7 +163,7 @@ suspend fun encodeOptionsExamples(inputBytes: ByteArray) {
 
 ### Dynamic Encode Pipeline (choose output format at runtime)
 
-This example chooses PNG when the image is not opaque, otherwise JPEG, unless the caller explicitly forces an output format via `encode { options(...) }`.
+This example chooses PNG when the image is not opaque, otherwise JPEG, unless the caller explicitly forces an output format via `encode { options { outputFormat = ... } }`.
 
 ```kotlin
 val smartOutput = Transmute.image {
@@ -190,7 +190,7 @@ val smartOutput = Transmute.image {
 
 ### Custom Input Type + Custom Decode Pipeline
 
-Decode pipelines are `IN -> Decoded<Format, IR>`. Here we accept a custom input type and map it to raw bytes before using the default decode handler.
+Decode pipelines are `IN -> Decoded<F, IR>`. Here we accept a custom input type and map it to raw bytes before using the default decode handler.
 
 ```kotlin
 data class NamedBytes(val name: String, val bytes: ByteArray)
@@ -217,10 +217,10 @@ This example shows how to accept it as `IN` and still reuse the default decode h
 ```kotlin
 class BufferedImageToBytesHandler(
   private val formatName: String = "png",
-) : PipelineHandler<java.awt.image.BufferedImage, Bytes> {
-  override suspend fun handle(value: java.awt.image.BufferedImage, context: TransmuteContext): Bytes {
+) : PipelineHandler<BufferedImage, Bytes> {
+  override suspend fun handle(value: BufferedImage, context: TransmuteContext): Bytes {
     val out = java.io.ByteArrayOutputStream()
-    val ok = javax.imageio.ImageIO.write(value, formatName, out)
+    val ok = ImageIO.write(value, formatName, out)
     require(ok) { "No ImageIO writer for formatName=$formatName" }
     return out.toByteArray().asBytes()
   }

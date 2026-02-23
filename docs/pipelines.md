@@ -35,7 +35,7 @@ val t = Transmute.imageFrom<NamedBytes> {
 
 ## Dynamic Encode Format Selection
 
-Output format selection is an **encode concern** (via `encode { options(...) }` or a handler policy),
+Output format selection is an **encode concern** (via `encode { options { ... } }` or a handler policy),
 not a builder-level knob.
 
 ```kotlin

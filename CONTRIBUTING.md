@@ -1,4 +1,4 @@
-    # Contributing to Transmute
+﻿    # Contributing to Transmute
 
 Thank you for your interest in contributing to Transmute! This guide covers everything
 you need to know - from setting up your environment to adding new codecs and submitting
@@ -65,7 +65,6 @@ scoop install ffmpeg
 
 You can tell Transmute to use your system FFmpeg for tests:
 
-<!--
 ```kotlin
 TransmuteConfig.ffmpeg = FfmpegConfig.system()            // PATH lookup
 TransmuteConfig.ffmpeg = FfmpegConfig.system("/usr/local/bin/ffmpeg")  // explicit
@@ -77,34 +76,34 @@ TransmuteConfig.ffmpeg = FfmpegConfig.system("/usr/local/bin/ffmpeg")  // explic
 
 ```
 Transmute/
-├-- transmute-api/        # Public facade (Transmute.kt, Transformers.kt, *TransmuterExt.kt)
-├-- transmute-core/       # Codec/Transform base types, IR types, TransmuteConfig
-├-- transmute-audio/      # Audio codecs + transforms
-├-- transmute-image/      # Image codecs + transforms
-├-- transmute-video/      # Video codecs + transforms
-├-- gradle/
-│   └-- libs.versions.toml  # Version catalog
-├-- .github/workflows/
-│   ├-- ci.yml            # Unit tests on every push + PR
-│   ├-- integration.yml   # Full integration tests (Android emulator, iOS sim, desktop)
-│   └-- release.yml       # release-please + publish (gates on integration tests)
-├-- release-please-config.json
-└-- .release-please-manifest.json
+â”œ-- transmute-api/        # Public facade (Transmute.kt, Transformers.kt, *TransmuterExt.kt)
+â”œ-- transmute-core/       # Codec/Transform base types, IR types, TransmuteConfig
+â”œ-- transmute-audio/      # Audio codecs + transforms
+â”œ-- transmute-image/      # Image codecs + transforms
+â”œ-- transmute-video/      # Video codecs + transforms
+â”œ-- gradle/
+â”‚   â””-- libs.versions.toml  # Version catalog
+â”œ-- .github/workflows/
+â”‚   â”œ-- ci.yml            # Unit tests on every push + PR
+â”‚   â”œ-- integration.yml   # Full integration tests (Android emulator, iOS sim, desktop)
+â”‚   â””-- release.yml       # release-please + publish (gates on integration tests)
+â”œ-- release-please-config.json
+â””-- .release-please-manifest.json
 ```
 
 Each media module follows the same pattern:
 
 ```
 transmute-<domain>/
-└-- src/
-    ├-- commonMain/       # Cross-platform types, IR, format detection, pure-Kotlin codecs
-    ├-- commonTest/       # Tests for the above
-    ├-- desktopMain/      # JVM/Desktop codecs (ImageIO, FFmpeg, JLayer, etc.)
-    ├-- desktopTest/      # Desktop integration tests (roundtrip encode → decode)
-    ├-- androidMain/      # Android codecs (BitmapFactory, MediaCodec, etc.)
-    ├-- androidInstrumentedTest/  # Android instrumented tests (requires device/emulator)
-    ├-- iosMain/          # iOS codecs (CoreGraphics, AVFoundation)
-    └-- iosTest/          # iOS tests (requires macOS + simulator)
+â””-- src/
+    â”œ-- commonMain/       # Cross-platform types, IR, format detection, pure-Kotlin codecs
+    â”œ-- commonTest/       # Tests for the above
+    â”œ-- desktopMain/      # JVM/Desktop codecs (ImageIO, FFmpeg, JLayer, etc.)
+    â”œ-- desktopTest/      # Desktop integration tests (roundtrip encode â†’ decode)
+    â”œ-- androidMain/      # Android codecs (BitmapFactory, MediaCodec, etc.)
+    â”œ-- androidInstrumentedTest/  # Android instrumented tests (requires device/emulator)
+    â”œ-- iosMain/          # iOS codecs (CoreGraphics, AVFoundation)
+    â””-- iosTest/          # iOS tests (requires macOS + simulator)
 ```
 
 ---
@@ -129,14 +128,14 @@ which drive automatic changelog generation and semantic versioning via
 
 | Type              | Purpose                      | Version Bump            |
 |-------------------|------------------------------|-------------------------|
-| `feat`            | New feature                  | Minor (0.x → 0.x+1)     |
-| `fix`             | Bug fix                      | Patch (0.1.x → 0.1.x+1) |
+| `feat`            | New feature                  | Minor (0.x â†’ 0.x+1)     |
+| `fix`             | Bug fix                      | Patch (0.1.x â†’ 0.1.x+1) |
 | `docs`            | Documentation only           | -                       |
 | `test`            | Adding/updating tests        | -                       |
 | `refactor`        | Code change (no feature/fix) | -                       |
 | `chore`           | Build/CI/tooling             | -                       |
 | `perf`            | Performance improvement      | -                       |
-| `BREAKING CHANGE` | Breaking API change          | Major (0.x → 1.0)       |
+| `BREAKING CHANGE` | Breaking API change          | Major (0.x â†’ 1.0)       |
 
 ### Scopes
 
@@ -163,10 +162,9 @@ git commit -m "fix(audio): fix MP3 decode crash on zero-length input"
 git commit -m "test(video): add Android instrumented tests for MP4 roundtrip"
 
 # Breaking change
-git commit -m "feat(core)!: rename ConversionContext to TransmuteContext
+git commit -m "feat(api)!: stage DSL for decode/encode
 
-BREAKING CHANGE: ConversionContext was replaced by TransmuteContext.
-Resolved input formats now flow through `Decoded<F, IR>` instead of context fields."
+BREAKING CHANGE: Builder-level encodeOptions/decodeOptions were removed. Use decode { options(...) } / encode { options(...) } blocks instead."
 ```
 
 ---
@@ -187,7 +185,7 @@ Resolved input formats now flow through `Decoded<F, IR>` instead of context fiel
 ### Version Policy
 
 - Pre-1.0: `feat` bumps patch, breaking changes bump minor
-- Post-1.0: Standard semver (`feat` → minor, `fix` → patch, breaking → major)
+- Post-1.0: Standard semver (`feat` â†’ minor, `fix` â†’ patch, breaking â†’ major)
 - Current version is tracked in `.release-please-manifest.json`
 
 ### JitPack
@@ -214,17 +212,9 @@ Formats are typed singleton objects (not enums). Add the new format to the corre
 - Audio: `transmute-audio/.../AudioFormat.kt`
 - Video: `transmute-video/.../VideoFormat.kt`
 
-Also add it to the domain’s `Format.all` set so registries and docs can enumerate supported formats.
+Also add it to the domainâ€™s `Format.all` set so registries and docs can enumerate supported formats.
 
-<!--
-```kotlin
-sealed interface AudioFormat : MediaFormat<AudioDecodeOptions, AudioEncodeOptions> {
-  // ...
-  ALAC,  // ← new entry
-  UNKNOWN;
-}
-```
--->
+
 
 ```kotlin
 // transmute-audio/src/commonMain/kotlin/dev/transmute/audio/AudioFormat.kt
@@ -274,26 +264,7 @@ Create a new file in the appropriate platform source set:
 Implement the unified `Codec` interface (or `Decoder`/`Encoder` if the
 codec only works in one direction):
 
-<!--
-```kotlin
-internal class JvmAlacCodec : AudioCodec {
-  override val decodableFormats = setOf(AudioFormat.ALAC)
-  override val encodableFormats = setOf(AudioFormat.ALAC)
 
-  override fun sniff(data: ByteArray): AudioFormat? {
-    // Return AudioFormat.ALAC if magic bytes match, null otherwise
-  }
-
-  override suspend fun decode(source: ByteArray, options: AudioDecodeOptions, context: TransmuteContext): AudioIR {
-    // Decode raw bytes → AudioIR
-  }
-
-  override suspend fun encode(ir: AudioIR, format: AudioFormat, options: AudioEncodeOptions, context: TransmuteContext): ByteArray {
-    // Encode AudioIR → raw bytes
-  }
-}
-```
--->
 
 ```kotlin
 internal class JvmAlacCodec : AudioCodec {
@@ -362,13 +333,13 @@ class JvmAlacCodecTest {
 - Place tests in the matching test source set (`desktopTest`, `androidInstrumentedTest`, etc.)
 - Use the `TestHelpers` classes for synthetic fixtures (`AudioTestHelpers`, `ImageTestHelpers`, `VideoTestHelpers`)
 - Skip gracefully when optional dependencies (e.g. FFmpeg) aren't available
-- Test encode → decode roundtrip with dimension/sample-rate/channel preservation
+- Test encode â†’ decode roundtrip with dimension/sample-rate/channel preservation
 - For lossy codecs, assert with reasonable tolerance (don't compare pixel-exact)
 
 ### 6. Update Documentation
 
 1. **docs/codecs/** - Add/update the format page with platform support + usage examples
-2. **README.md** - Mention new format support if it’s user-visible
+2. **README.md** - Mention new format support if itâ€™s user-visible
 3. Release notes are handled automatically by release-please
 
 ### Codec Checklist
@@ -377,7 +348,7 @@ class JvmAlacCodecTest {
 - [ ] `sniff(data: Bytes)` implemented (and covered by tests)
 - [ ] Codec implementation (implements `Codec`, `*Codec`, `*Decoder`, or `*Encoder`)
 - [ ] Codec registered in the platform registration file
-- [ ] Integration test with roundtrip encode → decode
+- [ ] Integration test with roundtrip encode â†’ decode
 - [ ] Docs updated (`docs/codecs/`, README if needed)
 - [ ] Commit message follows `feat(<module>): add <FORMAT> codec for <platform>`
 
@@ -538,7 +509,7 @@ The project has three GitHub Actions workflows:
 |-----------------------|-------------------|---------------------------------|----------------------------------------------------------------------------------------------|
 | **Unit Tests**        | `ci.yml`          | Every push & PR                 | `commonTest` + `desktopTest` on Ubuntu (fast)                                                |
 | **Integration Tests** | `integration.yml` | PRs to `main`, releases, manual | Android emulator tests (Linux), iOS simulator tests (macOS), desktop tests w/ FFmpeg (macOS) |
-| **Release**           | `release.yml`     | Push to `main`                  | release-please PR → integration gate → publish artifacts                                     |
+| **Release**           | `release.yml`     | Push to `main`                  | release-please PR â†’ integration gate â†’ publish artifacts                                     |
 
 **Unit Tests** run on every commit to give fast feedback. They cover all
 pure-Kotlin and JVM desktop codecs.
@@ -586,3 +557,4 @@ published if all integration tests pass.
 7. A maintainer will review and merge
 
 Thank you for contributing!
+
