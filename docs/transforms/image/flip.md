@@ -14,7 +14,6 @@ Mirror an image horizontally and/or vertically.
 ### DSL
 
 ```kotlin
-import dev.transmute.core.asBytes
 Transmute.image { flip(horizontal = true) }.transmute(bytes.asBytes()).bytes.data
 ```
 

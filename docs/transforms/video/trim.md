@@ -14,7 +14,6 @@ Trim a video to a specific time range.
 ### DSL
 
 ```kotlin
-import dev.transmute.core.asBytes
 Transmute.video { trim(startMs = 0, endMs = 30_000) }.transmute(bytes.asBytes()).bytes.data
 ```
 

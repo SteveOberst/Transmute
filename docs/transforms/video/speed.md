@@ -13,7 +13,6 @@ Change playback speed, adjusting both frame timing and audio.
 ### DSL
 
 ```kotlin
-import dev.transmute.core.asBytes
 Transmute.video { speed(2.0f) }.transmute(bytes.asBytes()).bytes.data
 ```
 

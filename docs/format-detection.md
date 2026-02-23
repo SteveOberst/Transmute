@@ -7,11 +7,6 @@ Transmute provides two levels of format detection:
 Use these when you already know the media domain:
 
 ```kotlin
-import dev.transmute.image.ImageFormatDetector
-import dev.transmute.audio.AudioFormatDetector
-import dev.transmute.video.VideoFormatDetector
-import dev.transmute.core.asBytes
-
 val imageFormat = ImageFormatDetector.detect(bytes.asBytes())
 val audioFormat = AudioFormatDetector.detect(bytes.asBytes())
 val videoFormat = VideoFormatDetector.detect(bytes.asBytes())
@@ -22,10 +17,6 @@ val videoFormat = VideoFormatDetector.detect(bytes.asBytes())
 Use `Transmute.detectFormat(...)` when you need to determine the domain:
 
 ```kotlin
-import dev.transmute.Transmute
-import dev.transmute.core.UnknownFormat
-import dev.transmute.core.asBytes
-
 val format = Transmute.detectFormat(bytes.asBytes())
 if (format == UnknownFormat) error("unknown format")
 ```

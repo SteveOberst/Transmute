@@ -13,7 +13,6 @@ Change the sample rate of audio data.
 ### DSL
 
 ```kotlin
-import dev.transmute.core.asBytes
 Transmute.audio { resample(targetSampleRate = 22050) }.transmute(bytes.asBytes()).bytes.data
 ```
 

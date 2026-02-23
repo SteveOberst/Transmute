@@ -13,12 +13,6 @@ Ogg Vorbis is an open-source lossy audio format. It provides good quality at low
 ## Usage
 
 ```kotlin
-import dev.transmute.Transmute
-import dev.transmute.audio.CanonicalAudioEncodeOptions
-import dev.transmute.core.OutputFormat
-import dev.transmute.core.asBytes
-import dev.transmute.audio.AudioFormat
-
 // Convert audio to OGG (Vorbis) (Android/Desktop)
 suspend fun convertToOgg(inputBytes: ByteArray): ByteArray =
   Transmute.audio {

@@ -13,10 +13,6 @@ WebP is a modern image format that supports both lossy and lossless compression,
 ## Usage
 
 ```kotlin
-import dev.transmute.Transmute
-import dev.transmute.core.asBytes
-import dev.transmute.image.WebPEncodeOptions
-
 // Convert any image to WebP (lossy)
 suspend fun convertToWebp(inputBytes: ByteArray): ByteArray =
   Transmute.image {

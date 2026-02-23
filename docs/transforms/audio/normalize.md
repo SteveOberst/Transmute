@@ -13,7 +13,6 @@ Peak amplitude normalization - scales the entire signal so the loudest sample re
 ### DSL
 
 ```kotlin
-import dev.transmute.core.asBytes
 Transmute.audio { normalize(targetPeak = 0.9f) }.transmute(bytes.asBytes()).bytes.data
 ```
 

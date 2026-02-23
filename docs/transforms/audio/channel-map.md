@@ -13,7 +13,6 @@ Remap audio channels by specifying which source channel feeds each output channe
 ### DSL
 
 ```kotlin
-import dev.transmute.core.asBytes
 
 // Duplicate left channel to both outputs
 Transmute.audio { channelMap(intArrayOf(0, 0)) }.transmute(bytes.asBytes()).bytes.data

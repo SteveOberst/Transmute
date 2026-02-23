@@ -17,7 +17,6 @@ Dynamic range compressor - reduces the volume of loud passages.
 ### DSL
 
 ```kotlin
-import dev.transmute.core.asBytes
 Transmute.audio { compressor(thresholdDb = -20f, ratio = 4f) }.transmute(bytes.asBytes()).bytes.data
 ```
 

@@ -13,12 +13,6 @@ M4A is an audio-only MP4 container, typically containing AAC audio. It is widely
 ## Usage
 
 ```kotlin
-import dev.transmute.Transmute
-import dev.transmute.audio.CanonicalAudioEncodeOptions
-import dev.transmute.core.OutputFormat
-import dev.transmute.core.asBytes
-import dev.transmute.audio.AudioFormat
-
 // Convert audio to M4A
 suspend fun convertToM4a(inputBytes: ByteArray): ByteArray =
   Transmute.audio {

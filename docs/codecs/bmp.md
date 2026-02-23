@@ -13,13 +13,6 @@ BMP (Bitmap) is a simple, mostly uncompressed image format. It is large but easy
 ## Usage
 
 ```kotlin
-import dev.transmute.Transmute
-import dev.transmute.core.OutputFormat
-import dev.transmute.core.asBytes
-import dev.transmute.image.CanonicalImageEncodeOptions
-import dev.transmute.image.ImageFormat
-import dev.transmute.image.JpegEncodeOptions
-
 // Convert any image to BMP
 suspend fun convertToBmp(inputBytes: ByteArray): ByteArray =
   Transmute.image {

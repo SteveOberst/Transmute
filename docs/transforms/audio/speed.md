@@ -13,7 +13,6 @@ Change playback speed without altering pitch.
 ### DSL
 
 ```kotlin
-import dev.transmute.core.asBytes
 Transmute.audio { speed(1.5f) }.transmute(bytes.asBytes()).bytes.data
 ```
 

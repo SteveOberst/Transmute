@@ -16,7 +16,6 @@ Trim silence from the start and/or end of audio.
 ### DSL
 
 ```kotlin
-import dev.transmute.core.asBytes
 Transmute.audio { silenceTrim(thresholdDb = -40f) }.transmute(bytes.asBytes()).bytes.data
 ```
 

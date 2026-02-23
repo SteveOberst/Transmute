@@ -13,7 +13,6 @@ Adjust the alpha channel of every pixel.
 ### DSL
 
 ```kotlin
-import dev.transmute.core.asBytes
 Transmute.image { opacity(0.5f) }.transmute(bytes.asBytes()).bytes.data
 ```
 

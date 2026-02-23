@@ -11,7 +11,6 @@ None.
 ### DSL
 
 ```kotlin
-import dev.transmute.core.asBytes
 Transmute.video { removeAudio() }.transmute(bytes.asBytes()).bytes.data
 ```
 

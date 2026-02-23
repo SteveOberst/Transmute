@@ -13,12 +13,6 @@ MKV (Matroska) is a flexible open container format commonly used for high-qualit
 ## Usage
 
 ```kotlin
-import dev.transmute.Transmute
-import dev.transmute.core.OutputFormat
-import dev.transmute.core.asBytes
-import dev.transmute.video.CanonicalVideoEncodeOptions
-import dev.transmute.video.VideoFormat
-
 // Convert video to MKV (Android/Desktop)
 suspend fun convertToMkv(inputBytes: ByteArray): ByteArray =
   Transmute.video {

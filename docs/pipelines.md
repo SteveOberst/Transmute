@@ -17,25 +17,18 @@ The default implementations are regular handler classes you can reuse in your ow
 ## Custom Input Type + Default Decode Handler
 
 ```kotlin
-import dev.transmute.Transmute
-import dev.transmute.core.Bytes
-import dev.transmute.core.asBytes
-import dev.transmute.core.pipeline.PipelineHandler
-import dev.transmute.image.CanonicalImageDecodeOptions
-import dev.transmute.image.ImageCodecs
-import dev.transmute.image.ImageFormat
-
 data class NamedBytes(val name: String, val bytes: ByteArray)
+
+class NamedBytesToBytesHandler : PipelineHandler<NamedBytes, Bytes> {
+  override suspend fun handle(value: NamedBytes, context: TransmuteContext): Bytes =
+    value.bytes.asBytes()
+}
 
 val t = Transmute.imageFrom<NamedBytes> {
   decode {
     options(CanonicalImageDecodeOptions(acceptedInputFormats = setOf(ImageFormat.Png, ImageFormat.Jpeg)))
 
-    pipeline(
-      start =
-        PipelineHandler<NamedBytes, Bytes> { input, _ -> input.bytes.asBytes() } +
-          ImageCodecs.Decode.DEFAULT,
-    )
+    pipeline(start = NamedBytesToBytesHandler() + ImageCodecs.Decode.DEFAULT)
   }
 }
 ```
@@ -46,15 +39,6 @@ Output format selection is an **encode concern** (via `encode { options(...) }` 
 not a builder-level knob.
 
 ```kotlin
-import dev.transmute.Transmute
-import dev.transmute.core.OutputFormat
-import dev.transmute.core.pipeline.tap
-import dev.transmute.image.AlphaSemantics
-import dev.transmute.image.CanonicalImageEncodeOptions
-import dev.transmute.image.ImageFormat
-import dev.transmute.image.ImageDynamicEncodeHandler
-import dev.transmute.image.ImageOutputFormatSelector
-
 val t = Transmute.image {
   encode {
     options(CanonicalImageEncodeOptions(outputFormat = OutputFormat.ORIGINAL))

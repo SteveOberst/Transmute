@@ -19,15 +19,6 @@ Kotlin Multiplatform media conversion, compression and transformation - image, a
 ## Quick Start
 
 ```kotlin       
-import dev.transmute.Transmute
-import dev.transmute.core.OutputFormat
-import dev.transmute.core.UnknownFormat
-import dev.transmute.core.asBytes
-import dev.transmute.image.JpegEncodeOptions
-import dev.transmute.image.ResampleFilter
-import dev.transmute.video.CanonicalVideoEncodeOptions
-import dev.transmute.video.VideoFormat
-
 suspend fun quickStart(
     pngBytes: ByteArray,
     wavBytes: ByteArray,
@@ -70,7 +61,7 @@ suspend fun quickStart(
 ## Building Transmuters
 
 Transmuters are reusable objects you build once and apply to many inputs.
-If your inputs are `ByteArray`, use `import dev.transmute.core.asBytes` and pass `bytes.asBytes()` to `transmute(...)`.
+If your inputs are `ByteArray`, pass `bytes.asBytes()` to `transmute(...)`.
 
 ```kotlin
 // Reusable dynamic-output image transmuter (output defaults to "same as input" unless encode options force it)
@@ -134,15 +125,6 @@ suspend fun encodeOptionsExamples(inputBytes: ByteArray) {
 This example chooses PNG when the image is not opaque, otherwise JPEG, unless the caller explicitly forces an output format via `encode { options(...) }`.
 
 ```kotlin
-import dev.transmute.Transmute
-import dev.transmute.core.OutputFormat
-import dev.transmute.core.pipeline.tap
-import dev.transmute.image.AlphaSemantics
-import dev.transmute.image.CanonicalImageEncodeOptions
-import dev.transmute.image.ImageDynamicEncodeHandler
-import dev.transmute.image.ImageFormat
-import dev.transmute.image.ImageOutputFormatSelector
-
 val smartOutput = Transmute.image {
     encode {
         options(CanonicalImageEncodeOptions(outputFormat = OutputFormat.ORIGINAL))
@@ -170,15 +152,12 @@ val smartOutput = Transmute.image {
 Decode pipelines are `IN -> Decoded<Format, IR>`. Here we accept a custom input type and map it to raw bytes before using the default decode handler.
 
 ```kotlin
-import dev.transmute.Transmute
-import dev.transmute.core.Bytes
-import dev.transmute.core.asBytes
-import dev.transmute.core.pipeline.PipelineHandler
-import dev.transmute.image.CanonicalImageDecodeOptions
-import dev.transmute.image.ImageCodecs
-import dev.transmute.image.ImageFormat
-
 data class NamedBytes(val name: String, val bytes: ByteArray)
+
+class NamedBytesToBytesHandler : PipelineHandler<NamedBytes, Bytes> {
+    override suspend fun handle(value: NamedBytes, context: TransmuteContext): Bytes =
+      value.bytes.asBytes()
+}
 
 val fromNamedBytes = Transmute.imageFrom<NamedBytes> {
     decode {
@@ -188,11 +167,7 @@ val fromNamedBytes = Transmute.imageFrom<NamedBytes> {
           ),
         )
 
-        pipeline(
-          start =
-            PipelineHandler<NamedBytes, Bytes> { input, _ -> input.bytes.asBytes() } +
-              ImageCodecs.Decode.DEFAULT,
-        )
+        pipeline(start = NamedBytesToBytesHandler() + ImageCodecs.Decode.DEFAULT)
     }
 }
 ```
@@ -369,9 +344,6 @@ The bundled binary is extracted to `~/.transmute/ffmpeg/` on first use. Supporte
 ## Custom Codecs & Transforms
 
 ```kotlin
-import dev.transmute.core.Bytes
-import dev.transmute.core.asBytes
-
 // Register a custom codec
 class MyWebpDecoder : ImageDecoder {
     override val supportedFormats = setOf(ImageFormat.Webp)
