@@ -78,3 +78,11 @@ If you want to append *same-type* post steps, `+=` works because the handler typ
 var encode = ImageCodecs.Encode.DEFAULT
 encode += tap { out, ctx -> ctx.logger.info("encoded ${out.format} -> ${out.bytes.size} bytes") }
 ```
+
+The same idea applies to *pipeline builders* (as long as the step does not change the current type):
+
+```kotlin
+var decode = PipelineBuilder.start<Bytes>().startWith(ImageCodecs.Decode.DEFAULT)
+decode += tap { decoded, ctx -> ctx.logger.info("decoded ${decoded.format}") }
+val pipeline = decode.build()
+```

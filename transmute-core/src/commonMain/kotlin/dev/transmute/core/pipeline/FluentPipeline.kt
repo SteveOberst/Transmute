@@ -61,3 +61,27 @@ class PipelineBuilder<IN, CUR> internal constructor(
     fun <IN> start(): PipelineBuilder<IN, IN> = PipelineBuilder(emptyList())
   }
 }
+
+/**
+ * Append a **same-type** handler to a [PipelineBuilder].
+ *
+ * This exists mostly to enable ergonomic `+=` usage:
+ *
+ * ```kotlin
+ * var b = PipelineBuilder.start<Bytes>().startWith(ImageCodecs.Decode.DEFAULT)
+ * b += tap { decoded, ctx -> ctx.logger.info("decoded ${decoded.format}") }
+ * val pipeline = b.build()
+ * ```
+ *
+ * For **type-changing** steps you must use [PipelineBuilder.then]/[PipelineBuilder.startWith].
+ */
+operator fun <IN, CUR> PipelineBuilder<IN, CUR>.plus(
+  next: PipelineHandler<CUR, CUR>,
+): PipelineBuilder<IN, CUR> = this then next
+
+/**
+ * Append a **same-type** lambda step to a [PipelineBuilder]. See [plus].
+ */
+operator fun <IN, CUR> PipelineBuilder<IN, CUR>.plus(
+  block: suspend (CUR, TransmuteContext) -> CUR,
+): PipelineBuilder<IN, CUR> = this then block
