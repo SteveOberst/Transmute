@@ -65,6 +65,7 @@ scoop install ffmpeg
 
 You can tell Transmute to use your system FFmpeg for tests:
 
+<!--
 ```kotlin
 TransmuteConfig.ffmpeg = FfmpegConfig.system()            // PATH lookup
 TransmuteConfig.ffmpeg = FfmpegConfig.system("/usr/local/bin/ffmpeg")  // explicit
@@ -205,17 +206,35 @@ This is the most common contribution. Follow these steps to add a codec
 properly - the process is the same regardless of media domain (image, audio,
 video).
 
-### 1. Check the Format Enum
+### 1. Add the Format type
 
-Open `transmute-core/.../MediaFormat.kt` and check whether the format
-already exists in the corresponding enum (`ImageFormat`, `AudioFormat`,
-`VideoFormat`). If not, add it:
+Formats are typed singleton objects (not enums). Add the new format to the corresponding domain format type:
 
+- Images: `transmute-image/.../ImageFormat.kt`
+- Audio: `transmute-audio/.../AudioFormat.kt`
+- Video: `transmute-video/.../VideoFormat.kt`
+
+Also add it to the domain’s `Format.all` set so registries and docs can enumerate supported formats.
+
+<!--
 ```kotlin
-enum class AudioFormat : MediaFormat {
-  WAV, MP3, FLAC, OGG, AAC, M4A, OPUS,
+sealed interface AudioFormat : MediaFormat<AudioDecodeOptions, AudioEncodeOptions> {
+  // ...
   ALAC,  // ← new entry
   UNKNOWN;
+}
+```
+-->
+
+```kotlin
+// transmute-audio/src/commonMain/kotlin/dev/transmute/audio/AudioFormat.kt
+sealed interface AudioFormat : MediaFormat<AudioDecodeOptions, AudioEncodeOptions> {
+  // ...
+  data object Alac : AudioFormat { override val mimeType: String = "audio/alac"; override val extension: String = "m4a" }
+
+  companion object {
+    val all: Set<AudioFormat> = setOf(Mp3, Aac, Wav, Ogg, Flac, M4a, Opus, Alac)
+  }
 }
 ```
 
@@ -233,10 +252,11 @@ is recognized, or `null` otherwise.
 - Never throw - return `null` when unsure
 
 ```kotlin
-override fun sniff(data: ByteArray): AudioFormat? {
-  if (data.size < 4) return null
+override fun sniff(data: Bytes): AudioFormat? {
+  val bytes = data.data
+  if (bytes.size < 4) return null
   // ... check container/header signature ...
-  return AudioFormat.ALAC
+  return AudioFormat.Alac
 }
 ```
 
@@ -254,6 +274,7 @@ Create a new file in the appropriate platform source set:
 Implement the unified `Codec` interface (or `Decoder`/`Encoder` if the
 codec only works in one direction):
 
+<!--
 ```kotlin
 internal class JvmAlacCodec : AudioCodec {
   override val decodableFormats = setOf(AudioFormat.ALAC)
@@ -272,6 +293,29 @@ internal class JvmAlacCodec : AudioCodec {
   }
 }
 ```
+-->
+
+```kotlin
+internal class JvmAlacCodec : AudioCodec {
+  override val decodableFormats = setOf(AudioFormat.Alac)
+  override val encodableFormats = setOf(AudioFormat.Alac)
+
+  override fun sniff(data: Bytes): AudioFormat? = null
+
+  override suspend fun decode(
+    source: Bytes,
+    options: AudioDecodeOptions,
+    context: TransmuteContext,
+  ): AudioIR = TODO("decode")
+
+  override suspend fun encode(
+    ir: AudioIR,
+    format: AudioFormat,
+    options: AudioEncodeOptions,
+    context: TransmuteContext,
+  ): Bytes = TODO("encode")
+}
+```
 
 ### 4. Register the Codec
 
@@ -279,10 +323,14 @@ In the platform's registration file (e.g. `PlatformAudioCodecs.desktop.kt`),
 register the new codec so it's automatically discovered:
 
 ```kotlin
-// In PlatformAudioCodecs.desktop.kt
-actual fun registerPlatformAudioCodecs() {
-  AudioRegistries.register(JvmAlacCodec())
-  // ... existing registrations ...
+// transmute-audio/src/desktopMain/.../PlatformAudioCodecs.desktop.kt
+actual fun installPlatformAudioCodecs(
+  decoders: MutableAudioDecoderRegistry,
+  encoders: MutableAudioEncoderRegistry,
+) {
+  val alac = JvmAlacCodec()
+  decoders.register(alac)
+  encoders.register(alac)
 }
 ```
 
@@ -297,13 +345,13 @@ class JvmAlacCodecTest {
     val original = AudioTestHelpers.sineWave(
       frequency = 440f, durationMs = 300, sampleRate = 44100,
     )
-    val ctx = AudioTestHelpers.testContext()
     val codec = JvmAlacCodec()
+    val ctx = AudioTestHelpers.testContext()
 
-    val encoded = codec.encode(original, ctx)
-    assertTrue(encoded.isNotEmpty())
+    val encoded = codec.encode(original, AudioFormat.Alac, CanonicalAudioEncodeOptions(), ctx)
+    assertTrue(encoded.data.isNotEmpty())
 
-    val decoded = codec.decode(encoded, ctx)
+    val decoded = codec.decode(encoded, CanonicalAudioDecodeOptions(), ctx)
     assertEquals(44100, decoded.sampleRate)
     assertTrue(decoded.samples.data.isNotEmpty())
   }
@@ -319,19 +367,18 @@ class JvmAlacCodecTest {
 
 ### 6. Update Documentation
 
-1. **README.md** - Update the platform support table with the new format
-2. **README.md** - Add the new integration test to the test tables
+1. **docs/codecs/** - Add/update the format page with platform support + usage examples
+2. **README.md** - Mention new format support if it’s user-visible
 3. Release notes are handled automatically by release-please
 
 ### Codec Checklist
 
-- [ ] Format enum entry exists in `MediaFormat.kt`
-- [ ] `sniff()` implemented (and covered by tests)
-- [ ] Codec implementation (implements `Codec`, `Decoder`, or `Encoder`)
+- [ ] Format object exists in the domain `*Format.kt` file and is included in `*Format.all`
+- [ ] `sniff(data: Bytes)` implemented (and covered by tests)
+- [ ] Codec implementation (implements `Codec`, `*Codec`, `*Decoder`, or `*Encoder`)
 - [ ] Codec registered in the platform registration file
 - [ ] Integration test with roundtrip encode → decode
-- [ ] README platform support table updated
-- [ ] README test table updated
+- [ ] Docs updated (`docs/codecs/`, README if needed)
 - [ ] Commit message follows `feat(<module>): add <FORMAT> codec for <platform>`
 
 ---
