@@ -22,13 +22,13 @@ import dev.transmute.video.VideoFormat
 // Convert video to AVI (Android/Desktop)
 suspend fun convertToAvi(inputBytes: ByteArray): ByteArray =
   Transmute.video {
-    encodeOptions(CanonicalVideoEncodeOptions(outputFormat = OutputFormat.Exact(VideoFormat.Avi)))
+    encode { options(CanonicalVideoEncodeOptions(outputFormat = OutputFormat.Exact(VideoFormat.Avi))) }
   }.transmute(inputBytes.asBytes()).bytes.data
 
 // Decode AVI (re-encode to MP4)
 suspend fun convertToMp4(aviBytes: ByteArray): ByteArray =
   Transmute.video {
-    encodeOptions(CanonicalVideoEncodeOptions(outputFormat = OutputFormat.Exact(VideoFormat.Mp4)))
+    encode { options(CanonicalVideoEncodeOptions(outputFormat = OutputFormat.Exact(VideoFormat.Mp4))) }
   }.transmute(aviBytes.asBytes()).bytes.data
 ```
 

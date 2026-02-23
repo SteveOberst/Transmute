@@ -22,13 +22,13 @@ import dev.transmute.audio.AudioFormat
 // Convert audio to MP3 (Android/Desktop)
 suspend fun convertToMp3(inputBytes: ByteArray): ByteArray =
   Transmute.audio {
-    encodeOptions(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.Mp3)))
+    encode { options(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.Mp3))) }
   }.transmute(inputBytes.asBytes()).bytes.data
 
 // Decode MP3 on any platform (re-encode to WAV)
 suspend fun decodeToWav(mp3Bytes: ByteArray): ByteArray =
   Transmute.audio {
-    encodeOptions(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.Wav)))
+    encode { options(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.Wav))) }
   }.transmute(mp3Bytes.asBytes()).bytes.data
 ```
 

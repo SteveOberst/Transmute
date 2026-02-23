@@ -22,13 +22,13 @@ import dev.transmute.image.JpegEncodeOptions
 // Convert any image to HEIF (Desktop/iOS)
 suspend fun convertToHeif(inputBytes: ByteArray): ByteArray =
   Transmute.image {
-    encodeOptions(HeifEncodeOptions(format = ImageFormat.Heif, quality = 0.8f))
+    encode { options(HeifEncodeOptions(format = ImageFormat.Heif, quality = 0.8f)) }
   }.transmute(inputBytes.asBytes()).bytes.data
 
 // Decode HEIF (re-encode to JPEG)
 suspend fun decodeToJpeg(heifBytes: ByteArray): ByteArray =
   Transmute.image {
-    encodeOptions(JpegEncodeOptions(quality = 0.85f))
+    encode { options(JpegEncodeOptions(quality = 0.85f)) }
   }.transmute(heifBytes.asBytes()).bytes.data
 ```
 

@@ -22,13 +22,13 @@ import dev.transmute.audio.AudioFormat
 // Convert audio to OGG (Vorbis) (Android/Desktop)
 suspend fun convertToOgg(inputBytes: ByteArray): ByteArray =
   Transmute.audio {
-    encodeOptions(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.Ogg)))
+    encode { options(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.Ogg))) }
   }.transmute(inputBytes.asBytes()).bytes.data
 
 // Decode OGG on any platform (re-encode to WAV)
 suspend fun decodeToWav(oggBytes: ByteArray): ByteArray =
   Transmute.audio {
-    encodeOptions(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.Wav)))
+    encode { options(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.Wav))) }
   }.transmute(oggBytes.asBytes()).bytes.data
 ```
 

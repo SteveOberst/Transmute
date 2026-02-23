@@ -22,13 +22,13 @@ import dev.transmute.audio.AudioFormat
 // Convert any audio to WAV
 suspend fun convertToWav(inputBytes: ByteArray): ByteArray =
   Transmute.audio {
-    encodeOptions(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.Wav)))
+    encode { options(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.Wav))) }
   }.transmute(inputBytes.asBytes()).bytes.data
 
 // Convert WAV to AAC
 suspend fun convertToAac(wavBytes: ByteArray): ByteArray =
   Transmute.audio {
-    encodeOptions(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.Aac)))
+    encode { options(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.Aac))) }
   }.transmute(wavBytes.asBytes()).bytes.data
 ```
 

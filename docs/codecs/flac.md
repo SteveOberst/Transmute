@@ -22,13 +22,13 @@ import dev.transmute.audio.AudioFormat
 // Convert audio to FLAC (Android/Desktop)
 suspend fun convertToFlac(inputBytes: ByteArray): ByteArray =
   Transmute.audio {
-    encodeOptions(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.Flac)))
+    encode { options(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.Flac))) }
   }.transmute(inputBytes.asBytes()).bytes.data
 
 // Decode FLAC on any platform (re-encode to WAV)
 suspend fun decodeToWav(flacBytes: ByteArray): ByteArray =
   Transmute.audio {
-    encodeOptions(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.Wav)))
+    encode { options(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.Wav))) }
   }.transmute(flacBytes.asBytes()).bytes.data
 ```
 

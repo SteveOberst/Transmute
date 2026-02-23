@@ -22,13 +22,13 @@ import dev.transmute.video.VideoFormat
 // Convert video to WebM (Android/Desktop)
 suspend fun convertToWebm(inputBytes: ByteArray): ByteArray =
   Transmute.video {
-    encodeOptions(CanonicalVideoEncodeOptions(outputFormat = OutputFormat.Exact(VideoFormat.Webm)))
+    encode { options(CanonicalVideoEncodeOptions(outputFormat = OutputFormat.Exact(VideoFormat.Webm))) }
   }.transmute(inputBytes.asBytes()).bytes.data
 
 // Decode WebM (re-encode to MP4)
 suspend fun convertToMp4(webmBytes: ByteArray): ByteArray =
   Transmute.video {
-    encodeOptions(CanonicalVideoEncodeOptions(outputFormat = OutputFormat.Exact(VideoFormat.Mp4)))
+    encode { options(CanonicalVideoEncodeOptions(outputFormat = OutputFormat.Exact(VideoFormat.Mp4))) }
   }.transmute(webmBytes.asBytes()).bytes.data
 ```
 

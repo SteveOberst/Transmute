@@ -39,7 +39,7 @@ suspend fun quickStart(
     // Scale and convert to JPEG
     val jpegBytes = Transmute.image {
         scale(maxWidth = 1920, maxHeight = 1080)
-        encodeOptions(JpegEncodeOptions(quality = 0.85f))
+        encode { options(JpegEncodeOptions(quality = 0.85f)) }
     }.transmute(pngBytes.asBytes()).bytes.data
 
     // Resize to exact dimensions with Lanczos resampling
@@ -58,7 +58,7 @@ suspend fun quickStart(
     val videoBytes = Transmute.video {
         resize(maxWidth = 1280, maxHeight = 720)
         trim(startMs = 0, endMs = 30_000)
-        encodeOptions(CanonicalVideoEncodeOptions(outputFormat = OutputFormat.Exact(VideoFormat.Mp4)))
+        encode { options(CanonicalVideoEncodeOptions(outputFormat = OutputFormat.Exact(VideoFormat.Mp4))) }
     }.transmute(mp4Bytes.asBytes()).bytes.data
 
     // Detect format from raw bytes
@@ -73,11 +73,11 @@ Transmuters are reusable objects you build once and apply to many inputs.
 If your inputs are `ByteArray`, use `import dev.transmute.core.asBytes` and pass `bytes.asBytes()` to `transmute(...)`.
 
 ```kotlin
-// Reusable dynamic-output image transmuter (output defaults to "same as input" unless encodeOptions force it)
+// Reusable dynamic-output image transmuter (output defaults to "same as input" unless encode options force it)
 val thumbnailer = Transmute.image {
-    decodeOptions(CanonicalImageDecodeOptions()) // optionally restrict acceptedInputFormats
+    decode { options(CanonicalImageDecodeOptions()) } // optionally restrict acceptedInputFormats
     scale(maxWidth = 512, maxHeight = 512)
-    encodeOptions(JpegEncodeOptions(quality = 0.85f))
+    encode { options(JpegEncodeOptions(quality = 0.85f)) }
 }
 
 suspend fun makeThumb(bytes: ByteArray): ByteArray =
@@ -88,7 +88,7 @@ Fixed-output transmuters expose a type-level output format object (useful for ty
 
 ```kotlin
 val pngOnly = Transmute.imageTo(ImageFormat.Png) {
-    encodeOptions(PngEncodeOptions(compressionLevel = 6))
+    encode { options(PngEncodeOptions(compressionLevel = 6)) }
 }
 
 suspend fun toPng(bytes: ByteArray): ByteArray =
@@ -116,42 +116,51 @@ Some formats expose dedicated encode options types:
 ```kotlin
 suspend fun encodeOptionsExamples(inputBytes: ByteArray) {
     val jpeg = Transmute.image {
-        encodeOptions(JpegEncodeOptions(quality = 0.9f, metadataPolicy = MetadataPolicy.PRESERVE))
+        encode { options(JpegEncodeOptions(quality = 0.9f, metadataPolicy = MetadataPolicy.PRESERVE)) }
     }.transmute(inputBytes.asBytes()).bytes.data
 
     val webpLossless = Transmute.image {
-        encodeOptions(WebPEncodeOptions(lossless = true))
+        encode { options(WebPEncodeOptions(lossless = true)) }
     }.transmute(inputBytes.asBytes()).bytes.data
 
     val avif = Transmute.image {
-        encodeOptions(HeifEncodeOptions(format = ImageFormat.Avif, quality = 0.8f))
+        encode { options(HeifEncodeOptions(format = ImageFormat.Avif, quality = 0.8f)) }
     }.transmute(inputBytes.asBytes()).bytes.data
 }
 ```
 
 ### Dynamic Encode Pipeline (choose output format at runtime)
 
-This example chooses PNG when the image is not opaque, otherwise JPEG, unless the caller explicitly forces an output format via `encodeOptions`.
+This example chooses PNG when the image is not opaque, otherwise JPEG, unless the caller explicitly forces an output format via `encode { options(...) }`.
 
 ```kotlin
-val smartOutput = Transmute.image {
-    encodeOptions(CanonicalImageEncodeOptions(outputFormat = OutputFormat.ORIGINAL))
+import dev.transmute.Transmute
+import dev.transmute.core.OutputFormat
+import dev.transmute.core.pipeline.tap
+import dev.transmute.image.AlphaSemantics
+import dev.transmute.image.CanonicalImageEncodeOptions
+import dev.transmute.image.ImageDynamicEncodeHandler
+import dev.transmute.image.ImageFormat
+import dev.transmute.image.ImageOutputFormatSelector
 
+val smartOutput = Transmute.image {
     encode {
-        startWith(
-          ImageDynamicEncodeHandler(
-            outputFormatSelector = ImageOutputFormatSelector { decoded, options ->
-              when (val requested = options.outputFormat) {
-                OutputFormat.ORIGINAL ->
-                  if (decoded.ir.alphaSemantics != AlphaSemantics.OPAQUE) ImageFormat.Png else ImageFormat.Jpeg
-                is OutputFormat.Exact -> requested.format
-              }
+        options(CanonicalImageEncodeOptions(outputFormat = OutputFormat.ORIGINAL))
+
+        pipeline(
+          start =
+            ImageDynamicEncodeHandler(
+              outputFormatSelector = ImageOutputFormatSelector { decoded, options ->
+                when (val requested = options.outputFormat) {
+                  OutputFormat.ORIGINAL ->
+                    if (decoded.ir.alphaSemantics != AlphaSemantics.OPAQUE) ImageFormat.Png else ImageFormat.Jpeg
+                  is OutputFormat.Exact -> requested.format
+                }
+              },
+            ) + tap { out, ctx ->
+              ctx.logger.info("encoded ${out.format} -> ${out.bytes.size} bytes")
             },
-          ),
-        ).then { out, ctx ->
-          ctx.logger.info("encoded ${out.format} -> ${out.bytes.size} bytes")
-          out
-        }
+        )
     }
 }
 ```
@@ -161,19 +170,29 @@ val smartOutput = Transmute.image {
 Decode pipelines are `IN -> Decoded<Format, IR>`. Here we accept a custom input type and map it to raw bytes before using the default decode handler.
 
 ```kotlin
+import dev.transmute.Transmute
+import dev.transmute.core.Bytes
+import dev.transmute.core.asBytes
+import dev.transmute.core.pipeline.PipelineHandler
+import dev.transmute.image.CanonicalImageDecodeOptions
+import dev.transmute.image.ImageCodecs
+import dev.transmute.image.ImageFormat
 
 data class NamedBytes(val name: String, val bytes: ByteArray)
 
 val fromNamedBytes = Transmute.imageFrom<NamedBytes> {
-    decodeOptions(
-      CanonicalImageDecodeOptions(
-        acceptedInputFormats = setOf(ImageFormat.Jpeg, ImageFormat.Png, ImageFormat.Webp),
-      ),
-    )
-
     decode {
-        startWith { input, _ -> input.bytes.asBytes() }
-          .then(ImageDecodeHandler())
+        options(
+          CanonicalImageDecodeOptions(
+            acceptedInputFormats = setOf(ImageFormat.Jpeg, ImageFormat.Png, ImageFormat.Webp),
+          ),
+        )
+
+        pipeline(
+          start =
+            PipelineHandler<NamedBytes, Bytes> { input, _ -> input.bytes.asBytes() } +
+              ImageCodecs.Decode.DEFAULT,
+        )
     }
 }
 ```

@@ -22,13 +22,13 @@ import dev.transmute.video.VideoFormat
 // Convert video to MOV
 suspend fun convertToMov(inputBytes: ByteArray): ByteArray =
   Transmute.video {
-    encodeOptions(CanonicalVideoEncodeOptions(outputFormat = OutputFormat.Exact(VideoFormat.Mov)))
+    encode { options(CanonicalVideoEncodeOptions(outputFormat = OutputFormat.Exact(VideoFormat.Mov))) }
   }.transmute(inputBytes.asBytes()).bytes.data
 
 // Decode MOV (re-encode to MP4)
 suspend fun convertToMp4(movBytes: ByteArray): ByteArray =
   Transmute.video {
-    encodeOptions(CanonicalVideoEncodeOptions(outputFormat = OutputFormat.Exact(VideoFormat.Mp4)))
+    encode { options(CanonicalVideoEncodeOptions(outputFormat = OutputFormat.Exact(VideoFormat.Mp4))) }
   }.transmute(movBytes.asBytes()).bytes.data
 ```
 

@@ -20,13 +20,13 @@ import dev.transmute.image.WebPEncodeOptions
 // Convert any image to WebP (lossy)
 suspend fun convertToWebp(inputBytes: ByteArray): ByteArray =
   Transmute.image {
-    encodeOptions(WebPEncodeOptions(quality = 0.8f, lossless = false))
+    encode { options(WebPEncodeOptions(quality = 0.8f, lossless = false)) }
   }.transmute(inputBytes.asBytes()).bytes.data
 
 // Convert any image to WebP (lossless)
 suspend fun convertToWebpLossless(inputBytes: ByteArray): ByteArray =
   Transmute.image {
-    encodeOptions(WebPEncodeOptions(lossless = true))
+    encode { options(WebPEncodeOptions(lossless = true)) }
   }.transmute(inputBytes.asBytes()).bytes.data
 ```
 

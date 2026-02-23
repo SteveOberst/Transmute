@@ -22,13 +22,13 @@ import dev.transmute.audio.AudioFormat
 // Convert audio to M4A
 suspend fun convertToM4a(inputBytes: ByteArray): ByteArray =
   Transmute.audio {
-    encodeOptions(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.M4a)))
+    encode { options(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.M4a))) }
   }.transmute(inputBytes.asBytes()).bytes.data
 
 // Decode M4A (re-encode to WAV)
 suspend fun decodeToWav(m4aBytes: ByteArray): ByteArray =
   Transmute.audio {
-    encodeOptions(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.Wav)))
+    encode { options(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.Wav))) }
   }.transmute(m4aBytes.asBytes()).bytes.data
 ```
 

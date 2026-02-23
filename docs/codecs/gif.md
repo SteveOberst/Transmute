@@ -23,13 +23,13 @@ import dev.transmute.image.PngEncodeOptions
 // Convert any image to GIF (Desktop/iOS)
 suspend fun convertToGif(inputBytes: ByteArray): ByteArray =
   Transmute.image {
-    encodeOptions(CanonicalImageEncodeOptions(outputFormat = OutputFormat.Exact(ImageFormat.Gif)))
+    encode { options(CanonicalImageEncodeOptions(outputFormat = OutputFormat.Exact(ImageFormat.Gif))) }
   }.transmute(inputBytes.asBytes()).bytes.data
 
 // Decode GIF (re-encode to PNG)
 suspend fun decodeToPng(gifBytes: ByteArray): ByteArray =
   Transmute.image {
-    encodeOptions(PngEncodeOptions())
+    encode { options(PngEncodeOptions()) }
   }.transmute(gifBytes.asBytes()).bytes.data
 ```
 

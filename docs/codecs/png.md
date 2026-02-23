@@ -19,7 +19,7 @@ import dev.transmute.image.PngEncodeOptions
 
 suspend fun convertToPng(inputBytes: ByteArray): ByteArray =
   Transmute.image {
-    encodeOptions(PngEncodeOptions())
+    encode { options(PngEncodeOptions()) }
   }.transmute(inputBytes.asBytes()).bytes.data
 ```
 

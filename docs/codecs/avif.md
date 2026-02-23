@@ -22,13 +22,13 @@ import dev.transmute.image.PngEncodeOptions
 // Convert any image to AVIF (Desktop/iOS)
 suspend fun convertToAvif(inputBytes: ByteArray): ByteArray =
   Transmute.image {
-    encodeOptions(HeifEncodeOptions(format = ImageFormat.Avif, quality = 0.8f))
+    encode { options(HeifEncodeOptions(format = ImageFormat.Avif, quality = 0.8f)) }
   }.transmute(inputBytes.asBytes()).bytes.data
 
 // Decode AVIF (re-encode to PNG)
 suspend fun decodeToPng(avifBytes: ByteArray): ByteArray =
   Transmute.image {
-    encodeOptions(PngEncodeOptions())
+    encode { options(PngEncodeOptions()) }
   }.transmute(avifBytes.asBytes()).bytes.data
 ```
 

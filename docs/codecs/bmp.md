@@ -23,13 +23,13 @@ import dev.transmute.image.JpegEncodeOptions
 // Convert any image to BMP
 suspend fun convertToBmp(inputBytes: ByteArray): ByteArray =
   Transmute.image {
-    encodeOptions(CanonicalImageEncodeOptions(outputFormat = OutputFormat.Exact(ImageFormat.Bmp)))
+    encode { options(CanonicalImageEncodeOptions(outputFormat = OutputFormat.Exact(ImageFormat.Bmp))) }
   }.transmute(inputBytes.asBytes()).bytes.data
 
 // Decode BMP (re-encode to JPEG)
 suspend fun decodeToJpeg(bmpBytes: ByteArray): ByteArray =
   Transmute.image {
-    encodeOptions(JpegEncodeOptions(quality = 0.85f))
+    encode { options(JpegEncodeOptions(quality = 0.85f)) }
   }.transmute(bmpBytes.asBytes()).bytes.data
 ```
 

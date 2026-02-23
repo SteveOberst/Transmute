@@ -23,13 +23,13 @@ import dev.transmute.image.JpegEncodeOptions
 // Convert any image to TIFF (Desktop/iOS)
 suspend fun convertToTiff(inputBytes: ByteArray): ByteArray =
   Transmute.image {
-    encodeOptions(CanonicalImageEncodeOptions(outputFormat = OutputFormat.Exact(ImageFormat.Tiff)))
+    encode { options(CanonicalImageEncodeOptions(outputFormat = OutputFormat.Exact(ImageFormat.Tiff))) }
   }.transmute(inputBytes.asBytes()).bytes.data
 
 // Decode TIFF (re-encode to JPEG)
 suspend fun decodeToJpeg(tiffBytes: ByteArray): ByteArray =
   Transmute.image {
-    encodeOptions(JpegEncodeOptions(quality = 0.85f))
+    encode { options(JpegEncodeOptions(quality = 0.85f)) }
   }.transmute(tiffBytes.asBytes()).bytes.data
 ```
 

@@ -19,12 +19,12 @@ import dev.transmute.image.JpegEncodeOptions
 
 suspend fun convertToJpeg(inputBytes: ByteArray): ByteArray =
   Transmute.image {
-    encodeOptions(JpegEncodeOptions(quality = 0.85f)) // 0.0 – 1.0
+    encode { options(JpegEncodeOptions(quality = 0.85f)) } // 0.0 – 1.0
   }.transmute(inputBytes.asBytes()).bytes.data
 
 suspend fun compressMore(inputBytes: ByteArray): ByteArray =
   Transmute.image {
-    encodeOptions(JpegEncodeOptions(quality = 0.5f))
+    encode { options(JpegEncodeOptions(quality = 0.5f)) }
   }.transmute(inputBytes.asBytes()).bytes.data
 ```
 
