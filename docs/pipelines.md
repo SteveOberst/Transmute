@@ -14,23 +14,79 @@ The default implementations are regular handler classes you can reuse in your ow
 - Audio: `AudioDecodeHandler`, `AudioDynamicEncodeHandler`, `AudioFixedEncodeHandler`
 - Video: `VideoDecodeHandler`, `VideoDynamicEncodeHandler`, `VideoFixedEncodeHandler`
 
-## Custom Input Type + Default Decode Handler
+## Platform-Native Inputs + Default Decode Handler
+
+In real apps, you often start with a platform-native image object (Android `Bitmap`, iOS `UIImage`, Desktop/JVM `BufferedImage`).
+You can map it to raw `Bytes` and then reuse `ImageCodecs.Decode.DEFAULT`.
+
+### Android (`Bitmap`)
 
 ```kotlin
-data class NamedBytes(val name: String, val bytes: ByteArray)
-
-class NamedBytesToBytesHandler : PipelineHandler<NamedBytes, Bytes> {
-  override suspend fun handle(value: NamedBytes, context: TransmuteContext): Bytes =
-    value.bytes.asBytes()
-}
-
-val t = Transmute.imageFrom<NamedBytes> {
-  decode {
-    options { acceptedInputFormats += setOf(ImageFormat.Png, ImageFormat.Jpeg) }
-
-    pipeline(start = NamedBytesToBytesHandler() + ImageCodecs.Decode.DEFAULT)
+class BitmapToBytesHandler(
+  private val compressFormat: android.graphics.Bitmap.CompressFormat = android.graphics.Bitmap.CompressFormat.PNG,
+  private val quality: Int = 100,
+) : PipelineHandler<android.graphics.Bitmap, Bytes> {
+  override suspend fun handle(value: android.graphics.Bitmap, context: TransmuteContext): Bytes {
+    val out = java.io.ByteArrayOutputStream()
+    val ok = value.compress(compressFormat, quality, out)
+    require(ok) { "Bitmap.compress failed (format=$compressFormat)" }
+    return out.toByteArray().asBytes()
   }
 }
+
+val t =
+  Transmute.imageFrom<android.graphics.Bitmap> {
+    decode { pipeline(start = BitmapToBytesHandler() + ImageCodecs.Decode.DEFAULT) }
+  }
+```
+
+### iOS (`UIImage`)
+
+```kotlin
+@file:OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
+
+class UIImageToBytesHandler : PipelineHandler<platform.UIKit.UIImage, Bytes> {
+  override suspend fun handle(value: platform.UIKit.UIImage, context: TransmuteContext): Bytes {
+    val data = platform.UIKit.UIImagePNGRepresentation(value) ?: error("UIImagePNGRepresentation returned null")
+    val size = data.length.toInt()
+    val bytes = ByteArray(size)
+    bytes.usePinned { pinned ->
+      platform.posix.memcpy(pinned.addressOf(0), data.bytes, size.toULong())
+    }
+    return bytes.asBytes()
+  }
+}
+
+val t =
+  Transmute.imageFrom<platform.UIKit.UIImage> {
+    decode {
+      options { acceptedInputFormats += setOf(ImageFormat.Png) } // skip detection (we always emitted PNG)
+      pipeline(start = UIImageToBytesHandler() + ImageCodecs.Decode.DEFAULT)
+    }
+  }
+```
+
+### Desktop/JVM (`BufferedImage`)
+
+```kotlin
+class BufferedImageToBytesHandler(
+  private val formatName: String = "png",
+) : PipelineHandler<java.awt.image.BufferedImage, Bytes> {
+  override suspend fun handle(value: java.awt.image.BufferedImage, context: TransmuteContext): Bytes {
+    val out = java.io.ByteArrayOutputStream()
+    val ok = javax.imageio.ImageIO.write(value, formatName, out)
+    require(ok) { "No ImageIO writer for formatName=$formatName" }
+    return out.toByteArray().asBytes()
+  }
+}
+
+val t =
+  Transmute.imageFrom<java.awt.image.BufferedImage> {
+    decode {
+      options { acceptedInputFormats += setOf(ImageFormat.Png) } // if you always write PNG above
+      pipeline(start = BufferedImageToBytesHandler("png") + ImageCodecs.Decode.DEFAULT)
+    }
+  }
 ```
 
 ## Dynamic Encode Format Selection
@@ -59,6 +115,86 @@ val t = Transmute.image {
     )
   }
 }
+```
+
+## Platform-Native Outputs (post-encode handlers)
+
+Encode pipelines are handler chains too, so you can add post-encode steps (audit, caching, exporting to platform types, etc.).
+The examples below keep the output as `EncodedBytes<...>` but additionally decode to a platform-native representation as a side effect.
+
+### Android: `EncodedBytes` → `Bitmap`
+
+```kotlin
+class EncodedBytesToBitmapTap(
+  private val onBitmap: (android.graphics.Bitmap) -> Unit,
+) : PipelineHandler<EncodedBytes<ImageFormat>, EncodedBytes<ImageFormat>> {
+  override suspend fun handle(value: EncodedBytes<ImageFormat>, context: TransmuteContext): EncodedBytes<ImageFormat> {
+    val data = value.bytes.data
+    val bitmap = android.graphics.BitmapFactory.decodeByteArray(data, 0, data.size)
+      ?: error("BitmapFactory.decodeByteArray returned null")
+    onBitmap(bitmap)
+    return value
+  }
+}
+
+val t =
+  Transmute.image {
+    encode {
+      options { outputFormat = OutputFormat.Exact(ImageFormat.Jpeg) }
+      pipeline(start = ImageCodecs.Encode.DEFAULT + EncodedBytesToBitmapTap { bitmap -> /* use bitmap */ })
+    }
+  }
+```
+
+### iOS: `EncodedBytes` → `UIImage`
+
+```kotlin
+@file:OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
+
+class EncodedBytesToUIImageTap(
+  private val onImage: (platform.UIKit.UIImage) -> Unit,
+) : PipelineHandler<EncodedBytes<ImageFormat>, EncodedBytes<ImageFormat>> {
+  override suspend fun handle(value: EncodedBytes<ImageFormat>, context: TransmuteContext): EncodedBytes<ImageFormat> {
+    val bytes = value.bytes.data
+    val data = bytes.usePinned { pinned ->
+      platform.Foundation.NSData.dataWithBytes(pinned.addressOf(0), bytes.size.toULong())
+    }
+    val image = platform.UIKit.UIImage.imageWithData(data) ?: error("UIImage.imageWithData returned null")
+    onImage(image)
+    return value
+  }
+}
+
+val t =
+  Transmute.image {
+    encode {
+      options { outputFormat = OutputFormat.Exact(ImageFormat.Jpeg) }
+      pipeline(start = ImageCodecs.Encode.DEFAULT + EncodedBytesToUIImageTap { img -> /* use image */ })
+    }
+  }
+```
+
+### Desktop/JVM: `EncodedBytes` → `BufferedImage`
+
+```kotlin
+class EncodedBytesToBufferedImageTap(
+  private val onImage: (java.awt.image.BufferedImage) -> Unit,
+) : PipelineHandler<EncodedBytes<ImageFormat>, EncodedBytes<ImageFormat>> {
+  override suspend fun handle(value: EncodedBytes<ImageFormat>, context: TransmuteContext): EncodedBytes<ImageFormat> {
+    val input = java.io.ByteArrayInputStream(value.bytes.data)
+    val image = javax.imageio.ImageIO.read(input) ?: error("ImageIO.read returned null")
+    onImage(image)
+    return value
+  }
+}
+
+val t =
+  Transmute.image {
+    encode {
+      options { outputFormat = OutputFormat.Exact(ImageFormat.Jpeg) }
+      pipeline(start = ImageCodecs.Encode.DEFAULT + EncodedBytesToBufferedImageTap { img -> /* use image */ })
+    }
+  }
 ```
 
 ## Handler Composition (operator `+`)
