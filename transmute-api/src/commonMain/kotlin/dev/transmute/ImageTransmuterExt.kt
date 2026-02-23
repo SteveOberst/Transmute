@@ -13,7 +13,7 @@ import dev.transmute.image.transform.ImageScaleTransform
 import dev.transmute.image.transform.kernel.ResampleFilter
 
 /** Scale to fit within [maxWidth]×[maxHeight], preserving aspect ratio. No upscaling. */
-fun <IN> DynamicImageTransmuterBuilder<IN>.scale(maxWidth: Int, maxHeight: Int): DynamicImageTransmuterBuilder<IN> = apply {
+fun <IN, OUT> DynamicImageTransmuterBuilder<IN, OUT>.scale(maxWidth: Int, maxHeight: Int): DynamicImageTransmuterBuilder<IN, OUT> = apply {
   transform { add(ImageScaleTransform(maxWidth, maxHeight)) }
 }
 
@@ -22,12 +22,12 @@ fun <IN, OUT : ImageFormat> ImageTransmuterBuilder<IN, OUT>.scale(maxWidth: Int,
   transform { add(ImageScaleTransform(maxWidth, maxHeight)) }
 }
 
-fun <IN> DynamicImageTransmuterBuilder<IN>.resize(
+fun <IN, OUT> DynamicImageTransmuterBuilder<IN, OUT>.resize(
   targetWidth: Int,
   targetHeight: Int,
   filter: ResampleFilter = ResampleFilter.BICUBIC_MITCHELL,
   allowUpscale: Boolean = true,
-): DynamicImageTransmuterBuilder<IN> = apply {
+): DynamicImageTransmuterBuilder<IN, OUT> = apply {
   transform { add(ImageResizeTransform(targetWidth, targetHeight, filter, allowUpscale)) }
 }
 
@@ -41,7 +41,7 @@ fun <IN, OUT : ImageFormat> ImageTransmuterBuilder<IN, OUT>.resize(
 }
 
 /** Crop to the sub-region starting at ([x], [y]) with the given [width] and [height]. */
-fun <IN> DynamicImageTransmuterBuilder<IN>.crop(x: Int, y: Int, width: Int, height: Int): DynamicImageTransmuterBuilder<IN> = apply {
+fun <IN, OUT> DynamicImageTransmuterBuilder<IN, OUT>.crop(x: Int, y: Int, width: Int, height: Int): DynamicImageTransmuterBuilder<IN, OUT> = apply {
   transform { add(ImageCropTransform(x, y, width, height)) }
 }
 
@@ -56,7 +56,7 @@ fun <IN, OUT : ImageFormat> ImageTransmuterBuilder<IN, OUT>.crop(
 }
 
 /** Auto-rotate based on EXIF orientation metadata in the IR. */
-fun <IN> DynamicImageTransmuterBuilder<IN>.autoRotate(): DynamicImageTransmuterBuilder<IN> = apply {
+fun <IN, OUT> DynamicImageTransmuterBuilder<IN, OUT>.autoRotate(): DynamicImageTransmuterBuilder<IN, OUT> = apply {
   transform { add(ImageRotateTransform()) }
 }
 
@@ -66,7 +66,7 @@ fun <IN, OUT : ImageFormat> ImageTransmuterBuilder<IN, OUT>.autoRotate(): ImageT
 }
 
 /** Convert to grayscale using BT.709 luma coefficients. */
-fun <IN> DynamicImageTransmuterBuilder<IN>.grayscale(): DynamicImageTransmuterBuilder<IN> = apply {
+fun <IN, OUT> DynamicImageTransmuterBuilder<IN, OUT>.grayscale(): DynamicImageTransmuterBuilder<IN, OUT> = apply {
   transform { add(ImageGrayscaleTransform()) }
 }
 
@@ -76,7 +76,7 @@ fun <IN, OUT : ImageFormat> ImageTransmuterBuilder<IN, OUT>.grayscale(): ImageTr
 }
 
 /** Flip horizontally and/or vertically. */
-fun <IN> DynamicImageTransmuterBuilder<IN>.flip(horizontal: Boolean = false, vertical: Boolean = false): DynamicImageTransmuterBuilder<IN> = apply {
+fun <IN, OUT> DynamicImageTransmuterBuilder<IN, OUT>.flip(horizontal: Boolean = false, vertical: Boolean = false): DynamicImageTransmuterBuilder<IN, OUT> = apply {
   transform { add(ImageFlipTransform(horizontal, vertical)) }
 }
 
@@ -89,7 +89,7 @@ fun <IN, OUT : ImageFormat> ImageTransmuterBuilder<IN, OUT>.flip(
 }
 
 /** Adjust brightness (−255..+255) and/or contrast (0..3). */
-fun <IN> DynamicImageTransmuterBuilder<IN>.brightnessContrast(brightness: Float = 0f, contrast: Float = 1f): DynamicImageTransmuterBuilder<IN> = apply {
+fun <IN, OUT> DynamicImageTransmuterBuilder<IN, OUT>.brightnessContrast(brightness: Float = 0f, contrast: Float = 1f): DynamicImageTransmuterBuilder<IN, OUT> = apply {
   transform { add(ImageBrightnessContrastTransform(brightness, contrast)) }
 }
 
@@ -102,7 +102,7 @@ fun <IN, OUT : ImageFormat> ImageTransmuterBuilder<IN, OUT>.brightnessContrast(
 }
 
 /** Apply box blur with the given pixel [radius]. */
-fun <IN> DynamicImageTransmuterBuilder<IN>.blur(radius: Int = 1): DynamicImageTransmuterBuilder<IN> = apply {
+fun <IN, OUT> DynamicImageTransmuterBuilder<IN, OUT>.blur(radius: Int = 1): DynamicImageTransmuterBuilder<IN, OUT> = apply {
   transform { add(ImageBlurTransform(radius)) }
 }
 
@@ -112,7 +112,7 @@ fun <IN, OUT : ImageFormat> ImageTransmuterBuilder<IN, OUT>.blur(radius: Int = 1
 }
 
 /** Adjust alpha channel opacity (0.0 = transparent, 1.0 = unchanged). */
-fun <IN> DynamicImageTransmuterBuilder<IN>.opacity(opacity: Float): DynamicImageTransmuterBuilder<IN> = apply {
+fun <IN, OUT> DynamicImageTransmuterBuilder<IN, OUT>.opacity(opacity: Float): DynamicImageTransmuterBuilder<IN, OUT> = apply {
   transform { add(ImageOpacityTransform(opacity)) }
 }
 

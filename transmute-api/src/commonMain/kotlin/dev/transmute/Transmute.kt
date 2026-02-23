@@ -20,8 +20,8 @@ import dev.transmute.core.DecodeOptions
 import dev.transmute.core.EncodeOptions
 import dev.transmute.core.TransmuteContext
 import dev.transmute.core.TransmuteLogger
-import dev.transmute.core.MediaFormat
 import dev.transmute.core.TransmuteLogging
+import dev.transmute.core.MediaFormat
 import dev.transmute.core.pipeline.DecodePipeline
 import dev.transmute.core.pipeline.Decoded
 import dev.transmute.core.pipeline.EncodePipeline
@@ -58,9 +58,9 @@ import dev.transmute.video.VideoFixedEncodeHandler
 import dev.transmute.video.VideoRegistries
 import dev.transmute.video.VideoTransform
 
-typealias DynamicImageTransmuter = ImageTransmuter<Bytes, ImageFormat>
-typealias DynamicAudioTransmuter = AudioTransmuter<Bytes, AudioFormat>
-typealias DynamicVideoTransmuter = VideoTransmuter<Bytes, VideoFormat>
+typealias DynamicImageTransmuter = ImageTransmuter<Bytes, EncodedBytes<ImageFormat>>
+typealias DynamicAudioTransmuter = AudioTransmuter<Bytes, EncodedBytes<AudioFormat>>
+typealias DynamicVideoTransmuter = VideoTransmuter<Bytes, EncodedBytes<VideoFormat>>
 
 /**
  * Discriminates the three media domains at the type level.
@@ -76,20 +76,24 @@ sealed class TransmuteType {
 }
 
 /** Immutable, reusable transmutation executor built by a builder DSL. */
-interface Transmuter<IN, F : MediaFormat<*, *>> {
-  /** Convert [source] into encoded bytes tagged with the resolved output format. */
-  suspend fun transmute(source: IN): EncodedBytes<F>
+interface Transmuter<IN, OUT> {
+  /** Convert [source] into the encode pipeline's output type. */
+  suspend fun transmute(source: IN): OUT
+}
 
-  /** Convert [source] and copy the resulting bytes into [buffer]. Returns bytes written. */
-  suspend fun transmute(source: IN, buffer: ByteArray, offset: Int = 0): Int {
-    val bytes = transmute(source).bytes.data
-    require(offset >= 0 && offset <= buffer.size) { "offset out of bounds" }
-    require(bytes.size <= buffer.size - offset) {
-      "buffer too small: need ${bytes.size}, have ${buffer.size - offset}"
-    }
-    bytes.copyInto(buffer, destinationOffset = offset)
-    return bytes.size
+/** Convert [source] and copy the resulting bytes into [buffer]. Returns bytes written. */
+suspend fun <IN, F : MediaFormat<*, *>> Transmuter<IN, EncodedBytes<F>>.transmute(
+  source: IN,
+  buffer: ByteArray,
+  offset: Int = 0,
+): Int {
+  val bytes = transmute(source).bytes.data
+  require(offset >= 0 && offset <= buffer.size) { "offset out of bounds" }
+  require(bytes.size <= buffer.size - offset) {
+    "buffer too small: need ${bytes.size}, have ${buffer.size - offset}"
   }
+  bytes.copyInto(buffer, destinationOffset = offset)
+  return bytes.size
 }
 
 /** Public API facade for Transmute. */
@@ -98,54 +102,90 @@ object Transmute {
   // ---- Image ----
 
   /** Build a dynamic-output image transmuter (output defaults to input format). */
-  fun image(block: DynamicImageTransmuterBuilder<Bytes>.() -> Unit = {}): DynamicImageTransmuter =
-    DynamicImageTransmuterBuilder(defaultDecodePipeline = ::defaultImageBytesDecodePipeline).apply(block).build()
+  fun image(block: DynamicImageTransmuterBuilder<Bytes, EncodedBytes<ImageFormat>>.() -> Unit = {}): DynamicImageTransmuter =
+    DynamicImageTransmuterBuilder<Bytes, EncodedBytes<ImageFormat>>(
+      defaultDecodePipeline = ::defaultImageBytesDecodePipeline,
+      defaultEncodePipeline = ::defaultDynamicImageEncodePipeline,
+    ).apply(block).build()
+
+  /**
+   * Build a dynamic-output image transmuter whose encode pipeline output type is [OUT].
+   *
+   * When you choose a custom output type, you must configure an encode pipeline explicitly.
+   * A typical pattern is:
+   *
+   * `encode { pipeline(start = ImageCodecs.Encode.DEFAULT + MyEncodedBytesToPlatformHandler()) }`
+   */
+  fun <OUT> imageOut(block: DynamicImageTransmuterBuilder<Bytes, OUT>.() -> Unit): ImageTransmuter<Bytes, OUT> =
+    DynamicImageTransmuterBuilder<Bytes, OUT>(defaultDecodePipeline = ::defaultImageBytesDecodePipeline).apply(block).build()
 
   /** Build a dynamic-output image transmuter with an explicit input type. */
-  fun <IN> imageFrom(block: DynamicImageTransmuterBuilder<IN>.() -> Unit = {}): ImageTransmuter<IN, ImageFormat> =
-    DynamicImageTransmuterBuilder<IN>().apply(block).build()
+  fun <IN> imageFrom(block: DynamicImageTransmuterBuilder<IN, EncodedBytes<ImageFormat>>.() -> Unit = {}): ImageTransmuter<IN, EncodedBytes<ImageFormat>> =
+    DynamicImageTransmuterBuilder<IN, EncodedBytes<ImageFormat>>(defaultEncodePipeline = ::defaultDynamicImageEncodePipeline).apply(block).build()
+
+  /** Build a dynamic-output image transmuter with an explicit input + output type. */
+  fun <IN, OUT> imageFromOut(block: DynamicImageTransmuterBuilder<IN, OUT>.() -> Unit): ImageTransmuter<IN, OUT> =
+    DynamicImageTransmuterBuilder<IN, OUT>().apply(block).build()
 
   /** Build a fixed-output image transmuter with a typed output format object. */
-  fun <OUT : ImageFormat> imageTo(output: OUT, block: ImageTransmuterBuilder<Bytes, OUT>.() -> Unit = {}): ImageTransmuter<Bytes, OUT> =
+  fun <OUT : ImageFormat> imageTo(output: OUT, block: ImageTransmuterBuilder<Bytes, OUT>.() -> Unit = {}): ImageTransmuter<Bytes, EncodedBytes<OUT>> =
     ImageTransmuterBuilder(output, defaultDecodePipeline = ::defaultImageBytesDecodePipeline).apply(block).build()
 
   /** Build a fixed-output image transmuter with an explicit input type. */
   fun <IN, OUT : ImageFormat> imageToFrom(
     output: OUT,
     block: ImageTransmuterBuilder<IN, OUT>.() -> Unit = {},
-  ): ImageTransmuter<IN, OUT> = ImageTransmuterBuilder<IN, OUT>(output).apply(block).build()
+  ): ImageTransmuter<IN, EncodedBytes<OUT>> = ImageTransmuterBuilder<IN, OUT>(output).apply(block).build()
 
   // ---- Audio ----
 
-  fun audio(block: DynamicAudioTransmuterBuilder<Bytes>.() -> Unit = {}): DynamicAudioTransmuter =
-    DynamicAudioTransmuterBuilder(defaultDecodePipeline = ::defaultAudioBytesDecodePipeline).apply(block).build()
+  fun audio(block: DynamicAudioTransmuterBuilder<Bytes, EncodedBytes<AudioFormat>>.() -> Unit = {}): DynamicAudioTransmuter =
+    DynamicAudioTransmuterBuilder<Bytes, EncodedBytes<AudioFormat>>(
+      defaultDecodePipeline = ::defaultAudioBytesDecodePipeline,
+      defaultEncodePipeline = ::defaultDynamicAudioEncodePipeline,
+    ).apply(block).build()
 
-  fun <IN> audioFrom(block: DynamicAudioTransmuterBuilder<IN>.() -> Unit = {}): AudioTransmuter<IN, AudioFormat> =
-    DynamicAudioTransmuterBuilder<IN>().apply(block).build()
+  fun <OUT> audioOut(block: DynamicAudioTransmuterBuilder<Bytes, OUT>.() -> Unit): AudioTransmuter<Bytes, OUT> =
+    DynamicAudioTransmuterBuilder<Bytes, OUT>(defaultDecodePipeline = ::defaultAudioBytesDecodePipeline).apply(block).build()
 
-  fun <OUT : AudioFormat> audioTo(output: OUT, block: AudioTransmuterBuilder<Bytes, OUT>.() -> Unit = {}): AudioTransmuter<Bytes, OUT> =
+  fun <IN> audioFrom(block: DynamicAudioTransmuterBuilder<IN, EncodedBytes<AudioFormat>>.() -> Unit = {}): AudioTransmuter<IN, EncodedBytes<AudioFormat>> =
+    DynamicAudioTransmuterBuilder<IN, EncodedBytes<AudioFormat>>(defaultEncodePipeline = ::defaultDynamicAudioEncodePipeline).apply(block).build()
+
+  fun <IN, OUT> audioFromOut(block: DynamicAudioTransmuterBuilder<IN, OUT>.() -> Unit): AudioTransmuter<IN, OUT> =
+    DynamicAudioTransmuterBuilder<IN, OUT>().apply(block).build()
+
+  fun <OUT : AudioFormat> audioTo(output: OUT, block: AudioTransmuterBuilder<Bytes, OUT>.() -> Unit = {}): AudioTransmuter<Bytes, EncodedBytes<OUT>> =
     AudioTransmuterBuilder(output, defaultDecodePipeline = ::defaultAudioBytesDecodePipeline).apply(block).build()
 
   fun <IN, OUT : AudioFormat> audioToFrom(
     output: OUT,
     block: AudioTransmuterBuilder<IN, OUT>.() -> Unit = {},
-  ): AudioTransmuter<IN, OUT> = AudioTransmuterBuilder<IN, OUT>(output).apply(block).build()
+  ): AudioTransmuter<IN, EncodedBytes<OUT>> = AudioTransmuterBuilder<IN, OUT>(output).apply(block).build()
 
   // ---- Video ----
 
-  fun video(block: DynamicVideoTransmuterBuilder<Bytes>.() -> Unit = {}): DynamicVideoTransmuter =
-    DynamicVideoTransmuterBuilder(defaultDecodePipeline = ::defaultVideoBytesDecodePipeline).apply(block).build()
+  fun video(block: DynamicVideoTransmuterBuilder<Bytes, EncodedBytes<VideoFormat>>.() -> Unit = {}): DynamicVideoTransmuter =
+    DynamicVideoTransmuterBuilder<Bytes, EncodedBytes<VideoFormat>>(
+      defaultDecodePipeline = ::defaultVideoBytesDecodePipeline,
+      defaultEncodePipeline = ::defaultDynamicVideoEncodePipeline,
+    ).apply(block).build()
 
-  fun <IN> videoFrom(block: DynamicVideoTransmuterBuilder<IN>.() -> Unit = {}): VideoTransmuter<IN, VideoFormat> =
-    DynamicVideoTransmuterBuilder<IN>().apply(block).build()
+  fun <OUT> videoOut(block: DynamicVideoTransmuterBuilder<Bytes, OUT>.() -> Unit): VideoTransmuter<Bytes, OUT> =
+    DynamicVideoTransmuterBuilder<Bytes, OUT>(defaultDecodePipeline = ::defaultVideoBytesDecodePipeline).apply(block).build()
 
-  fun <OUT : VideoFormat> videoTo(output: OUT, block: VideoTransmuterBuilder<Bytes, OUT>.() -> Unit = {}): VideoTransmuter<Bytes, OUT> =
+  fun <IN> videoFrom(block: DynamicVideoTransmuterBuilder<IN, EncodedBytes<VideoFormat>>.() -> Unit = {}): VideoTransmuter<IN, EncodedBytes<VideoFormat>> =
+    DynamicVideoTransmuterBuilder<IN, EncodedBytes<VideoFormat>>(defaultEncodePipeline = ::defaultDynamicVideoEncodePipeline).apply(block).build()
+
+  fun <IN, OUT> videoFromOut(block: DynamicVideoTransmuterBuilder<IN, OUT>.() -> Unit): VideoTransmuter<IN, OUT> =
+    DynamicVideoTransmuterBuilder<IN, OUT>().apply(block).build()
+
+  fun <OUT : VideoFormat> videoTo(output: OUT, block: VideoTransmuterBuilder<Bytes, OUT>.() -> Unit = {}): VideoTransmuter<Bytes, EncodedBytes<OUT>> =
     VideoTransmuterBuilder(output, defaultDecodePipeline = ::defaultVideoBytesDecodePipeline).apply(block).build()
 
   fun <IN, OUT : VideoFormat> videoToFrom(
     output: OUT,
     block: VideoTransmuterBuilder<IN, OUT>.() -> Unit = {},
-  ): VideoTransmuter<IN, OUT> = VideoTransmuterBuilder<IN, OUT>(output).apply(block).build()
+  ): VideoTransmuter<IN, EncodedBytes<OUT>> = VideoTransmuterBuilder<IN, OUT>(output).apply(block).build()
 
   // ---- Typed dispatch ----
 
@@ -233,19 +273,20 @@ private fun containsAscii(bytes: Bytes, needleAscii: String, maxBytes: Int): Boo
   return false
 }
 
-class DynamicImageTransmuterBuilder<IN> internal constructor(
+class DynamicImageTransmuterBuilder<IN, OUT> internal constructor(
   private val defaultDecodePipeline: (() -> DecodePipeline<IN, Decoded<ImageFormat, ImageIR>>)? = null,
+  private val defaultEncodePipeline: (() -> EncodePipeline<Decoded<ImageFormat, ImageIR>, OUT>)? = null,
 ) {
   private val transformPipeline = TransformPipeline<ImageIR>()
   private var loggerOverride: TransmuteLogger? = null
   private val decodeStage =
     DecodeStage<IN, Decoded<ImageFormat, ImageIR>, ImageDecodeOptions>(CanonicalImageDecodeOptions())
   private val encodeStage =
-    EncodeStage<Decoded<ImageFormat, ImageIR>, EncodedBytes<ImageFormat>, ImageEncodeOptions>(CanonicalImageEncodeOptions())
+    EncodeStage<Decoded<ImageFormat, ImageIR>, OUT, ImageEncodeOptions>(CanonicalImageEncodeOptions())
 
-  fun logger(logger: TransmuteLogger): DynamicImageTransmuterBuilder<IN> = apply { loggerOverride = logger }
+  fun logger(logger: TransmuteLogger): DynamicImageTransmuterBuilder<IN, OUT> = apply { loggerOverride = logger }
 
-  fun transform(block: TransformPipeline<ImageIR>.() -> Unit): DynamicImageTransmuterBuilder<IN> = apply {
+  fun transform(block: TransformPipeline<ImageIR>.() -> Unit): DynamicImageTransmuterBuilder<IN, OUT> = apply {
     transformPipeline.block()
   }
 
@@ -254,20 +295,22 @@ class DynamicImageTransmuterBuilder<IN> internal constructor(
    *
    * The decode stage is explicit and must end in `Decoded<ImageFormat, ImageIR>`.
    */
-  fun decode(block: DecodeStage<IN, Decoded<ImageFormat, ImageIR>, ImageDecodeOptions>.() -> Unit): DynamicImageTransmuterBuilder<IN> =
+  fun decode(block: DecodeStage<IN, Decoded<ImageFormat, ImageIR>, ImageDecodeOptions>.() -> Unit): DynamicImageTransmuterBuilder<IN, OUT> =
     apply { decodeStage.block() }
 
   /**
    * Configure the encode pipeline (ImageIR → encode → EncodedBytes).
    */
-  fun encode(block: EncodeStage<Decoded<ImageFormat, ImageIR>, EncodedBytes<ImageFormat>, ImageEncodeOptions>.() -> Unit): DynamicImageTransmuterBuilder<IN> =
+  fun encode(block: EncodeStage<Decoded<ImageFormat, ImageIR>, OUT, ImageEncodeOptions>.() -> Unit): DynamicImageTransmuterBuilder<IN, OUT> =
     apply { encodeStage.block() }
 
-  fun build(): ImageTransmuter<IN, ImageFormat> {
+  fun build(): ImageTransmuter<IN, OUT> {
     val decode = decodeStage.pipeline
       ?: defaultDecodePipeline?.invoke()
       ?: error("No decode pipeline configured; call decode { ... }")
-    val encode = encodeStage.pipeline ?: defaultDynamicImageEncodePipeline()
+    val encode = encodeStage.pipeline
+      ?: defaultEncodePipeline?.invoke()
+      ?: error("No encode pipeline configured; call encode { ... }")
 
     return ImageTransmuter(
       loggerOverride = loggerOverride,
@@ -278,15 +321,10 @@ class DynamicImageTransmuterBuilder<IN> internal constructor(
       encodeOptions = encodeStage.options,
     )
   }
-
-  private fun defaultDynamicImageEncodePipeline(): EncodePipeline<Decoded<ImageFormat, ImageIR>, EncodedBytes<ImageFormat>> =
-    PipelineBuilder.start<Decoded<ImageFormat, ImageIR>>()
-      .then(ImageDynamicEncodeHandler())
-      .build()
 }
 
-class ImageTransmuterBuilder<IN, OUT : ImageFormat> internal constructor(
-  private val output: OUT,
+class ImageTransmuterBuilder<IN, OUT_FORMAT : ImageFormat> internal constructor(
+  private val output: OUT_FORMAT,
   private val defaultDecodePipeline: (() -> DecodePipeline<IN, Decoded<ImageFormat, ImageIR>>)? = null,
 ) {
   private val transformPipeline = TransformPipeline<ImageIR>()
@@ -294,27 +332,27 @@ class ImageTransmuterBuilder<IN, OUT : ImageFormat> internal constructor(
   private val decodeStage =
     DecodeStage<IN, Decoded<ImageFormat, ImageIR>, ImageDecodeOptions>(CanonicalImageDecodeOptions())
   private val encodeStage =
-    EncodeStage<Decoded<ImageFormat, ImageIR>, EncodedBytes<OUT>, ImageEncodeOptions>(CanonicalImageEncodeOptions())
+    EncodeStage<Decoded<ImageFormat, ImageIR>, EncodedBytes<OUT_FORMAT>, ImageEncodeOptions>(CanonicalImageEncodeOptions())
 
-  fun logger(logger: TransmuteLogger): ImageTransmuterBuilder<IN, OUT> = apply { loggerOverride = logger }
+  fun logger(logger: TransmuteLogger): ImageTransmuterBuilder<IN, OUT_FORMAT> = apply { loggerOverride = logger }
 
   /** Quality for JPEG encoding only (you probably want [ImageFormat.Jpeg]). */
-  fun quality(value: Float): ImageTransmuterBuilder<IN, OUT> = apply {
+  fun quality(value: Float): ImageTransmuterBuilder<IN, OUT_FORMAT> = apply {
     encodeStage.options = JpegEncodeOptions(quality = value.coerceIn(0f, 1f))
   }
 
-  fun transform(block: TransformPipeline<ImageIR>.() -> Unit): ImageTransmuterBuilder<IN, OUT> = apply {
+  fun transform(block: TransformPipeline<ImageIR>.() -> Unit): ImageTransmuterBuilder<IN, OUT_FORMAT> = apply {
     transformPipeline.block()
   }
 
-  fun decode(block: DecodeStage<IN, Decoded<ImageFormat, ImageIR>, ImageDecodeOptions>.() -> Unit): ImageTransmuterBuilder<IN, OUT> =
+  fun decode(block: DecodeStage<IN, Decoded<ImageFormat, ImageIR>, ImageDecodeOptions>.() -> Unit): ImageTransmuterBuilder<IN, OUT_FORMAT> =
     apply { decodeStage.block() }
 
   /** Fixed output enables type-safe post-encode handlers via the `OUT` format type. */
-  fun encode(block: EncodeStage<Decoded<ImageFormat, ImageIR>, EncodedBytes<OUT>, ImageEncodeOptions>.() -> Unit): ImageTransmuterBuilder<IN, OUT> =
+  fun encode(block: EncodeStage<Decoded<ImageFormat, ImageIR>, EncodedBytes<OUT_FORMAT>, ImageEncodeOptions>.() -> Unit): ImageTransmuterBuilder<IN, OUT_FORMAT> =
     apply { encodeStage.block() }
 
-  fun build(): ImageTransmuter<IN, OUT> {
+  fun build(): ImageTransmuter<IN, EncodedBytes<OUT_FORMAT>> {
     val decode = decodeStage.pipeline
       ?: defaultDecodePipeline?.invoke()
       ?: error("No decode pipeline configured; call decode { ... }")
@@ -330,17 +368,17 @@ class ImageTransmuterBuilder<IN, OUT : ImageFormat> internal constructor(
     )
   }
 
-  private fun defaultFixedImageEncodePipeline(): EncodePipeline<Decoded<ImageFormat, ImageIR>, EncodedBytes<OUT>> =
+  private fun defaultFixedImageEncodePipeline(): EncodePipeline<Decoded<ImageFormat, ImageIR>, EncodedBytes<OUT_FORMAT>> =
     PipelineBuilder.start<Decoded<ImageFormat, ImageIR>>()
       .then(ImageFixedEncodeHandler(output))
       .build()
 }
 
-class ImageTransmuter<IN, OUT : ImageFormat> internal constructor(
+class ImageTransmuter<IN, OUT> internal constructor(
     private val loggerOverride: TransmuteLogger?,
     private val transforms: List<Transform<ImageIR>>,
     private val decodePipeline: DecodePipeline<IN, Decoded<ImageFormat, ImageIR>>,
-    private val encodePipeline: EncodePipeline<Decoded<ImageFormat, ImageIR>, EncodedBytes<OUT>>,
+    private val encodePipeline: EncodePipeline<Decoded<ImageFormat, ImageIR>, OUT>,
     private val decodeOptions: ImageDecodeOptions,
     private val encodeOptions: ImageEncodeOptions,
 ) : Transmuter<IN, OUT> {
@@ -349,7 +387,7 @@ class ImageTransmuter<IN, OUT : ImageFormat> internal constructor(
     return transforms.any { (it as? ImageTransform)?.wouldTransform(hint) ?: true }
   }
 
-  override suspend fun transmute(source: IN): EncodedBytes<OUT> {
+  override suspend fun transmute(source: IN): OUT {
     val context = createContext(
       loggerOverride = loggerOverride,
       decodeOptions = decodeOptions,
@@ -366,40 +404,42 @@ class ImageTransmuter<IN, OUT : ImageFormat> internal constructor(
       ir = transform.apply(ir, context)
     }
 
-    val encoded = encodePipeline.run(Decoded(inputFormat, ir), context)
-    return encoded
+    return encodePipeline.run(Decoded(inputFormat, ir), context)
   }
 }
 
 // -- Audio ------------------------------------------------------------------─
 
-class DynamicAudioTransmuterBuilder<IN> internal constructor(
+class DynamicAudioTransmuterBuilder<IN, OUT> internal constructor(
   private val defaultDecodePipeline: (() -> DecodePipeline<IN, Decoded<AudioFormat, AudioIR>>)? = null,
+  private val defaultEncodePipeline: (() -> EncodePipeline<Decoded<AudioFormat, AudioIR>, OUT>)? = null,
 ) {
   private val transformPipeline = TransformPipeline<AudioIR>()
   private var loggerOverride: TransmuteLogger? = null
   private val decodeStage =
     DecodeStage<IN, Decoded<AudioFormat, AudioIR>, AudioDecodeOptions>(CanonicalAudioDecodeOptions())
   private val encodeStage =
-    EncodeStage<Decoded<AudioFormat, AudioIR>, EncodedBytes<AudioFormat>, AudioEncodeOptions>(CanonicalAudioEncodeOptions())
+    EncodeStage<Decoded<AudioFormat, AudioIR>, OUT, AudioEncodeOptions>(CanonicalAudioEncodeOptions())
 
-  fun logger(logger: TransmuteLogger): DynamicAudioTransmuterBuilder<IN> = apply { loggerOverride = logger }
+  fun logger(logger: TransmuteLogger): DynamicAudioTransmuterBuilder<IN, OUT> = apply { loggerOverride = logger }
 
-  fun transform(block: TransformPipeline<AudioIR>.() -> Unit): DynamicAudioTransmuterBuilder<IN> = apply {
+  fun transform(block: TransformPipeline<AudioIR>.() -> Unit): DynamicAudioTransmuterBuilder<IN, OUT> = apply {
     transformPipeline.block()
   }
 
-  fun decode(block: DecodeStage<IN, Decoded<AudioFormat, AudioIR>, AudioDecodeOptions>.() -> Unit): DynamicAudioTransmuterBuilder<IN> =
+  fun decode(block: DecodeStage<IN, Decoded<AudioFormat, AudioIR>, AudioDecodeOptions>.() -> Unit): DynamicAudioTransmuterBuilder<IN, OUT> =
     apply { decodeStage.block() }
 
-  fun encode(block: EncodeStage<Decoded<AudioFormat, AudioIR>, EncodedBytes<AudioFormat>, AudioEncodeOptions>.() -> Unit): DynamicAudioTransmuterBuilder<IN> =
+  fun encode(block: EncodeStage<Decoded<AudioFormat, AudioIR>, OUT, AudioEncodeOptions>.() -> Unit): DynamicAudioTransmuterBuilder<IN, OUT> =
     apply { encodeStage.block() }
 
-  fun build(): AudioTransmuter<IN, AudioFormat> {
+  fun build(): AudioTransmuter<IN, OUT> {
     val decode = decodeStage.pipeline
       ?: defaultDecodePipeline?.invoke()
       ?: error("No decode pipeline configured; call decode { ... }")
-    val encode = encodeStage.pipeline ?: defaultDynamicAudioEncodePipeline()
+    val encode = encodeStage.pipeline
+      ?: defaultEncodePipeline?.invoke()
+      ?: error("No encode pipeline configured; call encode { ... }")
 
     return AudioTransmuter(
       loggerOverride = loggerOverride,
@@ -410,11 +450,6 @@ class DynamicAudioTransmuterBuilder<IN> internal constructor(
       encodeOptions = encodeStage.options,
     )
   }
-
-  private fun defaultDynamicAudioEncodePipeline(): EncodePipeline<Decoded<AudioFormat, AudioIR>, EncodedBytes<AudioFormat>> =
-    PipelineBuilder.start<Decoded<AudioFormat, AudioIR>>()
-      .then(AudioDynamicEncodeHandler())
-      .build()
 }
 
 class AudioTransmuterBuilder<IN, OUT : AudioFormat> internal constructor(
@@ -440,7 +475,7 @@ class AudioTransmuterBuilder<IN, OUT : AudioFormat> internal constructor(
   fun encode(block: EncodeStage<Decoded<AudioFormat, AudioIR>, EncodedBytes<OUT>, AudioEncodeOptions>.() -> Unit): AudioTransmuterBuilder<IN, OUT> =
     apply { encodeStage.block() }
 
-  fun build(): AudioTransmuter<IN, OUT> {
+  fun build(): AudioTransmuter<IN, EncodedBytes<OUT>> {
     val decode = decodeStage.pipeline
       ?: defaultDecodePipeline?.invoke()
       ?: error("No decode pipeline configured; call decode { ... }")
@@ -462,11 +497,11 @@ class AudioTransmuterBuilder<IN, OUT : AudioFormat> internal constructor(
       .build()
 }
 
-class AudioTransmuter<IN, OUT : AudioFormat> internal constructor(
+class AudioTransmuter<IN, OUT> internal constructor(
   private val loggerOverride: TransmuteLogger?,
   private val transforms: List<Transform<AudioIR>>,
   private val decodePipeline: DecodePipeline<IN, Decoded<AudioFormat, AudioIR>>,
-  private val encodePipeline: EncodePipeline<Decoded<AudioFormat, AudioIR>, EncodedBytes<OUT>>,
+  private val encodePipeline: EncodePipeline<Decoded<AudioFormat, AudioIR>, OUT>,
   private val decodeOptions: AudioDecodeOptions,
   private val encodeOptions: AudioEncodeOptions,
 ) : Transmuter<IN, OUT> {
@@ -475,7 +510,7 @@ class AudioTransmuter<IN, OUT : AudioFormat> internal constructor(
     return transforms.any { (it as? AudioTransform)?.wouldTransform(hint) ?: true }
   }
 
-  override suspend fun transmute(source: IN): EncodedBytes<OUT> {
+  override suspend fun transmute(source: IN): OUT {
     val context = createContext(
       loggerOverride = loggerOverride,
       decodeOptions = decodeOptions,
@@ -492,40 +527,42 @@ class AudioTransmuter<IN, OUT : AudioFormat> internal constructor(
       ir = transform.apply(ir, context)
     }
 
-    val encoded = encodePipeline.run(Decoded(inputFormat, ir), context)
-    return encoded
+    return encodePipeline.run(Decoded(inputFormat, ir), context)
   }
 }
 
 // -- Video ------------------------------------------------------------------─
 
-class DynamicVideoTransmuterBuilder<IN> internal constructor(
+class DynamicVideoTransmuterBuilder<IN, OUT> internal constructor(
   private val defaultDecodePipeline: (() -> DecodePipeline<IN, Decoded<VideoFormat, VideoIR>>)? = null,
+  private val defaultEncodePipeline: (() -> EncodePipeline<Decoded<VideoFormat, VideoIR>, OUT>)? = null,
 ) {
   private val transformPipeline = TransformPipeline<VideoIR>()
   private var loggerOverride: TransmuteLogger? = null
   private val decodeStage =
     DecodeStage<IN, Decoded<VideoFormat, VideoIR>, VideoDecodeOptions>(CanonicalVideoDecodeOptions())
   private val encodeStage =
-    EncodeStage<Decoded<VideoFormat, VideoIR>, EncodedBytes<VideoFormat>, VideoEncodeOptions>(CanonicalVideoEncodeOptions())
+    EncodeStage<Decoded<VideoFormat, VideoIR>, OUT, VideoEncodeOptions>(CanonicalVideoEncodeOptions())
 
-  fun logger(logger: TransmuteLogger): DynamicVideoTransmuterBuilder<IN> = apply { loggerOverride = logger }
+  fun logger(logger: TransmuteLogger): DynamicVideoTransmuterBuilder<IN, OUT> = apply { loggerOverride = logger }
 
-  fun transform(block: TransformPipeline<VideoIR>.() -> Unit): DynamicVideoTransmuterBuilder<IN> = apply {
+  fun transform(block: TransformPipeline<VideoIR>.() -> Unit): DynamicVideoTransmuterBuilder<IN, OUT> = apply {
     transformPipeline.block()
   }
 
-  fun decode(block: DecodeStage<IN, Decoded<VideoFormat, VideoIR>, VideoDecodeOptions>.() -> Unit): DynamicVideoTransmuterBuilder<IN> =
+  fun decode(block: DecodeStage<IN, Decoded<VideoFormat, VideoIR>, VideoDecodeOptions>.() -> Unit): DynamicVideoTransmuterBuilder<IN, OUT> =
     apply { decodeStage.block() }
 
-  fun encode(block: EncodeStage<Decoded<VideoFormat, VideoIR>, EncodedBytes<VideoFormat>, VideoEncodeOptions>.() -> Unit): DynamicVideoTransmuterBuilder<IN> =
+  fun encode(block: EncodeStage<Decoded<VideoFormat, VideoIR>, OUT, VideoEncodeOptions>.() -> Unit): DynamicVideoTransmuterBuilder<IN, OUT> =
     apply { encodeStage.block() }
 
-  fun build(): VideoTransmuter<IN, VideoFormat> {
+  fun build(): VideoTransmuter<IN, OUT> {
     val decode = decodeStage.pipeline
       ?: defaultDecodePipeline?.invoke()
       ?: error("No decode pipeline configured; call decode { ... }")
-    val encode = encodeStage.pipeline ?: defaultDynamicVideoEncodePipeline()
+    val encode = encodeStage.pipeline
+      ?: defaultEncodePipeline?.invoke()
+      ?: error("No encode pipeline configured; call encode { ... }")
 
     return VideoTransmuter(
       loggerOverride = loggerOverride,
@@ -536,11 +573,6 @@ class DynamicVideoTransmuterBuilder<IN> internal constructor(
       encodeOptions = encodeStage.options,
     )
   }
-
-  private fun defaultDynamicVideoEncodePipeline(): EncodePipeline<Decoded<VideoFormat, VideoIR>, EncodedBytes<VideoFormat>> =
-    PipelineBuilder.start<Decoded<VideoFormat, VideoIR>>()
-      .then(VideoDynamicEncodeHandler())
-      .build()
 }
 
 class VideoTransmuterBuilder<IN, OUT : VideoFormat> internal constructor(
@@ -566,7 +598,7 @@ class VideoTransmuterBuilder<IN, OUT : VideoFormat> internal constructor(
   fun encode(block: EncodeStage<Decoded<VideoFormat, VideoIR>, EncodedBytes<OUT>, VideoEncodeOptions>.() -> Unit): VideoTransmuterBuilder<IN, OUT> =
     apply { encodeStage.block() }
 
-  fun build(): VideoTransmuter<IN, OUT> {
+  fun build(): VideoTransmuter<IN, EncodedBytes<OUT>> {
     val decode = decodeStage.pipeline
       ?: defaultDecodePipeline?.invoke()
       ?: error("No decode pipeline configured; call decode { ... }")
@@ -588,11 +620,11 @@ class VideoTransmuterBuilder<IN, OUT : VideoFormat> internal constructor(
       .build()
 }
 
-class VideoTransmuter<IN, OUT : VideoFormat> internal constructor(
+class VideoTransmuter<IN, OUT> internal constructor(
     private val loggerOverride: TransmuteLogger?,
     private val transforms: List<Transform<VideoIR>>,
     private val decodePipeline: DecodePipeline<IN, Decoded<VideoFormat, VideoIR>>,
-    private val encodePipeline: EncodePipeline<Decoded<VideoFormat, VideoIR>, EncodedBytes<OUT>>,
+    private val encodePipeline: EncodePipeline<Decoded<VideoFormat, VideoIR>, OUT>,
     private val decodeOptions: VideoDecodeOptions,
     private val encodeOptions: VideoEncodeOptions,
 ) : Transmuter<IN, OUT> {
@@ -601,7 +633,7 @@ class VideoTransmuter<IN, OUT : VideoFormat> internal constructor(
     return transforms.any { (it as? VideoTransform)?.wouldTransform(hint) ?: true }
   }
 
-  override suspend fun transmute(source: IN): EncodedBytes<OUT> {
+  override suspend fun transmute(source: IN): OUT {
     val context = createContext(
       loggerOverride = loggerOverride,
       decodeOptions = decodeOptions,
@@ -618,8 +650,7 @@ class VideoTransmuter<IN, OUT : VideoFormat> internal constructor(
       ir = transform.apply(ir, context)
     }
 
-    val encoded = encodePipeline.run(Decoded(inputFormat, ir), context)
-    return encoded
+    return encodePipeline.run(Decoded(inputFormat, ir), context)
   }
 }
 
@@ -682,6 +713,21 @@ private fun defaultAudioBytesDecodePipeline(): DecodePipeline<Bytes, Decoded<Aud
 private fun defaultVideoBytesDecodePipeline(): DecodePipeline<Bytes, Decoded<VideoFormat, VideoIR>> =
   PipelineBuilder.start<Bytes>()
     .then(VideoDecodeHandler())
+    .build()
+
+private fun defaultDynamicImageEncodePipeline(): EncodePipeline<Decoded<ImageFormat, ImageIR>, EncodedBytes<ImageFormat>> =
+  PipelineBuilder.start<Decoded<ImageFormat, ImageIR>>()
+    .then(ImageDynamicEncodeHandler())
+    .build()
+
+private fun defaultDynamicAudioEncodePipeline(): EncodePipeline<Decoded<AudioFormat, AudioIR>, EncodedBytes<AudioFormat>> =
+  PipelineBuilder.start<Decoded<AudioFormat, AudioIR>>()
+    .then(AudioDynamicEncodeHandler())
+    .build()
+
+private fun defaultDynamicVideoEncodePipeline(): EncodePipeline<Decoded<VideoFormat, VideoIR>, EncodedBytes<VideoFormat>> =
+  PipelineBuilder.start<Decoded<VideoFormat, VideoIR>>()
+    .then(VideoDynamicEncodeHandler())
     .build()
 
 private fun createContext(
