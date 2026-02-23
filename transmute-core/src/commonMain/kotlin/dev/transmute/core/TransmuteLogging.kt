@@ -8,7 +8,7 @@ import kotlin.concurrent.Volatile
  * Use with [TransmuteLogging.configure] to control library verbosity:
  * ```kotlin
  * TransmuteLogging.configure(LogLevel.INFO)     // console output
- * TransmuteLogging.configure(LogLevel.OFF)       // silent (default)
+ * TransmuteLogging.configure(LogLevel.OFF)       // silent
  * ```
  */
 enum class LogLevel {
@@ -31,7 +31,8 @@ enum class LogLevel {
 /**
  * Global logging configuration for the Transmute library.
  *
- * By default logging is **off**. Enable it before any transmutation:
+ * By default, Transmute logs **warnings and errors** to standard output.
+ * Use [configure] to change the log level or swap out the logger implementation.
  *
  * ```kotlin
  * // Console logging at INFO level
@@ -51,11 +52,13 @@ enum class LogLevel {
  */
 object TransmuteLogging {
 
-  @Volatile
-  private var _level: LogLevel = LogLevel.OFF
+  private val DEFAULT_LEVEL: LogLevel = LogLevel.WARN
 
   @Volatile
-  private var _logger: TransmuteLogger = TransmuteLogger.Noop
+  private var _level: LogLevel = DEFAULT_LEVEL
+
+  @Volatile
+  private var _logger: TransmuteLogger = LevelFilterLogger(DEFAULT_LEVEL, PrintLogger)
 
   /** Current global log level. */
   val level: LogLevel get() = _level
@@ -75,10 +78,10 @@ object TransmuteLogging {
               else LevelFilterLogger(level, output)
   }
 
-  /** Reset to default silent state. */
+  /** Reset to default logging state. */
   fun reset() {
-    _level = LogLevel.OFF
-    _logger = TransmuteLogger.Noop
+    _level = DEFAULT_LEVEL
+    _logger = LevelFilterLogger(DEFAULT_LEVEL, PrintLogger)
   }
 
   /**
