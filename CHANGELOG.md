@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.5.0](https://github.com/SteveOberst/Transmute/compare/v0.4.0...v0.5.0) (2026-02-23)
+
+
+### ⚠ BREAKING CHANGES
+
+* rename pipeline start to initial
+* default logging level warn
+
+### Features
+
+* default logging level warn ([29db6eb](https://github.com/SteveOberst/Transmute/commit/29db6eb848a1927a4bd0233faf7767ce2aca9596))
+
+
+### Code Refactoring
+
+* rename pipeline start to initial ([80a63f9](https://github.com/SteveOberst/Transmute/commit/80a63f9e6eac8231accbb93843bb7e2ec869d5e2))
+
 ## [0.4.0](https://github.com/SteveOberst/Transmute/compare/v0.3.0...v0.4.0) (2026-02-23)
 
 
