@@ -1,6 +1,6 @@
 # Transmute
 
-Kotlin Multiplatform media conversion, compression and transformation - image, audio, and video - with a single API across Android, Desktop/JVM, and iOS.
+Kotlin Multiplatform library offering hardware-accelerated media transcoding and transformation via a format-agnostic intermediate representation - Image, Audio, and Video, with a single API across Android, Desktop/JVM, and iOS.
 
 [![JitPack](https://jitpack.io/v/SteveOberst/Transmute.svg)](https://jitpack.io/#SteveOberst/Transmute)
 [![Kotlin](https://img.shields.io/badge/kotlin-2.2.21-blue.svg?logo=kotlin)](http://kotlinlang.org)
