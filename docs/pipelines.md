@@ -36,7 +36,7 @@ class BitmapToBytesHandler(
 
 val t =
   Transmute.imageFrom<android.graphics.Bitmap> {
-    decode { pipeline(start = BitmapToBytesHandler() + ImageCodecs.Decode.DEFAULT) }
+    decode { pipeline(initial = BitmapToBytesHandler() + ImageCodecs.Decode.DEFAULT) }
   }
 ```
 
@@ -61,7 +61,7 @@ val t =
   Transmute.imageFrom<platform.UIKit.UIImage> {
     decode {
       options { acceptedInputFormats += setOf(ImageFormat.Png) } // skip detection (we always emitted PNG)
-      pipeline(start = UIImageToBytesHandler() + ImageCodecs.Decode.DEFAULT)
+      pipeline(initial = UIImageToBytesHandler() + ImageCodecs.Decode.DEFAULT)
     }
   }
 ```
@@ -84,7 +84,7 @@ val t =
   Transmute.imageFrom<java.awt.image.BufferedImage> {
     decode {
       options { acceptedInputFormats += setOf(ImageFormat.Png) } // if you always write PNG above
-      pipeline(start = BufferedImageToBytesHandler("png") + ImageCodecs.Decode.DEFAULT)
+      pipeline(initial = BufferedImageToBytesHandler("png") + ImageCodecs.Decode.DEFAULT)
     }
   }
 ```
@@ -136,7 +136,7 @@ val t =
   Transmute.imageOut<android.graphics.Bitmap> {
     encode {
       options { outputFormat = OutputFormat.Exact(ImageFormat.Jpeg) }
-      pipeline(start = ImageCodecs.Encode.DEFAULT + EncodedBytesToBitmapHandler())
+      pipeline(initial = ImageCodecs.Encode.DEFAULT + EncodedBytesToBitmapHandler())
     }
   }
 ```
@@ -160,7 +160,7 @@ val t =
   Transmute.imageOut<platform.UIKit.UIImage> {
     encode {
       options { outputFormat = OutputFormat.Exact(ImageFormat.Jpeg) }
-      pipeline(start = ImageCodecs.Encode.DEFAULT + EncodedBytesToUIImageHandler())
+      pipeline(initial = ImageCodecs.Encode.DEFAULT + EncodedBytesToUIImageHandler())
     }
   }
 ```
@@ -179,7 +179,7 @@ val t =
   Transmute.imageOut<java.awt.image.BufferedImage> {
     encode {
       options { outputFormat = OutputFormat.Exact(ImageFormat.Jpeg) }
-      pipeline(start = ImageCodecs.Encode.DEFAULT + EncodedBytesToBufferedImageHandler())
+      pipeline(initial = ImageCodecs.Encode.DEFAULT + EncodedBytesToBufferedImageHandler())
     }
   }
 ```

@@ -27,7 +27,7 @@ class PipelinesIntegrationTest {
     val t = Transmute.image {
       decode {
         pipeline(
-          start = PipelineHandler { bytes, _ ->
+          initial = PipelineHandler { bytes, _ ->
             val width = bytes.data.firstOrNull()?.toInt() ?: 1
             val ir =
               ImageIR(
@@ -56,7 +56,7 @@ class PipelinesIntegrationTest {
         options(CanonicalImageEncodeOptions(outputFormat = OutputFormat.Exact(ImageFormat.Png)))
 
         pipeline(
-          start = PipelineHandler { decoded, ctx ->
+          initial = PipelineHandler { decoded, ctx ->
             val options = (ctx.encodeOptions as? ImageEncodeOptions) ?: CanonicalImageEncodeOptions()
             val outFormat = when (val declared = options.outputFormat) {
               OutputFormat.ORIGINAL -> decoded.format

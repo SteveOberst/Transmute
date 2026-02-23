@@ -207,9 +207,8 @@ class BitmapToBytesHandler(
   }
 }
 
-val fromBitmap =
-  Transmute.imageFrom<android.graphics.Bitmap> {
-    decode { pipeline(start = BitmapToBytesHandler() + ImageCodecs.Decode.DEFAULT) }
+val fromBitmap = Transmute.imageFrom<android.graphics.Bitmap> {
+    decode { pipeline(initial = BitmapToBytesHandler() + ImageCodecs.Decode.DEFAULT) }
     scale(maxWidth = 1024, maxHeight = 1024)
     encode { options(JpegEncodeOptions(quality = 0.85f)) }
   }
@@ -232,11 +231,10 @@ class UIImageToBytesHandler : PipelineHandler<platform.UIKit.UIImage, Bytes> {
   }
 }
 
-val fromUIImage =
-  Transmute.imageFrom<platform.UIKit.UIImage> {
+val fromUIImage = Transmute.imageFrom<platform.UIKit.UIImage> {
     decode {
       options { acceptedInputFormats += setOf(ImageFormat.Png) } // skip detection (we always emitted PNG)
-      pipeline(start = UIImageToBytesHandler() + ImageCodecs.Decode.DEFAULT)
+      pipeline(initial = UIImageToBytesHandler() + ImageCodecs.Decode.DEFAULT)
     }
     scale(maxWidth = 1024, maxHeight = 1024)
     encode { options(JpegEncodeOptions(quality = 0.85f)) }
@@ -257,11 +255,10 @@ class BufferedImageToBytesHandler(
   }
 }
 
-val fromBufferedImage =
-  Transmute.imageFrom<java.awt.image.BufferedImage> {
+val fromBufferedImage = Transmute.imageFrom<java.awt.image.BufferedImage> {
     decode {
       options { acceptedInputFormats += setOf(ImageFormat.Png) } // if you always write PNG above
-      pipeline(start = BufferedImageToBytesHandler("png") + ImageCodecs.Decode.DEFAULT)
+      pipeline(initial = BufferedImageToBytesHandler("png") + ImageCodecs.Decode.DEFAULT)
     }
     scale(maxWidth = 1024, maxHeight = 1024)
     encode { options(JpegEncodeOptions(quality = 0.85f)) }
@@ -283,11 +280,10 @@ class EncodedBytesToBitmapHandler : PipelineHandler<EncodedBytes<ImageFormat>, a
   }
 }
 
-val toBitmap =
-  Transmute.imageOut<android.graphics.Bitmap> {
+val toBitmap = Transmute.imageOut<android.graphics.Bitmap> {
     encode {
       options { outputFormat = OutputFormat.Exact(ImageFormat.Jpeg) }
-      pipeline(start = ImageCodecs.Encode.DEFAULT + EncodedBytesToBitmapHandler())
+      pipeline(initial = ImageCodecs.Encode.DEFAULT + EncodedBytesToBitmapHandler())
     }
   }
 ```
@@ -307,11 +303,10 @@ class EncodedBytesToUIImageHandler : PipelineHandler<EncodedBytes<ImageFormat>, 
   }
 }
 
-val toUIImage =
-  Transmute.imageOut<platform.UIKit.UIImage> {
+val toUIImage = Transmute.imageOut<platform.UIKit.UIImage> {
     encode {
       options { outputFormat = OutputFormat.Exact(ImageFormat.Jpeg) }
-      pipeline(start = ImageCodecs.Encode.DEFAULT + EncodedBytesToUIImageHandler())
+      pipeline(initial = ImageCodecs.Encode.DEFAULT + EncodedBytesToUIImageHandler())
     }
   }
 ```
@@ -326,11 +321,10 @@ class EncodedBytesToBufferedImageHandler : PipelineHandler<EncodedBytes<ImageFor
   }
 }
 
-val toBufferedImage =
-  Transmute.imageOut<java.awt.image.BufferedImage> {
+val toBufferedImage = Transmute.imageOut<java.awt.image.BufferedImage> {
     encode {
       options { outputFormat = OutputFormat.Exact(ImageFormat.Jpeg) }
-      pipeline(start = ImageCodecs.Encode.DEFAULT + EncodedBytesToBufferedImageHandler())
+      pipeline(initial = ImageCodecs.Encode.DEFAULT + EncodedBytesToBufferedImageHandler())
     }
   }
 ```

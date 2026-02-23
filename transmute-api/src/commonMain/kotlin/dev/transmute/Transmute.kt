@@ -114,7 +114,7 @@ object Transmute {
    * When you choose a custom output type, you must configure an encode pipeline explicitly.
    * A typical pattern is:
    *
-   * `encode { pipeline(start = ImageCodecs.Encode.DEFAULT + MyEncodedBytesToPlatformHandler()) }`
+   * `encode { pipeline(initial = ImageCodecs.Encode.DEFAULT + MyEncodedBytesToPlatformHandler()) }`
    */
   fun <OUT> imageOut(block: DynamicImageTransmuterBuilder<Bytes, OUT>.() -> Unit): ImageTransmuter<Bytes, OUT> =
     DynamicImageTransmuterBuilder<Bytes, OUT>(defaultDecodePipeline = ::defaultImageBytesDecodePipeline).apply(block).build()
@@ -664,15 +664,15 @@ class DecodeStage<IN, OUT, OPTS : DecodeOptions>(
 
   fun pipeline(pipeline: DecodePipeline<IN, OUT>): DecodeStage<IN, OUT, OPTS> = apply { this.pipeline = pipeline }
 
-  fun pipeline(start: PipelineHandler<IN, OUT>): DecodeStage<IN, OUT, OPTS> = apply {
-    pipeline = PipelineBuilder.start<IN>().startWith(start).build()
+  fun pipeline(initial: PipelineHandler<IN, OUT>): DecodeStage<IN, OUT, OPTS> = apply {
+    pipeline = PipelineBuilder.start<IN>().startWith(initial).build()
   }
 
   fun <CUR> pipeline(
-    start: PipelineHandler<IN, CUR>,
+    initial: PipelineHandler<IN, CUR>,
     block: PipelineBuilder<IN, CUR>.() -> PipelineBuilder<IN, OUT>,
   ): DecodeStage<IN, OUT, OPTS> = apply {
-    pipeline = PipelineBuilder.start<IN>().startWith(start).block().build()
+    pipeline = PipelineBuilder.start<IN>().startWith(initial).block().build()
   }
 }
 
@@ -686,15 +686,15 @@ class EncodeStage<IN, OUT, OPTS : EncodeOptions>(
 
   fun pipeline(pipeline: EncodePipeline<IN, OUT>): EncodeStage<IN, OUT, OPTS> = apply { this.pipeline = pipeline }
 
-  fun pipeline(start: PipelineHandler<IN, OUT>): EncodeStage<IN, OUT, OPTS> = apply {
-    pipeline = PipelineBuilder.start<IN>().startWith(start).build()
+  fun pipeline(initial: PipelineHandler<IN, OUT>): EncodeStage<IN, OUT, OPTS> = apply {
+    pipeline = PipelineBuilder.start<IN>().startWith(initial).build()
   }
 
   fun <CUR> pipeline(
-    start: PipelineHandler<IN, CUR>,
+    initial: PipelineHandler<IN, CUR>,
     block: PipelineBuilder<IN, CUR>.() -> PipelineBuilder<IN, OUT>,
   ): EncodeStage<IN, OUT, OPTS> = apply {
-    pipeline = PipelineBuilder.start<IN>().startWith(start).block().build()
+    pipeline = PipelineBuilder.start<IN>().startWith(initial).block().build()
   }
 }
 
