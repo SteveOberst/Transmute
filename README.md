@@ -100,6 +100,47 @@ See “Advanced Pipelines” below for a full example.
 
 Transmute uses fluent, pipelines for decode and encode. You can replace either stage entirely.
 
+### Common Recipes
+
+```kotlin
+suspend fun commonRecipes(
+    inputImage: ByteArray,
+    inputAudio: ByteArray,
+    inputVideo: ByteArray,
+) {
+    // 1) Make a square thumbnail and force JPEG output
+    val thumbJpeg =
+      Transmute.image {
+        crop(x = 0, y = 0, width = 512, height = 512)
+        scale(maxWidth = 256, maxHeight = 256)
+        encode { options(JpegEncodeOptions(quality = 0.85f)) }
+      }.transmute(inputImage.asBytes()).bytes.data
+
+    // 2) Preserve metadata while changing output format dynamically
+    val keepMetadata =
+      Transmute.image {
+        encode { options { metadataPolicy = MetadataPolicy.PRESERVE } }
+      }.transmute(inputImage.asBytes()).bytes.data
+
+    // 3) Normalize + trim audio and force AAC output
+    val aac =
+      Transmute.audio {
+        normalize(targetPeak = 0.9f)
+        trim(startMs = 1_000, endMs = 5_000)
+        encode { options { outputFormat = OutputFormat.Exact(AudioFormat.Aac) } }
+      }.transmute(inputAudio.asBytes()).bytes.data
+
+    // 4) Make a silent MP4 preview clip
+    val preview =
+      Transmute.video {
+        resize(maxWidth = 1280, maxHeight = 720)
+        trim(startMs = 0, endMs = 15_000)
+        removeAudio()
+        encode { options { outputFormat = OutputFormat.Exact(VideoFormat.Mp4) } }
+      }.transmute(inputVideo.asBytes()).bytes.data
+}
+```
+
 ### Format-Specific Encode Options
 
 Some formats expose dedicated encode options types:
@@ -166,6 +207,31 @@ val fromNamedBytes = Transmute.imageFrom<NamedBytes> {
         pipeline(start = NamedBytesToBytesHandler() + ImageCodecs.Decode.DEFAULT)
     }
 }
+```
+
+#### Desktop/JVM: BufferedImage input
+
+On Desktop/JVM you may already have a `java.awt.image.BufferedImage` (e.g. from ImageIO or another library).
+This example shows how to accept it as `IN` and still reuse the default decode handler.
+
+```kotlin
+class BufferedImageToBytesHandler(
+  private val formatName: String = "png",
+) : PipelineHandler<java.awt.image.BufferedImage, Bytes> {
+  override suspend fun handle(value: java.awt.image.BufferedImage, context: TransmuteContext): Bytes {
+    val out = java.io.ByteArrayOutputStream()
+    val ok = javax.imageio.ImageIO.write(value, formatName, out)
+    require(ok) { "No ImageIO writer for formatName=$formatName" }
+    return out.toByteArray().asBytes()
+  }
+}
+
+val fromBufferedImage =
+  Transmute.imageFrom<java.awt.image.BufferedImage> {
+    decode { pipeline(start = BufferedImageToBytesHandler("png") + ImageCodecs.Decode.DEFAULT) }
+    scale(maxWidth = 1024, maxHeight = 1024)
+    encode { options(JpegEncodeOptions(quality = 0.85f)) }
+  }
 ```
 
 ## Logging
