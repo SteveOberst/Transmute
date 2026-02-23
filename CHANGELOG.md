@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.4.0](https://github.com/SteveOberst/Transmute/compare/v0.3.0...v0.4.0) (2026-02-23)
+
+
+### ⚠ BREAKING CHANGES
+
+* transmuter returns pipeline output
+
+### Features
+
+* transmuter returns pipeline output ([dc91dba](https://github.com/SteveOberst/Transmute/commit/dc91dba5465f37902bd93a7802d97cf023852a22))
+
 ## [0.3.0](https://github.com/SteveOberst/Transmute/compare/v0.2.0...v0.3.0) (2026-02-23)
 
 
