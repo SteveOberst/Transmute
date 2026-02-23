@@ -16,7 +16,7 @@ BMP (Bitmap) is a simple, mostly uncompressed image format. It is large but easy
 // Convert any image to BMP
 suspend fun convertToBmp(inputBytes: ByteArray): ByteArray =
   Transmute.image {
-    encode { options(CanonicalImageEncodeOptions(outputFormat = OutputFormat.Exact(ImageFormat.Bmp))) }
+    encode { options { outputFormat = OutputFormat.Exact(ImageFormat.Bmp) } }
   }.transmute(inputBytes.asBytes()).bytes.data
 
 // Decode BMP (re-encode to JPEG)

@@ -16,13 +16,13 @@ WAV (Waveform Audio File Format) is an uncompressed (or lightly compressed) audi
 // Convert any audio to WAV
 suspend fun convertToWav(inputBytes: ByteArray): ByteArray =
   Transmute.audio {
-    encode { options(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.Wav))) }
+    encode { options { outputFormat = OutputFormat.Exact(AudioFormat.Wav) } }
   }.transmute(inputBytes.asBytes()).bytes.data
 
 // Convert WAV to AAC
 suspend fun convertToAac(wavBytes: ByteArray): ByteArray =
   Transmute.audio {
-    encode { options(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.Aac))) }
+    encode { options { outputFormat = OutputFormat.Exact(AudioFormat.Aac) } }
   }.transmute(wavBytes.asBytes()).bytes.data
 ```
 

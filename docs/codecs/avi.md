@@ -16,13 +16,13 @@ AVI is a legacy video container format. It is still encountered frequently in ar
 // Convert video to AVI (Android/Desktop)
 suspend fun convertToAvi(inputBytes: ByteArray): ByteArray =
   Transmute.video {
-    encode { options(CanonicalVideoEncodeOptions(outputFormat = OutputFormat.Exact(VideoFormat.Avi))) }
+    encode { options { outputFormat = OutputFormat.Exact(VideoFormat.Avi) } }
   }.transmute(inputBytes.asBytes()).bytes.data
 
 // Decode AVI (re-encode to MP4)
 suspend fun convertToMp4(aviBytes: ByteArray): ByteArray =
   Transmute.video {
-    encode { options(CanonicalVideoEncodeOptions(outputFormat = OutputFormat.Exact(VideoFormat.Mp4))) }
+    encode { options { outputFormat = OutputFormat.Exact(VideoFormat.Mp4) } }
   }.transmute(aviBytes.asBytes()).bytes.data
 ```
 

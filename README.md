@@ -49,7 +49,7 @@ suspend fun quickStart(
     val videoBytes = Transmute.video {
         resize(maxWidth = 1280, maxHeight = 720)
         trim(startMs = 0, endMs = 30_000)
-        encode { options(CanonicalVideoEncodeOptions(outputFormat = OutputFormat.Exact(VideoFormat.Mp4))) }
+        encode { options { outputFormat = OutputFormat.Exact(VideoFormat.Mp4) } }
     }.transmute(mp4Bytes.asBytes()).bytes.data
 
     // Detect format from raw bytes
@@ -66,7 +66,7 @@ If your inputs are `ByteArray`, pass `bytes.asBytes()` to `transmute(...)`.
 ```kotlin
 // Reusable dynamic-output image transmuter (output defaults to "same as input" unless encode options force it)
 val thumbnailer = Transmute.image {
-    decode { options(CanonicalImageDecodeOptions()) } // optionally restrict acceptedInputFormats
+    decode { options { acceptedInputFormats += setOf(ImageFormat.Png, ImageFormat.Jpeg, ImageFormat.Webp) } } // optional
     scale(maxWidth = 512, maxHeight = 512)
     encode { options(JpegEncodeOptions(quality = 0.85f)) }
 }
@@ -127,7 +127,7 @@ This example chooses PNG when the image is not opaque, otherwise JPEG, unless th
 ```kotlin
 val smartOutput = Transmute.image {
     encode {
-        options(CanonicalImageEncodeOptions(outputFormat = OutputFormat.ORIGINAL))
+        options { outputFormat = OutputFormat.ORIGINAL }
 
         pipeline(
           start =
@@ -161,11 +161,7 @@ class NamedBytesToBytesHandler : PipelineHandler<NamedBytes, Bytes> {
 
 val fromNamedBytes = Transmute.imageFrom<NamedBytes> {
     decode {
-        options(
-          CanonicalImageDecodeOptions(
-            acceptedInputFormats = setOf(ImageFormat.Jpeg, ImageFormat.Png, ImageFormat.Webp),
-          ),
-        )
+        options { acceptedInputFormats += setOf(ImageFormat.Jpeg, ImageFormat.Png, ImageFormat.Webp) }
 
         pipeline(start = NamedBytesToBytesHandler() + ImageCodecs.Decode.DEFAULT)
     }

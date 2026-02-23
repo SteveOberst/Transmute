@@ -16,13 +16,13 @@ MKV (Matroska) is a flexible open container format commonly used for high-qualit
 // Convert video to MKV (Android/Desktop)
 suspend fun convertToMkv(inputBytes: ByteArray): ByteArray =
   Transmute.video {
-    encode { options(CanonicalVideoEncodeOptions(outputFormat = OutputFormat.Exact(VideoFormat.Mkv))) }
+    encode { options { outputFormat = OutputFormat.Exact(VideoFormat.Mkv) } }
   }.transmute(inputBytes.asBytes()).bytes.data
 
 // Decode MKV (re-encode to MP4)
 suspend fun convertToMp4(mkvBytes: ByteArray): ByteArray =
   Transmute.video {
-    encode { options(CanonicalVideoEncodeOptions(outputFormat = OutputFormat.Exact(VideoFormat.Mp4))) }
+    encode { options { outputFormat = OutputFormat.Exact(VideoFormat.Mp4) } }
   }.transmute(mkvBytes.asBytes()).bytes.data
 ```
 

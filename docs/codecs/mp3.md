@@ -16,13 +16,13 @@ MP3 (MPEG-1 Audio Layer III) is the most widely-used lossy audio compression for
 // Convert audio to MP3 (Android/Desktop)
 suspend fun convertToMp3(inputBytes: ByteArray): ByteArray =
   Transmute.audio {
-    encode { options(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.Mp3))) }
+    encode { options { outputFormat = OutputFormat.Exact(AudioFormat.Mp3) } }
   }.transmute(inputBytes.asBytes()).bytes.data
 
 // Decode MP3 on any platform (re-encode to WAV)
 suspend fun decodeToWav(mp3Bytes: ByteArray): ByteArray =
   Transmute.audio {
-    encode { options(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.Wav))) }
+    encode { options { outputFormat = OutputFormat.Exact(AudioFormat.Wav) } }
   }.transmute(mp3Bytes.asBytes()).bytes.data
 ```
 

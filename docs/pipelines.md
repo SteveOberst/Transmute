@@ -26,7 +26,7 @@ class NamedBytesToBytesHandler : PipelineHandler<NamedBytes, Bytes> {
 
 val t = Transmute.imageFrom<NamedBytes> {
   decode {
-    options(CanonicalImageDecodeOptions(acceptedInputFormats = setOf(ImageFormat.Png, ImageFormat.Jpeg)))
+    options { acceptedInputFormats += setOf(ImageFormat.Png, ImageFormat.Jpeg) }
 
     pipeline(start = NamedBytesToBytesHandler() + ImageCodecs.Decode.DEFAULT)
   }
@@ -41,7 +41,7 @@ not a builder-level knob.
 ```kotlin
 val t = Transmute.image {
   encode {
-    options(CanonicalImageEncodeOptions(outputFormat = OutputFormat.ORIGINAL))
+    options { outputFormat = OutputFormat.ORIGINAL }
 
     pipeline(
       start =

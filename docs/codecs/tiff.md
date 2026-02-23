@@ -16,7 +16,7 @@ TIFF is a flexible image container format used in professional imaging workflows
 // Convert any image to TIFF (Desktop/iOS)
 suspend fun convertToTiff(inputBytes: ByteArray): ByteArray =
   Transmute.image {
-    encode { options(CanonicalImageEncodeOptions(outputFormat = OutputFormat.Exact(ImageFormat.Tiff))) }
+    encode { options { outputFormat = OutputFormat.Exact(ImageFormat.Tiff) } }
   }.transmute(inputBytes.asBytes()).bytes.data
 
 // Decode TIFF (re-encode to JPEG)

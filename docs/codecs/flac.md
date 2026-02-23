@@ -16,13 +16,13 @@ FLAC (Free Lossless Audio Codec) is a lossless audio format. It compresses audio
 // Convert audio to FLAC (Android/Desktop)
 suspend fun convertToFlac(inputBytes: ByteArray): ByteArray =
   Transmute.audio {
-    encode { options(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.Flac))) }
+    encode { options { outputFormat = OutputFormat.Exact(AudioFormat.Flac) } }
   }.transmute(inputBytes.asBytes()).bytes.data
 
 // Decode FLAC on any platform (re-encode to WAV)
 suspend fun decodeToWav(flacBytes: ByteArray): ByteArray =
   Transmute.audio {
-    encode { options(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.Wav))) }
+    encode { options { outputFormat = OutputFormat.Exact(AudioFormat.Wav) } }
   }.transmute(flacBytes.asBytes()).bytes.data
 ```
 

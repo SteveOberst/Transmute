@@ -16,13 +16,13 @@ AAC (Advanced Audio Coding) is a modern lossy audio codec that provides better q
 // Convert audio to AAC
 suspend fun convertToAac(inputBytes: ByteArray): ByteArray =
   Transmute.audio {
-    encode { options(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.Aac))) }
+    encode { options { outputFormat = OutputFormat.Exact(AudioFormat.Aac) } }
   }.transmute(inputBytes.asBytes()).bytes.data
 
 // Decode AAC (re-encode to WAV)
 suspend fun decodeToWav(aacBytes: ByteArray): ByteArray =
   Transmute.audio {
-    encode { options(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.Wav))) }
+    encode { options { outputFormat = OutputFormat.Exact(AudioFormat.Wav) } }
   }.transmute(aacBytes.asBytes()).bytes.data
 ```
 

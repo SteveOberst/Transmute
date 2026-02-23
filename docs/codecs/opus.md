@@ -16,13 +16,13 @@ Opus is a modern audio codec optimized for interactive speech and music over the
 // Convert audio to OPUS (Android/Desktop)
 suspend fun convertToOpus(inputBytes: ByteArray): ByteArray =
   Transmute.audio {
-    encode { options(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.Opus))) }
+    encode { options { outputFormat = OutputFormat.Exact(AudioFormat.Opus) } }
   }.transmute(inputBytes.asBytes()).bytes.data
 
 // Decode OPUS on any platform (re-encode to WAV)
 suspend fun decodeToWav(opusBytes: ByteArray): ByteArray =
   Transmute.audio {
-    encode { options(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.Wav))) }
+    encode { options { outputFormat = OutputFormat.Exact(AudioFormat.Wav) } }
   }.transmute(opusBytes.asBytes()).bytes.data
 ```
 

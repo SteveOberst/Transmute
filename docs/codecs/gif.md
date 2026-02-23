@@ -16,7 +16,7 @@ GIF (Graphics Interchange Format) is a legacy image format best known for simple
 // Convert any image to GIF (Desktop/iOS)
 suspend fun convertToGif(inputBytes: ByteArray): ByteArray =
   Transmute.image {
-    encode { options(CanonicalImageEncodeOptions(outputFormat = OutputFormat.Exact(ImageFormat.Gif))) }
+    encode { options { outputFormat = OutputFormat.Exact(ImageFormat.Gif) } }
   }.transmute(inputBytes.asBytes()).bytes.data
 
 // Decode GIF (re-encode to PNG)

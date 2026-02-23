@@ -16,13 +16,13 @@ MP4 is the most widely-used video container format, typically containing H.264 (
 // Convert video to MP4
 suspend fun convertToMp4(inputBytes: ByteArray): ByteArray =
   Transmute.video {
-    encode { options(CanonicalVideoEncodeOptions(outputFormat = OutputFormat.Exact(VideoFormat.Mp4))) }
+    encode { options { outputFormat = OutputFormat.Exact(VideoFormat.Mp4) } }
   }.transmute(inputBytes.asBytes()).bytes.data
 
 // Decode MP4 to another format (re-encode to WebM)
 suspend fun convertToWebm(mp4Bytes: ByteArray): ByteArray =
   Transmute.video {
-    encode { options(CanonicalVideoEncodeOptions(outputFormat = OutputFormat.Exact(VideoFormat.Webm))) }
+    encode { options { outputFormat = OutputFormat.Exact(VideoFormat.Webm) } }
   }.transmute(mp4Bytes.asBytes()).bytes.data
 ```
 

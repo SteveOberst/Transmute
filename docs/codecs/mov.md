@@ -16,13 +16,13 @@ MOV is Apple's QuickTime container format. It commonly contains H.264 video and 
 // Convert video to MOV
 suspend fun convertToMov(inputBytes: ByteArray): ByteArray =
   Transmute.video {
-    encode { options(CanonicalVideoEncodeOptions(outputFormat = OutputFormat.Exact(VideoFormat.Mov))) }
+    encode { options { outputFormat = OutputFormat.Exact(VideoFormat.Mov) } }
   }.transmute(inputBytes.asBytes()).bytes.data
 
 // Decode MOV (re-encode to MP4)
 suspend fun convertToMp4(movBytes: ByteArray): ByteArray =
   Transmute.video {
-    encode { options(CanonicalVideoEncodeOptions(outputFormat = OutputFormat.Exact(VideoFormat.Mp4))) }
+    encode { options { outputFormat = OutputFormat.Exact(VideoFormat.Mp4) } }
   }.transmute(movBytes.asBytes()).bytes.data
 ```
 
