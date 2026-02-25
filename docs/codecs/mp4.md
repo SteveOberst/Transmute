@@ -7,7 +7,7 @@ MP4 is the most widely-used video container format, typically containing H.264 (
 | Platform | Decode | Encode | Engine |
 |----------|--------|--------|--------|
 | Android  | ✅     | ✅     | MediaCodec |
-| Desktop  | ✅     | ✅     | FFmpeg (bundled) |
+| Desktop  | ✅     | ✅     | GStreamer (requires `transmute-gstreamer`) |
 | iOS      | ✅     | ✅     | AVFoundation / AVAssetWriter |
 
 ## Usage
@@ -30,7 +30,7 @@ suspend fun convertToWebm(mp4Bytes: ByteArray): ByteArray =
 
 - Full encode + decode support on all platforms.
 - Android uses hardware-accelerated MediaCodec for H.264.
-- Desktop relies on the bundled FFmpeg - no user setup needed.
+- Desktop requires the optional `transmute-gstreamer` module with GStreamer installed.
 - iOS uses AVFoundation with hardware H.264 encode/decode.
 - The safest choice for maximum cross-platform and cross-device compatibility.
 - Supports H.264 (AVC) video codec with AAC audio by default.

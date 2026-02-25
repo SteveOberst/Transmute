@@ -1,21 +1,21 @@
 package dev.transmute.image
 
-import dev.transmute.core.TransmuteContext
-import dev.transmute.core.PrintLogger
+import dev.transmute.common.PipelineContext
+import dev.transmute.common.PrintLogger
 import kotlin.math.abs
 
 /**
  * Shared test utilities for the image conversion module.
  *
  * Provides synthetic image generation, pixel comparison,
- * and a common [TransmuteContext] for tests.
+ * and a common [PipelineContext] for tests.
  */
 object ImageTestHelpers {
 
-  // --- TransmuteContext ---
+  // --- PipelineContext ---
 
-  /** Creates a minimal TransmuteContext suitable for unit tests. */
-  fun testContext() = TransmuteContext(logger = PrintLogger)
+  /** Creates a minimal PipelineContext suitable for unit tests. */
+  fun testContext() = PipelineContext(logger = PrintLogger)
 
   // --- Synthetic image creation ---
 

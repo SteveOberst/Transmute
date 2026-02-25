@@ -1,7 +1,7 @@
 package dev.transmute.image.codecs.bmp
 
-import dev.transmute.core.Bytes
-import dev.transmute.core.TransmuteContext
+import dev.transmute.model.core.Bytes
+import dev.transmute.common.PipelineContext
 import dev.transmute.image.*
 
 /**
@@ -26,7 +26,7 @@ class BmpImageDecoder : ImageDecoder {
     return null
   }
 
-  override suspend fun decode(source: Bytes, options: ImageDecodeOptions, context: TransmuteContext): ImageIR {
+  override suspend fun decode(source: Bytes, options: ImageDecodeOptions, context: PipelineContext): ImageIR {
     val bytes = source.data
     require(bytes.size >= 54) { "BMP too small" }
     require(bytes[0] == 'B'.code.toByte() && bytes[1] == 'M'.code.toByte()) { "Not a BMP" }
@@ -112,7 +112,7 @@ class BmpImageEncoder : ImageEncoder {
     ir: ImageIR,
     format: ImageFormat,
     options: ImageEncodeOptions,
-    context: TransmuteContext,
+    context: PipelineContext,
   ): Bytes {
     val buffer = ir.buffer as? ByteArrayPixelBuffer
       ?: error("BmpImageEncoder requires ByteArrayPixelBuffer")

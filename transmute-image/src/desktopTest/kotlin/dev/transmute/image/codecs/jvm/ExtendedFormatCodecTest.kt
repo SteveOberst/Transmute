@@ -1,6 +1,6 @@
 package dev.transmute.image.codecs.jvm
 
-import dev.transmute.core.Bytes
+import dev.transmute.model.core.Bytes
 import dev.transmute.image.ImageFormatDetector
 import dev.transmute.image.ImageTestHelpers.adjustAlphaForComparison
 import dev.transmute.image.ImageTestHelpers.checkerboard

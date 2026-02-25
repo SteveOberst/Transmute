@@ -1,8 +1,8 @@
 package dev.transmute
 
-import dev.transmute.core.MediaFormat
-import dev.transmute.core.MetadataPolicy
-import dev.transmute.core.OutputFormat
+import dev.transmute.model.core.MediaFormat
+import dev.transmute.codec.MetadataPolicy
+import dev.transmute.codec.OutputFormat
 
 /**
  * Mutable view for domain-specific `encode { options { ... } }` blocks.

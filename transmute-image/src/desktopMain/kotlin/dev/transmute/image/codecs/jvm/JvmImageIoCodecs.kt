@@ -1,8 +1,8 @@
 package dev.transmute.image.codecs.jvm
 
-import dev.transmute.core.Bytes
-import dev.transmute.core.TransmuteContext
-import dev.transmute.core.asBytes
+import dev.transmute.model.core.Bytes
+import dev.transmute.common.PipelineContext
+import dev.transmute.model.core.asBytes
 import dev.transmute.image.*
 import java.awt.Graphics2D
 import java.awt.image.BufferedImage
@@ -53,7 +53,7 @@ class JvmImageIoDecoder : ImageDecoder {
     return null
   }
 
-  override suspend fun decode(source: Bytes, options: ImageDecodeOptions, context: TransmuteContext): ImageIR {
+  override suspend fun decode(source: Bytes, options: ImageDecodeOptions, context: PipelineContext): ImageIR {
     val input = ByteArrayInputStream(source.data)
     val img = ImageIO.read(input) ?: error("ImageIO could not decode image")
 
@@ -109,7 +109,7 @@ class JvmImageIoEncoder : ImageEncoder {
     ir: ImageIR,
     format: ImageFormat,
     options: ImageEncodeOptions,
-    context: TransmuteContext,
+    context: PipelineContext,
   ): Bytes {
     val buffer = ir.buffer as? ByteArrayPixelBuffer
       ?: error("JvmImageIoEncoder requires ByteArrayPixelBuffer")

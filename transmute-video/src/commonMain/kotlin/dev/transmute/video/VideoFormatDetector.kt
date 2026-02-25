@@ -1,6 +1,6 @@
 package dev.transmute.video
 
-import dev.transmute.core.Bytes
+import dev.transmute.model.core.Bytes
 
 /**
  * Detects video format from raw bytes via registered decoders/codecs.

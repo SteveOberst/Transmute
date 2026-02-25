@@ -1,7 +1,7 @@
 package dev.transmute.image.codecs.android
 
 import android.os.Build
-import dev.transmute.core.ImageFormat
+import dev.transmute.codec.ImageFormat
 import dev.transmute.image.ImageTestHelpers
 import dev.transmute.image.JpegEncodeOptions
 import dev.transmute.image.PngEncodeOptions

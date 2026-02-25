@@ -14,10 +14,42 @@ The default implementations are regular handler classes you can reuse in your ow
 - Audio: `AudioDecodeHandler`, `AudioDynamicEncodeHandler`, `AudioFixedEncodeHandler`
 - Video: `VideoDecodeHandler`, `VideoDynamicEncodeHandler`, `VideoFixedEncodeHandler`
 
+## Prefer handler classes (not lambdas)
+
+Most real-world decode/encode steps map cleanly to handler classes (including codecs). Transmute provides overloads that let you add domain decoders/encoders to a pipeline directly:
+
+```kotlin
+// imports omitted
+
+fun buildJpegDecodePipeline(): DecodePipeline<Bytes, Decoded<ImageFormat, ImageIR>> {
+  ImageRegistries.installDefaultsIfEmpty()
+  val jpegDecoder = ImageRegistries.decoders.decoderFor(ImageFormat.Jpeg) ?: error("No JPEG decoder registered")
+
+  return PipelineBuilder
+    .start<Bytes>()
+    .then(jpegDecoder) // resolves format using acceptedInputFormats / sniff / detector
+    .build()
+}
+
+fun buildPngEncodePipeline(): EncodePipeline<Decoded<ImageFormat, ImageIR>, EncodedBytes<ImageFormat>> {
+  ImageRegistries.installDefaultsIfEmpty()
+  val pngEncoder = ImageRegistries.encoders.encoderFor(ImageFormat.Png) ?: error("No PNG encoder registered")
+
+  return PipelineBuilder
+    .start<Decoded<ImageFormat, ImageIR>>()
+    .then(pngEncoder, output = ImageFormat.Png)
+    .build()
+}
+```
+
+This keeps encode/decode “class-first” while still allowing fully typed pipelines.
+
 ## Platform-Native Inputs + Default Decode Handler
 
 In real apps, you often start with a platform-native image object (Android `Bitmap`, iOS `UIImage`, Desktop/JVM `BufferedImage`).
 You can map it to raw `Bytes` and then reuse `ImageCodecs.Decode.DEFAULT`.
+
+These handlers must live in the corresponding source set (`androidMain`, `iosMain`, `desktopMain`), since the platform types are not available in `commonMain`.
 
 ### Android (`Bitmap`)
 
@@ -35,7 +67,7 @@ class BitmapToBytesHandler(
 }
 
 val t =
-  Transmute.imageFrom<android.graphics.Bitmap> {
+  Transmute.image.from<android.graphics.Bitmap> {
     decode { pipeline(initial = BitmapToBytesHandler() + ImageCodecs.Decode.DEFAULT) }
   }
 ```
@@ -58,7 +90,7 @@ class UIImageToBytesHandler : PipelineHandler<platform.UIKit.UIImage, Bytes> {
 }
 
 val t =
-  Transmute.imageFrom<platform.UIKit.UIImage> {
+  Transmute.image.from<platform.UIKit.UIImage> {
     decode {
       options { acceptedInputFormats += setOf(ImageFormat.Png) } // skip detection (we always emitted PNG)
       pipeline(initial = UIImageToBytesHandler() + ImageCodecs.Decode.DEFAULT)
@@ -81,7 +113,7 @@ class BufferedImageToBytesHandler(
 }
 
 val t =
-  Transmute.imageFrom<java.awt.image.BufferedImage> {
+  Transmute.image.from<java.awt.image.BufferedImage> {
     decode {
       options { acceptedInputFormats += setOf(ImageFormat.Png) } // if you always write PNG above
       pipeline(initial = BufferedImageToBytesHandler("png") + ImageCodecs.Decode.DEFAULT)
@@ -100,7 +132,7 @@ val t = Transmute.image {
     options { outputFormat = OutputFormat.ORIGINAL }
 
     pipeline(
-      start =
+      initial =
       ImageDynamicEncodeHandler(
         outputFormatSelector = ImageOutputFormatSelector { decoded, options ->
           when (val requested = options.outputFormat) {
@@ -121,7 +153,7 @@ val t = Transmute.image {
 
 Encode pipelines are handler chains too, and they can change types. The examples below build transmuters that return platform-native output objects directly.
 
-### Android: `EncodedBytes` → `Bitmap`
+### Android: `EncodedBytes` -> `Bitmap`
 
 ```kotlin
 class EncodedBytesToBitmapHandler : PipelineHandler<EncodedBytes<ImageFormat>, android.graphics.Bitmap> {
@@ -133,7 +165,7 @@ class EncodedBytesToBitmapHandler : PipelineHandler<EncodedBytes<ImageFormat>, a
 }
 
 val t =
-  Transmute.imageOut<android.graphics.Bitmap> {
+  Transmute.image.out<android.graphics.Bitmap> {
     encode {
       options { outputFormat = OutputFormat.Exact(ImageFormat.Jpeg) }
       pipeline(initial = ImageCodecs.Encode.DEFAULT + EncodedBytesToBitmapHandler())
@@ -141,7 +173,7 @@ val t =
   }
 ```
 
-### iOS: `EncodedBytes` → `UIImage`
+### iOS: `EncodedBytes` -> `UIImage`
 
 ```kotlin
 @file:OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
@@ -157,7 +189,7 @@ class EncodedBytesToUIImageHandler : PipelineHandler<EncodedBytes<ImageFormat>, 
 }
 
 val t =
-  Transmute.imageOut<platform.UIKit.UIImage> {
+  Transmute.image.out<platform.UIKit.UIImage> {
     encode {
       options { outputFormat = OutputFormat.Exact(ImageFormat.Jpeg) }
       pipeline(initial = ImageCodecs.Encode.DEFAULT + EncodedBytesToUIImageHandler())
@@ -165,7 +197,7 @@ val t =
   }
 ```
 
-### Desktop/JVM: `EncodedBytes` → `BufferedImage`
+### Desktop/JVM: `EncodedBytes` -> `BufferedImage`
 
 ```kotlin
 class EncodedBytesToBufferedImageHandler : PipelineHandler<EncodedBytes<ImageFormat>, java.awt.image.BufferedImage> {
@@ -176,7 +208,7 @@ class EncodedBytesToBufferedImageHandler : PipelineHandler<EncodedBytes<ImageFor
 }
 
 val t =
-  Transmute.imageOut<java.awt.image.BufferedImage> {
+  Transmute.image.out<java.awt.image.BufferedImage> {
     encode {
       options { outputFormat = OutputFormat.Exact(ImageFormat.Jpeg) }
       pipeline(initial = ImageCodecs.Encode.DEFAULT + EncodedBytesToBufferedImageHandler())

@@ -1,9 +1,9 @@
 package dev.transmute.audio
 
-import dev.transmute.core.Bytes
-import dev.transmute.core.pipeline.Decoded
-import dev.transmute.core.pipeline.EncodedBytes
-import dev.transmute.core.pipeline.PipelineHandler
+import dev.transmute.model.core.Bytes
+import dev.transmute.codec.pipeline.Decoded
+import dev.transmute.codec.pipeline.EncodedBytes
+import dev.transmute.codec.pipeline.PipelineHandler
 
 object AudioCodecs {
   object Decode {

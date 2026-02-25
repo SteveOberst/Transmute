@@ -9,14 +9,14 @@ package dev.transmute.image
  * transmuter will conservatively assume the transform *might* apply.
  *
  * ```kotlin
- * val transmuter = Transmute.image().apply {
+ * val transmuter = Transmute.image {
  *     scale(1080, 1080)
- *     quality(0.85f)
+ *     encode { options(JpegEncodeOptions(quality = 0.85f)) }
  * }
  *
  * val hint = ImageHint(width = item.width, height = item.height, format = item.format)
  * if (transmuter.wouldTransmute(hint)) {
- *     val compressed = transmuter.transmute(item.bytes)
+ *     val compressed = transmuter.transmute(item.bytes.asBytes())
  * }
  * ```
  */

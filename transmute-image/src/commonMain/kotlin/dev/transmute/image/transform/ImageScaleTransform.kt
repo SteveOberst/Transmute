@@ -1,13 +1,12 @@
 package dev.transmute.image.transform
 
-import dev.transmute.core.TransmuteContext
-import dev.transmute.image.AlphaSemantics
+import dev.transmute.common.PipelineContext
 import dev.transmute.image.ByteArrayPixelBuffer
 import dev.transmute.image.ImageHint
 import dev.transmute.image.ImageIR
 import dev.transmute.image.ImageTransform
 import dev.transmute.image.PixelFormat
-import dev.transmute.core.pipeline.TransformId
+import dev.transmute.codec.pipeline.TransformId
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -33,7 +32,7 @@ class ImageScaleTransform(
 
   override val id: TransformId = TransformId("image-scale")
 
-  override suspend fun apply(ir: ImageIR, context: TransmuteContext): ImageIR {
+  override suspend fun apply(ir: ImageIR, context: PipelineContext): ImageIR {
     // Don't upscale - only downscale.
     if (ir.width <= maxWidth && ir.height <= maxHeight) {
       context.logger.debug("ImageScaleTransform: image ${ir.width}×${ir.height} already fits within $maxWidth×$maxHeight - skipping")

@@ -1,7 +1,7 @@
 package dev.transmute.video.transform
 
-import dev.transmute.core.TransmuteContext
-import dev.transmute.core.pipeline.TransformId
+import dev.transmute.common.PipelineContext
+import dev.transmute.codec.pipeline.TransformId
 import dev.transmute.image.ByteArrayPixelBuffer
 import dev.transmute.video.FrameStream
 import dev.transmute.video.VideoFrame
@@ -32,7 +32,7 @@ class VideoCropTransform(
 
   override val id = TransformId("video.crop")
 
-  override suspend fun apply(ir: VideoIR, context: TransmuteContext): VideoIR {
+  override suspend fun apply(ir: VideoIR, context: PipelineContext): VideoIR {
     val track = ir.videoTrack
 
     // Clamp crop rect to frame bounds.
@@ -74,6 +74,8 @@ private class CroppedFrameStream(
   private val ch: Int,
 ) : FrameStream {
   override val frameCount: Long = source.frameCount
+
+  override fun close() = source.close()
 
   override suspend fun nextFrame(): VideoFrame? {
     val frame = source.nextFrame() ?: return null

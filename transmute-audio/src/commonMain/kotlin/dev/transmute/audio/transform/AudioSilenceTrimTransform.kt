@@ -4,8 +4,8 @@ import dev.transmute.audio.AudioHint
 import dev.transmute.audio.AudioIR
 import dev.transmute.audio.AudioSamples
 import dev.transmute.audio.AudioTransform
-import dev.transmute.core.TransmuteContext
-import dev.transmute.core.pipeline.TransformId
+import dev.transmute.common.PipelineContext
+import dev.transmute.codec.pipeline.TransformId
 import kotlin.math.abs
 import kotlin.math.pow
 
@@ -35,7 +35,7 @@ class AudioSilenceTrimTransform(
 
   override val id = TransformId("audio.silence-trim")
 
-  override suspend fun apply(ir: AudioIR, context: TransmuteContext): AudioIR {
+  override suspend fun apply(ir: AudioIR, context: PipelineContext): AudioIR {
     if (!trimStart && !trimEnd) return ir
 
     val samples = ir.samples.data

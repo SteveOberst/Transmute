@@ -7,7 +7,7 @@ TIFF is a flexible image container format used in professional imaging workflows
 | Platform | Decode | Encode | Engine |
 |----------|--------|--------|--------|
 | Android  | ✅     | ❌     | BitmapFactory (decode only) |
-| Desktop  | ✅     | ✅     | FFmpeg (bundled) / ImageIO |
+| Desktop  | ✅     | ✅     | ImageIO |
 | iOS      | ✅     | ✅     | CoreGraphics (CGImage) |
 
 ## Usage
@@ -29,4 +29,4 @@ suspend fun decodeToJpeg(tiffBytes: ByteArray): ByteArray =
 ## Notes
 
 - Common in professional workflows; features vary by platform codec implementation.
-- Desktop encoding may rely on the bundled FFmpeg build.
+- Desktop uses ImageIO for TIFF encode/decode.

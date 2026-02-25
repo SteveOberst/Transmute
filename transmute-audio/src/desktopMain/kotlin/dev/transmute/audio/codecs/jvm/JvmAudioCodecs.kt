@@ -9,9 +9,9 @@ import dev.transmute.audio.AudioEncodeOptions
 import dev.transmute.audio.AudioFormat
 import dev.transmute.audio.AudioIR
 import dev.transmute.audio.AudioSamples
-import dev.transmute.core.Bytes
-import dev.transmute.core.TransmuteContext
-import dev.transmute.core.asBytes
+import dev.transmute.model.core.Bytes
+import dev.transmute.common.PipelineContext
+import dev.transmute.model.core.asBytes
 import javazoom.jl.decoder.Bitstream
 import javazoom.jl.decoder.Decoder
 import javazoom.jl.decoder.SampleBuffer
@@ -21,6 +21,12 @@ import org.jflac.metadata.StreamInfo
 import org.jflac.util.ByteData
 import java.io.ByteArrayInputStream
 import javax.sound.sampled.AudioFormat as JvmAudioFormat
+
+private fun requireNoDecodeRange(options: AudioDecodeOptions, codecName: String) {
+  if (options.decodeRange != null) {
+    throw UnsupportedOperationException("$codecName does not support decodeRange on JVM desktop")
+  }
+}
 
 /**
  * MP3 codec for the JVM desktop target.
@@ -52,7 +58,8 @@ class JvmMp3Codec : AudioCodec {
     return null
   }
 
-  override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: TransmuteContext): AudioIR {
+  override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: PipelineContext): AudioIR {
+    requireNoDecodeRange(options, "JvmMp3Codec")
     val bitstream = Bitstream(ByteArrayInputStream(source.data))
     val decoder = Decoder()
 
@@ -102,7 +109,7 @@ class JvmMp3Codec : AudioCodec {
     ir: AudioIR,
     format: AudioFormat,
     options: AudioEncodeOptions,
-    context: TransmuteContext,
+    context: PipelineContext,
   ): Bytes {
     require(format == AudioFormat.Mp3) { "JvmMp3Codec only supports MP3, got $format" }
     val pcmBytes = floatToPcm16(ir.samples.data)
@@ -149,13 +156,13 @@ class JvmMp3Codec : AudioCodec {
 /**
  * FLAC codec for the JVM desktop target.
  *
- * Decodes FLAC via jflac (pure Java). Encodes to FLAC via FFmpeg (if available).
+ * Decodes FLAC via jflac (pure Java). Encoding requires the optional
+ * `transmute-gstreamer` module.
  */
 class JvmFlacCodec : AudioCodec {
 
   override val decodableFormats: Set<AudioFormat> = setOf(AudioFormat.Flac)
-  override val encodableFormats: Set<AudioFormat> =
-    if (FfmpegAudioEngine.available) setOf(AudioFormat.Flac) else emptySet()
+  override val encodableFormats: Set<AudioFormat> = emptySet()
 
   override fun sniff(data: Bytes): AudioFormat? {
     val bytes = data.data
@@ -169,7 +176,8 @@ class JvmFlacCodec : AudioCodec {
     return null
   }
 
-  override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: TransmuteContext): AudioIR {
+  override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: PipelineContext): AudioIR {
+    requireNoDecodeRange(options, "JvmFlacCodec")
     val decoder = FLACDecoder(ByteArrayInputStream(source.data))
 
     var sampleRate = 0
@@ -227,16 +235,9 @@ class JvmFlacCodec : AudioCodec {
     ir: AudioIR,
     format: AudioFormat,
     options: AudioEncodeOptions,
-    context: TransmuteContext,
+    context: PipelineContext,
   ): Bytes {
-    require(format == AudioFormat.Flac) { "JvmFlacCodec only supports FLAC, got $format" }
-    check(FfmpegAudioEngine.available) { "FLAC encoding requires FFmpeg on PATH" }
-    return FfmpegAudioEngine.encode(
-      ir, "flac", "flac", "flac",
-      bitrate = null,
-      extraArgs = listOf("-compression_level", "5"),
-      context = context,
-    ).asBytes()
+    error("FLAC encoding on Desktop requires the transmute-gstreamer module")
   }
 
   private fun readLeSigned(bytes: ByteArray, offset: Int, size: Int): Int {
@@ -253,13 +254,13 @@ class JvmFlacCodec : AudioCodec {
 /**
  * OGG/Vorbis codec for the JVM desktop target.
  *
- * Decodes OGG/Vorbis via jorbis (pure Java). Encodes via FFmpeg (if available).
+ * Decodes OGG/Vorbis via jorbis (pure Java). Encoding requires the optional
+ * `transmute-gstreamer` module.
  */
 class JvmOggVorbisCodec : AudioCodec {
 
   override val decodableFormats: Set<AudioFormat> = setOf(AudioFormat.Ogg)
-  override val encodableFormats: Set<AudioFormat> =
-    if (FfmpegAudioEngine.available) setOf(AudioFormat.Ogg) else emptySet()
+  override val encodableFormats: Set<AudioFormat> = emptySet()
 
   override fun sniff(data: Bytes): AudioFormat? {
     val bytes = data.data
@@ -284,7 +285,8 @@ class JvmOggVorbisCodec : AudioCodec {
     return AudioFormat.Ogg
   }
 
-  override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: TransmuteContext): AudioIR {
+  override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: PipelineContext): AudioIR {
+    requireNoDecodeRange(options, "JvmOggVorbisCodec")
     val vorbis = VorbisFile(ByteArrayInputStream(source.data), ByteArray(0), 0)
 
     val info = vorbis.getInfo(0)
@@ -341,14 +343,9 @@ class JvmOggVorbisCodec : AudioCodec {
     ir: AudioIR,
     format: AudioFormat,
     options: AudioEncodeOptions,
-    context: TransmuteContext,
+    context: PipelineContext,
   ): Bytes {
-    require(format == AudioFormat.Ogg) { "JvmOggVorbisCodec only supports OGG, got $format" }
-    check(FfmpegAudioEngine.available) { "OGG/Vorbis encoding requires FFmpeg on PATH" }
-    return FfmpegAudioEngine.encode(
-      ir, "libvorbis", "ogg", "ogg", "128k",
-      context = context,
-    ).asBytes()
+    error("OGG/Vorbis encoding on Desktop requires the transmute-gstreamer module")
   }
 }
 

@@ -7,7 +7,7 @@ HEIF/HEIC are modern image formats used heavily in Apple ecosystems. They offer 
 | Platform | Decode | Encode | Engine |
 |----------|--------|--------|--------|
 | Android  | ✅     | ❌     | BitmapFactory (decode only) |
-| Desktop  | ✅     | ✅     | FFmpeg (bundled) |
+| Desktop  | ✅     | ✅     | GStreamer (requires `transmute-gstreamer`) |
 | iOS      | ✅     | ✅     | CoreGraphics (CGImage) |
 
 ## Usage
@@ -29,5 +29,5 @@ suspend fun decodeToJpeg(heifBytes: ByteArray): ByteArray =
 ## Notes
 
 - Android can decode HEIF/HEIC on modern devices but encode support is limited.
-- Desktop encoding relies on the bundled FFmpeg build.
+- Desktop requires the optional `transmute-gstreamer` module with GStreamer installed.
 - iOS offers strong native HEIF/HEIC support.

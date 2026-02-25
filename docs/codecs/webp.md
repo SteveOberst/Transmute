@@ -7,7 +7,7 @@ WebP is a modern image format that supports both lossy and lossless compression,
 | Platform | Decode | Encode | Engine |
 |----------|--------|--------|--------|
 | Android  | ✅     | ✅     | BitmapFactory / Bitmap.compress |
-| Desktop  | ✅     | ✅     | ImageIO (via plugins) / FFmpeg fallback |
+| Desktop  | ✅     | ✅     | ImageIO (via plugins) |
 | iOS      | ✅     | ✅     | CoreGraphics (CGImage) |
 
 ## Usage

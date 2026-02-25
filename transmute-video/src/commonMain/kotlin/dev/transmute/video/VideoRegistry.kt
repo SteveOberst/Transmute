@@ -1,11 +1,11 @@
 package dev.transmute.video
 
 import kotlin.concurrent.Volatile
-import dev.transmute.core.Bytes
-import dev.transmute.core.Codec
-import dev.transmute.core.Decoder
-import dev.transmute.core.Encoder
-import dev.transmute.core.TransmuteContext
+import dev.transmute.model.core.Bytes
+import dev.transmute.codec.Codec
+import dev.transmute.codec.Decoder
+import dev.transmute.codec.Encoder
+import dev.transmute.common.PipelineContext
 
 /**
  * Mutable registry for [VideoDecoder] instances.
@@ -26,7 +26,7 @@ class MutableVideoDecoderRegistry : VideoDecoderRegistry {
     val wrapper = object : VideoDecoder {
       override val supportedFormats = decoder.decodableFormats
       override fun sniff(data: Bytes) = decoder.sniff(data)
-      override suspend fun decode(source: Bytes, options: VideoDecodeOptions, context: TransmuteContext) =
+      override suspend fun decode(source: Bytes, options: VideoDecodeOptions, context: PipelineContext) =
         decoder.decode(source, options, context)
     }
     register(wrapper)
@@ -37,7 +37,7 @@ class MutableVideoDecoderRegistry : VideoDecoderRegistry {
     val wrapper = object : VideoDecoder {
       override val supportedFormats = codec.decodableFormats
       override fun sniff(data: Bytes) = codec.sniff(data)
-      override suspend fun decode(source: Bytes, options: VideoDecodeOptions, context: TransmuteContext) =
+      override suspend fun decode(source: Bytes, options: VideoDecodeOptions, context: PipelineContext) =
         codec.decode(source, options, context)
     }
     decoderList.add(wrapper)
@@ -73,7 +73,7 @@ class MutableVideoEncoderRegistry : VideoEncoderRegistry {
         ir: VideoIR,
         format: VideoFormat,
         options: VideoEncodeOptions,
-        context: TransmuteContext,
+        context: PipelineContext,
       ) = encoder.encode(ir, format, options, context)
     }
     register(wrapper)
@@ -92,7 +92,7 @@ class MutableVideoEncoderRegistry : VideoEncoderRegistry {
           ir: VideoIR,
           format: VideoFormat,
           options: VideoEncodeOptions,
-          context: TransmuteContext,
+          context: PipelineContext,
         ) = codec.encode(ir, format, options, context)
       }
     }
@@ -105,12 +105,42 @@ class MutableVideoEncoderRegistry : VideoEncoderRegistry {
 
 /**
  * Global video registries.
+ *
+ * ---
+ *
+ * **Migration notice:** This global singleton is being phased out in favour of
+ * per-context registries via [TransmuteContext].  Prefer:
+ *
+ * ```kotlin
+ * val ctx = TransmuteContext {
+ *     videoDecoders(myDecoderRegistry)
+ *     videoEncoders(myEncoderRegistry)
+ * }
+ * Transmute.video { context(ctx) }.transmute(source)
+ * ```
+ *
+ * @see videoDecoders
+ * @see videoEncoders
  */
 object VideoRegistries {
   @Volatile private var defaultsInstalled: Boolean = false
 
   val decoders = MutableVideoDecoderRegistry()
   val encoders = MutableVideoEncoderRegistry()
+
+  private val supplementaryInstallers =
+    mutableListOf<(MutableVideoDecoderRegistry, MutableVideoEncoderRegistry) -> Unit>()
+
+  /**
+   * Register a supplementary codec installer that runs during [installDefaults]
+   * after platform-native codecs.  This is the primary mechanism for optional
+   * modules (e.g. `transmute-gstreamer`) to fill codec gaps automatically.
+   */
+  fun addSupplementaryInstaller(
+    installer: (MutableVideoDecoderRegistry, MutableVideoEncoderRegistry) -> Unit,
+  ) {
+    supplementaryInstallers.add(installer)
+  }
 
   fun register(decoder: VideoDecoder) {
     decoders.register(decoder)
@@ -137,6 +167,12 @@ object VideoRegistries {
   /** Installs platform defaults unconditionally. */
   fun installDefaults() {
     installPlatformVideoCodecs(decoders, encoders)
+
+    // Supplementary installers fill gaps left by native codecs.
+    for (installer in supplementaryInstallers) {
+      installer(decoders, encoders)
+    }
+
     defaultsInstalled = true
   }
 

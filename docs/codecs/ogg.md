@@ -6,8 +6,8 @@ Ogg Vorbis is an open-source lossy audio format. It provides good quality at low
 
 | Platform | Decode | Encode | Engine |
 |----------|--------|--------|--------|
-| Android  | ✅     | ✅     | MediaCodec (decode) / FFmpeg (encode) |
-| Desktop  | ✅     | ✅     | FFmpeg (bundled) |
+| Android  | ✅     | ✅     | MediaCodec |
+| Desktop  | ✅     | ✅     | GStreamer (requires `transmute-gstreamer`) |
 | iOS      | ✅     | ❌     | AVFoundation (decode only) |
 
 ## Usage
@@ -30,4 +30,4 @@ suspend fun decodeToWav(oggBytes: ByteArray): ByteArray =
 
 - Open and royalty-free.
 - iOS can decode OGG but cannot encode to it.
-- Desktop encoding relies on the bundled FFmpeg build.
+- Desktop requires the optional `transmute-gstreamer` module with GStreamer installed.

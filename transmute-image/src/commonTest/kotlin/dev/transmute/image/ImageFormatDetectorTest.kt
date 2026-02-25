@@ -1,6 +1,6 @@
 package dev.transmute.image
 
-import dev.transmute.core.asBytes
+import dev.transmute.model.core.asBytes
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse

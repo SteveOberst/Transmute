@@ -9,15 +9,15 @@ package dev.transmute.video
  * transmuter will conservatively assume the transform *might* apply.
  *
  * ```kotlin
- * val transmuter = Transmute.video().apply {
+ * val transmuter = Transmute.video {
  *     resize(1080, 1080)
  *     frameRate(30.0)
- *     metadata(MetadataPolicy.STRIP_ALL)
+ *     encode { options { metadataPolicy = MetadataPolicy.STRIP_ALL } }
  * }
  *
  * val hint = VideoHint(width = item.width, height = item.height, fps = item.fps)
  * if (transmuter.wouldTransmute(hint)) {
- *     val compressed = transmuter.transmute(item.bytes)
+ *     val compressed = transmuter.transmute(item.bytes.asBytes())
  * }
  * ```
  */

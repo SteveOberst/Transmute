@@ -24,6 +24,22 @@ suspend fun compressMore(inputBytes: ByteArray): ByteArray =
   }.transmute(inputBytes.asBytes()).bytes.data
 ```
 
+## Structure Reading
+
+JPEG files can be parsed into a `Jpeg` structure that mirrors the segment layout:
+
+```kotlin
+val jpeg: Jpeg = Transmute.structure.read(jpegBytes.asBytes(), ImageFormat.Jpeg)
+
+// Access segments (SOI, APP0, DQT, SOF, SOS, EOI, ...)
+val segments = jpeg.segments // List<JpegSegment>
+
+// Round-trip
+val raw = Transmute.structure.write(jpeg)
+```
+
+The reader handles standalone markers, payload markers, and SOS entropy-coded data with byte-stuffing. See `docs/structures.md`.
+
 ## Notes
 
 - Lossy compression - each re-encode degrades quality slightly.

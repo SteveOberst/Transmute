@@ -1,5 +1,6 @@
 package dev.transmute.video
 
+import dev.transmute.common.Closeable
 import dev.transmute.audio.AudioSamples
 import dev.transmute.audio.SampleStream
 import dev.transmute.image.PixelBuffer
@@ -29,7 +30,7 @@ data class VideoTrack(
 )
 
 /** Pull-based streaming access to decoded video frames. */
-interface FrameStream {
+interface FrameStream : Closeable {
   val frameCount: Long
   suspend fun nextFrame(): VideoFrame?
 }
@@ -45,6 +46,8 @@ class ListFrameStream(private val frames: List<VideoFrame>) : FrameStream {
     if (index >= frames.size) return null
     return frames[index++]
   }
+
+  override fun close() {}
 }
 
 data class VideoFrame(

@@ -1,15 +1,12 @@
 package dev.transmute.video.transform
 
-import dev.transmute.core.TransmuteContext
-import dev.transmute.core.pipeline.TransformId
+import dev.transmute.common.PipelineContext
+import dev.transmute.codec.pipeline.TransformId
 import dev.transmute.image.ByteArrayPixelBuffer
-import dev.transmute.image.PixelBuffer
 import dev.transmute.video.FrameStream
 import dev.transmute.video.VideoFrame
 import dev.transmute.video.VideoHint
 import dev.transmute.video.VideoIR
-import dev.transmute.video.VideoMetadata
-import dev.transmute.video.VideoTrack
 import dev.transmute.video.VideoTransform
 
 /**
@@ -29,7 +26,7 @@ class VideoTrimTransform(
 
   override val id = TransformId("video.trim")
 
-  override suspend fun apply(ir: VideoIR, context: TransmuteContext): VideoIR {
+  override suspend fun apply(ir: VideoIR, context: PipelineContext): VideoIR {
 
     val actualEnd = endMs ?: ir.durationMs
     val newDuration = actualEnd - startMs
@@ -57,6 +54,8 @@ private class TrimmedFrameStream(
   override val frameCount: Long = source.frameCount // Approximation
 
   private var started = false
+
+  override fun close() = source.close()
 
   override suspend fun nextFrame(): VideoFrame? {
     while (true) {
@@ -90,7 +89,7 @@ class VideoResizeTransform(
 
   override val id = TransformId("video.resize")
 
-  override suspend fun apply(ir: VideoIR, context: TransmuteContext): VideoIR {
+  override suspend fun apply(ir: VideoIR, context: PipelineContext): VideoIR {
 
     val track = ir.videoTrack
     val aspectRatio = track.width.toDouble() / track.height
@@ -124,6 +123,8 @@ private class ResizedFrameStream(
   private val targetHeight: Int,
 ) : FrameStream {
   override val frameCount: Long = source.frameCount
+
+  override fun close() = source.close()
 
   override suspend fun nextFrame(): VideoFrame? {
     val frame = source.nextFrame() ?: return null
@@ -185,7 +186,7 @@ class VideoFrameRateTransform(
 
   override val id = TransformId("video.framerate")
 
-  override suspend fun apply(ir: VideoIR, context: TransmuteContext): VideoIR {
+  override suspend fun apply(ir: VideoIR, context: PipelineContext): VideoIR {
 
     return ir.copy(
       videoTrack = ir.videoTrack.copy(
@@ -208,6 +209,8 @@ private class FrameRateAdjustedStream(
 
   private var frameIndex = 0L
   private var lastFrame: VideoFrame? = null
+
+  override fun close() = source.close()
 
   override suspend fun nextFrame(): VideoFrame? {
     val targetTimestamp = (frameIndex * 1000.0 / targetFps).toLong()
@@ -237,7 +240,7 @@ class VideoRemoveAudioTransform : VideoTransform {
 
   override val id = TransformId("video.removeAudio")
 
-  override suspend fun apply(ir: VideoIR, context: TransmuteContext): VideoIR {
+  override suspend fun apply(ir: VideoIR, context: PipelineContext): VideoIR {
     return ir.copy(audioTrack = null)
   }
 }

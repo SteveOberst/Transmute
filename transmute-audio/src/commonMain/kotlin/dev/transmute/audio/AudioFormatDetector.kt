@@ -1,6 +1,6 @@
 package dev.transmute.audio
 
-import dev.transmute.core.Bytes
+import dev.transmute.model.core.Bytes
 
 /**
  * Detects audio format from raw bytes via registered decoders/codecs.

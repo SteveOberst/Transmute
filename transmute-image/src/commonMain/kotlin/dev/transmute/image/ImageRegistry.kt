@@ -1,11 +1,11 @@
 package dev.transmute.image
 
 import kotlin.concurrent.Volatile
-import dev.transmute.core.Bytes
-import dev.transmute.core.Codec
-import dev.transmute.core.Decoder
-import dev.transmute.core.Encoder
-import dev.transmute.core.TransmuteContext
+import dev.transmute.model.core.Bytes
+import dev.transmute.codec.Codec
+import dev.transmute.codec.Decoder
+import dev.transmute.codec.Encoder
+import dev.transmute.common.PipelineContext
 import dev.transmute.image.codecs.bmp.BmpImageDecoder
 import dev.transmute.image.codecs.bmp.BmpImageEncoder
 
@@ -31,7 +31,7 @@ class MutableImageDecoderRegistry : ImageDecoderRegistry {
     val wrapper = object : ImageDecoder {
       override val supportedFormats = decoder.decodableFormats
       override fun sniff(data: Bytes) = decoder.sniff(data)
-      override suspend fun decode(source: Bytes, options: ImageDecodeOptions, context: TransmuteContext) =
+      override suspend fun decode(source: Bytes, options: ImageDecodeOptions, context: PipelineContext) =
         decoder.decode(source, options, context)
     }
     register(wrapper)
@@ -42,7 +42,7 @@ class MutableImageDecoderRegistry : ImageDecoderRegistry {
     val wrapper = object : ImageDecoder {
       override val supportedFormats = codec.decodableFormats
       override fun sniff(data: Bytes) = codec.sniff(data)
-      override suspend fun decode(source: Bytes, options: ImageDecodeOptions, context: TransmuteContext) =
+      override suspend fun decode(source: Bytes, options: ImageDecodeOptions, context: PipelineContext) =
         codec.decode(source, options, context)
     }
     decoderList.add(wrapper)
@@ -78,7 +78,7 @@ class MutableImageEncoderRegistry : ImageEncoderRegistry {
         ir: ImageIR,
         format: ImageFormat,
         options: ImageEncodeOptions,
-        context: TransmuteContext,
+        context: PipelineContext,
       ) = encoder.encode(ir, format, options, context)
     }
     register(wrapper)
@@ -97,7 +97,7 @@ class MutableImageEncoderRegistry : ImageEncoderRegistry {
           ir: ImageIR,
           format: ImageFormat,
           options: ImageEncodeOptions,
-          context: TransmuteContext,
+          context: PipelineContext,
         ) = codec.encode(ir, format, options, context)
       }
     }
@@ -113,12 +113,42 @@ class MutableImageEncoderRegistry : ImageEncoderRegistry {
  *
  * Holds all registered decoders and encoders, and a list of unified codecs
  * that participate in format sniffing via [ImageFormatDetector].
+ *
+ * ---
+ *
+ * **Migration notice:** This global singleton is being phased out in favour of
+ * per-context registries via [TransmuteContext].  Prefer:
+ *
+ * ```kotlin
+ * val ctx = TransmuteContext {
+ *     imageDecoders(myDecoderRegistry)
+ *     imageEncoders(myEncoderRegistry)
+ * }
+ * Transmute.image { context(ctx) }.transmute(source)
+ * ```
+ *
+ * @see imageDecoders
+ * @see imageEncoders
  */
 object ImageRegistries {
   @Volatile private var defaultsInstalled: Boolean = false
 
   val decoders: MutableImageDecoderRegistry = MutableImageDecoderRegistry()
   val encoders: MutableImageEncoderRegistry = MutableImageEncoderRegistry()
+
+  private val supplementaryInstallers =
+    mutableListOf<(MutableImageDecoderRegistry, MutableImageEncoderRegistry) -> Unit>()
+
+  /**
+   * Register a supplementary codec installer that runs during [installDefaults]
+   * after platform-native codecs.  This is the primary mechanism for optional
+   * modules (e.g. `transmute-gstreamer`) to fill codec gaps automatically.
+   */
+  fun addSupplementaryInstaller(
+    installer: (MutableImageDecoderRegistry, MutableImageEncoderRegistry) -> Unit,
+  ) {
+    supplementaryInstallers.add(installer)
+  }
 
   fun register(decoder: ImageDecoder) {
     decoders.register(decoder)
@@ -152,6 +182,11 @@ object ImageRegistries {
     }
     if (encoders.encoderFor(ImageFormat.Bmp) == null) {
       encoders.register(BmpImageEncoder())
+    }
+
+    // Supplementary installers fill gaps left by native codecs.
+    for (installer in supplementaryInstallers) {
+      installer(decoders, encoders)
     }
 
     defaultsInstalled = true

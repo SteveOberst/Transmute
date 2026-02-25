@@ -6,7 +6,7 @@ import dev.transmute.image.ImageTestHelpers.pixelAt
 import dev.transmute.image.ImageTestHelpers.solidColor
 import dev.transmute.image.ImageTestHelpers.testContext
 import dev.transmute.image.transform.ImageCropTransform
-import dev.transmute.core.pipeline.TransformId
+import dev.transmute.codec.pipeline.TransformId
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertContentEquals

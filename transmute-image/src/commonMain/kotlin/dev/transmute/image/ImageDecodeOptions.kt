@@ -1,6 +1,6 @@
 package dev.transmute.image
 
-import dev.transmute.core.DecodeOptions
+import dev.transmute.model.core.DecodeOptions
 
 /**
  * Sealed hierarchy of image decoding options.

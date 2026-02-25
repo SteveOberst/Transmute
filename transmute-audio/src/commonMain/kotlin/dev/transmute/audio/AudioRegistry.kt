@@ -3,11 +3,11 @@ package dev.transmute.audio
 import kotlin.concurrent.Volatile
 import dev.transmute.audio.codecs.WavDecoder
 import dev.transmute.audio.codecs.WavEncoder
-import dev.transmute.core.Bytes
-import dev.transmute.core.Codec
-import dev.transmute.core.Decoder
-import dev.transmute.core.Encoder
-import dev.transmute.core.TransmuteContext
+import dev.transmute.model.core.Bytes
+import dev.transmute.codec.Codec
+import dev.transmute.codec.Decoder
+import dev.transmute.codec.Encoder
+import dev.transmute.common.PipelineContext
 
 /**
  * Mutable registry for [AudioDecoder] instances.
@@ -28,7 +28,7 @@ class MutableAudioDecoderRegistry : AudioDecoderRegistry {
     val wrapper = object : AudioDecoder {
       override val supportedFormats = decoder.decodableFormats
       override fun sniff(data: Bytes) = decoder.sniff(data)
-      override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: TransmuteContext) =
+      override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: PipelineContext) =
         decoder.decode(source, options, context)
     }
     register(wrapper)
@@ -39,7 +39,7 @@ class MutableAudioDecoderRegistry : AudioDecoderRegistry {
     val wrapper = object : AudioDecoder {
       override val supportedFormats = codec.decodableFormats
       override fun sniff(data: Bytes) = codec.sniff(data)
-      override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: TransmuteContext) =
+      override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: PipelineContext) =
         codec.decode(source, options, context)
     }
     decoderList.add(wrapper)
@@ -75,7 +75,7 @@ class MutableAudioEncoderRegistry : AudioEncoderRegistry {
         ir: AudioIR,
         format: AudioFormat,
         options: AudioEncodeOptions,
-        context: TransmuteContext,
+        context: PipelineContext,
       ) = encoder.encode(ir, format, options, context)
     }
     register(wrapper)
@@ -90,7 +90,7 @@ class MutableAudioEncoderRegistry : AudioEncoderRegistry {
           ir: AudioIR,
           format: AudioFormat,
           options: AudioEncodeOptions,
-          context: TransmuteContext,
+          context: PipelineContext,
         ) = codec.encode(ir, format, options, context)
       }
     }
@@ -103,12 +103,42 @@ class MutableAudioEncoderRegistry : AudioEncoderRegistry {
 
 /**
  * Global audio registries.
+ *
+ * ---
+ *
+ * **Migration notice:** This global singleton is being phased out in favour of
+ * per-context registries via [TransmuteContext].  Prefer:
+ *
+ * ```kotlin
+ * val ctx = TransmuteContext {
+ *     audioDecoders(myDecoderRegistry)
+ *     audioEncoders(myEncoderRegistry)
+ * }
+ * Transmute.audio { context(ctx) }.transmute(source)
+ * ```
+ *
+ * @see audioDecoders
+ * @see audioEncoders
  */
 object AudioRegistries {
   @Volatile private var defaultsInstalled: Boolean = false
 
   val decoders = MutableAudioDecoderRegistry()
   val encoders = MutableAudioEncoderRegistry()
+
+  private val supplementaryInstallers =
+    mutableListOf<(MutableAudioDecoderRegistry, MutableAudioEncoderRegistry) -> Unit>()
+
+  /**
+   * Register a supplementary codec installer that runs during [installDefaults]
+   * after platform-native codecs.  This is the primary mechanism for optional
+   * modules (e.g. `transmute-gstreamer`) to fill codec gaps automatically.
+   */
+  fun addSupplementaryInstaller(
+    installer: (MutableAudioDecoderRegistry, MutableAudioEncoderRegistry) -> Unit,
+  ) {
+    supplementaryInstallers.add(installer)
+  }
 
   fun register(decoder: AudioDecoder) {
     decoders.register(decoder)
@@ -140,6 +170,11 @@ object AudioRegistries {
 
     // Platform codecs add hardware-accelerated decoders (MP3, AAC, etc.).
     installPlatformAudioCodecs(decoders, encoders)
+
+    // Supplementary installers fill gaps left by native codecs.
+    for (installer in supplementaryInstallers) {
+      installer(decoders, encoders)
+    }
 
     defaultsInstalled = true
   }

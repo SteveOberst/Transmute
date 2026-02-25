@@ -4,7 +4,8 @@ import dev.transmute.image.ImageTestHelpers.pixelAt
 import dev.transmute.image.ImageTestHelpers.solidColor
 import dev.transmute.image.ImageTestHelpers.testContext
 import dev.transmute.image.transform.ImageRotateTransform
-import dev.transmute.core.pipeline.TransformId
+import dev.transmute.model.core.asBytes
+import dev.transmute.codec.pipeline.TransformId
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -184,10 +185,10 @@ class ImageRotateTransformTest {
   fun rotationPreservesMetadata() = runTest {
     val exif = byteArrayOf(0x45, 0x78, 0x69, 0x66) // "Exif"
     val input = referenceImage(Orientation.ROTATE_90).copy(
-      metadata = ImageMetadata(exifBlob = exif, xmpBlob = null),
+      metadata = ImageMetadata(exifBlob = exif.asBytes(), xmpBlob = null),
     )
     val result = ImageRotateTransform().apply(input, testContext())
-    assertContentEquals(exif, result.metadata.exifBlob, "EXIF should survive rotation")
+    assertContentEquals(exif, result.metadata.exifBlob?.data, "EXIF should survive rotation")
   }
 
   // --- Buffer size correctness ---

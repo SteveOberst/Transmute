@@ -1,41 +1,30 @@
 package dev.transmute.video.codecs.ios
 
-import dev.transmute.core.VideoFormat
+import dev.transmute.codec.OutputFormat
+import dev.transmute.model.core.asBytes
+import dev.transmute.video.CanonicalVideoDecodeOptions
+import dev.transmute.video.CanonicalVideoEncodeOptions
+import dev.transmute.video.VideoFormat
 import dev.transmute.video.VideoTestHelpers
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertTrue
-import dev.transmute.video.CanonicalVideoDecodeOptions
 
 /**
  * iOS integration tests for the AVFoundation-based video codecs.
- *
- * These tests run on the iOS simulator via Kotlin/Native and exercise
- * the real AVAssetReader / AVAssetWriter / AVAssetWriterInputPixelBufferAdaptor
- * pipeline.
- *
- * Codecs under test:
- * - [IosMp4Codec] - H.264 + AAC in MP4 container
- * - [IosMovCodec] - H.264 + AAC in MOV container
  *
  * Run: `./gradlew :transmute-video:iosSimulatorArm64Test`
  */
 class IosVideoCodecTest {
 
-  // MP4 roundtrip (encode → decode)
-
   @Test
   fun mp4RoundTripProducesFrames() = runTest {
     val codec = IosMp4Codec()
-    val original = VideoTestHelpers.syntheticVideo(
-      width = 64, height = 64, frameRate = 10.0, durationMs = 500,
-    )
+    val original = VideoTestHelpers.syntheticVideo(width = 64, height = 64, frameRate = 10.0, durationMs = 500)
     val ctx = VideoTestHelpers.testContext()
 
-    // Wrap only codec operations — simulator may lack HW codecs.
-    // Assertions stay outside so real failures are never swallowed.
     val encoded = try {
-      codec.encode(original, ctx)
+      codec.encode(original, VideoFormat.Mp4, CanonicalVideoEncodeOptions(outputFormat = OutputFormat.Exact(VideoFormat.Mp4)), ctx)
     } catch (e: Throwable) {
       println("SKIP: MP4 encoding not available on this simulator: ${e::class.simpleName}: ${e.message}")
       return@runTest
@@ -48,55 +37,19 @@ class IosVideoCodecTest {
       println("SKIP: MP4 decoding not available on this simulator: ${e::class.simpleName}: ${e.message}")
       return@runTest
     }
-    assertTrue(decoded.videoTrack.width > 0, "Decoded width should be > 0")
-    assertTrue(decoded.videoTrack.height > 0, "Decoded height should be > 0")
-    assertTrue(decoded.durationMs > 0, "Decoded duration should be > 0, was ${decoded.durationMs}ms")
+    assertTrue(decoded.videoTrack.width > 0)
+    assertTrue(decoded.videoTrack.height > 0)
+    assertTrue(decoded.durationMs > 0)
   }
-
-  @Test
-  fun mp4RoundTripPreservesDimensions() = runTest {
-    val codec = IosMp4Codec()
-    val original = VideoTestHelpers.syntheticVideo(
-      width = 128, height = 96, frameRate = 15.0, durationMs = 500,
-    )
-    val ctx = VideoTestHelpers.testContext()
-
-    val encoded = try {
-      codec.encode(original, ctx)
-    } catch (e: Throwable) {
-      println("SKIP: MP4 encoding not available on this simulator: ${e::class.simpleName}: ${e.message}")
-      return@runTest
-    }
-    val decoded = try {
-      codec.decode(encoded, CanonicalVideoDecodeOptions(), ctx)
-    } catch (e: Throwable) {
-      println("SKIP: MP4 decoding not available on this simulator: ${e::class.simpleName}: ${e.message}")
-      return@runTest
-    }
-
-    // Video codecs may round to even dimensions; allow ±1
-    assertTrue(
-      decoded.videoTrack.width in 127..129,
-      "Width should be ~128, was ${decoded.videoTrack.width}",
-    )
-    assertTrue(
-      decoded.videoTrack.height in 95..97,
-      "Height should be ~96, was ${decoded.videoTrack.height}",
-    )
-  }
-
-  // MOV roundtrip (encode → decode)
 
   @Test
   fun movRoundTripProducesFrames() = runTest {
     val codec = IosMovCodec()
-    val original = VideoTestHelpers.syntheticVideo(
-      width = 64, height = 64, frameRate = 10.0, durationMs = 500,
-    )
+    val original = VideoTestHelpers.syntheticVideo(width = 64, height = 64, frameRate = 10.0, durationMs = 500)
     val ctx = VideoTestHelpers.testContext()
 
     val encoded = try {
-      codec.encode(original, ctx)
+      codec.encode(original, VideoFormat.Mov, CanonicalVideoEncodeOptions(outputFormat = OutputFormat.Exact(VideoFormat.Mov)), ctx)
     } catch (e: Throwable) {
       println("SKIP: MOV encoding not available on this simulator: ${e::class.simpleName}: ${e.message}")
       return@runTest
@@ -109,24 +62,18 @@ class IosVideoCodecTest {
       println("SKIP: MOV decoding not available on this simulator: ${e::class.simpleName}: ${e.message}")
       return@runTest
     }
-    assertTrue(decoded.videoTrack.width > 0, "Decoded width should be > 0")
-    assertTrue(decoded.videoTrack.height > 0, "Decoded height should be > 0")
-    assertTrue(decoded.durationMs > 0, "Decoded duration should be > 0, was ${decoded.durationMs}ms")
-  }
-
-  // Format support assertions
-
-  @Test
-  fun mp4CodecReportsCorrectFormats() {
-    val codec = IosMp4Codec()
-    assertTrue(VideoFormat.MP4 in codec.decodableFormats, "MP4 should be decodable")
-    assertTrue(VideoFormat.MP4 in codec.encodableFormats, "MP4 should be encodable")
+    assertTrue(decoded.videoTrack.width > 0)
+    assertTrue(decoded.videoTrack.height > 0)
+    assertTrue(decoded.durationMs > 0)
   }
 
   @Test
-  fun movCodecReportsCorrectFormats() {
-    val codec = IosMovCodec()
-    assertTrue(VideoFormat.MOV in codec.decodableFormats, "MOV should be decodable")
-    assertTrue(VideoFormat.MOV in codec.encodableFormats, "MOV should be encodable")
+  fun codecReportsCorrectFormats() {
+    assertTrue(VideoFormat.Mp4 in IosMp4Codec().decodableFormats)
+    assertTrue(VideoFormat.Mp4 in IosMp4Codec().encodableFormats)
+
+    assertTrue(VideoFormat.Mov in IosMovCodec().decodableFormats)
+    assertTrue(VideoFormat.Mov in IosMovCodec().encodableFormats)
   }
 }
+

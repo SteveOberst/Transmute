@@ -1,11 +1,11 @@
 package dev.transmute.image.transform
 
-import dev.transmute.core.TransmuteContext
+import dev.transmute.common.PipelineContext
 import dev.transmute.image.ByteArrayPixelBuffer
 import dev.transmute.image.ImageIR
 import dev.transmute.image.ImageHint
 import dev.transmute.image.ImageTransform
-import dev.transmute.core.pipeline.TransformId
+import dev.transmute.codec.pipeline.TransformId
 
 /**
  * Crops an [ImageIR] to a sub-region defined by [x], [y], [cropWidth], [cropHeight].
@@ -26,7 +26,7 @@ class ImageCropTransform(
 
   override val id: TransformId = TransformId("image-crop")
 
-  override suspend fun apply(ir: ImageIR, context: TransmuteContext): ImageIR {
+  override suspend fun apply(ir: ImageIR, context: PipelineContext): ImageIR {
     val srcBuffer = ir.buffer as? ByteArrayPixelBuffer
       ?: error("ImageCropTransform requires ByteArrayPixelBuffer")
 

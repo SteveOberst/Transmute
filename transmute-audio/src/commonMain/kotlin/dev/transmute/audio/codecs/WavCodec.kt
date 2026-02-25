@@ -8,8 +8,8 @@ import dev.transmute.audio.AudioFormat
 import dev.transmute.audio.AudioIR
 import dev.transmute.audio.AudioMetadata
 import dev.transmute.audio.AudioSamples
-import dev.transmute.core.Bytes
-import dev.transmute.core.TransmuteContext
+import dev.transmute.model.core.Bytes
+import dev.transmute.common.PipelineContext
 
 /**
  * Pure Kotlin WAV decoder supporting PCM (8/16/24/32-bit) and IEEE float formats.
@@ -30,7 +30,7 @@ class WavDecoder : AudioDecoder {
     return null
   }
 
-  override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: TransmuteContext): AudioIR {
+  override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: PipelineContext): AudioIR {
     val bytes = source.data
     require(bytes.size >= 44) { "WAV file too small: ${bytes.size} bytes" }
 
@@ -76,12 +76,33 @@ class WavDecoder : AudioDecoder {
       "Unsupported WAV format: $audioFormat (only PCM=1 and IEEE_FLOAT=3 supported)"
     }
 
+    val bytesPerSample = when {
+      audioFormat == 3 && bitsPerSample == 32 -> 4
+      audioFormat == 1 && bitsPerSample == 8 -> 1
+      audioFormat == 1 && bitsPerSample == 16 -> 2
+      audioFormat == 1 && bitsPerSample == 24 -> 3
+      audioFormat == 1 && bitsPerSample == 32 -> 4
+      else -> error("Unsupported bit depth: $bitsPerSample")
+    }
+
+    val timeRange = options.decodeRange?.timeframe()
+    val rangedDataBytes = timeRange?.let { range ->
+      val totalSamples = dataBytes.size / bytesPerSample
+      val startFrame = ((range.startMs * sampleRate) / 1000L).toInt().coerceAtLeast(0)
+      val endFrame = ((range.endMsExclusive * sampleRate) / 1000L).toInt().coerceAtLeast(startFrame)
+      val startSample = (startFrame * channelCount).coerceAtMost(totalSamples)
+      val endSample = (endFrame * channelCount).coerceAtMost(totalSamples)
+      val startByte = startSample * bytesPerSample
+      val endByte = endSample * bytesPerSample
+      if (startByte >= endByte) ByteArray(0) else dataBytes.copyOfRange(startByte, endByte)
+    } ?: dataBytes
+
     val samples = when {
-      audioFormat == 3 && bitsPerSample == 32 -> decodeFloat32(dataBytes, channelCount)
-      audioFormat == 1 && bitsPerSample == 8 -> decode8Bit(dataBytes, channelCount)
-      audioFormat == 1 && bitsPerSample == 16 -> decode16Bit(dataBytes, channelCount)
-      audioFormat == 1 && bitsPerSample == 24 -> decode24Bit(dataBytes, channelCount)
-      audioFormat == 1 && bitsPerSample == 32 -> decode32Bit(dataBytes, channelCount)
+      audioFormat == 3 && bitsPerSample == 32 -> decodeFloat32(rangedDataBytes, channelCount)
+      audioFormat == 1 && bitsPerSample == 8 -> decode8Bit(rangedDataBytes, channelCount)
+      audioFormat == 1 && bitsPerSample == 16 -> decode16Bit(rangedDataBytes, channelCount)
+      audioFormat == 1 && bitsPerSample == 24 -> decode24Bit(rangedDataBytes, channelCount)
+      audioFormat == 1 && bitsPerSample == 32 -> decode32Bit(rangedDataBytes, channelCount)
       else -> error("Unsupported bit depth: $bitsPerSample")
     }
 
@@ -166,7 +187,7 @@ class WavEncoder : AudioEncoder {
     ir: AudioIR,
     format: AudioFormat,
     options: AudioEncodeOptions,
-    context: TransmuteContext,
+    context: PipelineContext,
   ): Bytes {
     require(format == AudioFormat.Wav) { "WavEncoder only supports WAV, got $format" }
     val samples = ir.samples.data

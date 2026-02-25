@@ -7,7 +7,7 @@ M4A is an audio-only MP4 container, typically containing AAC audio. It is widely
 | Platform | Decode | Encode | Engine |
 |----------|--------|--------|--------|
 | Android  | ✅     | ✅     | MediaCodec |
-| Desktop  | ✅     | ✅     | FFmpeg (bundled) |
+| Desktop  | ✅     | ✅     | GStreamer (requires `transmute-gstreamer`) |
 | iOS      | ✅     | ✅     | AVFoundation |
 
 ## Usage
@@ -30,4 +30,4 @@ suspend fun decodeToWav(m4aBytes: ByteArray): ByteArray =
 
 - M4A is a container; the codec is typically AAC.
 - Great compatibility on iOS and modern Android.
-- Desktop encoding relies on the bundled FFmpeg build.
+- Desktop requires the optional `transmute-gstreamer` module with GStreamer installed.

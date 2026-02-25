@@ -4,9 +4,8 @@ import dev.transmute.audio.AudioHint
 import dev.transmute.audio.AudioIR
 import dev.transmute.audio.AudioSamples
 import dev.transmute.audio.AudioTransform
-import dev.transmute.core.TransmuteContext
-import dev.transmute.core.pipeline.TransformId
-import kotlin.math.roundToInt
+import dev.transmute.common.PipelineContext
+import dev.transmute.codec.pipeline.TransformId
 
 /**
  * Changes playback speed without altering pitch.
@@ -32,7 +31,7 @@ class AudioSpeedTransform(
 
   override val id = TransformId("audio.speed")
 
-  override suspend fun apply(ir: AudioIR, context: TransmuteContext): AudioIR {
+  override suspend fun apply(ir: AudioIR, context: PipelineContext): AudioIR {
     require(speed > 0f) { "Speed must be > 0, got $speed" }
     if (speed == 1f) return ir
 

@@ -9,14 +9,14 @@ package dev.transmute.audio
  * transmuter will conservatively assume the transform *might* apply.
  *
  * ```kotlin
- * val transmuter = Transmute.audio().apply {
+ * val transmuter = Transmute.audio {
  *     resample(44100)
  *     mono()
  * }
  *
  * val hint = AudioHint(sampleRate = track.sampleRate, channelCount = track.channels)
  * if (transmuter.wouldTransmute(hint)) {
- *     val processed = transmuter.transmute(track.bytes)
+ *     val processed = transmuter.transmute(track.bytes.asBytes())
  * }
  * ```
  */

@@ -1,16 +1,9 @@
 package dev.transmute.video.codecs.android
 
-import dev.transmute.audio.AudioSamples
-import dev.transmute.core.VideoFormat
-import dev.transmute.image.ByteArrayPixelBuffer
-import dev.transmute.image.PixelFormat
-import dev.transmute.video.AudioTrack
-import dev.transmute.video.ListFrameStream
+import dev.transmute.codec.OutputFormat
+import dev.transmute.video.VideoFormat
 import dev.transmute.video.VideoFormatDetector
-import dev.transmute.video.VideoFrame
-import dev.transmute.video.VideoIR
 import dev.transmute.video.VideoTestHelpers
-import dev.transmute.video.VideoTrack
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -25,6 +18,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import dev.transmute.video.CanonicalVideoDecodeOptions
+import dev.transmute.video.CanonicalVideoEncodeOptions
 
 /**
  * Android instrumented tests for MediaCodec-based video codecs.
@@ -75,7 +69,9 @@ class AndroidVideoCodecTest {
     val ctx = VideoTestHelpers.testContext()
     val codec = AndroidMp4Codec()
 
-    val encoded = codecOp("MP4 encode") { codec.encode(original, ctx) } ?: return@runBlocking
+    val encoded = codecOp("MP4 encode") {
+      codec.encode(original, VideoFormat.Mp4, CanonicalVideoEncodeOptions(outputFormat = OutputFormat.Exact(VideoFormat.Mp4)), ctx)
+    } ?: return@runBlocking
     assertTrue(encoded.isNotEmpty(), "Encoded MP4 should not be empty")
 
     val decoded = codecOp("MP4 decode") { codec.decode(encoded, CanonicalVideoDecodeOptions(), ctx) } ?: return@runBlocking
@@ -88,10 +84,12 @@ class AndroidVideoCodecTest {
   fun mp4EncodedBytesDetectedAsMp4() = runBlocking {
     val ir = VideoTestHelpers.syntheticVideo(width = 32, height = 32, durationMs = 200)
     val ctx = VideoTestHelpers.testContext()
-    val encoded = codecOp("MP4 encode-detect") { AndroidMp4Codec().encode(ir, ctx) } ?: return@runBlocking
+    val encoded = codecOp("MP4 encode-detect") {
+      AndroidMp4Codec().encode(ir, VideoFormat.Mp4, CanonicalVideoEncodeOptions(outputFormat = OutputFormat.Exact(VideoFormat.Mp4)), ctx)
+    } ?: return@runBlocking
 
     assertEquals(
-      VideoFormat.MP4,
+      VideoFormat.Mp4,
       VideoFormatDetector.detect(encoded),
       "MP4: encoded bytes should be detected as MP4",
     )
@@ -105,7 +103,9 @@ class AndroidVideoCodecTest {
     val ctx = VideoTestHelpers.testContext()
     val codec = AndroidMp4Codec()
 
-    val encoded = codecOp("MP4+audio encode") { codec.encode(original, ctx) } ?: return@runBlocking
+    val encoded = codecOp("MP4+audio encode") {
+      codec.encode(original, VideoFormat.Mp4, CanonicalVideoEncodeOptions(outputFormat = OutputFormat.Exact(VideoFormat.Mp4)), ctx)
+    } ?: return@runBlocking
     val decoded = codecOp("MP4+audio decode") { codec.decode(encoded, CanonicalVideoDecodeOptions(), ctx) } ?: return@runBlocking
 
     assertNotNull(decoded.audioTrack, "MP4: audio track should be preserved")
@@ -125,7 +125,9 @@ class AndroidVideoCodecTest {
     val ctx = VideoTestHelpers.testContext()
     val codec = AndroidMovCodec()
 
-    val encoded = codecOp("MOV encode") { codec.encode(original, ctx) } ?: return@runBlocking
+    val encoded = codecOp("MOV encode") {
+      codec.encode(original, VideoFormat.Mov, CanonicalVideoEncodeOptions(outputFormat = OutputFormat.Exact(VideoFormat.Mov)), ctx)
+    } ?: return@runBlocking
     assertTrue(encoded.isNotEmpty(), "Encoded MOV should not be empty")
 
     val decoded = codecOp("MOV decode") { codec.decode(encoded, CanonicalVideoDecodeOptions(), ctx) } ?: return@runBlocking
@@ -139,17 +141,17 @@ class AndroidVideoCodecTest {
   @Test
   fun webmDecoderReportsCorrectFormat() {
     val decoder = AndroidWebmDecoder()
-    assertTrue(VideoFormat.WEBM in decoder.supportedFormats)
+    assertTrue(VideoFormat.Webm in decoder.supportedFormats)
   }
 
   // Format declarations
 
   @Test
   fun allCodecsReportCorrectFormats() {
-    assertTrue(VideoFormat.MP4 in AndroidMp4Codec().decodableFormats)
-    assertTrue(VideoFormat.MP4 in AndroidMp4Codec().encodableFormats)
-    assertTrue(VideoFormat.MOV in AndroidMovCodec().decodableFormats)
-    assertTrue(VideoFormat.MOV in AndroidMovCodec().encodableFormats)
-    assertTrue(VideoFormat.WEBM in AndroidWebmDecoder().supportedFormats)
+    assertTrue(VideoFormat.Mp4 in AndroidMp4Codec().decodableFormats)
+    assertTrue(VideoFormat.Mp4 in AndroidMp4Codec().encodableFormats)
+    assertTrue(VideoFormat.Mov in AndroidMovCodec().decodableFormats)
+    assertTrue(VideoFormat.Mov in AndroidMovCodec().encodableFormats)
+    assertTrue(VideoFormat.Webm in AndroidWebmDecoder().supportedFormats)
   }
 }

@@ -1,11 +1,10 @@
 package dev.transmute.video
 
 import dev.transmute.audio.AudioSamples
-import dev.transmute.core.TransmuteContext
-import dev.transmute.core.PrintLogger
+import dev.transmute.common.PipelineContext
+import dev.transmute.common.PrintLogger
 import dev.transmute.image.ByteArrayPixelBuffer
 import dev.transmute.image.PixelFormat
-import kotlin.random.Random
 
 /**
  * Test utilities for video tests.
@@ -13,9 +12,9 @@ import kotlin.random.Random
 object VideoTestHelpers {
 
   /**
-   * Creates a test [TransmuteContext].
+   * Creates a test [PipelineContext].
    */
-  fun testContext(): TransmuteContext = TransmuteContext(logger = PrintLogger)
+  fun testContext(): PipelineContext = PipelineContext(logger = PrintLogger)
 
   /**
    * Creates a test VideoIR with synthetic frames.
@@ -70,6 +69,8 @@ internal class SyntheticFrameStream(
   private val frameRate: Double,
 ) : FrameStream {
   private var currentFrame = 0L
+
+  override fun close() {}
 
   override suspend fun nextFrame(): VideoFrame? {
     if (currentFrame >= frameCount) return null

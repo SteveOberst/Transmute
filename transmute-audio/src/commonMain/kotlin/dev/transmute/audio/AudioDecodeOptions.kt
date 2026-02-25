@@ -1,6 +1,7 @@
 package dev.transmute.audio
 
-import dev.transmute.core.DecodeOptions
+import dev.transmute.model.core.DecodeOptions
+import dev.transmute.codec.DecodeRange
 
 /**
  * Sealed hierarchy of audio decoding options.
@@ -15,6 +16,8 @@ sealed interface AudioDecodeOptions : DecodeOptions {
    * - A single-entry set allows skipping detection in default byte decode pipelines.
    */
   val acceptedInputFormats: Set<AudioFormat>
+
+  val decodeRange: DecodeRange?
 }
 
 /**
@@ -22,4 +25,5 @@ sealed interface AudioDecodeOptions : DecodeOptions {
  */
 data class CanonicalAudioDecodeOptions(
   override val acceptedInputFormats: Set<AudioFormat> = emptySet(),
+  override val decodeRange: DecodeRange? = null,
 ) : AudioDecodeOptions

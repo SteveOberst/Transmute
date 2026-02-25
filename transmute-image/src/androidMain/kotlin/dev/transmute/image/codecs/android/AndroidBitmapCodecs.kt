@@ -1,10 +1,10 @@
-﻿package dev.transmute.image.codecs.android
+package dev.transmute.image.codecs.android
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import dev.transmute.core.TransmuteContext
-import dev.transmute.core.Bytes
-import dev.transmute.core.asBytes
+import dev.transmute.common.PipelineContext
+import dev.transmute.model.core.Bytes
+import dev.transmute.model.core.asBytes
 import dev.transmute.image.*
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
@@ -66,7 +66,7 @@ class AndroidBitmapImageDecoder : ImageDecoder {
     return null
   }
 
-  override suspend fun decode(source: Bytes, options: ImageDecodeOptions, context: TransmuteContext): ImageIR {
+  override suspend fun decode(source: Bytes, options: ImageDecodeOptions, context: PipelineContext): ImageIR {
     val opts = BitmapFactory.Options().apply {
       inPreferredConfig = Bitmap.Config.ARGB_8888
     }
@@ -120,7 +120,7 @@ class AndroidBitmapImageEncoder : ImageEncoder {
     ir: ImageIR,
     format: ImageFormat,
     options: ImageEncodeOptions,
-    context: TransmuteContext,
+    context: PipelineContext,
   ): Bytes {
     val buffer = ir.buffer as? ByteArrayPixelBuffer
       ?: error("AndroidBitmapImageEncoder requires ByteArrayPixelBuffer")

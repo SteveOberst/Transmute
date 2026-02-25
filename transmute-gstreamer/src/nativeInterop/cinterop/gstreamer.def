@@ -1,0 +1,16 @@
+package = gst
+headers = gst/gst.h gst/app/gstappsrc.h gst/app/gstappsink.h gst/pbutils/pbutils.h
+headerFilter = gst/** glib*.h
+
+# GStreamer.framework is expected to be installed in the standard location
+# or provided via GSTREAMER_ROOT_IOS environment variable.
+# When using Homebrew: /opt/homebrew/Cellar/gstreamer/...
+# When using the official SDK: /Library/Frameworks/GStreamer.framework
+compilerOpts = \
+  -I/Library/Frameworks/GStreamer.framework/Headers \
+  -I/Library/Frameworks/GStreamer.framework/Headers/gstreamer-1.0 \
+  -I/Library/Frameworks/GStreamer.framework/Headers/glib-2.0
+
+linkerOpts = \
+  -F/Library/Frameworks \
+  -framework GStreamer

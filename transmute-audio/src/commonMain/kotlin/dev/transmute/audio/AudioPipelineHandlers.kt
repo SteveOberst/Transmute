@@ -1,25 +1,25 @@
 package dev.transmute.audio
 
-import dev.transmute.core.Bytes
-import dev.transmute.core.OutputFormat
-import dev.transmute.core.TransmuteContext
-import dev.transmute.core.pipeline.Decoded
-import dev.transmute.core.pipeline.EncodedBytes
-import dev.transmute.core.pipeline.PipelineHandler
-import dev.transmute.core.pipeline.PipelineBuilder
+import dev.transmute.model.core.Bytes
+import dev.transmute.codec.OutputFormat
+import dev.transmute.common.PipelineContext
+import dev.transmute.codec.pipeline.Decoded
+import dev.transmute.codec.pipeline.EncodedBytes
+import dev.transmute.codec.pipeline.PipelineHandler
+import dev.transmute.codec.pipeline.PipelineBuilder
 
 /**
  * Audio decode handler: detects format (unless constrained), validates accepted formats,
  * then decodes via the registry.
  *
- * Reads [AudioDecodeOptions] from [TransmuteContext.decodeOptions].
+ * Reads [AudioDecodeOptions] from [PipelineContext.decodeOptions].
  */
 class AudioDecodeHandler(
   private val detector: (Bytes) -> AudioFormat = AudioFormatDetector::detect,
   private val decoders: AudioDecoderRegistry = AudioRegistries.decoders,
 ) : PipelineHandler<Bytes, Decoded<AudioFormat, AudioIR>> {
 
-  override suspend fun handle(value: Bytes, context: TransmuteContext): Decoded<AudioFormat, AudioIR> {
+  override suspend fun handle(value: Bytes, context: PipelineContext): Decoded<AudioFormat, AudioIR> {
     AudioRegistries.installDefaultsIfEmpty()
 
     val options = (context.decodeOptions as? AudioDecodeOptions) ?: CanonicalAudioDecodeOptions()
@@ -45,7 +45,7 @@ class AudioDecodeHandler(
  *
  * Applies [AudioEncodeOptions.metadataPolicy] during encoding (not as a transform step).
  *
- * Reads [AudioEncodeOptions] from [TransmuteContext.encodeOptions].
+ * Reads [AudioEncodeOptions] from [PipelineContext.encodeOptions].
  */
 class AudioDynamicEncodeHandler(
   private val encoders: AudioEncoderRegistry = AudioRegistries.encoders,
@@ -53,7 +53,7 @@ class AudioDynamicEncodeHandler(
 
   override suspend fun handle(
     value: Decoded<AudioFormat, AudioIR>,
-    context: TransmuteContext,
+    context: PipelineContext,
   ): EncodedBytes<AudioFormat> {
     AudioRegistries.installDefaultsIfEmpty()
 
@@ -68,8 +68,8 @@ class AudioDynamicEncodeHandler(
 
     val encoder = encoders.encoderFor(outFormat) ?: error("No audio encoder for $outFormat")
     val stripped = when (requested.metadataPolicy) {
-      dev.transmute.core.MetadataPolicy.PRESERVE -> value.ir
-      dev.transmute.core.MetadataPolicy.STRIP_ALL -> value.ir.copy(metadata = AudioMetadata())
+      dev.transmute.codec.MetadataPolicy.PRESERVE -> value.ir
+      dev.transmute.codec.MetadataPolicy.STRIP_ALL -> value.ir.copy(metadata = AudioMetadata())
     }
     val bytes = encoder.encode(stripped, outFormat, requested, context)
     return EncodedBytes(format = outFormat, bytes = bytes)
@@ -79,7 +79,7 @@ class AudioDynamicEncodeHandler(
 /**
  * Fixed-output audio encode handler.
  *
- * Reads [AudioEncodeOptions] from [TransmuteContext.encodeOptions] and enforces that any
+ * Reads [AudioEncodeOptions] from [PipelineContext.encodeOptions] and enforces that any
  * explicit `outputFormat` matches the fixed output format.
  */
 class AudioFixedEncodeHandler<OUT : AudioFormat>(
@@ -87,7 +87,7 @@ class AudioFixedEncodeHandler<OUT : AudioFormat>(
   private val encoders: AudioEncoderRegistry = AudioRegistries.encoders,
 ) : PipelineHandler<Decoded<AudioFormat, AudioIR>, EncodedBytes<OUT>> {
 
-  override suspend fun handle(value: Decoded<AudioFormat, AudioIR>, context: TransmuteContext): EncodedBytes<OUT> {
+  override suspend fun handle(value: Decoded<AudioFormat, AudioIR>, context: PipelineContext): EncodedBytes<OUT> {
     AudioRegistries.installDefaultsIfEmpty()
 
     val requested = (context.encodeOptions as? AudioEncodeOptions) ?: CanonicalAudioEncodeOptions()
@@ -100,8 +100,8 @@ class AudioFixedEncodeHandler<OUT : AudioFormat>(
 
     val encoder = encoders.encoderFor(output) ?: error("No audio encoder for $output")
     val stripped = when (requested.metadataPolicy) {
-      dev.transmute.core.MetadataPolicy.PRESERVE -> value.ir
-      dev.transmute.core.MetadataPolicy.STRIP_ALL -> value.ir.copy(metadata = AudioMetadata())
+      dev.transmute.codec.MetadataPolicy.PRESERVE -> value.ir
+      dev.transmute.codec.MetadataPolicy.STRIP_ALL -> value.ir.copy(metadata = AudioMetadata())
     }
     val bytes = encoder.encode(stripped, output, requested, context)
     return EncodedBytes(format = output, bytes = bytes)
@@ -162,8 +162,8 @@ fun <IN> PipelineBuilder<IN, Decoded<AudioFormat, AudioIR>>.then(
   }
 
   val stripped = when (requested.metadataPolicy) {
-    dev.transmute.core.MetadataPolicy.PRESERVE -> decoded.ir
-    dev.transmute.core.MetadataPolicy.STRIP_ALL -> decoded.ir.copy(metadata = AudioMetadata())
+    dev.transmute.codec.MetadataPolicy.PRESERVE -> decoded.ir
+    dev.transmute.codec.MetadataPolicy.STRIP_ALL -> decoded.ir.copy(metadata = AudioMetadata())
   }
   EncodedBytes(format = outFormat, bytes = encoder.encode(stripped, outFormat, requested, ctx))
 }
@@ -188,8 +188,8 @@ fun <IN, OUT : AudioFormat> PipelineBuilder<IN, Decoded<AudioFormat, AudioIR>>.t
   }
 
   val stripped = when (requested.metadataPolicy) {
-    dev.transmute.core.MetadataPolicy.PRESERVE -> decoded.ir
-    dev.transmute.core.MetadataPolicy.STRIP_ALL -> decoded.ir.copy(metadata = AudioMetadata())
+    dev.transmute.codec.MetadataPolicy.PRESERVE -> decoded.ir
+    dev.transmute.codec.MetadataPolicy.STRIP_ALL -> decoded.ir.copy(metadata = AudioMetadata())
   }
   EncodedBytes(format = output, bytes = encoder.encode(stripped, output, requested, ctx))
 }

@@ -1,4 +1,4 @@
-﻿package dev.transmute.video.codecs.android
+package dev.transmute.video.codecs.android
 
 import android.media.MediaCodec
 import android.media.MediaCodecInfo
@@ -7,9 +7,9 @@ import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.media.MediaMuxer
 import dev.transmute.audio.AudioSamples
-import dev.transmute.core.Bytes
-import dev.transmute.core.TransmuteContext
-import dev.transmute.core.asBytes
+import dev.transmute.model.core.Bytes
+import dev.transmute.common.PipelineContext
+import dev.transmute.model.core.asBytes
 import dev.transmute.image.ByteArrayPixelBuffer
 import dev.transmute.image.PixelFormat
 import dev.transmute.video.AudioTrack
@@ -18,11 +18,8 @@ import dev.transmute.video.VideoCodec
 import dev.transmute.video.VideoFrame
 import dev.transmute.video.VideoFormat
 import dev.transmute.video.VideoIR
-import dev.transmute.video.VideoMetadata
 import dev.transmute.video.VideoTrack
-import java.io.ByteArrayOutputStream
 import java.io.File
-import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import dev.transmute.video.VideoDecodeOptions
 import dev.transmute.video.VideoEncodeOptions
@@ -105,7 +102,10 @@ private fun rgbaToNv12(rgba: ByteArray, width: Int, height: Int): ByteArray {
 // Shared decode logic - extract all video frames + audio via MediaCodec
 // ---------------------------------------------------------------------------
 
-private fun decodeVideoWithMediaCodec(source: ByteArray): Pair<List<VideoFrame>, Pair<Int, MediaFormat?>> {
+private fun decodeVideoWithMediaCodec(
+    source: ByteArray,
+    timeRangeMs: dev.transmute.codec.TimeRangeMs?,
+): Pair<List<VideoFrame>, Pair<Int, MediaFormat?>> {
   val extractor = MediaExtractor()
   val dataSource = ByteArrayMediaDataSource(source)
   val frames = mutableListOf<VideoFrame>()
@@ -131,6 +131,10 @@ private fun decodeVideoWithMediaCodec(source: ByteArray): Pair<List<VideoFrame>,
     val width = videoFormat.getInteger(MediaFormat.KEY_WIDTH)
     val height = videoFormat.getInteger(MediaFormat.KEY_HEIGHT)
 
+    if (timeRangeMs != null) {
+      extractor.seekTo(timeRangeMs.startMs * 1000, MediaExtractor.SEEK_TO_PREVIOUS_SYNC)
+    }
+
     val codec = MediaCodec.createDecoderByType(mime)
     try {
       codec.configure(videoFormat, null, null, 0)
@@ -140,13 +144,19 @@ private fun decodeVideoWithMediaCodec(source: ByteArray): Pair<List<VideoFrame>,
       var sawInputEos = false
       var sawOutputEos = false
 
+      val endUsExclusive = timeRangeMs?.endMsExclusive?.times(1000)
       while (!sawOutputEos) {
         if (!sawInputEos) {
           val inputIndex = codec.dequeueInputBuffer(10_000)
           if (inputIndex >= 0) {
             val inputBuffer = codec.getInputBuffer(inputIndex) ?: continue
             inputBuffer.clear()
-            val sampleSize = extractor.readSampleData(inputBuffer, 0)
+            val sampleTimeUs = extractor.sampleTime
+            if (endUsExclusive != null && sampleTimeUs >= 0 && sampleTimeUs >= endUsExclusive) {
+              codec.queueInputBuffer(inputIndex, 0, 0, 0L, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
+              sawInputEos = true
+            } else {
+              val sampleSize = extractor.readSampleData(inputBuffer, 0)
             if (sampleSize < 0) {
               codec.queueInputBuffer(inputIndex, 0, 0, 0L, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
               sawInputEos = true
@@ -154,6 +164,7 @@ private fun decodeVideoWithMediaCodec(source: ByteArray): Pair<List<VideoFrame>,
               val pts = extractor.sampleTime
               codec.queueInputBuffer(inputIndex, 0, sampleSize, pts, 0)
               extractor.advance()
+            }
             }
           }
         }
@@ -180,15 +191,23 @@ private fun decodeVideoWithMediaCodec(source: ByteArray): Pair<List<VideoFrame>,
                 )
 
                 val timestampMs = bufferInfo.presentationTimeUs / 1000
-                frames.add(
-                  VideoFrame(
-                    buffer = ByteArrayPixelBuffer(rgbaData),
-                    width = image.width,
-                    height = image.height,
-                    pixelFormat = PixelFormat.RGBA_8888,
-                    timestampMs = timestampMs,
-                  ),
-                )
+                val startMs = timeRangeMs?.startMs
+                val endMsExclusive = timeRangeMs?.endMsExclusive
+                if (startMs != null && timestampMs < startMs) {
+                  // discard leading frames due to keyframe seek
+                } else if (endMsExclusive != null && timestampMs >= endMsExclusive) {
+                  sawOutputEos = true
+                } else {
+                  frames.add(
+                    VideoFrame(
+                      buffer = ByteArrayPixelBuffer(rgbaData),
+                      width = image.width,
+                      height = image.height,
+                      pixelFormat = PixelFormat.RGBA_8888,
+                      timestampMs = timestampMs,
+                    ),
+                  )
+                }
                 image.close()
               }
             }
@@ -212,7 +231,10 @@ private fun decodeVideoWithMediaCodec(source: ByteArray): Pair<List<VideoFrame>,
   }
 }
 
-private fun decodeAudioWithMediaCodec(source: ByteArray): AudioSamples? {
+private fun decodeAudioWithMediaCodec(
+    source: ByteArray,
+    timeRangeMs: dev.transmute.codec.TimeRangeMs?,
+): AudioSamples? {
   val extractor = MediaExtractor()
   val dataSource = ByteArrayMediaDataSource(source)
 
@@ -230,6 +252,10 @@ private fun decodeAudioWithMediaCodec(source: ByteArray): AudioSamples? {
     var sampleRate = audioFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE)
     var channels = audioFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT)
 
+    if (timeRangeMs != null) {
+      extractor.seekTo(timeRangeMs.startMs * 1000, MediaExtractor.SEEK_TO_CLOSEST_SYNC)
+    }
+
     val codec = MediaCodec.createDecoderByType(mime)
     try {
       codec.configure(audioFormat, null, null, 0)
@@ -240,12 +266,19 @@ private fun decodeAudioWithMediaCodec(source: ByteArray): AudioSamples? {
       var sawInputEos = false
       var sawOutputEos = false
 
+      val endUsExclusive = timeRangeMs?.endMsExclusive?.times(1000)
       while (!sawOutputEos) {
         if (!sawInputEos) {
           val inputIndex = codec.dequeueInputBuffer(10_000)
           if (inputIndex >= 0) {
             val inputBuffer = codec.getInputBuffer(inputIndex) ?: continue
             inputBuffer.clear()
+            val sampleTimeUs = extractor.sampleTime
+            if (endUsExclusive != null && sampleTimeUs >= 0 && sampleTimeUs >= endUsExclusive) {
+              codec.queueInputBuffer(inputIndex, 0, 0, 0L, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
+              sawInputEos = true
+              continue
+            }
             val sampleSize = extractor.readSampleData(inputBuffer, 0)
             if (sampleSize < 0) {
               codec.queueInputBuffer(inputIndex, 0, 0, 0L, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
@@ -592,18 +625,19 @@ internal class AndroidMp4Codec : VideoCodec {
     }
   }
 
-  override suspend fun decode(source: Bytes, options: VideoDecodeOptions, context: TransmuteContext): VideoIR {
+  override suspend fun decode(source: Bytes, options: VideoDecodeOptions, context: PipelineContext): VideoIR {
     val bytes = source.data
-    val (frames, audioInfo) = decodeVideoWithMediaCodec(bytes)
+    val timeRange = options.decodeRange?.timeframe()
+    val (frames, audioInfo) = decodeVideoWithMediaCodec(bytes, timeRange)
     require(frames.isNotEmpty()) { "No video frames decoded" }
 
     val audioSamples = if (audioInfo.first >= 0) {
-      decodeAudioWithMediaCodec(bytes)
+      decodeAudioWithMediaCodec(bytes, timeRange)
     } else null
 
     val width = frames.first().width
     val height = frames.first().height
-    val durationMs = frames.last().timestampMs.coerceAtLeast(1)
+    val durationMs = timeRange?.durationMs ?: frames.last().timestampMs.coerceAtLeast(1)
     val frameRate = if (durationMs > 0) {
       frames.size.toDouble() * 1000.0 / durationMs
     } else 30.0
@@ -619,7 +653,7 @@ internal class AndroidMp4Codec : VideoCodec {
     )
   }
 
-  override suspend fun encode(ir: VideoIR, format: VideoFormat, options: VideoEncodeOptions, context: TransmuteContext): Bytes =
+  override suspend fun encode(ir: VideoIR, format: VideoFormat, options: VideoEncodeOptions, context: PipelineContext): Bytes =
     encodeVideoWithMediaCodec(
       ir,
       outputFormat = MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4,
@@ -646,19 +680,20 @@ internal class AndroidMovCodec : VideoCodec {
     return if (brand == "qt  ") VideoFormat.Mov else null
   }
 
-  override suspend fun decode(source: Bytes, options: VideoDecodeOptions, context: TransmuteContext): VideoIR {
+  override suspend fun decode(source: Bytes, options: VideoDecodeOptions, context: PipelineContext): VideoIR {
     // MOV and MP4 share the same container on Android
     val bytes = source.data
-    val (frames, audioInfo) = decodeVideoWithMediaCodec(bytes)
+    val timeRange = options.decodeRange?.timeframe()
+    val (frames, audioInfo) = decodeVideoWithMediaCodec(bytes, timeRange)
     require(frames.isNotEmpty()) { "No video frames decoded" }
 
     val audioSamples = if (audioInfo.first >= 0) {
-      decodeAudioWithMediaCodec(bytes)
+      decodeAudioWithMediaCodec(bytes, timeRange)
     } else null
 
     val width = frames.first().width
     val height = frames.first().height
-    val durationMs = frames.last().timestampMs.coerceAtLeast(1)
+    val durationMs = timeRange?.durationMs ?: frames.last().timestampMs.coerceAtLeast(1)
     val frameRate = if (durationMs > 0) {
       frames.size.toDouble() * 1000.0 / durationMs
     } else 30.0
@@ -674,7 +709,7 @@ internal class AndroidMovCodec : VideoCodec {
     )
   }
 
-  override suspend fun encode(ir: VideoIR, format: VideoFormat, options: VideoEncodeOptions, context: TransmuteContext): Bytes =
+  override suspend fun encode(ir: VideoIR, format: VideoFormat, options: VideoEncodeOptions, context: PipelineContext): Bytes =
     encodeVideoWithMediaCodec(
       ir,
       outputFormat = MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4,
@@ -704,18 +739,19 @@ internal class AndroidWebmDecoder : dev.transmute.video.VideoDecoder {
     return VideoFormat.Webm
   }
 
-  override suspend fun decode(source: Bytes, options: VideoDecodeOptions, context: TransmuteContext): VideoIR {
+  override suspend fun decode(source: Bytes, options: VideoDecodeOptions, context: PipelineContext): VideoIR {
     val bytes = source.data
-    val (frames, audioInfo) = decodeVideoWithMediaCodec(bytes)
+    val timeRange = options.decodeRange?.timeframe()
+    val (frames, audioInfo) = decodeVideoWithMediaCodec(bytes, timeRange)
     require(frames.isNotEmpty()) { "No video frames decoded from WebM" }
 
     val audioSamples = if (audioInfo.first >= 0) {
-      decodeAudioWithMediaCodec(bytes)
+      decodeAudioWithMediaCodec(bytes, timeRange)
     } else null
 
     val width = frames.first().width
     val height = frames.first().height
-    val durationMs = frames.last().timestampMs.coerceAtLeast(1)
+    val durationMs = timeRange?.durationMs ?: frames.last().timestampMs.coerceAtLeast(1)
     val frameRate = if (durationMs > 0) {
       frames.size.toDouble() * 1000.0 / durationMs
     } else 30.0

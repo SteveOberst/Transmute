@@ -1,14 +1,14 @@
 package dev.transmute
 
-import dev.transmute.core.OutputFormat
-import dev.transmute.core.TransmuteContext
-import dev.transmute.core.TransmuteLogger
-import dev.transmute.core.asBytes
-import dev.transmute.core.pipeline.Decoded
-import dev.transmute.core.pipeline.EncodedBytes
-import dev.transmute.core.pipeline.PipelineHandler
-import dev.transmute.core.pipeline.Transform
-import dev.transmute.core.pipeline.TransformId
+import dev.transmute.codec.OutputFormat
+import dev.transmute.common.PipelineContext
+import dev.transmute.common.TransmuteLogger
+import dev.transmute.model.core.asBytes
+import dev.transmute.codec.pipeline.Decoded
+import dev.transmute.codec.pipeline.EncodedBytes
+import dev.transmute.codec.pipeline.PipelineHandler
+import dev.transmute.codec.pipeline.Transform
+import dev.transmute.codec.pipeline.TransformId
 import dev.transmute.image.ByteArrayPixelBuffer
 import dev.transmute.image.CanonicalImageEncodeOptions
 import dev.transmute.image.ColorInfo
@@ -27,11 +27,11 @@ class PipelinesIntegrationTest {
     val t = Transmute.image {
       decode {
         pipeline(
-          initial = PipelineHandler { bytes, _ ->
+          initial = { bytes, _ ->
             val width = bytes.data.firstOrNull()?.toInt() ?: 1
             val ir =
               ImageIR(
-                buffer = ByteArrayPixelBuffer(ByteArray(4) { 0 }),
+                buffer = ByteArrayPixelBuffer(ByteArray(4)),
                 width = width,
                 height = 1,
                 stride = 4,
@@ -47,7 +47,7 @@ class PipelinesIntegrationTest {
       transform {
         add(object : Transform<ImageIR> {
           override val id: TransformId = TransformId("inc-width")
-          override suspend fun apply(ir: ImageIR, context: TransmuteContext): ImageIR =
+          override suspend fun apply(ir: ImageIR, context: PipelineContext): ImageIR =
             ir.copy(width = ir.width + 1)
         })
       }
@@ -56,7 +56,7 @@ class PipelinesIntegrationTest {
         options(CanonicalImageEncodeOptions(outputFormat = OutputFormat.Exact(ImageFormat.Png)))
 
         pipeline(
-          initial = PipelineHandler { decoded, ctx ->
+          initial = { decoded, ctx ->
             val options = (ctx.encodeOptions as? ImageEncodeOptions) ?: CanonicalImageEncodeOptions()
             val outFormat = when (val declared = options.outputFormat) {
               OutputFormat.ORIGINAL -> decoded.format

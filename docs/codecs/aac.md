@@ -7,7 +7,7 @@ AAC (Advanced Audio Coding) is a modern lossy audio codec that provides better q
 | Platform | Decode | Encode | Engine |
 |----------|--------|--------|--------|
 | Android  | ✅     | ✅     | MediaCodec |
-| Desktop  | ✅     | ✅     | FFmpeg (bundled) |
+| Desktop  | ✅     | ✅     | GStreamer (requires `transmute-gstreamer`) |
 | iOS      | ✅     | ✅     | AVFoundation |
 
 ## Usage
@@ -31,4 +31,4 @@ suspend fun decodeToWav(aacBytes: ByteArray): ByteArray =
 - Great balance of quality and compression.
 - Supported natively on Android and iOS.
 - Typically used inside MP4/M4A containers.
-- Desktop uses the bundled FFmpeg build.
+- Desktop requires the optional `transmute-gstreamer` module with GStreamer installed.

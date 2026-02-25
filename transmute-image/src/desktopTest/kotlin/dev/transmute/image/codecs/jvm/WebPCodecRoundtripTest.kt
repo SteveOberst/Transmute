@@ -1,6 +1,6 @@
 package dev.transmute.image.codecs.jvm
 
-import dev.transmute.core.PrintLogger
+import dev.transmute.common.PrintLogger
 import dev.transmute.image.ImageFormatDetector
 import dev.transmute.image.ImageFormat
 import dev.transmute.image.ImageTestHelpers

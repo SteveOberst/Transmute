@@ -10,7 +10,7 @@ import dev.transmute.video.transform.*
  *
  * Provides domain-specific sub-factories for image, audio, and video
  * transforms.  Returned transforms can be used directly with
- * [TransformPipeline][dev.transmute.core.pipeline.TransformPipeline]:
+ * [TransformPipeline][dev.transmute.codec.pipeline.TransformPipeline]:
  *
  * ```kotlin
  * Transmute.video {
@@ -21,7 +21,7 @@ import dev.transmute.video.transform.*
  * }.transmute(buf)
  * ```
  *
- * Custom transforms that implement [Transform][dev.transmute.core.pipeline.Transform]
+ * Custom transforms that implement [Transform][dev.transmute.codec.pipeline.Transform]
  * can be added to any pipeline without registration - just pass instances
  * directly to `add()`, `before<T>()`, etc.
  */
@@ -39,7 +39,7 @@ object Transformers {
 
 // -- Image transform factory --
 
-/** Creates image [Transform][dev.transmute.core.pipeline.Transform] instances. */
+/** Creates image [Transform][dev.transmute.codec.pipeline.Transform] instances. */
 object ImageTransforms {
 
   /** Scale to fit within [maxWidth]×[maxHeight], preserving aspect ratio. No upscaling. */
@@ -85,7 +85,7 @@ object ImageTransforms {
 
 // -- Audio transform factory --
 
-/** Creates audio [Transform][dev.transmute.core.pipeline.Transform] instances. */
+/** Creates audio [Transform][dev.transmute.codec.pipeline.Transform] instances. */
 object AudioTransforms {
 
   /** Normalize peak amplitude. Default target 0.95. */
@@ -135,7 +135,7 @@ object AudioTransforms {
 
 // -- Video transform factory --
 
-/** Creates video [Transform][dev.transmute.core.pipeline.Transform] instances. */
+/** Creates video [Transform][dev.transmute.codec.pipeline.Transform] instances. */
 object VideoTransforms {
 
   /** Trim to time range (milliseconds). [endMs] = null → end of video. */

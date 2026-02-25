@@ -1,5 +1,7 @@
 package dev.transmute.audio
 
+import dev.transmute.common.Closeable
+
 /**
  * Platform-agnostic intermediate representation for decoded audio data.
  *
@@ -16,7 +18,7 @@ data class AudioIR(
 // --- Sample data ---
 
 /** Provides pull-based streaming access to decoded audio samples. */
-interface SampleStream {
+interface SampleStream : Closeable {
   val sampleRate: Int
   val channelCount: Int
   suspend fun readSamples(buffer: FloatArray): Int

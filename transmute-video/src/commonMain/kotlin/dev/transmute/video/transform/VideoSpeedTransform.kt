@@ -1,8 +1,8 @@
 package dev.transmute.video.transform
 
 import dev.transmute.audio.AudioSamples
-import dev.transmute.core.TransmuteContext
-import dev.transmute.core.pipeline.TransformId
+import dev.transmute.common.PipelineContext
+import dev.transmute.codec.pipeline.TransformId
 import dev.transmute.video.AudioTrack
 import dev.transmute.video.FrameStream
 import dev.transmute.video.VideoFrame
@@ -36,7 +36,7 @@ class VideoSpeedTransform(
 
   override val id = TransformId("video.speed")
 
-  override suspend fun apply(ir: VideoIR, context: TransmuteContext): VideoIR {
+  override suspend fun apply(ir: VideoIR, context: PipelineContext): VideoIR {
     require(speed > 0f) { "Speed must be > 0, got $speed" }
     if (speed == 1f) return ir
 
@@ -90,6 +90,8 @@ private class SpeedAdjustedFrameStream(
   private val speed: Float,
 ) : FrameStream {
   override val frameCount: Long = (source.frameCount / speed).toLong()
+
+  override fun close() = source.close()
 
   override suspend fun nextFrame(): VideoFrame? {
     val frame = source.nextFrame() ?: return null

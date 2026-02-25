@@ -6,8 +6,8 @@ Opus is a modern audio codec optimized for interactive speech and music over the
 
 | Platform | Decode | Encode | Engine |
 |----------|--------|--------|--------|
-| Android  | ✅     | ✅     | MediaCodec (decode) / FFmpeg (encode) |
-| Desktop  | ✅     | ✅     | FFmpeg (bundled) |
+| Android  | ✅     | ✅     | MediaCodec |
+| Desktop  | ✅     | ✅     | GStreamer (requires `transmute-gstreamer`) |
 | iOS      | ✅     | ❌     | AVFoundation (decode only) |
 
 ## Usage
@@ -30,4 +30,4 @@ suspend fun decodeToWav(opusBytes: ByteArray): ByteArray =
 
 - Excellent quality at low bitrates.
 - Great for speech, music, and mixed content.
-- Desktop encoding relies on the bundled FFmpeg build.
+- Desktop requires the optional `transmute-gstreamer` module with GStreamer installed.

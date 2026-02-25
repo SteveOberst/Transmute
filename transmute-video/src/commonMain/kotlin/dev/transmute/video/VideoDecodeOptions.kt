@@ -1,6 +1,7 @@
 package dev.transmute.video
 
-import dev.transmute.core.DecodeOptions
+import dev.transmute.model.core.DecodeOptions
+import dev.transmute.codec.DecodeRange
 
 /**
  * Sealed hierarchy of video decoding options.
@@ -15,6 +16,8 @@ sealed interface VideoDecodeOptions : DecodeOptions {
    * - A single-entry set allows skipping detection in default byte decode pipelines.
    */
   val acceptedInputFormats: Set<VideoFormat>
+
+  val decodeRange: DecodeRange?
 }
 
 /**
@@ -22,4 +25,5 @@ sealed interface VideoDecodeOptions : DecodeOptions {
  */
 data class CanonicalVideoDecodeOptions(
   override val acceptedInputFormats: Set<VideoFormat> = emptySet(),
+  override val decodeRange: DecodeRange? = null,
 ) : VideoDecodeOptions

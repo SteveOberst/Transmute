@@ -4,8 +4,8 @@ import dev.transmute.audio.AudioHint
 import dev.transmute.audio.AudioIR
 import dev.transmute.audio.AudioSamples
 import dev.transmute.audio.AudioTransform
-import dev.transmute.core.TransmuteContext
-import dev.transmute.core.pipeline.TransformId
+import dev.transmute.common.PipelineContext
+import dev.transmute.codec.pipeline.TransformId
 
 /**
  * Remaps audio channels - swap L/R, duplicate mono to stereo, or
@@ -34,7 +34,7 @@ class AudioChannelMapTransform(
 
   override val id = TransformId("audio.channel-map")
 
-  override suspend fun apply(ir: AudioIR, context: TransmuteContext): AudioIR {
+  override suspend fun apply(ir: AudioIR, context: PipelineContext): AudioIR {
     val srcChannels = ir.channelCount
     val dstChannels = mapping.size
 

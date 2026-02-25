@@ -6,8 +6,8 @@ AVI is a legacy video container format. It is still encountered frequently in ar
 
 | Platform | Decode | Encode | Engine |
 |----------|--------|--------|--------|
-| Android  | ✅     | ✅     | MediaCodec (decode) / FFmpeg (encode) |
-| Desktop  | ✅     | ✅     | FFmpeg (bundled) |
+| Android  | ✅     | ✅     | MediaCodec |
+| Desktop  | ✅     | ✅     | GStreamer (requires `transmute-gstreamer`) |
 | iOS      | ✅     | ❌     | AVFoundation (decode only) |
 
 ## Usage
@@ -29,4 +29,4 @@ suspend fun convertToMp4(aviBytes: ByteArray): ByteArray =
 ## Notes
 
 - Legacy container format; prefer MP4 for modern workflows.
-- Desktop encoding relies on the bundled FFmpeg build.
+- Desktop requires the optional `transmute-gstreamer` module with GStreamer installed.

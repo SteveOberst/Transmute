@@ -18,8 +18,22 @@ rootProject.name = "Transmute"
 
 include(
     ":transmute-api",
-    ":transmute-core",
+    ":transmute-common",
+    ":transmute-codec",
+    ":transmute-model",
+    ":transmute-model:core",
+    ":transmute-model:identify",
+    ":transmute-model:structure",
+    ":transmute-model:view",
+    ":transmute-model:stream",
+    ":transmute-model:metadata",
+    ":transmute-model:diagnostics",
+    ":transmute-filesystem",
+    ":transmute-filesystem:core",
+    ":transmute-filesystem:okio",
+    ":transmute-structure",
     ":transmute-audio",
     ":transmute-video",
     ":transmute-image",
+    ":transmute-gstreamer",
 )

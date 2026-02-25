@@ -1,11 +1,11 @@
 package dev.transmute.image.transform
 
-import dev.transmute.core.TransmuteContext
+import dev.transmute.common.PipelineContext
 import dev.transmute.image.ByteArrayPixelBuffer
 import dev.transmute.image.ImageIR
 import dev.transmute.image.ImageHint
 import dev.transmute.image.ImageTransform
-import dev.transmute.core.pipeline.TransformId
+import dev.transmute.codec.pipeline.TransformId
 
 /**
  * Flips an [ImageIR] horizontally, vertically, or both.
@@ -26,7 +26,7 @@ class ImageFlipTransform(
 
   override val id: TransformId = TransformId("image.flip")
 
-  override suspend fun apply(ir: ImageIR, context: TransmuteContext): ImageIR {
+  override suspend fun apply(ir: ImageIR, context: PipelineContext): ImageIR {
     if (!horizontal && !vertical) {
       context.logger.debug("ImageFlipTransform: no flip axis specified - skipping")
       return ir

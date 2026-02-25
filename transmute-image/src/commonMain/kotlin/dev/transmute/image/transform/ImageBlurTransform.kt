@@ -1,12 +1,12 @@
 package dev.transmute.image.transform
 
-import dev.transmute.core.TransmuteContext
+import dev.transmute.common.PipelineContext
 import dev.transmute.image.ByteArrayPixelBuffer
 import dev.transmute.image.ImageIR
 import dev.transmute.image.PixelFormat
 import dev.transmute.image.ImageHint
 import dev.transmute.image.ImageTransform
-import dev.transmute.core.pipeline.TransformId
+import dev.transmute.codec.pipeline.TransformId
 
 /**
  * Applies a box blur to an [ImageIR].
@@ -30,7 +30,7 @@ class ImageBlurTransform(
 
   override val id: TransformId = TransformId("image.blur")
 
-  override suspend fun apply(ir: ImageIR, context: TransmuteContext): ImageIR {
+  override suspend fun apply(ir: ImageIR, context: PipelineContext): ImageIR {
     if (radius <= 0) {
       context.logger.debug("ImageBlurTransform: radius ≤ 0 - skipping")
       return ir

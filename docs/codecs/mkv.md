@@ -6,8 +6,8 @@ MKV (Matroska) is a flexible open container format commonly used for high-qualit
 
 | Platform | Decode | Encode | Engine |
 |----------|--------|--------|--------|
-| Android  | ✅     | ✅     | MediaCodec (decode) / FFmpeg (encode) |
-| Desktop  | ✅     | ✅     | FFmpeg (bundled) |
+| Android  | ✅     | ✅     | MediaCodec |
+| Desktop  | ✅     | ✅     | GStreamer (requires `transmute-gstreamer`) |
 | iOS      | ✅     | ❌     | AVFoundation (decode only) |
 
 ## Usage
@@ -29,4 +29,4 @@ suspend fun convertToMp4(mkvBytes: ByteArray): ByteArray =
 ## Notes
 
 - Very flexible container; common in archival and enthusiast workflows.
-- Desktop encoding relies on the bundled FFmpeg build.
+- Desktop requires the optional `transmute-gstreamer` module with GStreamer installed.

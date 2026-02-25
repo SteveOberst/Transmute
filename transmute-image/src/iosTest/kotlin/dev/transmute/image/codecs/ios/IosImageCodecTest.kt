@@ -1,7 +1,7 @@
 package dev.transmute.image.codecs.ios
 
-import dev.transmute.core.ImageFormat
-import dev.transmute.core.OutputFormat
+import dev.transmute.image.ImageFormat
+import dev.transmute.codec.OutputFormat
 import dev.transmute.image.ImageTestHelpers
 import dev.transmute.image.CanonicalImageEncodeOptions
 import dev.transmute.image.HeifEncodeOptions

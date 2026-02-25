@@ -2,7 +2,7 @@ package dev.transmute.audio.codecs.jvm
 
 import dev.transmute.audio.AudioFormat
 import dev.transmute.audio.AudioTestHelpers
-import dev.transmute.core.asBytes
+import dev.transmute.model.core.asBytes
 import kotlinx.coroutines.test.runTest
 import kotlin.math.abs
 import kotlin.test.*

@@ -2,7 +2,8 @@ package dev.transmute.audio.codecs.android
 
 import android.os.Build
 import dev.transmute.audio.AudioTestHelpers
-import dev.transmute.core.AudioFormat
+import dev.transmute.audio.AudioFormat
+import dev.transmute.audio.CanonicalAudioEncodeOptions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -14,9 +15,9 @@ import org.junit.rules.Timeout
 import org.junit.runner.RunWith
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import dev.transmute.audio.CanonicalAudioDecodeOptions
+import dev.transmute.codec.OutputFormat
 
 /**
  * Android instrumented tests for MediaCodec-based audio codecs.
@@ -65,7 +66,9 @@ class AndroidAudioCodecTest {
     val ctx = AudioTestHelpers.testContext()
     val codec = AndroidMp3Codec()
 
-    val encoded = codecOp("MP3 encode") { codec.encode(original, ctx) } ?: return@runBlocking
+    val encoded = codecOp("MP3 encode") {
+      codec.encode(original, AudioFormat.Mp3, CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.Mp3)), ctx)
+    } ?: return@runBlocking
     assertTrue(encoded.isNotEmpty(), "Encoded MP3 should not be empty")
 
     val decoded = codecOp("MP3 decode") { codec.decode(encoded, CanonicalAudioDecodeOptions(), ctx) } ?: return@runBlocking
@@ -86,7 +89,9 @@ class AndroidAudioCodecTest {
     val ctx = AudioTestHelpers.testContext()
     val codec = AndroidAacCodec()
 
-    val encoded = codecOp("AAC encode") { codec.encode(original, ctx) } ?: return@runBlocking
+    val encoded = codecOp("AAC encode") {
+      codec.encode(original, AudioFormat.Aac, CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.Aac)), ctx)
+    } ?: return@runBlocking
     assertTrue(encoded.isNotEmpty())
 
     val decoded = codecOp("AAC decode") { codec.decode(encoded, CanonicalAudioDecodeOptions(), ctx) } ?: return@runBlocking
@@ -107,7 +112,9 @@ class AndroidAudioCodecTest {
     val ctx = AudioTestHelpers.testContext()
     val codec = AndroidFlacCodec()
 
-    val encoded = codecOp("FLAC encode") { codec.encode(original, ctx) } ?: return@runBlocking
+    val encoded = codecOp("FLAC encode") {
+      codec.encode(original, AudioFormat.Flac, CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.Flac)), ctx)
+    } ?: return@runBlocking
     assertTrue(encoded.isNotEmpty())
 
     val decoded = codecOp("FLAC decode") { codec.decode(encoded, CanonicalAudioDecodeOptions(), ctx) } ?: return@runBlocking
@@ -129,7 +136,9 @@ class AndroidAudioCodecTest {
     val ctx = AudioTestHelpers.testContext()
     val codec = AndroidM4aCodec()
 
-    val encoded = codecOp("M4A encode") { codec.encode(original, ctx) } ?: return@runBlocking
+    val encoded = codecOp("M4A encode") {
+      codec.encode(original, AudioFormat.M4a, CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.M4a)), ctx)
+    } ?: return@runBlocking
     assertTrue(encoded.isNotEmpty())
 
     val decoded = codecOp("M4A decode") { codec.decode(encoded, CanonicalAudioDecodeOptions(), ctx) } ?: return@runBlocking
@@ -142,7 +151,7 @@ class AndroidAudioCodecTest {
   @Test
   fun oggDecoderReportsCorrectFormat() {
     val decoder = AndroidOggDecoder()
-    assertTrue(AudioFormat.OGG in decoder.supportedFormats)
+    assertTrue(AudioFormat.Ogg in decoder.supportedFormats)
   }
 
   // OPUS roundtrip
@@ -160,7 +169,9 @@ class AndroidAudioCodecTest {
     val ctx = AudioTestHelpers.testContext()
     val codec = AndroidOpusCodec()
 
-    val encoded = codecOp("OPUS encode") { codec.encode(original, ctx) } ?: return@runBlocking
+    val encoded = codecOp("OPUS encode") {
+      codec.encode(original, AudioFormat.Opus, CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.Opus)), ctx)
+    } ?: return@runBlocking
     assertTrue(encoded.isNotEmpty(), "Encoded OPUS should not be empty")
 
     val decoded = codecOp("OPUS decode") { codec.decode(encoded, CanonicalAudioDecodeOptions(), ctx) } ?: return@runBlocking
@@ -172,10 +183,10 @@ class AndroidAudioCodecTest {
 
   @Test
   fun allCodecsReportCorrectFormats() {
-    assertTrue(AudioFormat.MP3 in AndroidMp3Codec().decodableFormats)
-    assertTrue(AudioFormat.AAC in AndroidAacCodec().decodableFormats)
-    assertTrue(AudioFormat.FLAC in AndroidFlacCodec().decodableFormats)
-    assertTrue(AudioFormat.M4A in AndroidM4aCodec().decodableFormats)
-    assertTrue(AudioFormat.OPUS in AndroidOpusCodec().decodableFormats)
+    assertTrue(AudioFormat.Mp3 in AndroidMp3Codec().decodableFormats)
+    assertTrue(AudioFormat.Aac in AndroidAacCodec().decodableFormats)
+    assertTrue(AudioFormat.Flac in AndroidFlacCodec().decodableFormats)
+    assertTrue(AudioFormat.M4a in AndroidM4aCodec().decodableFormats)
+    assertTrue(AudioFormat.Opus in AndroidOpusCodec().decodableFormats)
   }
 }

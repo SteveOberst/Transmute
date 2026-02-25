@@ -1,10 +1,9 @@
 package dev.transmute.audio
 
-import dev.transmute.core.TransmuteContext
-import dev.transmute.core.PrintLogger
+import dev.transmute.common.PipelineContext
+import dev.transmute.common.PrintLogger
 import kotlin.math.PI
 import kotlin.math.sin
-import kotlin.random.Random
 
 /**
  * Test utilities for audio tests.
@@ -12,9 +11,9 @@ import kotlin.random.Random
 object AudioTestHelpers {
 
   /**
-   * Creates a test [TransmuteContext].
+   * Creates a test [PipelineContext].
    */
-  fun testContext(): TransmuteContext = TransmuteContext(logger = PrintLogger)
+  fun testContext(): PipelineContext = PipelineContext(logger = PrintLogger)
 
   /**
    * Generates a sine wave AudioIR for testing.

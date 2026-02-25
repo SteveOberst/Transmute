@@ -1,8 +1,8 @@
 package dev.transmute.audio
 
-import dev.transmute.core.EncodeOptions
-import dev.transmute.core.MetadataPolicy
-import dev.transmute.core.OutputFormat
+import dev.transmute.model.core.EncodeOptions
+import dev.transmute.codec.MetadataPolicy
+import dev.transmute.codec.OutputFormat
 
 /**
  * Sealed hierarchy of audio encoding options.

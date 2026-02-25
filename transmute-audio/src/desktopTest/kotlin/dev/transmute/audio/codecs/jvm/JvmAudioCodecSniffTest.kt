@@ -1,7 +1,7 @@
 package dev.transmute.audio.codecs.jvm
 
 import dev.transmute.audio.AudioFormat
-import dev.transmute.core.asBytes
+import dev.transmute.model.core.asBytes
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -114,99 +114,6 @@ class JvmAudioCodecSniffTest {
     assertNull(ogg.sniff(ByteArray(0).asBytes()))
   }
 
-  // ---- JvmAacCodec ----
-
-  private val aac = JvmAacCodec()
-
-  @Test
-  fun aacSniffsAdts() {
-    // 0xFF 0xF1 = MPEG-2, Layer 0 (AAC), protection absent
-    val data = byteArrayOf(0xFF.toByte(), 0xF1.toByte(), 0x00, 0x00)
-    assertEquals(AudioFormat.Aac, aac.sniff(data.asBytes()))
-  }
-
-  @Test
-  fun aacSniffsAdtsWithCrc() {
-    // 0xFF 0xF0 = MPEG-2, Layer 0 (AAC), protection present
-    val data = byteArrayOf(0xFF.toByte(), 0xF0.toByte(), 0x00, 0x00)
-    assertEquals(AudioFormat.Aac, aac.sniff(data.asBytes()))
-  }
-
-  @Test
-  fun aacRejectsMp3Frame() {
-    // 0xFF 0xFB = MPEG-1, Layer III (MP3)
-    val data = byteArrayOf(0xFF.toByte(), 0xFB.toByte(), 0x90.toByte(), 0x00)
-    assertNull(aac.sniff(data.asBytes()))
-  }
-
-  @Test
-  fun aacRejectsTooShort() {
-    assertNull(aac.sniff(byteArrayOf(0xFF.toByte()).asBytes()))
-    assertNull(aac.sniff(ByteArray(0).asBytes()))
-  }
-
-  // ---- JvmM4aCodec ----
-
-  private val m4a = JvmM4aCodec()
-
-  @Test
-  fun m4aSniffsFtyp() {
-    val data = ByteArray(16)
-    data[4] = 0x66; data[5] = 0x74; data[6] = 0x79; data[7] = 0x70 // ftyp
-    data[8] = 'M'.code.toByte(); data[9] = '4'.code.toByte()
-    data[10] = 'A'.code.toByte(); data[11] = ' '.code.toByte()
-    assertEquals(AudioFormat.M4a, m4a.sniff(data.asBytes()))
-  }
-
-  @Test
-  fun m4aRejectsTooShort() {
-    assertNull(m4a.sniff(ByteArray(7).asBytes()))
-    assertNull(m4a.sniff(ByteArray(0).asBytes()))
-  }
-
-  @Test
-  fun m4aRejectsNoFtyp() {
-    val data = ByteArray(16)
-    assertNull(m4a.sniff(data.asBytes()))
-  }
-
-  // ---- JvmOpusCodec ----
-
-  private val opus = JvmOpusCodec()
-
-  @Test
-  fun opusSniffsOggOpus() {
-    val data = ByteArray(36)
-    data[0] = 'O'.code.toByte(); data[1] = 'g'.code.toByte()
-    data[2] = 'g'.code.toByte(); data[3] = 'S'.code.toByte()
-    // "OpusHead" at byte 28
-    data[28] = 'O'.code.toByte(); data[29] = 'p'.code.toByte()
-    data[30] = 'u'.code.toByte(); data[31] = 's'.code.toByte()
-    data[32] = 'H'.code.toByte(); data[33] = 'e'.code.toByte()
-    data[34] = 'a'.code.toByte(); data[35] = 'd'.code.toByte()
-    assertEquals(AudioFormat.Opus, opus.sniff(data.asBytes()))
-  }
-
-  @Test
-  fun opusRejectsVorbis() {
-    val data = ByteArray(36)
-    data[0] = 'O'.code.toByte(); data[1] = 'g'.code.toByte()
-    data[2] = 'g'.code.toByte(); data[3] = 'S'.code.toByte()
-    data[28] = 0x01
-    data[29] = 'v'.code.toByte(); data[30] = 'o'.code.toByte()
-    assertNull(opus.sniff(data.asBytes()))
-  }
-
-  @Test
-  fun opusRejectsTooShort() {
-    assertNull(opus.sniff(ByteArray(35).asBytes()))
-    assertNull(opus.sniff(ByteArray(0).asBytes()))
-  }
-
-  @Test
-  fun opusRejectsNonOgg() {
-    val data = ByteArray(36)
-    data[0] = 'R'.code.toByte(); data[1] = 'I'.code.toByte()
-    assertNull(opus.sniff(data.asBytes()))
-  }
+  // Note: AAC, M4A, and Opus sniff tests live in the transmute-gstreamer module
+  // alongside the GStreamer-backed codec implementations.
 }

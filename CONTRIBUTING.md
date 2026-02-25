@@ -26,7 +26,7 @@ a pull request.
 | JDK         | 17                      | Temurin or any standard JDK                                                        |
 | Android SDK | API 26+ (compileSdk 35) | Required for Android targets                                                       |
 | Kotlin      | 2.2.21                  | Managed by Gradle version catalog                                                  |
-| FFmpeg      | 6.x                     | Optional - bundled by default; needed if running desktop integration tests locally |
+| GStreamer   | 1.x                     | Optional - needed for AAC/M4A/Opus/HEIF/AVIF/video codecs on Desktop              |
 
 ### Clone & Build
 
@@ -47,27 +47,35 @@ cd Transmute
 ./gradlew desktopTest
 ```
 
-### FFmpeg
+### GStreamer (Optional)
 
-The library **bundles** a static FFmpeg build by default (`FfmpegConfig.Bundled`).
-If you need FFmpeg on PATH for local development or prefer to use a custom build:
+Formats marked **+gst** in the README codec tables require a system-installed
+[GStreamer](https://gstreamer.freedesktop.org/) runtime and the optional
+`transmute-gstreamer` module. Without GStreamer, Desktop supports WAV, MP3,
+FLAC decode, OGG decode, BMP, PNG, JPEG, WebP, GIF, and TIFF natively.
 
 ```bash
 # macOS
-brew install ffmpeg
+brew install gstreamer gst-plugins-good gst-plugins-bad
 
 # Ubuntu/Debian
-sudo apt install ffmpeg
+sudo apt install gstreamer1.0-tools gstreamer1.0-plugins-good gstreamer1.0-plugins-bad
 
-# Windows (scoop)
-scoop install ffmpeg
+# Windows
+# Install from https://gstreamer.freedesktop.org/download/
+# or: winget install GStreamer.GStreamer
 ```
 
-You can tell Transmute to use your system FFmpeg for tests:
+Enable GStreamer codecs in your `TransmuteContext`:
 
 ```kotlin
-TransmuteConfig.ffmpeg = FfmpegConfig.system()            // PATH lookup
-TransmuteConfig.ffmpeg = FfmpegConfig.system("/usr/local/bin/ffmpeg")  // explicit
+val ctx = TransmuteContext {
+    gstreamer {
+        audio = true   // AAC, M4A, Opus, FLAC encode, OGG encode
+        video = true   // MP4, MOV, WebM, AVI, MKV
+        image = true   // HEIF, HEIC, AVIF
+    }
+}
 ```
 
 ---
@@ -98,7 +106,7 @@ transmute-<domain>/
 â””-- src/
     â”œ-- commonMain/       # Cross-platform types, IR, format detection, pure-Kotlin codecs
     â”œ-- commonTest/       # Tests for the above
-    â”œ-- desktopMain/      # JVM/Desktop codecs (ImageIO, FFmpeg, JLayer, etc.)
+    ├-- desktopMain/      # JVM/Desktop codecs (ImageIO, JLayer, etc.)
     â”œ-- desktopTest/      # Desktop integration tests (roundtrip encode â†’ decode)
     â”œ-- androidMain/      # Android codecs (BitmapFactory, MediaCodec, etc.)
     â”œ-- androidInstrumentedTest/  # Android instrumented tests (requires device/emulator)
@@ -146,14 +154,14 @@ feat(audio): add ALAC codec for iOS
 fix(image): correct EXIF rotation for HEIF on Android
 test(video): add MKV roundtrip test for desktop
 docs: update platform support table in README
-chore(ci): add FFmpeg to CI runner
+chore(ci): add GStreamer to CI runner
 ```
 
 ### Examples
 
 ```bash
 # Feature: new codec
-git commit -m "feat(image): add AVIF encode support for desktop via FFmpeg"
+git commit -m "feat(image): add AVIF encode support for desktop via GStreamer"
 
 # Bug fix
 git commit -m "fix(audio): fix MP3 decode crash on zero-length input"
@@ -332,7 +340,7 @@ class JvmAlacCodecTest {
 **Test conventions:**
 - Place tests in the matching test source set (`desktopTest`, `androidInstrumentedTest`, etc.)
 - Use the `TestHelpers` classes for synthetic fixtures (`AudioTestHelpers`, `ImageTestHelpers`, `VideoTestHelpers`)
-- Skip gracefully when optional dependencies (e.g. FFmpeg) aren't available
+- Skip gracefully when optional dependencies (e.g. GStreamer) aren't available
 - Test encode â†’ decode roundtrip with dimension/sample-rate/channel preservation
 - For lossy codecs, assert with reasonable tolerance (don't compare pixel-exact)
 
@@ -427,7 +435,7 @@ class ImageSepiaTransformTest {
 | Source Set                | Runs On           | Command                           | What It Tests                                                  |
 |---------------------------|-------------------|-----------------------------------|----------------------------------------------------------------|
 | `commonTest`              | All targets       | `./gradlew allTests`              | Pure-Kotlin codecs (WAV, BMP), transforms, format detection    |
-| `desktopTest`             | JVM               | `./gradlew desktopTest`           | JVM codecs (ImageIO, JLayer, FFmpeg), JVM-specific integration |
+| `desktopTest`             | JVM               | `./gradlew desktopTest`           | JVM codecs (ImageIO, JLayer), JVM-specific integration         |
 | `androidInstrumentedTest` | Device/Emulator   | `./gradlew connectedAndroidTest`  | Android codecs (BitmapFactory, MediaCodec)                     |
 | `iosTest`                 | macOS + Simulator | `./gradlew iosSimulatorArm64Test` | iOS codecs (CoreGraphics, AVFoundation)                        |
 
@@ -476,9 +484,9 @@ VideoTestHelpers.syntheticVideo(width = 64, height = 48, durationMs = 300)
 **Graceful skip when optional dependency is unavailable:**
 
 ```kotlin
-private inline fun requireFfmpeg(block: () -> Unit) {
-  if (!FfmpegResolver.available) {
-    println("SKIPPED - FFmpeg not available")
+private inline fun requireGStreamer(block: () -> Unit) {
+  if (!GStreamerCodecInstaller.available) {
+    println("SKIPPED - GStreamer not available")
     return
   }
   block()
@@ -508,7 +516,7 @@ The project has three GitHub Actions workflows:
 | Workflow              | File              | Triggers On                     | What It Runs                                                                                 |
 |-----------------------|-------------------|---------------------------------|----------------------------------------------------------------------------------------------|
 | **Unit Tests**        | `ci.yml`          | Every push & PR                 | `commonTest` + `desktopTest` on Ubuntu (fast)                                                |
-| **Integration Tests** | `integration.yml` | PRs to `main`, releases, manual | Android emulator tests (Linux), iOS simulator tests (macOS), desktop tests w/ FFmpeg (macOS) |
+| **Integration Tests** | `integration.yml` | PRs to `main`, releases, manual | Android emulator tests (Linux), iOS simulator tests (macOS), desktop tests w/ GStreamer (Linux) |
 | **Release**           | `release.yml`     | Push to `main`                  | release-please PR â†’ integration gate â†’ publish artifacts                                     |
 
 **Unit Tests** run on every commit to give fast feedback. They cover all
@@ -519,7 +527,7 @@ This includes:
 - Android instrumented tests via `reactivecircus/android-emulator-runner`
   (API 30, `connectedAndroidTest` for image/audio/video)
 - iOS simulator tests via `iosSimulatorArm64Test` on macOS
-- Desktop tests with FFmpeg installed on macOS
+- Desktop tests with GStreamer installed on Linux
 
 **Releases** are managed by release-please. When a release is created,
 the integration test workflow runs first as a gate - artifacts are only

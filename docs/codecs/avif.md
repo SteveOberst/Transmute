@@ -7,7 +7,7 @@ AVIF is a next-generation image format based on AV1. It provides excellent compr
 | Platform | Decode | Encode | Engine |
 |----------|--------|--------|--------|
 | Android  | ✅     | ❌     | ImageDecoder (decode only) |
-| Desktop  | ✅     | ✅     | FFmpeg (bundled) |
+| Desktop  | ✅     | ✅     | GStreamer (requires `transmute-gstreamer`) |
 | iOS      | ✅     | ✅     | CoreGraphics (CGImage) |
 
 ## Usage
@@ -29,5 +29,5 @@ suspend fun decodeToPng(avifBytes: ByteArray): ByteArray =
 ## Notes
 
 - Android decode support depends on OS version; encoding support is limited.
-- Desktop encoding relies on the bundled FFmpeg build.
+- Desktop requires the optional `transmute-gstreamer` module with GStreamer installed.
 - iOS offers AVIF support on newer versions.

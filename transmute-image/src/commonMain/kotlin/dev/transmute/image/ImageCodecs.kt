@@ -1,9 +1,9 @@
 package dev.transmute.image
 
-import dev.transmute.core.Bytes
-import dev.transmute.core.pipeline.Decoded
-import dev.transmute.core.pipeline.EncodedBytes
-import dev.transmute.core.pipeline.PipelineHandler
+import dev.transmute.model.core.Bytes
+import dev.transmute.codec.pipeline.Decoded
+import dev.transmute.codec.pipeline.EncodedBytes
+import dev.transmute.codec.pipeline.PipelineHandler
 
 /**
  * Convenience entry points for the default decode/encode handlers.
@@ -21,7 +21,7 @@ object ImageCodecs {
   }
 
   object Encode {
-    /** Default dynamic-output encoder (resolves [dev.transmute.core.OutputFormat] from encode options). */
+    /** Default dynamic-output encoder (resolves [dev.transmute.codec.OutputFormat] from encode options). */
     val DEFAULT: PipelineHandler<Decoded<ImageFormat, ImageIR>, EncodedBytes<ImageFormat>> = ImageDynamicEncodeHandler()
 
     fun <OUT : ImageFormat> fixed(output: OUT): PipelineHandler<Decoded<ImageFormat, ImageIR>, EncodedBytes<OUT>> =

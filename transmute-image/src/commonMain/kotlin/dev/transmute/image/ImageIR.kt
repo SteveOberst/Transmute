@@ -88,27 +88,21 @@ enum class Orientation {
 // --- Metadata ---
 
 data class ImageMetadata(
-  val exifBlob: ByteArray? = null,
-  val xmpBlob: ByteArray? = null,
+  val exifBlob: dev.transmute.model.core.Bytes? = null,
+  val xmpBlob: dev.transmute.model.core.Bytes? = null,
   val appMetadata: Map<String, String> = emptyMap(),
 ) {
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
     if (other !is ImageMetadata) return false
-    if (exifBlob != null) {
-      if (other.exifBlob == null) return false
-      if (!exifBlob.contentEquals(other.exifBlob)) return false
-    } else if (other.exifBlob != null) return false
-    if (xmpBlob != null) {
-      if (other.xmpBlob == null) return false
-      if (!xmpBlob.contentEquals(other.xmpBlob)) return false
-    } else if (other.xmpBlob != null) return false
+    if (exifBlob != other.exifBlob) return false
+    if (xmpBlob != other.xmpBlob) return false
     return appMetadata == other.appMetadata
   }
 
   override fun hashCode(): Int {
-    var result = exifBlob?.contentHashCode() ?: 0
-    result = 31 * result + (xmpBlob?.contentHashCode() ?: 0)
+    var result = exifBlob?.hashCode() ?: 0
+    result = 31 * result + (xmpBlob?.hashCode() ?: 0)
     result = 31 * result + appMetadata.hashCode()
     return result
   }

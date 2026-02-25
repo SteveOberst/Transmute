@@ -1,7 +1,7 @@
 package dev.transmute.audio.codecs
 
 import dev.transmute.audio.AudioFormat
-import dev.transmute.core.asBytes
+import dev.transmute.model.core.asBytes
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull

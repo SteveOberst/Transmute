@@ -1,6 +1,6 @@
 package dev.transmute.image.codecs.jvm
 
-import dev.transmute.core.asBytes
+import dev.transmute.model.core.asBytes
 import dev.transmute.image.ImageFormat
 import kotlin.test.Test
 import kotlin.test.assertEquals

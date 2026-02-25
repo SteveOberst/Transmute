@@ -1,13 +1,12 @@
 package dev.transmute.image.transform
 
-import dev.transmute.core.TransmuteContext
-import dev.transmute.image.AlphaSemantics
+import dev.transmute.common.PipelineContext
 import dev.transmute.image.ByteArrayPixelBuffer
 import dev.transmute.image.ImageIR
 import dev.transmute.image.PixelFormat
 import dev.transmute.image.ImageHint
 import dev.transmute.image.ImageTransform
-import dev.transmute.core.pipeline.TransformId
+import dev.transmute.codec.pipeline.TransformId
 
 /**
  * Converts an [ImageIR] to grayscale using ITU-R BT.709 luma coefficients.
@@ -25,7 +24,7 @@ class ImageGrayscaleTransform : ImageTransform {
 
   override val id: TransformId = TransformId("image.grayscale")
 
-  override suspend fun apply(ir: ImageIR, context: TransmuteContext): ImageIR {
+  override suspend fun apply(ir: ImageIR, context: PipelineContext): ImageIR {
     val srcBuffer = ir.buffer as? ByteArrayPixelBuffer
       ?: error("ImageGrayscaleTransform requires ByteArrayPixelBuffer, got ${ir.buffer::class.simpleName}")
 

@@ -1,12 +1,12 @@
 package dev.transmute.image.transform
 
-import dev.transmute.core.TransmuteContext
+import dev.transmute.common.PipelineContext
 import dev.transmute.image.ByteArrayPixelBuffer
 import dev.transmute.image.ImageIR
 import dev.transmute.image.Orientation
 import dev.transmute.image.ImageHint
 import dev.transmute.image.ImageTransform
-import dev.transmute.core.pipeline.TransformId
+import dev.transmute.codec.pipeline.TransformId
 
 /**
  * Applies EXIF-based orientation rotation to an [ImageIR], then sets
@@ -34,7 +34,7 @@ class ImageRotateTransform : ImageTransform {
 
   override val id: TransformId = TransformId("image-rotate")
 
-  override suspend fun apply(ir: ImageIR, context: TransmuteContext): ImageIR {
+  override suspend fun apply(ir: ImageIR, context: PipelineContext): ImageIR {
     if (ir.orientation == Orientation.NORMAL) {
       context.logger.debug("ImageRotateTransform: already NORMAL - skipping")
       return ir

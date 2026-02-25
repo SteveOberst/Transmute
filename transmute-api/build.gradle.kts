@@ -31,10 +31,12 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            api(project(":transmute-core"))
+            api(project(":transmute-codec"))
             api(project(":transmute-audio"))
             api(project(":transmute-image"))
             api(project(":transmute-video"))
+            api(project(":transmute-model:structure"))
+            api(project(":transmute-structure"))
             implementation(libs.kotlinx.coroutines.core)
         }
         commonTest.dependencies {

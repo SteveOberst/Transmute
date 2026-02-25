@@ -1,8 +1,8 @@
 package dev.transmute.image
 
-import dev.transmute.core.Codec
-import dev.transmute.core.Bytes
-import dev.transmute.core.TransmuteContext
+import dev.transmute.codec.Codec
+import dev.transmute.model.core.Bytes
+import dev.transmute.common.PipelineContext
 
 /**
  * A full image codec that can decode **and** encode, plus sniff format
@@ -16,7 +16,7 @@ interface ImageCodec : Codec<ImageFormat, ImageIR, ImageDecodeOptions, ImageEnco
 interface ImageDecoder {
   val supportedFormats: Set<ImageFormat>
   fun sniff(data: Bytes): ImageFormat? = null
-  suspend fun decode(source: Bytes, options: ImageDecodeOptions, context: TransmuteContext): ImageIR
+  suspend fun decode(source: Bytes, options: ImageDecodeOptions, context: PipelineContext): ImageIR
 }
 
 interface ImageDecoderRegistry {
@@ -25,7 +25,7 @@ interface ImageDecoderRegistry {
 
 interface ImageEncoder {
   val supportedFormats: Set<ImageFormat>
-  suspend fun encode(ir: ImageIR, format: ImageFormat, options: ImageEncodeOptions, context: TransmuteContext): Bytes
+  suspend fun encode(ir: ImageIR, format: ImageFormat, options: ImageEncodeOptions, context: PipelineContext): Bytes
 }
 
 interface ImageEncoderRegistry {
@@ -45,13 +45,13 @@ class ImageCodecAdapter(
   override val decodableFormats: Set<ImageFormat> get() = decoder.supportedFormats
   override val encodableFormats: Set<ImageFormat> get() = encoder.supportedFormats
   override fun sniff(data: Bytes): ImageFormat? = sniffer?.invoke(data)
-  override suspend fun decode(source: Bytes, options: ImageDecodeOptions, context: TransmuteContext): ImageIR =
+  override suspend fun decode(source: Bytes, options: ImageDecodeOptions, context: PipelineContext): ImageIR =
     decoder.decode(source, options, context)
   override suspend fun encode(
     ir: ImageIR,
     format: ImageFormat,
     options: ImageEncodeOptions,
-    context: TransmuteContext,
+    context: PipelineContext,
   ): Bytes = encoder.encode(ir, format, options, context)
 }
 
@@ -65,14 +65,14 @@ class ImageDecoderCodecAdapter(
   override val decodableFormats: Set<ImageFormat> get() = decoder.supportedFormats
   override val encodableFormats: Set<ImageFormat> get() = emptySet()
   override fun sniff(data: Bytes): ImageFormat? = sniffer?.invoke(data)
-  override suspend fun decode(source: Bytes, options: ImageDecodeOptions, context: TransmuteContext): ImageIR =
+  override suspend fun decode(source: Bytes, options: ImageDecodeOptions, context: PipelineContext): ImageIR =
     decoder.decode(source, options, context)
 
   override suspend fun encode(
     ir: ImageIR,
     format: ImageFormat,
     options: ImageEncodeOptions,
-    context: TransmuteContext,
+    context: PipelineContext,
   ): Bytes = error("${this::class.simpleName} is decode-only")
 }
 
@@ -90,13 +90,13 @@ class ImageEncoderCodecAdapter(
   override suspend fun decode(
     source: Bytes,
     options: ImageDecodeOptions,
-    context: TransmuteContext,
+    context: PipelineContext,
   ): ImageIR = error("${this::class.simpleName} is encode-only")
 
   override suspend fun encode(
     ir: ImageIR,
     format: ImageFormat,
     options: ImageEncodeOptions,
-    context: TransmuteContext,
+    context: PipelineContext,
   ): Bytes = encoder.encode(ir, format, options, context)
 }

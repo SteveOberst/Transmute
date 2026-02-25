@@ -1,8 +1,8 @@
 package dev.transmute.audio
 
-import dev.transmute.core.Bytes
-import dev.transmute.core.Codec
-import dev.transmute.core.TransmuteContext
+import dev.transmute.model.core.Bytes
+import dev.transmute.codec.Codec
+import dev.transmute.common.PipelineContext
 
 /**
  * A full audio codec that can decode **and** encode, plus sniff format
@@ -15,7 +15,7 @@ interface AudioCodec : Codec<AudioFormat, AudioIR, AudioDecodeOptions, AudioEnco
 interface AudioDecoder {
   val supportedFormats: Set<AudioFormat>
   fun sniff(data: Bytes): AudioFormat? = null
-  suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: TransmuteContext): AudioIR
+  suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: PipelineContext): AudioIR
 }
 
 interface AudioDecoderRegistry {
@@ -24,7 +24,7 @@ interface AudioDecoderRegistry {
 
 interface AudioEncoder {
   val supportedFormats: Set<AudioFormat>
-  suspend fun encode(ir: AudioIR, format: AudioFormat, options: AudioEncodeOptions, context: TransmuteContext): Bytes
+  suspend fun encode(ir: AudioIR, format: AudioFormat, options: AudioEncodeOptions, context: PipelineContext): Bytes
 }
 
 interface AudioEncoderRegistry {
@@ -41,13 +41,13 @@ class AudioCodecAdapter(
   override val decodableFormats: Set<AudioFormat> get() = decoder.supportedFormats
   override val encodableFormats: Set<AudioFormat> get() = encoder.supportedFormats
   override fun sniff(data: Bytes): AudioFormat? = sniffer?.invoke(data)
-  override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: TransmuteContext): AudioIR =
+  override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: PipelineContext): AudioIR =
     decoder.decode(source, options, context)
   override suspend fun encode(
     ir: AudioIR,
     format: AudioFormat,
     options: AudioEncodeOptions,
-    context: TransmuteContext,
+    context: PipelineContext,
   ): Bytes = encoder.encode(ir, format, options, context)
 }
 
@@ -58,14 +58,14 @@ class AudioDecoderCodecAdapter(
   override val decodableFormats: Set<AudioFormat> get() = decoder.supportedFormats
   override val encodableFormats: Set<AudioFormat> get() = emptySet()
   override fun sniff(data: Bytes): AudioFormat? = sniffer?.invoke(data)
-  override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: TransmuteContext): AudioIR =
+  override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: PipelineContext): AudioIR =
     decoder.decode(source, options, context)
 
   override suspend fun encode(
     ir: AudioIR,
     format: AudioFormat,
     options: AudioEncodeOptions,
-    context: TransmuteContext,
+    context: PipelineContext,
   ): Bytes = error("${this::class.simpleName} is decode-only")
 }
 
@@ -76,13 +76,13 @@ class AudioEncoderCodecAdapter(
 
   override val decodableFormats: Set<AudioFormat> get() = emptySet()
   override fun sniff(data: Bytes): AudioFormat? = null
-  override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: TransmuteContext): AudioIR =
+  override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: PipelineContext): AudioIR =
     error("${this::class.simpleName} is encode-only")
 
   override suspend fun encode(
     ir: AudioIR,
     format: AudioFormat,
     options: AudioEncodeOptions,
-    context: TransmuteContext,
+    context: PipelineContext,
   ): Bytes = encoder.encode(ir, format, options, context)
 }

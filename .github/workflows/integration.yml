@@ -1,20 +1,18 @@
-name: Integration Tests
+name: "Integration: Desktop"
 
 on:
   pull_request:
     branches: [main]
 
 concurrency:
-  group: integration-${{ github.ref }}
+  group: integration-desktop-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  android-tests:
-    name: Android + Desktop Unit Tests
+  desktop-tests:
+    name: Desktop Integration Tests (JVM)
     runs-on: [self-hosted, linux, x64]
     timeout-minutes: 30
-    env:
-      ANDROID_HOME: /opt/android-sdk
 
     steps:
       - uses: actions/checkout@v4
@@ -28,19 +26,28 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Install FFmpeg
-        run: sudo apt-get install -y ffmpeg
+      - name: Install GStreamer
+        run: >
+          sudo apt-get update &&
+          sudo apt-get install -y
+          gstreamer1.0-tools
+          gstreamer1.0-plugins-good
+          gstreamer1.0-plugins-bad
+          gstreamer1.0-plugins-ugly
 
-      - name: Run Android unit tests
-        run: ./gradlew --no-daemon test -Pkotlin.native.enabled=false
-
-      - name: Run desktop unit tests
-        run: ./gradlew --no-daemon desktopTest -Pkotlin.native.enabled=false
+      - name: Run desktop integration tests
+        run: >
+          ./gradlew --no-daemon
+          :transmute-audio:desktopTest
+          :transmute-image:desktopTest
+          :transmute-video:desktopTest
+          :transmute-gstreamer:desktopTest
+          -Pkotlin.native.enabled=false
 
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: android-test-reports-${{ github.run_id }}
+          name: desktop-integration-reports-${{ github.run_id }}
           path: '**/build/reports/tests/'
           retention-days: 7

@@ -26,6 +26,24 @@ suspend fun decodeToJpeg(bmpBytes: ByteArray): ByteArray =
   }.transmute(bmpBytes.asBytes()).bytes.data
 ```
 
+## Structure Reading
+
+BMP files can be parsed into a `Bmp` structure that mirrors the file/DIB header layout:
+
+```kotlin
+val bmp: Bmp = Transmute.structure.read(bmpBytes.asBytes(), ImageFormat.Bmp)
+
+// Access headers
+val fileHeader = bmp.fileHeader   // 14-byte BMP file header
+val dibHeader = bmp.dibHeader     // DIB header (BITMAPINFOHEADER / V4 / V5)
+val pixelData = bmp.pixelData     // raw pixel bytes
+
+// Round-trip
+val raw = Transmute.structure.write(bmp)
+```
+
+The reader parses the file header, DIB header (including V4/V5 extensions), colour table, and pixel data. See `docs/structures.md`.
+
 ## Notes
 
 - Very large files due to minimal compression.

@@ -1,26 +1,26 @@
 package dev.transmute.image
 
-import dev.transmute.core.Bytes
-import dev.transmute.core.OutputFormat
-import dev.transmute.core.resolve
-import dev.transmute.core.TransmuteContext
-import dev.transmute.core.pipeline.Decoded
-import dev.transmute.core.pipeline.EncodedBytes
-import dev.transmute.core.pipeline.PipelineHandler
-import dev.transmute.core.pipeline.PipelineBuilder
+import dev.transmute.model.core.Bytes
+import dev.transmute.codec.OutputFormat
+import dev.transmute.codec.resolve
+import dev.transmute.common.PipelineContext
+import dev.transmute.codec.pipeline.Decoded
+import dev.transmute.codec.pipeline.EncodedBytes
+import dev.transmute.codec.pipeline.PipelineHandler
+import dev.transmute.codec.pipeline.PipelineBuilder
 
 /**
  * Image decode handler: detects format (unless constrained), validates accepted formats,
  * then decodes via the registry.
  *
- * Reads [ImageDecodeOptions] from [TransmuteContext.decodeOptions].
+ * Reads [ImageDecodeOptions] from [PipelineContext.decodeOptions].
  */
 class ImageDecodeHandler(
   private val detector: (Bytes) -> ImageFormat = ImageFormatDetector::detect,
   private val decoders: ImageDecoderRegistry = ImageRegistries.decoders,
 ) : PipelineHandler<Bytes, Decoded<ImageFormat, ImageIR>> {
 
-  override suspend fun handle(value: Bytes, context: TransmuteContext): Decoded<ImageFormat, ImageIR> {
+  override suspend fun handle(value: Bytes, context: PipelineContext): Decoded<ImageFormat, ImageIR> {
     ImageRegistries.installDefaultsIfEmpty()
 
     val options = (context.decodeOptions as? ImageDecodeOptions) ?: CanonicalImageDecodeOptions()
@@ -46,7 +46,7 @@ class ImageDecodeHandler(
  *
  * Applies [ImageEncodeOptions.metadataPolicy] during encoding (not as a transform step).
  *
- * Reads [ImageEncodeOptions] from [TransmuteContext.encodeOptions].
+ * Reads [ImageEncodeOptions] from [PipelineContext.encodeOptions].
  */
 class ImageDynamicEncodeHandler(
   private val encoders: ImageEncoderRegistry = ImageRegistries.encoders,
@@ -57,7 +57,7 @@ class ImageDynamicEncodeHandler(
 
   override suspend fun handle(
     value: Decoded<ImageFormat, ImageIR>,
-    context: TransmuteContext,
+    context: PipelineContext,
   ): EncodedBytes<ImageFormat> {
     ImageRegistries.installDefaultsIfEmpty()
 
@@ -67,8 +67,8 @@ class ImageDynamicEncodeHandler(
 
     val encoder = encoders.encoderFor(outFormat) ?: error("No image encoder for $outFormat")
     val stripped = when (effective.metadataPolicy) {
-      dev.transmute.core.MetadataPolicy.PRESERVE -> value.ir
-      dev.transmute.core.MetadataPolicy.STRIP_ALL -> value.ir.copy(metadata = ImageMetadata())
+      dev.transmute.codec.MetadataPolicy.PRESERVE -> value.ir
+      dev.transmute.codec.MetadataPolicy.STRIP_ALL -> value.ir.copy(metadata = ImageMetadata())
     }
     val bytes = encoder.encode(stripped, outFormat, effective, context)
     return EncodedBytes(format = outFormat, bytes = bytes)
@@ -82,7 +82,7 @@ fun interface ImageOutputFormatSelector {
 /**
  * Fixed-output image encode handler.
  *
- * Reads [ImageEncodeOptions] from [TransmuteContext.encodeOptions] and enforces that any
+ * Reads [ImageEncodeOptions] from [PipelineContext.encodeOptions] and enforces that any
  * explicit `outputFormat` matches the fixed output format.
  */
 class ImageFixedEncodeHandler<OUT : ImageFormat>(
@@ -90,7 +90,7 @@ class ImageFixedEncodeHandler<OUT : ImageFormat>(
   private val encoders: ImageEncoderRegistry = ImageRegistries.encoders,
 ) : PipelineHandler<Decoded<ImageFormat, ImageIR>, EncodedBytes<OUT>> {
 
-  override suspend fun handle(value: Decoded<ImageFormat, ImageIR>, context: TransmuteContext): EncodedBytes<OUT> {
+  override suspend fun handle(value: Decoded<ImageFormat, ImageIR>, context: PipelineContext): EncodedBytes<OUT> {
     ImageRegistries.installDefaultsIfEmpty()
 
     val requested = (context.encodeOptions as? ImageEncodeOptions) ?: CanonicalImageEncodeOptions()
@@ -105,8 +105,8 @@ class ImageFixedEncodeHandler<OUT : ImageFormat>(
     val encoder = encoders.encoderFor(output) ?: error("No image encoder for $output")
 
     val stripped = when (effective.metadataPolicy) {
-      dev.transmute.core.MetadataPolicy.PRESERVE -> value.ir
-      dev.transmute.core.MetadataPolicy.STRIP_ALL -> value.ir.copy(metadata = ImageMetadata())
+      dev.transmute.codec.MetadataPolicy.PRESERVE -> value.ir
+      dev.transmute.codec.MetadataPolicy.STRIP_ALL -> value.ir.copy(metadata = ImageMetadata())
     }
     val bytes = encoder.encode(stripped, output, effective, context)
     return EncodedBytes(format = output, bytes = bytes)
@@ -163,8 +163,8 @@ fun <IN> PipelineBuilder<IN, Decoded<ImageFormat, ImageIR>>.then(
   }
 
   val stripped = when (effective.metadataPolicy) {
-    dev.transmute.core.MetadataPolicy.PRESERVE -> decoded.ir
-    dev.transmute.core.MetadataPolicy.STRIP_ALL -> decoded.ir.copy(metadata = ImageMetadata())
+    dev.transmute.codec.MetadataPolicy.PRESERVE -> decoded.ir
+    dev.transmute.codec.MetadataPolicy.STRIP_ALL -> decoded.ir.copy(metadata = ImageMetadata())
   }
   EncodedBytes(format = outFormat, bytes = encoder.encode(stripped, outFormat, effective, ctx))
 }
@@ -190,8 +190,8 @@ fun <IN, OUT : ImageFormat> PipelineBuilder<IN, Decoded<ImageFormat, ImageIR>>.t
   }
 
   val stripped = when (effective.metadataPolicy) {
-    dev.transmute.core.MetadataPolicy.PRESERVE -> decoded.ir
-    dev.transmute.core.MetadataPolicy.STRIP_ALL -> decoded.ir.copy(metadata = ImageMetadata())
+    dev.transmute.codec.MetadataPolicy.PRESERVE -> decoded.ir
+    dev.transmute.codec.MetadataPolicy.STRIP_ALL -> decoded.ir.copy(metadata = ImageMetadata())
   }
   EncodedBytes(format = output, bytes = encoder.encode(stripped, output, effective, ctx))
 }

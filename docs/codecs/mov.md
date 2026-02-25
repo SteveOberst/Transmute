@@ -7,7 +7,7 @@ MOV is Apple's QuickTime container format. It commonly contains H.264 video and 
 | Platform | Decode | Encode | Engine |
 |----------|--------|--------|--------|
 | Android  | ✅     | ✅     | MediaCodec |
-| Desktop  | ✅     | ✅     | FFmpeg (bundled) |
+| Desktop  | ✅     | ✅     | GStreamer (requires `transmute-gstreamer`) |
 | iOS      | ✅     | ✅     | AVFoundation / AVAssetWriter |
 
 ## Usage
@@ -29,4 +29,4 @@ suspend fun convertToMp4(movBytes: ByteArray): ByteArray =
 ## Notes
 
 - Great compatibility within Apple ecosystems.
-- Desktop encoding relies on the bundled FFmpeg build.
+- Desktop requires the optional `transmute-gstreamer` module with GStreamer installed.

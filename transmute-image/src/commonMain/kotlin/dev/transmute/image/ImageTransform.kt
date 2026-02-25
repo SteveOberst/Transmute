@@ -1,6 +1,6 @@
 package dev.transmute.image
 
-import dev.transmute.core.pipeline.Transform
+import dev.transmute.codec.pipeline.Transform
 
 /**
  * Domain-specific extension of [Transform] for image transforms.

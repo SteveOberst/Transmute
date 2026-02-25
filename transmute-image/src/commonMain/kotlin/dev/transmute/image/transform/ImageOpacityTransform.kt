@@ -1,12 +1,12 @@
 package dev.transmute.image.transform
 
-import dev.transmute.core.TransmuteContext
+import dev.transmute.common.PipelineContext
 import dev.transmute.image.ByteArrayPixelBuffer
 import dev.transmute.image.ImageIR
 import dev.transmute.image.PixelFormat
 import dev.transmute.image.ImageHint
 import dev.transmute.image.ImageTransform
-import dev.transmute.core.pipeline.TransformId
+import dev.transmute.codec.pipeline.TransformId
 
 /**
  * Adjusts the opacity (alpha channel) of an [ImageIR].
@@ -25,7 +25,7 @@ class ImageOpacityTransform(
 
   override val id: TransformId = TransformId("image.opacity")
 
-  override suspend fun apply(ir: ImageIR, context: TransmuteContext): ImageIR {
+  override suspend fun apply(ir: ImageIR, context: PipelineContext): ImageIR {
     if (opacity == 1f) {
       context.logger.debug("ImageOpacityTransform: opacity=1.0 - skipping")
       return ir

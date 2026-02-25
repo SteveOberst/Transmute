@@ -2,8 +2,8 @@
 
 package dev.transmute.image.codecs.ios
 
-import dev.transmute.core.TransmuteContext
-import dev.transmute.core.ImageFormat
+import dev.transmute.common.PipelineContext
+import dev.transmute.image.ImageFormat
 import dev.transmute.image.*
 import kotlinx.cinterop.*
 import platform.CoreFoundation.CFDataCreate
@@ -76,7 +76,7 @@ class IosImageIoDecoder : ImageDecoder {
     return null
   }
 
-  override suspend fun decode(source: ByteArray, options: ImageDecodeOptions, context: TransmuteContext): ImageIR {
+  override suspend fun decode(source: ByteArray, options: ImageDecodeOptions, context: PipelineContext): ImageIR {
     val cfData = source.usePinned { pinned ->
       CFDataCreate(null, pinned.addressOf(0).reinterpret(), source.size.toLong())
     } ?: error("CFDataCreate failed")
@@ -152,7 +152,7 @@ class IosImageIoEncoder : ImageEncoder {
     ir: ImageIR,
     format: ImageFormat,
     options: ImageEncodeOptions,
-    context: TransmuteContext,
+    context: PipelineContext,
   ): ByteArray {
     val buffer = ir.buffer as? ByteArrayPixelBuffer
       ?: error("IosImageIoEncoder requires ByteArrayPixelBuffer")

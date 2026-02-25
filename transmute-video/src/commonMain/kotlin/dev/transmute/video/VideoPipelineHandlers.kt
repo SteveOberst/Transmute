@@ -1,25 +1,25 @@
 package dev.transmute.video
 
-import dev.transmute.core.Bytes
-import dev.transmute.core.OutputFormat
-import dev.transmute.core.TransmuteContext
-import dev.transmute.core.pipeline.Decoded
-import dev.transmute.core.pipeline.EncodedBytes
-import dev.transmute.core.pipeline.PipelineHandler
-import dev.transmute.core.pipeline.PipelineBuilder
+import dev.transmute.model.core.Bytes
+import dev.transmute.codec.OutputFormat
+import dev.transmute.common.PipelineContext
+import dev.transmute.codec.pipeline.Decoded
+import dev.transmute.codec.pipeline.EncodedBytes
+import dev.transmute.codec.pipeline.PipelineHandler
+import dev.transmute.codec.pipeline.PipelineBuilder
 
 /**
  * Video decode handler: detects format (unless constrained), validates accepted formats,
  * then decodes via the registry.
  *
- * Reads [VideoDecodeOptions] from [TransmuteContext.decodeOptions].
+ * Reads [VideoDecodeOptions] from [PipelineContext.decodeOptions].
  */
 class VideoDecodeHandler(
   private val detector: (Bytes) -> VideoFormat = VideoFormatDetector::detect,
   private val decoders: VideoDecoderRegistry = VideoRegistries.decoders,
 ) : PipelineHandler<Bytes, Decoded<VideoFormat, VideoIR>> {
 
-  override suspend fun handle(value: Bytes, context: TransmuteContext): Decoded<VideoFormat, VideoIR> {
+  override suspend fun handle(value: Bytes, context: PipelineContext): Decoded<VideoFormat, VideoIR> {
     VideoRegistries.installDefaultsIfEmpty()
 
     val options = (context.decodeOptions as? VideoDecodeOptions) ?: CanonicalVideoDecodeOptions()
@@ -45,7 +45,7 @@ class VideoDecodeHandler(
  *
  * Applies [VideoEncodeOptions.metadataPolicy] during encoding (not as a transform step).
  *
- * Reads [VideoEncodeOptions] from [TransmuteContext.encodeOptions].
+ * Reads [VideoEncodeOptions] from [PipelineContext.encodeOptions].
  */
 class VideoDynamicEncodeHandler(
   private val encoders: VideoEncoderRegistry = VideoRegistries.encoders,
@@ -53,7 +53,7 @@ class VideoDynamicEncodeHandler(
 
   override suspend fun handle(
     value: Decoded<VideoFormat, VideoIR>,
-    context: TransmuteContext,
+    context: PipelineContext,
   ): EncodedBytes<VideoFormat> {
     VideoRegistries.installDefaultsIfEmpty()
 
@@ -65,8 +65,8 @@ class VideoDynamicEncodeHandler(
 
     val encoder = encoders.encoderFor(outFormat) ?: error("No video encoder for $outFormat. Register a platform encoder.")
     val stripped = when (requested.metadataPolicy) {
-      dev.transmute.core.MetadataPolicy.PRESERVE -> value.ir
-      dev.transmute.core.MetadataPolicy.STRIP_ALL -> value.ir.copy(metadata = VideoMetadata())
+      dev.transmute.codec.MetadataPolicy.PRESERVE -> value.ir
+      dev.transmute.codec.MetadataPolicy.STRIP_ALL -> value.ir.copy(metadata = VideoMetadata())
     }
     val bytes = encoder.encode(stripped, outFormat, requested, context)
     return EncodedBytes(format = outFormat, bytes = bytes)
@@ -76,7 +76,7 @@ class VideoDynamicEncodeHandler(
 /**
  * Fixed-output video encode handler.
  *
- * Reads [VideoEncodeOptions] from [TransmuteContext.encodeOptions] and enforces that any
+ * Reads [VideoEncodeOptions] from [PipelineContext.encodeOptions] and enforces that any
  * explicit `outputFormat` matches the fixed output format.
  */
 class VideoFixedEncodeHandler<OUT : VideoFormat>(
@@ -84,7 +84,7 @@ class VideoFixedEncodeHandler<OUT : VideoFormat>(
   private val encoders: VideoEncoderRegistry = VideoRegistries.encoders,
 ) : PipelineHandler<Decoded<VideoFormat, VideoIR>, EncodedBytes<OUT>> {
 
-  override suspend fun handle(value: Decoded<VideoFormat, VideoIR>, context: TransmuteContext): EncodedBytes<OUT> {
+  override suspend fun handle(value: Decoded<VideoFormat, VideoIR>, context: PipelineContext): EncodedBytes<OUT> {
     VideoRegistries.installDefaultsIfEmpty()
 
     val requested = (context.encodeOptions as? VideoEncodeOptions) ?: CanonicalVideoEncodeOptions()
@@ -98,8 +98,8 @@ class VideoFixedEncodeHandler<OUT : VideoFormat>(
     val encoder = encoders.encoderFor(output)
       ?: error("No video encoder for $output. Register a platform encoder.")
     val stripped = when (requested.metadataPolicy) {
-      dev.transmute.core.MetadataPolicy.PRESERVE -> value.ir
-      dev.transmute.core.MetadataPolicy.STRIP_ALL -> value.ir.copy(metadata = VideoMetadata())
+      dev.transmute.codec.MetadataPolicy.PRESERVE -> value.ir
+      dev.transmute.codec.MetadataPolicy.STRIP_ALL -> value.ir.copy(metadata = VideoMetadata())
     }
     val bytes = encoder.encode(stripped, output, requested, context)
     return EncodedBytes(format = output, bytes = bytes)
@@ -157,8 +157,8 @@ fun <IN> PipelineBuilder<IN, Decoded<VideoFormat, VideoIR>>.then(
   }
 
   val stripped = when (requested.metadataPolicy) {
-    dev.transmute.core.MetadataPolicy.PRESERVE -> decoded.ir
-    dev.transmute.core.MetadataPolicy.STRIP_ALL -> decoded.ir.copy(metadata = VideoMetadata())
+    dev.transmute.codec.MetadataPolicy.PRESERVE -> decoded.ir
+    dev.transmute.codec.MetadataPolicy.STRIP_ALL -> decoded.ir.copy(metadata = VideoMetadata())
   }
   EncodedBytes(format = outFormat, bytes = encoder.encode(stripped, outFormat, requested, ctx))
 }
@@ -183,8 +183,8 @@ fun <IN, OUT : VideoFormat> PipelineBuilder<IN, Decoded<VideoFormat, VideoIR>>.t
   }
 
   val stripped = when (requested.metadataPolicy) {
-    dev.transmute.core.MetadataPolicy.PRESERVE -> decoded.ir
-    dev.transmute.core.MetadataPolicy.STRIP_ALL -> decoded.ir.copy(metadata = VideoMetadata())
+    dev.transmute.codec.MetadataPolicy.PRESERVE -> decoded.ir
+    dev.transmute.codec.MetadataPolicy.STRIP_ALL -> decoded.ir.copy(metadata = VideoMetadata())
   }
   EncodedBytes(format = output, bytes = encoder.encode(stripped, output, requested, ctx))
 }

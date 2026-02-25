@@ -1,8 +1,8 @@
 package dev.transmute.video
 
-import dev.transmute.core.Codec
-import dev.transmute.core.Bytes
-import dev.transmute.core.TransmuteContext
+import dev.transmute.codec.Codec
+import dev.transmute.model.core.Bytes
+import dev.transmute.common.PipelineContext
 
 /**
  * A full video codec that can decode **and** encode, plus sniff format
@@ -15,7 +15,7 @@ interface VideoCodec : Codec<VideoFormat, VideoIR, VideoDecodeOptions, VideoEnco
 interface VideoDecoder {
   val supportedFormats: Set<VideoFormat>
   fun sniff(data: Bytes): VideoFormat? = null
-  suspend fun decode(source: Bytes, options: VideoDecodeOptions, context: TransmuteContext): VideoIR
+  suspend fun decode(source: Bytes, options: VideoDecodeOptions, context: PipelineContext): VideoIR
 }
 
 interface VideoDecoderRegistry {
@@ -24,7 +24,7 @@ interface VideoDecoderRegistry {
 
 interface VideoEncoder {
   val supportedFormats: Set<VideoFormat>
-  suspend fun encode(ir: VideoIR, format: VideoFormat, options: VideoEncodeOptions, context: TransmuteContext): Bytes
+  suspend fun encode(ir: VideoIR, format: VideoFormat, options: VideoEncodeOptions, context: PipelineContext): Bytes
 }
 
 interface VideoEncoderRegistry {
@@ -41,13 +41,13 @@ class VideoCodecAdapter(
   override val decodableFormats: Set<VideoFormat> get() = decoder.supportedFormats
   override val encodableFormats: Set<VideoFormat> get() = encoder.supportedFormats
   override fun sniff(data: Bytes): VideoFormat? = sniffer?.invoke(data)
-  override suspend fun decode(source: Bytes, options: VideoDecodeOptions, context: TransmuteContext): VideoIR =
+  override suspend fun decode(source: Bytes, options: VideoDecodeOptions, context: PipelineContext): VideoIR =
     decoder.decode(source, options, context)
   override suspend fun encode(
     ir: VideoIR,
     format: VideoFormat,
     options: VideoEncodeOptions,
-    context: TransmuteContext,
+    context: PipelineContext,
   ): Bytes = encoder.encode(ir, format, options, context)
 }
 
@@ -58,14 +58,14 @@ class VideoDecoderCodecAdapter(
   override val decodableFormats: Set<VideoFormat> get() = decoder.supportedFormats
   override val encodableFormats: Set<VideoFormat> get() = emptySet()
   override fun sniff(data: Bytes): VideoFormat? = sniffer?.invoke(data)
-  override suspend fun decode(source: Bytes, options: VideoDecodeOptions, context: TransmuteContext): VideoIR =
+  override suspend fun decode(source: Bytes, options: VideoDecodeOptions, context: PipelineContext): VideoIR =
     decoder.decode(source, options, context)
 
   override suspend fun encode(
     ir: VideoIR,
     format: VideoFormat,
     options: VideoEncodeOptions,
-    context: TransmuteContext,
+    context: PipelineContext,
   ): Bytes = error("${this::class.simpleName} is decode-only")
 }
 
@@ -76,13 +76,13 @@ class VideoEncoderCodecAdapter(
 
   override val decodableFormats: Set<VideoFormat> get() = emptySet()
   override fun sniff(data: Bytes): VideoFormat? = null
-  override suspend fun decode(source: Bytes, options: VideoDecodeOptions, context: TransmuteContext): VideoIR =
+  override suspend fun decode(source: Bytes, options: VideoDecodeOptions, context: PipelineContext): VideoIR =
     error("${this::class.simpleName} is encode-only")
 
   override suspend fun encode(
     ir: VideoIR,
     format: VideoFormat,
     options: VideoEncodeOptions,
-    context: TransmuteContext,
+    context: PipelineContext,
   ): Bytes = encoder.encode(ir, format, options, context)
 }

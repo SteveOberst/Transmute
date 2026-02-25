@@ -33,7 +33,7 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            api(project(":transmute-core"))
+            api(project(":transmute-codec"))
             implementation(libs.kotlinx.coroutines.core)
         }
         commonTest.dependencies {
@@ -52,7 +52,6 @@ kotlin {
         }
 
         val androidInstrumentedTest by getting {
-            dependsOn(commonTest.get())
             dependencies {
                 implementation("androidx.test.ext:junit:1.1.5")
                 implementation("androidx.test:runner:1.5.2")

@@ -6,8 +6,8 @@ WebM is an open video container format often containing VP8/VP9 video and Opus/V
 
 | Platform | Decode | Encode | Engine |
 |----------|--------|--------|--------|
-| Android  | ✅     | ✅     | MediaCodec (decode) / FFmpeg (encode) |
-| Desktop  | ✅     | ✅     | FFmpeg (bundled) |
+| Android  | ✅     | ✅     | MediaCodec |
+| Desktop  | ✅     | ✅     | GStreamer (requires `transmute-gstreamer`) |
 | iOS      | ✅     | ❌     | AVFoundation (decode only) |
 
 ## Usage
@@ -30,4 +30,4 @@ suspend fun convertToMp4(webmBytes: ByteArray): ByteArray =
 
 - Open and royalty-free container format.
 - iOS can decode WebM (via platform support) but cannot encode to it.
-- Desktop encoding relies on the bundled FFmpeg build.
+- Desktop requires the optional `transmute-gstreamer` module with GStreamer installed.

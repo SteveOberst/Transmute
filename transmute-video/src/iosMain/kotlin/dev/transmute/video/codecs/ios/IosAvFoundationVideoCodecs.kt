@@ -6,16 +6,20 @@
 package dev.transmute.video.codecs.ios
 
 import dev.transmute.audio.AudioSamples
-import dev.transmute.core.TransmuteContext
-import dev.transmute.core.VideoFormat
+import dev.transmute.model.core.Bytes
+import dev.transmute.common.PipelineContext
 import dev.transmute.image.ByteArrayPixelBuffer
 import dev.transmute.image.PixelFormat
 import dev.transmute.video.AudioTrack
 import dev.transmute.video.ListFrameStream
 import dev.transmute.video.VideoCodec
+import dev.transmute.video.VideoEncodeOptions
+import dev.transmute.video.VideoFormat
 import dev.transmute.video.VideoFrame
+import dev.transmute.video.VideoDecodeOptions
 import dev.transmute.video.VideoIR
 import dev.transmute.video.VideoTrack
+import dev.transmute.model.core.asBytes
 import kotlinx.cinterop.*
 import platform.AVFoundation.*
 import platform.CoreAudioTypes.kAudioFormatLinearPCM
@@ -27,7 +31,7 @@ import platform.posix.memcpy
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
-import dev.transmute.video.VideoDecodeOptions
+import dev.transmute.codec.TimeRangeMs
 
 // ---------------------------------------------------------------------------
 // Shared decode helpers
@@ -51,9 +55,14 @@ private fun writeTempFile(data: ByteArray, ext: String): NSURL {
 /**
  * Decode a video file using AVAssetReader → BGRA pixel buffers.
  */
-private fun decodeVideoFrames(fileUrl: NSURL): List<VideoFrame> {
+private fun decodeVideoFrames(fileUrl: NSURL, timeRangeMs: TimeRangeMs?): List<VideoFrame> {
   val asset = AVURLAsset(uRL = fileUrl, options = null)
   val reader = AVAssetReader(asset = asset, error = null)
+  if (timeRangeMs != null) {
+    val start = CMTimeMake(timeRangeMs.startMs, 1000)
+    val duration = CMTimeMake(timeRangeMs.durationMs, 1000)
+    reader.timeRange = CMTimeRangeMake(start, duration)
+  }
 
   val videoTrack = asset.tracksWithMediaType(AVMediaTypeVideo).firstOrNull()
     ?: error("No video track in asset")
@@ -124,12 +133,17 @@ private fun decodeVideoFrames(fileUrl: NSURL): List<VideoFrame> {
 /**
  * Decode audio from a video file using AVAssetReader → PCM float32.
  */
-private fun decodeAudioSamples(fileUrl: NSURL): AudioSamples? {
+private fun decodeAudioSamples(fileUrl: NSURL, timeRangeMs: TimeRangeMs?): AudioSamples? {
   val asset = AVURLAsset(uRL = fileUrl, options = null)
   val audioTrack = asset.tracksWithMediaType(AVMediaTypeAudio).firstOrNull()
     ?: return null
 
   val reader = AVAssetReader(asset = asset, error = null)
+  if (timeRangeMs != null) {
+    val start = CMTimeMake(timeRangeMs.startMs, 1000)
+    val duration = CMTimeMake(timeRangeMs.durationMs, 1000)
+    reader.timeRange = CMTimeRangeMake(start, duration)
+  }
 
   val outputSettings = mapOf<Any?, Any?>(
     "AVFormatIDKey" to kAudioFormatLinearPCM,
@@ -345,33 +359,35 @@ private suspend fun encodeWithAvFoundation(
 // ---------------------------------------------------------------------------
 
 internal class IosMp4Codec : VideoCodec {
-  override val decodableFormats: Set<VideoFormat> = setOf(VideoFormat.MP4)
-  override val encodableFormats: Set<VideoFormat> = setOf(VideoFormat.MP4)
+  override val decodableFormats: Set<VideoFormat> = setOf(VideoFormat.Mp4)
+  override val encodableFormats: Set<VideoFormat> = setOf(VideoFormat.Mp4)
 
-  override fun sniff(data: ByteArray): VideoFormat? {
-    if (data.size < 12) return null
-    if (data[4] != 0x66.toByte() || data[5] != 0x74.toByte() ||
-      data[6] != 0x79.toByte() || data[7] != 0x70.toByte()) return null
-    val brand = (8 until 12).map { data[it].toInt().toChar() }.joinToString("")
+  override fun sniff(data: Bytes): VideoFormat? {
+    val bytes = data.data
+    if (bytes.size < 12) return null
+    if (bytes[4] != 0x66.toByte() || bytes[5] != 0x74.toByte() ||
+      bytes[6] != 0x79.toByte() || bytes[7] != 0x70.toByte()) return null
+    val brand = (8 until 12).map { bytes[it].toInt().toChar() }.joinToString("")
     return when {
       brand.startsWith("mp4") || brand == "isom" || brand == "M4V " ||
         brand == "avc1" || brand == "iso2" || brand == "iso5" ||
-        brand == "iso6" || brand == "mmp4" -> VideoFormat.MP4
-      brand.startsWith("3gp") || brand.startsWith("3g2") -> VideoFormat.MP4
+        brand == "iso6" || brand == "mmp4" -> VideoFormat.Mp4
+      brand.startsWith("3gp") || brand.startsWith("3g2") -> VideoFormat.Mp4
       else -> null
     }
   }
 
-  override suspend fun decode(source: ByteArray, options: VideoDecodeOptions, context: TransmuteContext): VideoIR {
-    val fileUrl = writeTempFile(source, "mp4")
+  override suspend fun decode(source: Bytes, options: VideoDecodeOptions, context: PipelineContext): VideoIR {
+    val fileUrl = writeTempFile(source.data, "mp4")
     try {
-      val frames = decodeVideoFrames(fileUrl)
+      val timeRange = options.decodeRange?.timeframe()
+      val frames = decodeVideoFrames(fileUrl, timeRange)
       require(frames.isNotEmpty()) { "No video frames decoded from MP4" }
-      val audioSamples = decodeAudioSamples(fileUrl)
+      val audioSamples = decodeAudioSamples(fileUrl, timeRange)
 
       val width = frames.first().width
       val height = frames.first().height
-      val durationMs = frames.last().timestampMs.coerceAtLeast(1)
+      val durationMs = timeRange?.durationMs ?: frames.last().timestampMs.coerceAtLeast(1)
       val frameRate = frames.size.toDouble() * 1000.0 / durationMs
 
       return VideoIR(
@@ -388,8 +404,15 @@ internal class IosMp4Codec : VideoCodec {
     }
   }
 
-  override suspend fun encode(ir: VideoIR, context: TransmuteContext): ByteArray =
-    encodeWithAvFoundation(ir, AVFileTypeMPEG4!!, "mp4")
+  override suspend fun encode(
+    ir: VideoIR,
+    format: VideoFormat,
+    options: VideoEncodeOptions,
+    context: PipelineContext,
+  ): Bytes {
+    require(format == VideoFormat.Mp4) { "IosMp4Codec only supports MP4, got $format" }
+    return encodeWithAvFoundation(ir, AVFileTypeMPEG4!!, "mp4").asBytes()
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -397,27 +420,29 @@ internal class IosMp4Codec : VideoCodec {
 // ---------------------------------------------------------------------------
 
 internal class IosMovCodec : VideoCodec {
-  override val decodableFormats: Set<VideoFormat> = setOf(VideoFormat.MOV)
-  override val encodableFormats: Set<VideoFormat> = setOf(VideoFormat.MOV)
+  override val decodableFormats: Set<VideoFormat> = setOf(VideoFormat.Mov)
+  override val encodableFormats: Set<VideoFormat> = setOf(VideoFormat.Mov)
 
-  override fun sniff(data: ByteArray): VideoFormat? {
-    if (data.size < 12) return null
-    if (data[4] != 0x66.toByte() || data[5] != 0x74.toByte() ||
-      data[6] != 0x79.toByte() || data[7] != 0x70.toByte()) return null
-    val brand = (8 until 12).map { data[it].toInt().toChar() }.joinToString("")
-    return if (brand == "qt  ") VideoFormat.MOV else null
+  override fun sniff(data: Bytes): VideoFormat? {
+    val bytes = data.data
+    if (bytes.size < 12) return null
+    if (bytes[4] != 0x66.toByte() || bytes[5] != 0x74.toByte() ||
+      bytes[6] != 0x79.toByte() || bytes[7] != 0x70.toByte()) return null
+    val brand = (8 until 12).map { bytes[it].toInt().toChar() }.joinToString("")
+    return if (brand == "qt  ") VideoFormat.Mov else null
   }
 
-  override suspend fun decode(source: ByteArray, options: VideoDecodeOptions, context: TransmuteContext): VideoIR {
-    val fileUrl = writeTempFile(source, "mov")
+  override suspend fun decode(source: Bytes, options: VideoDecodeOptions, context: PipelineContext): VideoIR {
+    val fileUrl = writeTempFile(source.data, "mov")
     try {
-      val frames = decodeVideoFrames(fileUrl)
+      val timeRange = options.decodeRange?.timeframe()
+      val frames = decodeVideoFrames(fileUrl, timeRange)
       require(frames.isNotEmpty()) { "No video frames decoded from MOV" }
-      val audioSamples = decodeAudioSamples(fileUrl)
+      val audioSamples = decodeAudioSamples(fileUrl, timeRange)
 
       val width = frames.first().width
       val height = frames.first().height
-      val durationMs = frames.last().timestampMs.coerceAtLeast(1)
+      val durationMs = timeRange?.durationMs ?: frames.last().timestampMs.coerceAtLeast(1)
       val frameRate = frames.size.toDouble() * 1000.0 / durationMs
 
       return VideoIR(
@@ -434,6 +459,13 @@ internal class IosMovCodec : VideoCodec {
     }
   }
 
-  override suspend fun encode(ir: VideoIR, context: TransmuteContext): ByteArray =
-    encodeWithAvFoundation(ir, AVFileTypeQuickTimeMovie!!, "mov")
+  override suspend fun encode(
+    ir: VideoIR,
+    format: VideoFormat,
+    options: VideoEncodeOptions,
+    context: PipelineContext,
+  ): Bytes {
+    require(format == VideoFormat.Mov) { "IosMovCodec only supports MOV, got $format" }
+    return encodeWithAvFoundation(ir, AVFileTypeQuickTimeMovie!!, "mov").asBytes()
+  }
 }
