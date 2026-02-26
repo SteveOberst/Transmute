@@ -12,12 +12,6 @@ This is useful for:
 ## Quick Start
 
 ```kotlin
-import dev.transmute.Transmute
-import dev.transmute.model.structure.image.Png
-import dev.transmute.model.structure.audio.Wav
-import dev.transmute.image.ImageFormat
-import dev.transmute.audio.AudioFormat
-
 // Auto-detect format and read structure
 val structure = Transmute.structure.read(fileBytes.asBytes())
 
@@ -65,8 +59,6 @@ When you call `Transmute.structure.read(bytes)` without specifying a format:
 For streaming or I/O destinations, use a `StructureSink`:
 
 ```kotlin
-import dev.transmute.model.structure.BytesSink
-
 // In-memory sink
 val sink = BytesSink()
 Transmute.structure.writeTo(pngStructure, sink)
@@ -113,9 +105,6 @@ val segments = jpeg.segments
 Register a custom reader for a format that Transmute does not yet support:
 
 ```kotlin
-import dev.transmute.model.structure.StructureReader
-import dev.transmute.model.structure.MediaStructure
-
 class TiffStructureReader : StructureReader<MyTiffStructure> {
     override fun canRead(source: Bytes): Boolean {
         if (source.data.size < 4) return false

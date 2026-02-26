@@ -799,7 +799,7 @@ data class Png(
 
     /**
      * Produces the exact bytes of a valid PNG file:
-     * signature ‖ chunk₁ ‖ chunk₂ ‖ … ‖ chunkₙ
+     * signature || chunk(1) || chunk(2) || … || chunk(n)
      */
     override fun toBytes(): Bytes {
         val totalSize = signature.size + chunks.sumOf { 4 + 4 + it.data.size + 4 }

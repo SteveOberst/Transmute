@@ -5,8 +5,6 @@
 ## Example: extract a thumbnail (first frame)
 
 ```kotlin
-// imports omitted
-
 suspend fun extract(videoBytes: ByteArray): ByteArray {
   val inspect = Transmute.inspect()
 
@@ -18,8 +16,6 @@ suspend fun extract(videoBytes: ByteArray): ByteArray {
 ## Cross-domain format detection
 
 ```kotlin
-// imports omitted
-
 fun detect(bytes: ByteArray) {
   val format = Transmute.inspect().detectFormat(bytes.asBytes())
   if (format == dev.transmute.core.UnknownFormat) error("unknown format")

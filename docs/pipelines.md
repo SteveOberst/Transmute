@@ -19,8 +19,6 @@ The default implementations are regular handler classes you can reuse in your ow
 Most real-world decode/encode steps map cleanly to handler classes (including codecs). Transmute provides overloads that let you add domain decoders/encoders to a pipeline directly:
 
 ```kotlin
-// imports omitted
-
 fun buildJpegDecodePipeline(): DecodePipeline<Bytes, Decoded<ImageFormat, ImageIR>> {
   ImageRegistries.installDefaultsIfEmpty()
   val jpegDecoder = ImageRegistries.decoders.decoderFor(ImageFormat.Jpeg) ?: error("No JPEG decoder registered")

@@ -12,8 +12,6 @@ If you want to build and reuse the *default* codec pipelines directly, each doma
 You can also embed these pipelines into a transmuter stage:
 
 ```kotlin
-// imports omitted
-
 val codec = Transmute.codec()
 
 val t = Transmute.image.from<java.awt.image.BufferedImage> {
@@ -29,8 +27,6 @@ val t = Transmute.image.from<java.awt.image.BufferedImage> {
 ## Example
 
 ```kotlin
-// imports omitted
-
 suspend fun codecExample(bytes: ByteArray) {
   val codec = Transmute.codec()
 

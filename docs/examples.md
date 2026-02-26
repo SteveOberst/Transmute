@@ -5,8 +5,6 @@ These examples focus on end-to-end usage of transmuters (decode -> transforms ->
 ## Image recipes
 
 ```kotlin
-// imports omitted
-
 // Make a square thumbnail and force JPEG output
 val thumbJpeg =
   Transmute.image {
@@ -33,8 +31,6 @@ val pngOnly =
 This is a "show the pipeline" example: you can override the default encode stage and decide an output format at runtime (while still keeping output format selection an *encode* concern).
 
 ```kotlin
-// imports omitted
-
 val smartThumb =
   Transmute.image {
     scale(maxWidth = 512, maxHeight = 512)
@@ -67,8 +63,6 @@ val smartThumb =
 ## Audio recipes
 
 ```kotlin
-// imports omitted
-
 // Normalize + trim and force AAC output
 val aac =
   Transmute.audio {
@@ -81,8 +75,6 @@ val aac =
 ## Audio: preserve metadata and keep original format when possible
 
 ```kotlin
-// imports omitted
-
 val clean =
   Transmute.audio {
     normalize(targetPeak = 0.9f)
@@ -101,8 +93,6 @@ val clean =
 ## Video recipes
 
 ```kotlin
-// imports omitted
-
 // Make a silent MP4 preview clip
 val preview =
   Transmute.video {
@@ -115,8 +105,6 @@ val preview =
 ## Inspect: extract a thumbnail from video
 
 ```kotlin
-// imports omitted
-
 suspend fun extract(videoBytes: ByteArray) {
   val thumbnailPng =
     Transmute.inspect().video.thumbnailFirstFrame(
@@ -132,8 +120,6 @@ suspend fun extract(videoBytes: ByteArray) {
 ## Structure: read a file without decoding
 
 ```kotlin
-// imports omitted
-
 // Auto-detect format
 val structure = Transmute.structure.read(pngBytes.asBytes())
 
@@ -151,8 +137,6 @@ val roundTripped = Transmute.structure.write(structure)
 ## Structure: write to a sink
 
 ```kotlin
-// imports omitted
-
 val sink = BytesSink()
 Transmute.structure.writeTo(pngStructure, sink)
 val raw: Bytes = sink.collect()

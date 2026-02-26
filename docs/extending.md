@@ -7,8 +7,6 @@ You can register custom codecs (or split decoders/encoders) in the registries.
 Example: register a custom image decoder + encoder:
 
 ```kotlin
-// imports omitted
-
 class MyWebpDecoder : ImageDecoder {
   override val supportedFormats = setOf(ImageFormat.Webp)
   override fun sniff(data: Bytes): ImageFormat? = null // optional magic bytes
@@ -36,8 +34,6 @@ You can also register unified codecs, or register core `Decoder` / `Encoder` ins
 Transforms are just `Transform<IR>` implementations. You can add them directly in a transmuter:
 
 ```kotlin
-// imports omitted
-
 class WatermarkTransform : dev.transmute.codec.pipeline.Transform<ImageIR> {
     override val id = dev.transmute.core.pipeline.TransformId("image.watermark")
     override suspend fun apply(ir: ImageIR, ctx: TransmuteContext): ImageIR = TODO()
@@ -54,8 +50,6 @@ val t =
 A `StructureReader<S>` parses raw bytes into a `MediaStructure` subtype without decoding pixel/sample data.
 
 ```kotlin
-// imports omitted
-
 class MyTiffStructureReader : StructureReader<MyTiffStructure> {
     override fun canRead(source: Bytes): Boolean {
         if (source.data.size < 4) return false
