@@ -51,7 +51,7 @@ More formats will be added over time. You can also register custom readers (see 
 
 When you call `Transmute.structure.read(bytes)` without specifying a format:
 
-1. The codec-level format detector (`Transmute.inspect().detectFormat(...)`) runs first for a precise lookup.
+1. The codec-level format detector (`Transmute.inspect.detectFormat(...)`) runs first for a precise lookup.
 2. If that fails, each registered reader's `canRead()` method is tried as a fallback (magic-byte sniffing).
 
 ## Writing to a Sink

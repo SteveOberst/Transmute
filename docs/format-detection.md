@@ -14,23 +14,23 @@ val videoFormat = VideoFormatDetector.detect(bytes.asBytes())
 
 ## Cross-domain detection
 
-Use `Transmute.inspect().detectFormat(...)` when you need to determine the domain:
+Use `Transmute.inspect.detectFormat(...)` when you need to determine the domain:
 
 ```kotlin
-val format = Transmute.inspect().detectFormat(bytes.asBytes())
+val format = Transmute.inspect.detectFormat(bytes.asBytes())
 if (format == UnknownFormat) error("unknown format")
 ```
 
 ### Note on ISO-BMFF containers (`ftyp`)
 
 Containers like MP4/MOV/M4A/HEIF/HEIC/AVIF share the same underlying container structure.
-`Transmute.inspect().detectFormat(...)` handles this ambiguity explicitly to reduce cross-domain misclassification.
+`Transmute.inspect.detectFormat(...)` handles this ambiguity explicitly to reduce cross-domain misclassification.
 
 ## Structure-level detection
 
 `Transmute.structure.read(bytes)` (without an explicit format) integrates with the format detector:
 
-1. Runs `inspect().detectFormat(...)` for a precise reader lookup.
+1. Runs `inspect.detectFormat(...)` for a precise reader lookup.
 2. Falls back to each registered reader's `canRead()` method (magic-byte sniffing) when the
    codec-level detector returns `UnknownFormat`.
 

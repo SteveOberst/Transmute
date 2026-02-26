@@ -1,12 +1,12 @@
-# `Transmute.inspect()`
+# `Transmute.inspect`
 
-`Transmute.inspect()` is the decode-less API for **format detection**, **container/header metadata**, and **lightweight probing** (e.g. codecs inside MP4/MOV).
+`Transmute.inspect` is the decode-less API for **format detection**, **container/header metadata**, and **lightweight probing** (e.g. codecs inside MP4/MOV).
 
 ## Example: extract a thumbnail (first frame)
 
 ```kotlin
 suspend fun extract(videoBytes: ByteArray): ByteArray {
-  val inspect = Transmute.inspect()
+  val inspect = Transmute.inspect
 
   val out = inspect.video.thumbnailFirstFrame(videoBytes.asBytes(), imageEncodeOptions = PngEncodeOptions())
   return out.bytes.data
@@ -17,7 +17,7 @@ suspend fun extract(videoBytes: ByteArray): ByteArray {
 
 ```kotlin
 fun detect(bytes: ByteArray) {
-  val format = Transmute.inspect().detectFormat(bytes.asBytes())
+  val format = Transmute.inspect.detectFormat(bytes.asBytes())
   if (format == dev.transmute.core.UnknownFormat) error("unknown format")
 }
 ```

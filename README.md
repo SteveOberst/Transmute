@@ -55,7 +55,7 @@ suspend fun quickStart(
     }.transmute(mp4Bytes.asBytes()).bytes.data
 
     // Detect format from raw bytes
-    val format = Transmute.inspect().detectFormat(pngBytes.asBytes())
+    val format = Transmute.inspect.detectFormat(pngBytes.asBytes())
     if (format == UnknownFormat) error("Could not detect format")
 
     // Parse file structure without decoding
@@ -84,7 +84,7 @@ suspend fun makeThumb(bytes: ByteArray): ByteArray =
 Fixed-output transmuters expose a type-level output format object (useful for type-safe post-encode handlers in custom encode pipelines):
 
 ```kotlin
-val pngOnly = Transmute.imageTo(ImageFormat.Png) {
+val pngOnly = Transmute.image.to(ImageFormat.Png) {
     encode { options(PngEncodeOptions(compressionLevel = 6)) }
 }
 
@@ -101,7 +101,7 @@ See `docs/README.md` for a full index.
 
 - `docs/examples.md` — recipes for image, audio, video, inspect, structure
 - `docs/pipelines.md` — typed handler chains, custom decode/encode
-- `docs/codec.md` — one-shot decode/encode via `Transmute.codec()`
+- `docs/codec.md` — one-shot decode/encode via `Transmute.codec`
 - `docs/structures.md` — structure reading/writing (parse on-disk layout)
 - `docs/inspect.md` — format detection + thumbnail extraction
 - `docs/format-detection.md` — per-domain and cross-domain detection

@@ -65,7 +65,7 @@ class BitmapToBytesHandler(
 }
 
 val t =
-  Transmute.image.from<android.graphics.Bitmap> {
+  Transmute.image.custom.from<android.graphics.Bitmap> {
     decode { pipeline(initial = BitmapToBytesHandler() + ImageCodecs.Decode.DEFAULT) }
   }
 ```
@@ -88,7 +88,7 @@ class UIImageToBytesHandler : PipelineHandler<platform.UIKit.UIImage, Bytes> {
 }
 
 val t =
-  Transmute.image.from<platform.UIKit.UIImage> {
+  Transmute.image.custom.from<platform.UIKit.UIImage> {
     decode {
       options { acceptedInputFormats += setOf(ImageFormat.Png) } // skip detection (we always emitted PNG)
       pipeline(initial = UIImageToBytesHandler() + ImageCodecs.Decode.DEFAULT)
@@ -111,7 +111,7 @@ class BufferedImageToBytesHandler(
 }
 
 val t =
-  Transmute.image.from<java.awt.image.BufferedImage> {
+  Transmute.image.custom.from<java.awt.image.BufferedImage> {
     decode {
       options { acceptedInputFormats += setOf(ImageFormat.Png) } // if you always write PNG above
       pipeline(initial = BufferedImageToBytesHandler("png") + ImageCodecs.Decode.DEFAULT)
@@ -163,7 +163,7 @@ class EncodedBytesToBitmapHandler : PipelineHandler<EncodedBytes<ImageFormat>, a
 }
 
 val t =
-  Transmute.image.out<android.graphics.Bitmap> {
+  Transmute.image.custom.out<android.graphics.Bitmap> {
     encode {
       options { outputFormat = OutputFormat.Exact(ImageFormat.Jpeg) }
       pipeline(initial = ImageCodecs.Encode.DEFAULT + EncodedBytesToBitmapHandler())
@@ -187,7 +187,7 @@ class EncodedBytesToUIImageHandler : PipelineHandler<EncodedBytes<ImageFormat>, 
 }
 
 val t =
-  Transmute.image.out<platform.UIKit.UIImage> {
+  Transmute.image.custom.out<platform.UIKit.UIImage> {
     encode {
       options { outputFormat = OutputFormat.Exact(ImageFormat.Jpeg) }
       pipeline(initial = ImageCodecs.Encode.DEFAULT + EncodedBytesToUIImageHandler())
@@ -206,7 +206,7 @@ class EncodedBytesToBufferedImageHandler : PipelineHandler<EncodedBytes<ImageFor
 }
 
 val t =
-  Transmute.image.out<java.awt.image.BufferedImage> {
+  Transmute.image.custom.out<java.awt.image.BufferedImage> {
     encode {
       options { outputFormat = OutputFormat.Exact(ImageFormat.Jpeg) }
       pipeline(initial = ImageCodecs.Encode.DEFAULT + EncodedBytesToBufferedImageHandler())

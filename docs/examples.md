@@ -107,7 +107,7 @@ val preview =
 ```kotlin
 suspend fun extract(videoBytes: ByteArray) {
   val thumbnailPng =
-    Transmute.inspect().video.thumbnailFirstFrame(
+    Transmute.inspect.video.thumbnailFirstFrame(
       videoBytes.asBytes(),
       imageEncodeOptions = PngEncodeOptions(),
       // Optionally provide a DecodeRange for a specific timestamp.

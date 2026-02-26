@@ -70,7 +70,7 @@ object StructureReaders {
      * registered reader, then parse with the first match.
      *
      * Prefer [read] with an explicit format when the format is already known
-     * (e.g. from `Transmute.inspect().detectFormat()`).
+     * (e.g. from `Transmute.inspect.detectFormat()`).
      *
      * @throws StructureReadException if no reader can parse [source].
      */

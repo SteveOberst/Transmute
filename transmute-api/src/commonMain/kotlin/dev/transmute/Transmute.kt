@@ -57,20 +57,18 @@ suspend fun <IN, F : MediaFormat<*, *>> Transmuter<IN, EncodedBytes<F>>.transmut
 /** Public API facade for Transmute. */
 object Transmute {
 
-  private val codecInstance: TransmuteCodec = TransmuteCodec()
-  private val inspectInstance: TransmuteInspect = TransmuteInspect(codec = codecInstance)
-  private val structureInstance: TransmuteStructure = TransmuteStructure(inspect = inspectInstance)
+  /** Low-level decode / encode / format detection. */
+  val codec: TransmuteCodec = TransmuteCodec()
+
+  /** Decode-less format detection and lightweight probing. */
+  val inspect: TransmuteInspect = TransmuteInspect(codec = codec)
+
+  /** Read raw file bytes into [MediaStructure] objects and write them back. */
+  val structure: TransmuteStructure = TransmuteStructure(inspect = inspect)
 
   val image: TransmuteImage = TransmuteImage()
   val audio: TransmuteAudio = TransmuteAudio()
   val video: TransmuteVideo = TransmuteVideo()
-
-  /** Read raw file bytes into [MediaStructure] objects and write them back. */
-  val structure: TransmuteStructure get() = structureInstance
-
-  fun codec(): TransmuteCodec = codecInstance
-
-  fun inspect(): TransmuteInspect = inspectInstance
 
   suspend fun transmute(type: TransmuteType, source: ByteArray): ByteArray = when (type) {
     TransmuteType.Image -> image().transmute(source.asBytes()).bytes.data

@@ -1,8 +1,8 @@
-# `Transmute.codec()`
+# `Transmute.codec`
 
-`Transmute.codec()` is the codec facade: **decode**, **encode**, format detection, and range decode (audio/video).
+`Transmute.codec` is the codec facade: **decode**, **encode**, format detection, and range decode (audio/video).
 
-It is a lightweight singleton. Each call creates a fresh `TransmuteContext` internally, so you can pass different decode/encode options per call.
+It is a lightweight singleton that provides access to decode, encode, and format detection.
 
 If you want to build and reuse the *default* codec pipelines directly, each domain exposes:
 
@@ -12,9 +12,9 @@ If you want to build and reuse the *default* codec pipelines directly, each doma
 You can also embed these pipelines into a transmuter stage:
 
 ```kotlin
-val codec = Transmute.codec()
+val codec = Transmute.codec
 
-val t = Transmute.image.from<java.awt.image.BufferedImage> {
+val t = Transmute.image.custom.from<java.awt.image.BufferedImage> {
     decode {
       pipeline(initial = BufferedImageToBytesHandler("png") + codec.image.defaultDecoder().pipeline)
     }
@@ -28,7 +28,7 @@ val t = Transmute.image.from<java.awt.image.BufferedImage> {
 
 ```kotlin
 suspend fun codecExample(bytes: ByteArray) {
-  val codec = Transmute.codec()
+  val codec = Transmute.codec
 
   // Decode with per-call options
   val decoded =
