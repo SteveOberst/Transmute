@@ -11,7 +11,9 @@ properties.
 
 ```kotlin
 val transmute = Transmute {
-    install(GStreamer) // optional plugin
+    plugins {
+        install(GStreamer) // optional plugin
+    }
 }
 
 // Domain access
