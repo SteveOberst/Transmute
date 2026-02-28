@@ -55,14 +55,14 @@ fun <IN, OUT : ImageFormat> ImageTransmuterBuilder<IN, OUT>.crop(
   transform { add(ImageCropTransform(x, y, width, height)) }
 }
 
-/** Auto-rotate based on EXIF orientation metadata in the IR. */
-fun <IN, OUT> DynamicImageTransmuterBuilder<IN, OUT>.autoRotate(): DynamicImageTransmuterBuilder<IN, OUT> = apply {
-  transform { add(ImageRotateTransform()) }
+/** Rotate clockwise by [degrees] (90, 180, or 270). Defaults to 90°. */
+fun <IN, OUT> DynamicImageTransmuterBuilder<IN, OUT>.rotate(degrees: Int = 90): DynamicImageTransmuterBuilder<IN, OUT> = apply {
+  transform { add(ImageRotateTransform(degrees)) }
 }
 
-/** Auto-rotate based on EXIF orientation metadata in the IR. */
-fun <IN, OUT : ImageFormat> ImageTransmuterBuilder<IN, OUT>.autoRotate(): ImageTransmuterBuilder<IN, OUT> = apply {
-  transform { add(ImageRotateTransform()) }
+/** Rotate clockwise by [degrees] (90, 180, or 270). Defaults to 90°. */
+fun <IN, OUT : ImageFormat> ImageTransmuterBuilder<IN, OUT>.rotate(degrees: Int = 90): ImageTransmuterBuilder<IN, OUT> = apply {
+  transform { add(ImageRotateTransform(degrees)) }
 }
 
 /** Convert to grayscale using BT.709 luma coefficients. */

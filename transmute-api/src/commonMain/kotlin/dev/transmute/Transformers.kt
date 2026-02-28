@@ -72,9 +72,11 @@ object ImageTransforms {
         @Param("Crop height in pixels", required = true) height: Int,
     ) = ImageCropTransform(x, y, width, height)
 
-    /** Auto-rotate based on EXIF orientation, then sets orientation to NORMAL. */
-    @TransformDescriptor("autoRotate", "Auto-rotate based on EXIF orientation metadata")
-    fun rotate() = ImageRotateTransform()
+    /** Rotate clockwise by [degrees] (90, 180, or 270). Defaults to 90°. */
+    @TransformDescriptor("rotate", "Rotate by an explicit number of degrees clockwise (90, 180, or 270)")
+    fun rotate(
+        @Param("Clockwise rotation angle; must be 90, 180, or 270", default = "90", enumValues = "90,180,270") degrees: Int = 90,
+    ) = ImageRotateTransform(degrees)
 
     /** Convert to grayscale using BT.709 luma coefficients. */
     @TransformDescriptor("grayscale", "Convert to grayscale using BT.709 luma coefficients")

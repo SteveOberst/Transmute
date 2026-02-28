@@ -10,7 +10,6 @@ import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
-import kotlin.test.assertSame
 
 /**
  * Tests for [ImageRotateTransform].
@@ -74,18 +73,21 @@ class ImageRotateTransformTest {
   // --- NORMAL passthrough ---
 
   @Test
-  fun normalOrientationSkipped() = runTest {
-    val input = referenceImage(Orientation.NORMAL)
-    val result = ImageRotateTransform().apply(input, testContext())
-    assertSame(input, result, "NORMAL should return same instance")
+  fun rotateAlwaysAppliesExplicitDegrees() = runTest {
+    // ImageRotateTransform always rotates by the given degrees — EXIF orientation is ignored
+    val input = referenceImage(Orientation.NORMAL) // 4×3
+    val result = ImageRotateTransform(90).apply(input, testContext())
+    assertEquals(3, result.width, "90° CW: width becomes srcH")
+    assertEquals(4, result.height, "90° CW: height becomes srcW")
+    assertEquals(Orientation.NORMAL, result.orientation)
   }
 
   // --- 90° CW ---
 
   @Test
   fun rotate90DimensionsSwapped() = runTest {
-    val input = referenceImage(Orientation.ROTATE_90) // 4×3
-    val result = ImageRotateTransform().apply(input, testContext())
+    val input = referenceImage(Orientation.NORMAL) // 4×3
+    val result = ImageRotateTransform(90).apply(input, testContext())
     assertEquals(3, result.width, "W should become srcH")  // srcH=3
     assertEquals(4, result.height, "H should become srcW")  // srcW=4
     assertEquals(Orientation.NORMAL, result.orientation)
@@ -98,8 +100,8 @@ class ImageRotateTransformTest {
     // Source (3,0)=WHITE → dst(2,3)
     // Source (0,2)=ORANGE → dst(0,0)
     // Source (3,2)=TEAL → dst(0,3)
-    val input = referenceImage(Orientation.ROTATE_90)
-    val result = ImageRotateTransform().apply(input, testContext())
+    val input = referenceImage(Orientation.NORMAL)
+    val result = ImageRotateTransform(90).apply(input, testContext())
 
     // Top-left of rotated image: was bottom-left of original = ORANGE (0,2) → (0,0)
     // Wait, (x,y)=(0,2) in source → dst_x = srcH-1-y = 3-1-2 = 0, dst_y = x = 0 → (0,0)
@@ -122,8 +124,8 @@ class ImageRotateTransformTest {
 
   @Test
   fun rotate180DimensionsPreserved() = runTest {
-    val input = referenceImage(Orientation.ROTATE_180) // 4×3
-    val result = ImageRotateTransform().apply(input, testContext())
+    val input = referenceImage(Orientation.NORMAL) // 4×3
+    val result = ImageRotateTransform(180).apply(input, testContext())
     assertEquals(4, result.width)
     assertEquals(3, result.height)
     assertEquals(Orientation.NORMAL, result.orientation)
@@ -135,8 +137,8 @@ class ImageRotateTransformTest {
     // src(0,0)=RED → dst(3,2)
     // src(3,2)=TEAL → dst(0,0)
     // src(1,1)=CYAN → dst(2,1)
-    val input = referenceImage(Orientation.ROTATE_180)
-    val result = ImageRotateTransform().apply(input, testContext())
+    val input = referenceImage(Orientation.NORMAL)
+    val result = ImageRotateTransform(180).apply(input, testContext())
 
     assertContentEquals(TEAL, pixelAt(result, 0, 0), "dst(0,0) should be TEAL from src(3,2)")
     assertContentEquals(RED, pixelAt(result, 3, 2), "dst(3,2) should be RED from src(0,0)")
@@ -153,8 +155,8 @@ class ImageRotateTransformTest {
 
   @Test
   fun rotate270DimensionsSwapped() = runTest {
-    val input = referenceImage(Orientation.ROTATE_270) // 4×3
-    val result = ImageRotateTransform().apply(input, testContext())
+    val input = referenceImage(Orientation.NORMAL) // 4×3
+    val result = ImageRotateTransform(270).apply(input, testContext())
     assertEquals(3, result.width, "W should become srcH")
     assertEquals(4, result.height, "H should become srcW")
     assertEquals(Orientation.NORMAL, result.orientation)
@@ -167,8 +169,8 @@ class ImageRotateTransformTest {
     // src(3,0)=WHITE → dst(0,0)
     // src(0,2)=ORANGE → dst(2,3)
     // src(3,2)=TEAL → dst(2,0)
-    val input = referenceImage(Orientation.ROTATE_270)
-    val result = ImageRotateTransform().apply(input, testContext())
+    val input = referenceImage(Orientation.NORMAL)
+    val result = ImageRotateTransform(270).apply(input, testContext())
 
     assertContentEquals(WHITE, pixelAt(result, 0, 0), "dst(0,0) should be WHITE from src(3,0)")
     assertContentEquals(RED, pixelAt(result, 0, 3), "dst(0,3) should be RED from src(0,0)")
@@ -184,10 +186,10 @@ class ImageRotateTransformTest {
   @Test
   fun rotationPreservesMetadata() = runTest {
     val exif = byteArrayOf(0x45, 0x78, 0x69, 0x66) // "Exif"
-    val input = referenceImage(Orientation.ROTATE_90).copy(
+    val input = referenceImage(Orientation.NORMAL).copy(
       metadata = ImageMetadata(exifBlob = exif.asBytes(), xmpBlob = null),
     )
-    val result = ImageRotateTransform().apply(input, testContext())
+    val result = ImageRotateTransform(90).apply(input, testContext())
     assertContentEquals(exif, result.metadata.exifBlob?.data, "EXIF should survive rotation")
   }
 
@@ -195,8 +197,8 @@ class ImageRotateTransformTest {
 
   @Test
   fun rotateBufferSizeCorrect() = runTest {
-    val input = referenceImage(Orientation.ROTATE_90)
-    val result = ImageRotateTransform().apply(input, testContext())
+    val input = referenceImage(Orientation.NORMAL)
+    val result = ImageRotateTransform(90).apply(input, testContext())
 
     val buf = result.buffer as ByteArrayPixelBuffer
     assertEquals(result.width * result.height * 4, buf.data.size)
@@ -208,19 +210,16 @@ class ImageRotateTransformTest {
   @Test
   fun solidColourUnchangedByAnyRotation() = runTest {
     val solid = solidColor(60, 40, r = 42, g = 84, b = 168)
-    val transform = ImageRotateTransform()
+    for (deg in listOf(90, 180, 270)) {
+      val result = ImageRotateTransform(deg).apply(solid, testContext())
 
-    for (rot in listOf(Orientation.ROTATE_90, Orientation.ROTATE_180, Orientation.ROTATE_270)) {
-      val input = solid.copy(orientation = rot)
-      val result = transform.apply(input, testContext())
-
-      // All pixels should be the same colour regardless of rotation
+      // All pixels should be the same colour regardless of rotation angle
       assertContentEquals(intArrayOf(42, 84, 168, 255), pixelAt(result, 0, 0),
-        "Top-left should remain same colour after $rot")
+        "Top-left should remain same colour after ${deg}°")
       val maxX = result.width - 1
       val maxY = result.height - 1
       assertContentEquals(intArrayOf(42, 84, 168, 255), pixelAt(result, maxX, maxY),
-        "Bottom-right should remain same colour after $rot")
+        "Bottom-right should remain same colour after ${deg}°")
     }
   }
 

@@ -150,9 +150,8 @@ class FormatRoundTripTest {
   fun rotateThenScaleThenEncodeJpeg() = runTest {
     // 400×300 image, rotate 90° → 300×400, scale → 150×200, encode JPEG → decode
     val original = solidColor(400, 300, r = 100, g = 200, b = 50)
-      .copy(orientation = Orientation.ROTATE_90)
 
-    val rotated = ImageRotateTransform().apply(original, ctx)
+    val rotated = ImageRotateTransform(90).apply(original, ctx)
     assertEquals(300, rotated.width)
     assertEquals(400, rotated.height)
     assertEquals(Orientation.NORMAL, rotated.orientation)
@@ -187,8 +186,8 @@ class FormatRoundTripTest {
     assertEquals(200, cropped.height)
 
     // Rotate 180°
-    val rotated = ImageRotateTransform()
-      .apply(cropped.copy(orientation = Orientation.ROTATE_180), ctx)
+    val rotated = ImageRotateTransform(180)
+      .apply(cropped, ctx)
     assertEquals(100, rotated.width)
     assertEquals(200, rotated.height)
 

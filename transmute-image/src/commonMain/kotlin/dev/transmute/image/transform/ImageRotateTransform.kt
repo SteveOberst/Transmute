@@ -9,41 +9,31 @@ import dev.transmute.image.ImageTransform
 import dev.transmute.codec.pipeline.TransformId
 
 /**
- * Applies EXIF-based orientation rotation to an [ImageIR], then sets
- * [Orientation.NORMAL].
+ * Rotates an [ImageIR] by an explicit number of degrees clockwise.
  *
- * **Why this matters:**
- * - iOS photos (HEIC/JPEG) write pixels in sensor orientation and
- *   store the real orientation in EXIF tag 274. Without this transform,
- *   a portrait photo appears sideways.
- * - Android photos from some OEMs (Samsung, Xiaomi) do the same.
- * - After this transform, the pixel buffer is physically rotated and
- *   the orientation tag becomes [Orientation.NORMAL], so encoders and
- *   viewers display the image correctly regardless of EXIF support.
+ * Supported angles: 90, 180, 270.
+ * The rotation is a pure pixel shuffle — no interpolation, no quality loss.
+ * The [Orientation] field of the resulting IR is always reset to [Orientation.NORMAL].
  *
- * Supports all three non-trivial orientations:
- * - [Orientation.ROTATE_90] - 90° CW (portrait, camera held upright)
- * - [Orientation.ROTATE_180] - upside down
- * - [Orientation.ROTATE_270] - 90° CCW (landscape, camera held left)
- *
- * This is a pure pixel-shuffle - no interpolation, no quality loss.
+ * @param degrees Clockwise rotation angle; must be 90, 180, or 270. Default: 90.
  */
-class ImageRotateTransform : ImageTransform {
+class ImageRotateTransform(val degrees: Int = 90) : ImageTransform {
 
-  override fun wouldTransform(hint: ImageHint): Boolean = true // always applies EXIF rotation
+  init {
+    require(degrees in setOf(90, 180, 270)) {
+      "ImageRotateTransform: degrees must be 90, 180, or 270, got $degrees"
+    }
+  }
+
+  override fun wouldTransform(hint: ImageHint): Boolean = true
 
   override val id: TransformId = TransformId("image-rotate")
 
   override suspend fun apply(ir: ImageIR, context: PipelineContext): ImageIR {
-    if (ir.orientation == Orientation.NORMAL) {
-      context.logger.debug("ImageRotateTransform: already NORMAL - skipping")
-      return ir
-    }
-
     val srcBuffer = ir.buffer as? ByteArrayPixelBuffer
       ?: error("ImageRotateTransform requires ByteArrayPixelBuffer")
 
-    context.logger.info("ImageRotateTransform: applying ${ir.orientation}")
+    context.logger.info("ImageRotateTransform: rotating ${degrees}° CW")
 
     val bpp = ir.pixelFormat.bytesPerPixel
     val srcData = srcBuffer.data
@@ -51,8 +41,8 @@ class ImageRotateTransform : ImageTransform {
     val srcH = ir.height
     val srcStride = ir.stride
 
-    return when (ir.orientation) {
-      Orientation.ROTATE_90 -> {
+    return when (degrees) {
+      90 -> {
         // 90° CW: (x,y) → (srcH-1-y, x). New dimensions: srcH × srcW.
         val dstW = srcH
         val dstH = srcW
@@ -78,7 +68,7 @@ class ImageRotateTransform : ImageTransform {
         )
       }
 
-      Orientation.ROTATE_180 -> {
+      180 -> {
         // 180°: (x,y) → (srcW-1-x, srcH-1-y). Same dimensions.
         val dstStride = srcW * bpp
         val dstData = ByteArray(srcH * dstStride)
@@ -102,7 +92,7 @@ class ImageRotateTransform : ImageTransform {
         )
       }
 
-      Orientation.ROTATE_270 -> {
+      else -> { // 270
         // 270° CW (= 90° CCW): (x,y) → (y, srcW-1-x). New dimensions: srcH × srcW.
         val dstW = srcH
         val dstH = srcW
@@ -128,7 +118,6 @@ class ImageRotateTransform : ImageTransform {
         )
       }
 
-      Orientation.NORMAL -> ir // Already handled above, but exhaustive when.
     }
   }
 }

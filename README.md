@@ -449,7 +449,7 @@ All transforms are platform-independent and operate on intermediate representati
 | `ImageScaleTransform`              | `scale`              | Fit within bounds, preserve aspect ratio                     | [scale.md](docs/transforms/image/scale.md)                             |
 | `ImageResizeTransform`             | `resize`             | Exact resize with resample filter (Lanczos3, Mitchell, etc.) | [resize.md](docs/transforms/image/resize.md)                           |
 | `ImageCropTransform`               | `crop`               | Crop to sub-region                                           | [crop.md](docs/transforms/image/crop.md)                               |
-| `ImageRotateTransform`             | `autoRotate`         | Auto-rotate from EXIF orientation                            | [rotate.md](docs/transforms/image/rotate.md)                           |
+| `ImageRotateTransform`             | `rotate`             | Rotate by 90°, 180°, or 270° clockwise                      | [rotate.md](docs/transforms/image/rotate.md)                           |
 | `ImageGrayscaleTransform`          | `grayscale`          | BT.709 luma conversion                                       | [grayscale.md](docs/transforms/image/grayscale.md)                     |
 | `ImageFlipTransform`               | `flip`               | Mirror horizontally / vertically                             | [flip.md](docs/transforms/image/flip.md)                               |
 | `ImageBrightnessContrastTransform` | `brightnessContrast` | Adjust brightness (−255..+255) and contrast (0..3)           | [brightness-contrast.md](docs/transforms/image/brightness-contrast.md) |
