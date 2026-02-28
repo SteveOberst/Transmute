@@ -5,20 +5,20 @@ package dev.transmute.structure.audio
 import dev.transmute.model.core.Bytes
 import dev.transmute.model.structure.StructureReadException
 import dev.transmute.model.structure.StructureReader
-import dev.transmute.model.structure.audio.M4a
+import dev.transmute.model.structure.audio.M4aRaw
 import dev.transmute.structure.common.parseIsoBmffBoxes
 
 /**
- * Parses raw M4A file bytes into an [M4a] structure.
+ * Parses raw M4aRaw file bytes into an [M4aRaw] structure.
  *
- * M4A is an audio-only ISO BMFF container with brands like `M4A `,
+ * M4aRaw is an audio-only ISO BMFF container with brands like `M4A `,
  * `M4B `, `mp42`, or `isom` containing only audio tracks.
  *
  * ```
  * | ftyp box | moov box | mdat box | … |
  * ```
  */
-class M4aStructureReader : StructureReader<M4a> {
+class M4aStructureReader : StructureReader<M4aRaw> {
 
     override fun canRead(source: Bytes): Boolean {
         val d = source.data
@@ -32,11 +32,11 @@ class M4aStructureReader : StructureReader<M4a> {
         return brand in M4A_BRANDS
     }
 
-    override fun read(source: Bytes): M4a {
+    override fun read(source: Bytes): M4aRaw {
         val d = source.data
-        if (!canRead(source)) throw StructureReadException("Not an M4A file (bad ftyp)")
+        if (!canRead(source)) throw StructureReadException("Not an M4aRaw file (bad ftyp)")
         val boxes = d.parseIsoBmffBoxes()
-        return M4a(boxes = boxes)
+        return M4aRaw(boxes = boxes)
     }
 
     companion object {

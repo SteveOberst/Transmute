@@ -7,19 +7,19 @@ import dev.transmute.model.core.asBytes
 import dev.transmute.model.identify.Endianness
 import dev.transmute.model.structure.StructureReadException
 import dev.transmute.model.structure.StructureReader
-import dev.transmute.model.structure.image.Tiff
+import dev.transmute.model.structure.image.TiffRaw
 import dev.transmute.model.structure.image.TiffIfd
 import dev.transmute.model.structure.image.TiffIfdEntry
 
 /**
- * Parses raw TIFF file bytes into a [Tiff] structure.
+ * Parses raw TiffRaw file bytes into a [TiffRaw] structure.
  *
- * TIFF layout:
+ * TiffRaw layout:
  * ```
  * | byte-order (2 B) | magic 42 (2 B) | firstIfdOffset (4 B) | IFDs & data … |
  * ```
  */
-class TiffStructureReader : StructureReader<Tiff> {
+class TiffStructureReader : StructureReader<TiffRaw> {
 
     override fun canRead(source: Bytes): Boolean {
         val d = source.data
@@ -29,9 +29,9 @@ class TiffStructureReader : StructureReader<Tiff> {
         return le || be
     }
 
-    override fun read(source: Bytes): Tiff {
+    override fun read(source: Bytes): TiffRaw {
         val d = source.data
-        if (!canRead(source)) throw StructureReadException("Not a TIFF file (bad signature)")
+        if (!canRead(source)) throw StructureReadException("Not a TiffRaw file (bad signature)")
 
         val byteOrder = if (d[0] == 0x49.toByte()) Endianness.Little else Endianness.Big
         val firstIfdOffset = readU32(d, 4, byteOrder)
@@ -88,7 +88,7 @@ class TiffStructureReader : StructureReader<Tiff> {
         // The remaining data after header + IFDs is image/extra data.
         // For simplicity we leave imageData and extraData empty — the IFD
         // entries contain resolved value pointers already.
-        return Tiff(
+        return TiffRaw(
             byteOrder = byteOrder,
             firstIfdOffset = firstIfdOffset,
             ifds = ifds,
@@ -116,7 +116,7 @@ private fun readU32(d: ByteArray, off: Int, order: Endianness): UInt = when (ord
             (d[off + 3].toUInt() and 0xFFu)
 }
 
-/** Bytes per value for the given TIFF field type code. */
+/** Bytes per value for the given TiffRaw field type code. */
 private fun tiffFieldSize(typeCode: Int): Int = when (typeCode) {
     1, 2, 6, 7 -> 1   // BYTE, ASCII, SBYTE, UNDEFINED
     3, 8       -> 2   // SHORT, SSHORT

@@ -49,6 +49,8 @@ import dev.transmute.video.VideoIR
 import dev.transmute.video.VideoRegistries
 import dev.transmute.video.MutableVideoDecoderRegistry
 import dev.transmute.video.MutableVideoEncoderRegistry
+import dev.transmute.model.core.MediaStructure
+import dev.transmute.model.core.RawMediaStructure
 
 class TransmuteCodec internal constructor(
   imageDecoderRegistry: ImageDecoderRegistry? = null,
@@ -57,10 +59,67 @@ class TransmuteCodec internal constructor(
   audioEncoderRegistry: AudioEncoderRegistry? = null,
   videoDecoderRegistry: VideoDecoderRegistry? = null,
   videoEncoderRegistry: VideoEncoderRegistry? = null,
+  private val imageRawStructureDecoderRegistry: MutableDecoderRegistry<ImageFormat, RawMediaStructure>? = null,
+  private val imageStructureDecoderRegistry: MutableDecoderRegistry<ImageFormat, MediaStructure>? = null,
+  private val audioRawStructureDecoderRegistry: MutableDecoderRegistry<AudioFormat, RawMediaStructure>? = null,
+  private val audioStructureDecoderRegistry: MutableDecoderRegistry<AudioFormat, MediaStructure>? = null,
+  private val videoRawStructureDecoderRegistry: MutableDecoderRegistry<VideoFormat, RawMediaStructure>? = null,
+  private val videoStructureDecoderRegistry: MutableDecoderRegistry<VideoFormat, MediaStructure>? = null,
 ) {
   val image: ImageCodec = ImageCodec(imageDecoderRegistry, imageEncoderRegistry)
   val audio: AudioCodec = AudioCodec(audioDecoderRegistry, audioEncoderRegistry)
   val video: VideoCodec = VideoCodec(videoDecoderRegistry, videoEncoderRegistry)
+
+  /**
+   * Decode [source] bytes into a [RawMediaStructure] for the given [format].
+   *
+   * Requires a [RawMediaStructure] decoder registered for [format] (e.g. via
+   * `scope.codecs.image.rawStructureDecoders.register(ImageFormat.Png, PngRawDecoder())`).
+   *
+   * @throws IllegalArgumentException if no decoder is registered for [format].
+   */
+  suspend fun decodeRawStructure(source: Bytes, format: MediaFormat<*, *>): RawMediaStructure {
+    val decoder = when (format) {
+      is ImageFormat -> imageRawStructureDecoderRegistry?.get(format)
+      is AudioFormat -> audioRawStructureDecoderRegistry?.get(format)
+      is VideoFormat -> videoRawStructureDecoderRegistry?.get(format)
+      else -> null
+    } ?: throw IllegalArgumentException("No raw structure decoder registered for format: $format")
+    val ctx = createContext(loggerOverride = null, decodeOptions = NoDecodeOptions, encodeOptions = NoEncodeOptions)
+    @Suppress("UNCHECKED_CAST")
+    return (decoder as dev.transmute.codec.Decoder<MediaFormat<*, *>, RawMediaStructure, NoDecodeOptions>)
+      .decode(source, NoDecodeOptions, ctx)
+  }
+
+  /**
+   * Decode [source] bytes into a [MediaStructure] for the given [format].
+   *
+   * Requires a [MediaStructure] decoder registered for [format].
+   *
+   * @throws IllegalArgumentException if no decoder is registered for [format].
+   */
+  suspend fun decodeStructure(source: Bytes, format: MediaFormat<*, *>): MediaStructure {
+    val decoder = when (format) {
+      is ImageFormat -> imageStructureDecoderRegistry?.get(format)
+      is AudioFormat -> audioStructureDecoderRegistry?.get(format)
+      is VideoFormat -> videoStructureDecoderRegistry?.get(format)
+      else -> null
+    } ?: throw IllegalArgumentException("No structure decoder registered for format: $format")
+    val ctx = createContext(loggerOverride = null, decodeOptions = NoDecodeOptions, encodeOptions = NoEncodeOptions)
+    @Suppress("UNCHECKED_CAST")
+    return (decoder as dev.transmute.codec.Decoder<MediaFormat<*, *>, MediaStructure, NoDecodeOptions>)
+      .decode(source, NoDecodeOptions, ctx)
+  }
+
+  /**
+   * Returns `true` if a [MediaStructure] decoder is registered for [format].
+   */
+  fun hasStructureDecoder(format: MediaFormat<*, *>): Boolean = when (format) {
+    is ImageFormat -> imageStructureDecoderRegistry?.get(format) != null
+    is AudioFormat -> audioStructureDecoderRegistry?.get(format) != null
+    is VideoFormat -> videoStructureDecoderRegistry?.get(format) != null
+    else -> false
+  }
 }
 
 data class ConfiguredDecoder<F : MediaFormat<*, *>, OUT, OPTS : DecodeOptions>(

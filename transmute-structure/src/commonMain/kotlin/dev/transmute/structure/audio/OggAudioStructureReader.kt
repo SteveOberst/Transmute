@@ -5,16 +5,16 @@ package dev.transmute.structure.audio
 import dev.transmute.model.core.Bytes
 import dev.transmute.model.structure.StructureReadException
 import dev.transmute.model.structure.StructureReader
-import dev.transmute.model.structure.audio.OggAudio
+import dev.transmute.model.structure.audio.OggAudioRaw
 import dev.transmute.structure.common.parseOggPages
 
 /**
- * Parses raw Ogg Vorbis file bytes into an [OggAudio] structure.
+ * Parses raw Ogg Vorbis file bytes into an [OggAudioRaw] structure.
  *
  * Ogg Vorbis uses the Ogg container with a Vorbis codec.
  * The BOS page's first packet starts with `\x01vorbis`.
  */
-class OggAudioStructureReader : StructureReader<OggAudio> {
+class OggAudioStructureReader : StructureReader<OggAudioRaw> {
 
     override fun canRead(source: Bytes): Boolean {
         val d = source.data
@@ -36,10 +36,10 @@ class OggAudioStructureReader : StructureReader<OggAudio> {
             d[dataStart + 5] == 0x69.toByte() && d[dataStart + 6] == 0x73.toByte()    // "is"
     }
 
-    override fun read(source: Bytes): OggAudio {
+    override fun read(source: Bytes): OggAudioRaw {
         val d = source.data
         if (!canRead(source)) throw StructureReadException("Not an Ogg Vorbis file (bad signature)")
         val pages = d.parseOggPages()
-        return OggAudio(pages = pages)
+        return OggAudioRaw(pages = pages)
     }
 }

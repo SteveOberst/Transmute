@@ -6,15 +6,15 @@ import dev.transmute.model.core.Bytes
 import dev.transmute.model.core.asBytes
 import dev.transmute.model.structure.StructureReadException
 import dev.transmute.model.structure.StructureReader
-import dev.transmute.model.structure.image.Jpeg
+import dev.transmute.model.structure.image.JpegRaw
 import dev.transmute.model.structure.image.JpegMarkerType
 import dev.transmute.model.structure.image.JpegSegment
 import dev.transmute.structure.common.readU16BE
 
 /**
- * Parses raw JPEG file bytes into a [Jpeg] structure.
+ * Parses raw JpegRaw file bytes into a [JpegRaw] structure.
  *
- * JPEG layout:
+ * JpegRaw layout:
  * ```
  * | 0xFF D8 (SOI) | segment₁ | segment₂ | … | 0xFF D9 (EOI) |
  * ```
@@ -24,16 +24,16 @@ import dev.transmute.structure.common.readU16BE
  * SOS segments additionally carry entropy-coded scan data until the next
  * non-stuffed `0xFF` marker.
  */
-class JpegStructureReader : StructureReader<Jpeg> {
+class JpegStructureReader : StructureReader<JpegRaw> {
 
     override fun canRead(source: Bytes): Boolean {
         val d = source.data
         return d.size >= 2 && d[0] == 0xFF.toByte() && d[1] == 0xD8.toByte()
     }
 
-    override fun read(source: Bytes): Jpeg {
+    override fun read(source: Bytes): JpegRaw {
         val d = source.data
-        if (!canRead(source)) throw StructureReadException("Not a JPEG file (bad SOI marker)")
+        if (!canRead(source)) throw StructureReadException("Not a JpegRaw file (bad SOI marker)")
 
         val segments = mutableListOf<JpegSegment>()
         var pos = 0
@@ -92,7 +92,7 @@ class JpegStructureReader : StructureReader<Jpeg> {
             }
         }
 
-        return Jpeg(segments = segments)
+        return JpegRaw(segments = segments)
     }
 
     /**

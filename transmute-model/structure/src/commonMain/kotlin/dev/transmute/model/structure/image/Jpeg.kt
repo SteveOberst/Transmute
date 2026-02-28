@@ -6,7 +6,7 @@ import dev.transmute.model.core.BinarySerializable
 import dev.transmute.model.core.Bytes
 import dev.transmute.model.core.Pixels
 import dev.transmute.model.core.asBytes
-import dev.transmute.model.structure.MediaStructure
+import dev.transmute.model.core.RawMediaStructure
 import kotlinx.serialization.Serializable
 
 // --- Helpers — big-endian encoding ---
@@ -156,10 +156,10 @@ data class JpegJfifHeader(
  * with SOI and ending with EOI.
  */
 @Serializable
-data class Jpeg(
+data class JpegRaw(
     /** All segments in file order (SOI first, EOI last). */
     val segments: List<JpegSegment>,
-) : MediaStructure {
+) : RawMediaStructure {
 
     // --- Binary serialization ---
 
@@ -181,15 +181,15 @@ data class Jpeg(
 // --- Typed extension accessors ---
 
 /** Image width from the first SOF marker, or `null` if none found. */
-val Jpeg.width: Pixels?
+val JpegRaw.width: Pixels?
     get() = sofData?.let { Pixels(it.width.toInt()) }
 
 /** Image height from the first SOF marker, or `null` if none found. */
-val Jpeg.height: Pixels?
+val JpegRaw.height: Pixels?
     get() = sofData?.let { Pixels(it.height.toInt()) }
 
 /** Parsed SOF data from the first Start-of-Frame segment. */
-val Jpeg.sofData: JpegSofData?
+val JpegRaw.sofData: JpegSofData?
     get() {
         val sofCodes = setOf(
             0xC0, 0xC1, 0xC2, 0xC3, 0xC5, 0xC6, 0xC7,
@@ -218,7 +218,7 @@ val Jpeg.sofData: JpegSofData?
     }
 
 /** Parsed JFIF APP0 header, or `null` if no JFIF header is present. */
-val Jpeg.jfifHeader: JpegJfifHeader?
+val JpegRaw.jfifHeader: JpegJfifHeader?
     get() {
         val seg = segments.firstOrNull { it.marker.toInt() == 0xE0 } ?: return null
         val d = seg.data.data
@@ -237,7 +237,7 @@ val Jpeg.jfifHeader: JpegJfifHeader?
     }
 
 /** All comment (COM) segment payloads decoded as UTF-8. */
-val Jpeg.comments: List<String>
+val JpegRaw.comments: List<String>
     get() = segments
         .filter { it.marker.toInt() == 0xFE }
         .map { it.data.data.decodeToString() }

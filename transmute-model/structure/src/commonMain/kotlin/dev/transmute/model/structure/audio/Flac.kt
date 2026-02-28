@@ -7,7 +7,7 @@ import dev.transmute.model.core.Bytes
 import dev.transmute.model.core.Channels
 import dev.transmute.model.core.Hertz
 import dev.transmute.model.core.asBytes
-import dev.transmute.model.structure.MediaStructure
+import dev.transmute.model.core.RawMediaStructure
 import kotlinx.serialization.Serializable
 
 // ════════════════════════════════════════════════════════════════
@@ -108,12 +108,12 @@ data class FlacStreamInfo(
  * ```
  */
 @Serializable
-data class Flac(
+data class FlacRaw(
     /** Metadata blocks in file order (first is always STREAMINFO). */
     val metadataBlocks: List<FlacMetadataBlock>,
     /** Raw audio frame data following the last metadata block. */
     val audioData: Bytes,
-) : MediaStructure {
+) : RawMediaStructure {
 
     // --- Binary serialization ---
 
@@ -139,11 +139,11 @@ data class Flac(
 // --- Typed extension accessors ---
 
 /** The STREAMINFO block (always the first block). */
-val Flac.streamInfoBlock: FlacMetadataBlock?
+val FlacRaw.streamInfoBlock: FlacMetadataBlock?
     get() = metadataBlocks.firstOrNull { it.type == FlacMetadataBlockType.StreamInfo }
 
 /** Parsed STREAMINFO data. */
-val Flac.streamInfo: FlacStreamInfo?
+val FlacRaw.streamInfo: FlacStreamInfo?
     get() {
         val d = streamInfoBlock?.data?.data ?: return null
         if (d.size < 34) return null
@@ -170,21 +170,21 @@ val Flac.streamInfo: FlacStreamInfo?
     }
 
 /** Sample rate from STREAMINFO. */
-val Flac.sampleRate: Hertz?
+val FlacRaw.sampleRate: Hertz?
     get() = streamInfo?.sampleRate?.let { Hertz(it) }
 
 /** Number of audio channels from STREAMINFO. */
-val Flac.channels: Channels?
+val FlacRaw.channels: Channels?
     get() = streamInfo?.channels?.let { Channels(it) }
 
 /** Bits per sample from STREAMINFO. */
-val Flac.bitsPerSample: BitsPerSample?
+val FlacRaw.bitsPerSample: BitsPerSample?
     get() = streamInfo?.bitsPerSample?.let { BitsPerSample(it) }
 
 /** Vorbis comment block, if present. */
-val Flac.vorbisCommentBlock: FlacMetadataBlock?
+val FlacRaw.vorbisCommentBlock: FlacMetadataBlock?
     get() = metadataBlocks.firstOrNull { it.type == FlacMetadataBlockType.VorbisComment }
 
 /** Picture block(s), if present. */
-val Flac.pictureBlocks: List<FlacMetadataBlock>
+val FlacRaw.pictureBlocks: List<FlacMetadataBlock>
     get() = metadataBlocks.filter { it.type == FlacMetadataBlockType.Picture }

@@ -10,6 +10,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api(libs.kotlinx.serialization.core)
+            api(project(":transmute-model:core"))
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

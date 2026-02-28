@@ -6,7 +6,7 @@ import dev.transmute.model.core.BinarySerializable
 import dev.transmute.model.core.Bytes
 import dev.transmute.model.core.Pixels
 import dev.transmute.model.core.asBytes
-import dev.transmute.model.structure.MediaStructure
+import dev.transmute.model.core.RawMediaStructure
 import kotlinx.serialization.Serializable
 
 // --- Helpers — little-endian encoding ---
@@ -215,7 +215,7 @@ data class GifApplicationExtension(
  * ```
  */
 @Serializable
-data class Gif(
+data class GifRaw(
     /** GIF version (87a or 89a). */
     val version: GifVersion,
     /** Logical Screen Descriptor. */
@@ -224,7 +224,7 @@ data class Gif(
     val globalColorTable: List<GifColor> = emptyList(),
     /** All blocks (images, extensions) in file order (excluding trailer). */
     val blocks: List<GifBlock> = emptyList(),
-) : MediaStructure {
+) : RawMediaStructure {
 
     // --- Binary serialization ---
 
@@ -259,22 +259,22 @@ data class Gif(
 // --- Typed extension accessors ---
 
 /** Canvas width from the Logical Screen Descriptor. */
-val Gif.width: Pixels get() = Pixels(screenDescriptor.width.toInt())
+val GifRaw.width: Pixels get() = Pixels(screenDescriptor.width.toInt())
 
 /** Canvas height from the Logical Screen Descriptor. */
-val Gif.height: Pixels get() = Pixels(screenDescriptor.height.toInt())
+val GifRaw.height: Pixels get() = Pixels(screenDescriptor.height.toInt())
 
 /** Number of image blocks (frames) in the file. */
-val Gif.frameCount: Int get() = blocks.count { it.introducer.toInt() == 0x2C }
+val GifRaw.frameCount: Int get() = blocks.count { it.introducer.toInt() == 0x2C }
 
 /** `true` for animated GIFs (more than one image block or NETSCAPE app extension). */
-val Gif.isAnimated: Boolean
+val GifRaw.isAnimated: Boolean
     get() = frameCount > 1 || applicationExtensions.any {
         it.applicationId == "NETSCAPE" && it.authCode == "2.0"
     }
 
 /** Parse all Image Descriptor blocks in order. */
-val Gif.imageDescriptors: List<GifImageDescriptor>
+val GifRaw.imageDescriptors: List<GifImageDescriptor>
     get() = blocks
         .filter { it.introducer.toInt() == 0x2C && it.data.size >= 9 }
         .map { block ->
@@ -289,7 +289,7 @@ val Gif.imageDescriptors: List<GifImageDescriptor>
         }
 
 /** Parse all Graphic Control Extensions in order. */
-val Gif.graphicControlExtensions: List<GifGraphicControl>
+val GifRaw.graphicControlExtensions: List<GifGraphicControl>
     get() = blocks
         .filter { it.introducer.toInt() == 0x21 && it.data.size >= 6 && it.data[0].toInt() and 0xFF == 0xF9 }
         .map { block ->
@@ -309,7 +309,7 @@ val Gif.graphicControlExtensions: List<GifGraphicControl>
         }
 
 /** Parse all Application Extensions in order. */
-val Gif.applicationExtensions: List<GifApplicationExtension>
+val GifRaw.applicationExtensions: List<GifApplicationExtension>
     get() = blocks
         .filter { it.introducer.toInt() == 0x21 && it.data.size >= 14 && it.data[0].toInt() and 0xFF == 0xFF }
         .map { block ->

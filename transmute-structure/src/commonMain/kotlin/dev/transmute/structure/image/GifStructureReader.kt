@@ -6,7 +6,7 @@ import dev.transmute.model.core.Bytes
 import dev.transmute.model.core.asBytes
 import dev.transmute.model.structure.StructureReadException
 import dev.transmute.model.structure.StructureReader
-import dev.transmute.model.structure.image.Gif
+import dev.transmute.model.structure.image.GifRaw
 import dev.transmute.model.structure.image.GifBlock
 import dev.transmute.model.structure.image.GifColor
 import dev.transmute.model.structure.image.GifLogicalScreenDescriptor
@@ -15,14 +15,14 @@ import dev.transmute.structure.common.decodeAscii
 import dev.transmute.structure.common.readU16LE
 
 /**
- * Parses raw GIF file bytes into a [Gif] structure.
+ * Parses raw GifRaw file bytes into a [GifRaw] structure.
  *
- * GIF layout:
+ * GifRaw layout:
  * ```
  * | Signature (6 B) | LSD (7 B) | [GCT] | Block* | Trailer (0x3B) |
  * ```
  */
-class GifStructureReader : StructureReader<Gif> {
+class GifStructureReader : StructureReader<GifRaw> {
 
     override fun canRead(source: Bytes): Boolean {
         val d = source.data
@@ -34,14 +34,14 @@ class GifStructureReader : StructureReader<Gif> {
             d[5] == 0x61.toByte()                                  // "a"
     }
 
-    override fun read(source: Bytes): Gif {
+    override fun read(source: Bytes): GifRaw {
         val d = source.data
-        if (!canRead(source)) throw StructureReadException("Not a GIF file (bad signature)")
-        if (d.size < 13) throw StructureReadException("GIF file too small (${d.size} bytes)")
+        if (!canRead(source)) throw StructureReadException("Not a GifRaw file (bad signature)")
+        if (d.size < 13) throw StructureReadException("GifRaw file too small (${d.size} bytes)")
 
         val sigStr = d.decodeAscii(0, 6)
         val version = GifVersion.fromSignature(sigStr)
-            ?: throw StructureReadException("Unknown GIF version: '$sigStr'")
+            ?: throw StructureReadException("Unknown GifRaw version: '$sigStr'")
 
         // Logical Screen Descriptor (7 bytes at offset 6)
         val lsd = GifLogicalScreenDescriptor(
@@ -113,7 +113,7 @@ class GifStructureReader : StructureReader<Gif> {
             }
         }
 
-        return Gif(
+        return GifRaw(
             version = version,
             screenDescriptor = lsd,
             globalColorTable = gct,
@@ -121,7 +121,7 @@ class GifStructureReader : StructureReader<Gif> {
         )
     }
 
-    /** Skip GIF sub-block chain (each sub-block: size byte + data; terminated by 0x00). */
+    /** Skip GifRaw sub-block chain (each sub-block: size byte + data; terminated by 0x00). */
     private fun skipSubBlocks(d: ByteArray, start: Int): Int {
         var pos = start
         while (pos < d.size) {

@@ -6,7 +6,7 @@ import dev.transmute.model.core.Bytes
 import dev.transmute.model.core.Channels
 import dev.transmute.model.core.Hertz
 import dev.transmute.model.core.asBytes
-import dev.transmute.model.structure.MediaStructure
+import dev.transmute.model.core.RawMediaStructure
 import dev.transmute.model.structure.common.OggPage
 import dev.transmute.model.structure.common.OggSerialNumber
 import kotlinx.serialization.Serializable
@@ -38,10 +38,10 @@ data class VorbisIdentification(
  * headers.
  */
 @Serializable
-data class OggAudio(
+data class OggAudioRaw(
     /** All Ogg pages in file order. */
     val pages: List<OggPage>,
-) : MediaStructure {
+) : RawMediaStructure {
 
     // --- Binary serialization ---
 
@@ -58,15 +58,15 @@ data class OggAudio(
 // --- Typed extension accessors ---
 
 /** Distinct logical stream serial numbers present in the file. */
-val OggAudio.streamSerialNumbers: List<OggSerialNumber>
+val OggAudioRaw.streamSerialNumbers: List<OggSerialNumber>
     get() = pages.map { it.serialNumber }.distinct()
 
 /** Pages belonging to a given serial number. */
-fun OggAudio.pagesForStream(serial: OggSerialNumber): List<OggPage> =
+fun OggAudioRaw.pagesForStream(serial: OggSerialNumber): List<OggPage> =
     pages.filter { it.serialNumber == serial }
 
 /** Parsed Vorbis identification header from the first BOS page. */
-val OggAudio.vorbisIdentification: VorbisIdentification?
+val OggAudioRaw.vorbisIdentification: VorbisIdentification?
     get() {
         val bos = pages.firstOrNull { (it.headerType.toInt() and 0x02) != 0 } ?: return null
         val d = bos.data.data
@@ -91,9 +91,9 @@ val OggAudio.vorbisIdentification: VorbisIdentification?
     }
 
 /** Sample rate from the Vorbis identification header. */
-val OggAudio.sampleRate: Hertz?
+val OggAudioRaw.sampleRate: Hertz?
     get() = vorbisIdentification?.sampleRate?.toInt()?.let { Hertz(it) }
 
 /** Channel count from the Vorbis identification header. */
-val OggAudio.channels: Channels?
+val OggAudioRaw.channels: Channels?
     get() = vorbisIdentification?.channels?.toInt()?.let { Channels(it) }

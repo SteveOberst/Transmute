@@ -7,7 +7,7 @@ import dev.transmute.model.core.Bytes
 import dev.transmute.model.core.Channels
 import dev.transmute.model.core.Hertz
 import dev.transmute.model.identify.RiffChunkId
-import dev.transmute.model.structure.MediaStructure
+import dev.transmute.model.core.RawMediaStructure
 import dev.transmute.model.structure.common.RiffChunk
 import kotlinx.serialization.Serializable
 
@@ -71,10 +71,10 @@ data class WavFmtChunk(
  * ```
  */
 @Serializable
-data class Wav(
+data class WavRaw(
     /** The top-level RIFF container chunk (id = `RIFF`, formType = `WAVE`). */
     val riff: RiffChunk,
-) : MediaStructure {
+) : RawMediaStructure {
 
     // --- Binary serialization ---
 
@@ -89,14 +89,14 @@ data class Wav(
 // --- Typed extension accessors ---
 
 /** Sub-chunks inside the RIFF container. */
-val Wav.chunks: List<RiffChunk> get() = riff.children
+val WavRaw.chunks: List<RiffChunk> get() = riff.children
 
 /** The raw `fmt ` chunk, or `null` if not found. */
-val Wav.fmtChunk: RiffChunk?
+val WavRaw.fmtChunk: RiffChunk?
     get() = chunks.firstOrNull { it.id.value == "fmt " }
 
 /** Parsed `fmt ` data. */
-val Wav.fmt: WavFmtChunk?
+val WavRaw.fmt: WavFmtChunk?
     get() {
         val c = fmtChunk ?: return null
         val d = c.data.data
@@ -114,17 +114,17 @@ val Wav.fmt: WavFmtChunk?
     }
 
 /** The raw `data` chunk (audio samples), or `null`. */
-val Wav.dataChunk: RiffChunk?
+val WavRaw.dataChunk: RiffChunk?
     get() = chunks.firstOrNull { it.id.value == "data" }
 
 /** Sample rate from the `fmt ` chunk. */
-val Wav.sampleRate: Hertz? get() = fmt?.sampleRate?.toInt()?.let { Hertz(it) }
+val WavRaw.sampleRate: Hertz? get() = fmt?.sampleRate?.toInt()?.let { Hertz(it) }
 
 /** Channel count from the `fmt ` chunk. */
-val Wav.channels: Channels? get() = fmt?.numChannels?.toInt()?.let { Channels(it) }
+val WavRaw.channels: Channels? get() = fmt?.numChannels?.toInt()?.let { Channels(it) }
 
 /** Bits per sample from the `fmt ` chunk. */
-val Wav.bitsPerSample: BitsPerSample? get() = fmt?.bitsPerSample?.toInt()?.let { BitsPerSample(it) }
+val WavRaw.bitsPerSample: BitsPerSample? get() = fmt?.bitsPerSample?.toInt()?.let { BitsPerSample(it) }
 
 /** Resolved audio format, or `null` for unknown codes. */
-val Wav.audioFormat: WavAudioFormat? get() = fmt?.let { WavAudioFormat.fromCode(it.audioFormat) }
+val WavRaw.audioFormat: WavAudioFormat? get() = fmt?.let { WavAudioFormat.fromCode(it.audioFormat) }

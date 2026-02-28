@@ -45,7 +45,7 @@ class VideoFileTests {
         val hdrl = RiffChunk(RiffChunkId("LIST"), 68u, formType = RiffChunkId("hdrl"), children = listOf(avih))
         val movi = RiffChunk(RiffChunkId("LIST"), 12u, formType = RiffChunkId("movi"))
         val riff = RiffChunk(RiffChunkId("RIFF"), 100u, formType = RiffChunkId("AVI "), children = listOf(hdrl, movi))
-        val file = Avi(riff)
+        val file = AviRaw(riff)
 
         assertNotNull(file.headerList)
         assertNotNull(file.movieList)
@@ -66,7 +66,7 @@ class VideoFileTests {
         val avih = RiffChunk(RiffChunkId("avih"), 56u, data = d.asBytes())
         val hdrl = RiffChunk(RiffChunkId("LIST"), 68u, formType = RiffChunkId("hdrl"), children = listOf(avih))
         val riff = RiffChunk(RiffChunkId("RIFF"), 80u, formType = RiffChunkId("AVI "), children = listOf(hdrl))
-        val file = Avi(riff)
+        val file = AviRaw(riff)
 
         val hdr = file.mainHeader
         assertNotNull(hdr)
@@ -85,7 +85,7 @@ class VideoFileTests {
         val ebmlHeader = EbmlElement(id = MatroskaIds.EBML, children = listOf(docTypeElem, versionElem))
         val segment = EbmlElement(id = MatroskaIds.Segment)
 
-        val file = Mkv(elements = listOf(ebmlHeader, segment))
+        val file = MkvRaw(elements = listOf(ebmlHeader, segment))
 
         assertNotNull(file.ebmlHeader)
         assertNotNull(file.segment)
@@ -98,7 +98,7 @@ class VideoFileTests {
 
     @Test
     fun mkvEmptyFile() {
-        val file = Mkv(elements = emptyList())
+        val file = MkvRaw(elements = emptyList())
         assertEquals(0, file.toBytes().data.size)
     }
 
@@ -107,7 +107,7 @@ class VideoFileTests {
     @Test
     fun movFileWithFtyp() {
         val ftypData = buildFtypData("qt  ", 0, listOf("qt  "))
-        val file = Mov(boxes = listOf(
+        val file = MovRaw(boxes = listOf(
             IsoBmffBox(FourCC("ftyp"), ftypData),
             IsoBmffBox(FourCC("moov")),
         ))
@@ -122,7 +122,7 @@ class VideoFileTests {
     @Test
     fun mp4FileWithFtyp() {
         val ftypData = buildFtypData("isom", 512, listOf("isom", "iso2", "mp41"))
-        val file = Mp4(boxes = listOf(IsoBmffBox(FourCC("ftyp"), ftypData)))
+        val file = Mp4Raw(boxes = listOf(IsoBmffBox(FourCC("ftyp"), ftypData)))
 
         assertEquals(Brand(FourCC("isom")), file.majorBrand)
         assertEquals(512u, file.minorVersion)
@@ -132,8 +132,8 @@ class VideoFileTests {
     @Test
     fun mp4FileDataClassEquality() {
         val ftypData = buildFtypData("isom", 512, listOf("isom"))
-        val f1 = Mp4(listOf(IsoBmffBox(FourCC("ftyp"), ftypData)))
-        val f2 = Mp4(listOf(IsoBmffBox(FourCC("ftyp"), ftypData)))
+        val f1 = Mp4Raw(listOf(IsoBmffBox(FourCC("ftyp"), ftypData)))
+        val f2 = Mp4Raw(listOf(IsoBmffBox(FourCC("ftyp"), ftypData)))
         assertEquals(f1, f2)
     }
 
@@ -145,7 +145,7 @@ class VideoFileTests {
         val docTypeElem = EbmlElement(id = MatroskaIds.DocType, data = docTypeData)
         val ebmlHeader = EbmlElement(id = MatroskaIds.EBML, children = listOf(docTypeElem))
 
-        val file = Webm(elements = listOf(ebmlHeader))
+        val file = WebmRaw(elements = listOf(ebmlHeader))
 
         val hdr = file.headerData
         assertNotNull(hdr)
@@ -154,7 +154,7 @@ class VideoFileTests {
 
     @Test
     fun webmEmptyFile() {
-        val file = Webm(elements = emptyList())
+        val file = WebmRaw(elements = emptyList())
         assertEquals(0, file.toBytes().data.size)
     }
 

@@ -42,7 +42,7 @@ class ImageFileTests {
     fun bmpFileConstructionAndToBytes() {
         val fh = BmpFileHeader(fileSize = 70u, dataOffset = 54u)
         val dh = BmpDibHeader(headerSize = 40u, width = 640, height = 480, bitsPerPixel = 24u.toUShort())
-        val file = Bmp(fileHeader = fh, dibHeader = dh, pixelData = ByteArray(16).asBytes())
+        val file = BmpRaw(fileHeader = fh, dibHeader = dh, pixelData = ByteArray(16).asBytes())
 
         assertEquals(Pixels(640), file.width)
         assertEquals(Pixels(480), file.height)
@@ -65,8 +65,8 @@ class ImageFileTests {
     @Test
     fun bmpIsTopDown() {
         val fh = BmpFileHeader(fileSize = 54u, dataOffset = 54u)
-        val topDown = Bmp(fh, BmpDibHeader(40u, 1, -1, bitsPerPixel = 24u.toUShort()), pixelData = Bytes(ByteArray(0)))
-        val bottomUp = Bmp(fh, BmpDibHeader(40u, 1,  1, bitsPerPixel = 24u.toUShort()), pixelData = Bytes(ByteArray(0)))
+        val topDown = BmpRaw(fh, BmpDibHeader(40u, 1, -1, bitsPerPixel = 24u.toUShort()), pixelData = Bytes(ByteArray(0)))
+        val bottomUp = BmpRaw(fh, BmpDibHeader(40u, 1,  1, bitsPerPixel = 24u.toUShort()), pixelData = Bytes(ByteArray(0)))
         assertTrue(topDown.isTopDown)
         assertFalse(bottomUp.isTopDown)
     }
@@ -92,7 +92,7 @@ class ImageFileTests {
             100u.toUShort(), 100u.toUShort(),
             0x87u.toUByte(), 0u.toUByte(), 0u.toUByte(),
         )
-        val file = Gif(GifVersion.Gif89a, sd)
+        val file = GifRaw(GifVersion.Gif89a, sd)
 
         assertEquals(Pixels(100), file.width)
         assertEquals(Pixels(100), file.height)
@@ -104,7 +104,7 @@ class ImageFileTests {
     @Test
     fun gifFileToBytesSignature() {
         val sd = GifLogicalScreenDescriptor(1u.toUShort(), 1u.toUShort(), 0u.toUByte(), 0u.toUByte(), 0u.toUByte())
-        val bytes = Gif(GifVersion.Gif89a, sd).toBytes()
+        val bytes = GifRaw(GifVersion.Gif89a, sd).toBytes()
         assertEquals("GIF89a", bytes.data.decodeToString(0, 6))
         // trailer byte
         assertEquals(0x3B, bytes.data.last().toInt())
@@ -131,7 +131,7 @@ class ImageFileTests {
             GifBlock(0x2Cu.toUByte()), // image block
             GifBlock(0x2Cu.toUByte()), // another image block
         )
-        val file = Gif(GifVersion.Gif89a, sd, blocks = blocks)
+        val file = GifRaw(GifVersion.Gif89a, sd, blocks = blocks)
         assertEquals(2, file.frameCount)
         assertTrue(file.isAnimated)
     }
@@ -142,7 +142,7 @@ class ImageFileTests {
     fun jpegFileMinimal() {
         val soi = JpegSegment(marker = 0xD8u.toUByte())
         val eoi = JpegSegment(marker = 0xD9u.toUByte())
-        val file = Jpeg(listOf(soi, eoi))
+        val file = JpegRaw(listOf(soi, eoi))
 
         val bytes = file.toBytes()
         assertEquals(0xFF.toByte(), bytes.data[0])
@@ -172,7 +172,7 @@ class ImageFileTests {
         val soi = JpegSegment(marker = 0xD8u.toUByte())
         val sof = JpegSegment(marker = 0xC0u.toUByte(), data = sofData)
         val eoi = JpegSegment(marker = 0xD9u.toUByte())
-        val file = Jpeg(listOf(soi, sof, eoi))
+        val file = JpegRaw(listOf(soi, sof, eoi))
 
         val sofInfo = file.sofData
         assertNotNull(sofInfo)
@@ -192,7 +192,7 @@ class ImageFileTests {
     @Test
     fun heifFileWithFtyp() {
         val ftypData = buildFtypData("heic", 0, listOf("heic", "mif1"))
-        val file = Heif(boxes = listOf(IsoBmffBox(FourCC("ftyp"), ftypData)))
+        val file = HeifRaw(boxes = listOf(IsoBmffBox(FourCC("ftyp"), ftypData)))
 
         assertNotNull(file.ftypBox)
         assertEquals(Brand(FourCC("heic")), file.majorBrand)
@@ -207,7 +207,7 @@ class ImageFileTests {
     @Test
     fun avifFileWithFtyp() {
         val ftypData = buildFtypData("avif", 0, listOf("avif", "mif1"))
-        val file = Avif(boxes = listOf(IsoBmffBox(FourCC("ftyp"), ftypData)))
+        val file = AvifRaw(boxes = listOf(IsoBmffBox(FourCC("ftyp"), ftypData)))
 
         assertEquals(Brand(FourCC("avif")), file.majorBrand)
         assertTrue(file.toBytes().data.isNotEmpty())
@@ -217,7 +217,7 @@ class ImageFileTests {
 
     @Test
     fun tiffFileLittleEndian() {
-        val file = Tiff(byteOrder = Endianness.Little, firstIfdOffset = 8u, imageData = Bytes(ByteArray(0)))
+        val file = TiffRaw(byteOrder = Endianness.Little, firstIfdOffset = 8u, imageData = Bytes(ByteArray(0)))
         val bytes = file.toBytes()
         assertEquals(0x49, bytes.data[0].toInt())
         assertEquals(0x49, bytes.data[1].toInt())
@@ -227,7 +227,7 @@ class ImageFileTests {
 
     @Test
     fun tiffFileBigEndian() {
-        val file = Tiff(byteOrder = Endianness.Big, firstIfdOffset = 8u, imageData = Bytes(ByteArray(0)))
+        val file = TiffRaw(byteOrder = Endianness.Big, firstIfdOffset = 8u, imageData = Bytes(ByteArray(0)))
         val bytes = file.toBytes()
         assertEquals(0x4D, bytes.data[0].toInt())
         assertEquals(0x4D, bytes.data[1].toInt())
@@ -255,7 +255,7 @@ class ImageFileTests {
     fun webpFileConstruction() {
         val vp8 = RiffChunk(id = RiffChunkId("VP8 "), size = 10u, data = ByteArray(10).asBytes())
         val riff = RiffChunk(id = RiffChunkId("RIFF"), size = 22u, formType = RiffChunkId("WEBP"), children = listOf(vp8))
-        val file = Webp(riff)
+        val file = WebpRaw(riff)
 
         assertEquals(WebpFormat.Lossy, file.format)
         assertEquals(1, file.chunks.size)

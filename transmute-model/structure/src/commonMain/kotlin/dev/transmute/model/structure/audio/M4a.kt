@@ -8,7 +8,7 @@ import dev.transmute.model.structure.common.FtypData
 import dev.transmute.model.structure.common.IsoBmffBox
 import dev.transmute.model.structure.common.findBox
 import dev.transmute.model.structure.common.parseFtyp
-import dev.transmute.model.structure.MediaStructure
+import dev.transmute.model.core.RawMediaStructure
 import kotlinx.serialization.Serializable
 
 // --- M4A file — complete on-disk representation ---
@@ -25,10 +25,10 @@ import kotlinx.serialization.Serializable
  * ```
  */
 @Serializable
-data class M4a(
+data class M4aRaw(
     /** All top-level ISO BMFF boxes in file order. */
     val boxes: List<IsoBmffBox>,
-) : MediaStructure {
+) : RawMediaStructure {
 
     // --- Binary serialization ---
 
@@ -45,22 +45,22 @@ data class M4a(
 // --- Typed extension accessors ---
 
 /** The `ftyp` box (required by ISO BMFF spec). */
-val M4a.ftypBox: IsoBmffBox? get() = boxes.findBox("ftyp")
+val M4aRaw.ftypBox: IsoBmffBox? get() = boxes.findBox("ftyp")
 
 /** Parsed `ftyp` data. */
-val M4a.ftyp: FtypData? get() = boxes.parseFtyp()
+val M4aRaw.ftyp: FtypData? get() = boxes.parseFtyp()
 
 /** Major brand from the `ftyp` box. */
-val M4a.majorBrand: Brand? get() = ftyp?.majorBrand
+val M4aRaw.majorBrand: Brand? get() = ftyp?.majorBrand
 
 /** Minor version from the `ftyp` box. */
-val M4a.minorVersion: UInt? get() = ftyp?.minorVersion
+val M4aRaw.minorVersion: UInt? get() = ftyp?.minorVersion
 
 /** Compatible brands from the `ftyp` box. */
-val M4a.compatibleBrands: List<Brand> get() = ftyp?.compatibleBrands ?: emptyList()
+val M4aRaw.compatibleBrands: List<Brand> get() = ftyp?.compatibleBrands ?: emptyList()
 
 /** The `moov` (movie metadata) box (required by spec). */
-val M4a.moovBox: IsoBmffBox? get() = boxes.findBox("moov")
+val M4aRaw.moovBox: IsoBmffBox? get() = boxes.findBox("moov")
 
 /** The `mdat` (media data) box, or `null`. */
-val M4a.mdatBox: IsoBmffBox? get() = boxes.findBox("mdat")
+val M4aRaw.mdatBox: IsoBmffBox? get() = boxes.findBox("mdat")

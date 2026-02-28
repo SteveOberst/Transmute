@@ -6,7 +6,7 @@ import dev.transmute.model.core.Bytes
 import dev.transmute.model.core.Channels
 import dev.transmute.model.core.Hertz
 import dev.transmute.model.core.asBytes
-import dev.transmute.model.structure.MediaStructure
+import dev.transmute.model.core.RawMediaStructure
 import dev.transmute.model.structure.common.OggPage
 import dev.transmute.model.structure.common.OggSerialNumber
 import kotlinx.serialization.Serializable
@@ -42,10 +42,10 @@ data class OpusIdentification(
  * of Ogg pages carrying OpusHead, OpusTags, and audio data packets.
  */
 @Serializable
-data class Opus(
+data class OpusRaw(
     /** All Ogg pages in file order. */
     val pages: List<OggPage>,
-) : MediaStructure {
+) : RawMediaStructure {
 
     // --- Binary serialization ---
 
@@ -62,11 +62,11 @@ data class Opus(
 // --- Typed extension accessors ---
 
 /** Distinct logical stream serial numbers. */
-val Opus.streamSerialNumbers: List<OggSerialNumber>
+val OpusRaw.streamSerialNumbers: List<OggSerialNumber>
     get() = pages.map { it.serialNumber }.distinct()
 
 /** Parsed OpusHead identification header. */
-val Opus.opusIdentification: OpusIdentification?
+val OpusRaw.opusIdentification: OpusIdentification?
     get() {
         val bos = pages.firstOrNull { (it.headerType.toInt() and 0x02) != 0 } ?: return null
         val d = bos.data.data
@@ -87,20 +87,20 @@ val Opus.opusIdentification: OpusIdentification?
     }
 
 /** Sample rate from OpusHead (input sample rate, or 48000 as Opus default). */
-val Opus.sampleRate: Hertz
+val OpusRaw.sampleRate: Hertz
     get() {
         val rate = opusIdentification?.inputSampleRate?.toInt() ?: 48000
         return Hertz(if (rate == 0) 48000 else rate)
     }
 
 /** Channel count from OpusHead. */
-val Opus.channels: Channels?
+val OpusRaw.channels: Channels?
     get() = opusIdentification?.channels?.toInt()?.let { Channels(it) }
 
 /** Pre-skip sample count. */
-val Opus.preSkipSamples: Int
+val OpusRaw.preSkipSamples: Int
     get() = opusIdentification?.preSkipSamples?.toInt() ?: 0
 
 /** Output gain in Q7.8 dB. */
-val Opus.outputGain: Short
+val OpusRaw.outputGain: Short
     get() = opusIdentification?.outputGain ?: 0

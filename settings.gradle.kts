@@ -25,7 +25,6 @@ include(
     ":transmute-model:core",
     ":transmute-model:identify",
     ":transmute-model:structure",
-    ":transmute-model:view",
     ":transmute-model:stream",
     ":transmute-model:metadata",
     ":transmute-model:diagnostics",

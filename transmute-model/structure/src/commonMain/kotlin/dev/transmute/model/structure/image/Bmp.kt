@@ -6,7 +6,7 @@ import dev.transmute.model.core.BinarySerializable
 import dev.transmute.model.core.Bytes
 import dev.transmute.model.core.Pixels
 import dev.transmute.model.core.asBytes
-import dev.transmute.model.structure.MediaStructure
+import dev.transmute.model.core.RawMediaStructure
 import kotlinx.serialization.Serializable
 import kotlin.math.abs
 
@@ -200,7 +200,7 @@ data class BmpColorEntry(
  * for the vast majority of BMP files.
  */
 @Serializable
-data class Bmp(
+data class BmpRaw(
     /** The 14-byte BMP file header. */
     val fileHeader: BmpFileHeader,
     /** The DIB (info) header. */
@@ -211,7 +211,7 @@ data class Bmp(
     val gapData: Bytes = Bytes(ByteArray(0)),
     /** Raw pixel data (rows padded to 4-byte boundaries). */
     val pixelData: Bytes,
-) : MediaStructure {
+) : RawMediaStructure {
 
     // --- Binary serialization ---
 
@@ -245,24 +245,24 @@ data class Bmp(
 // --- Typed extension accessors ---
 
 /** Image width in pixels (always positive). */
-val Bmp.width: Pixels get() = Pixels(abs(dibHeader.width))
+val BmpRaw.width: Pixels get() = Pixels(abs(dibHeader.width))
 
 /** Image height in pixels (always positive). */
-val Bmp.height: Pixels get() = Pixels(abs(dibHeader.height))
+val BmpRaw.height: Pixels get() = Pixels(abs(dibHeader.height))
 
 /** `true` when rows are stored top-to-bottom (negative DIB height). */
-val Bmp.isTopDown: Boolean get() = dibHeader.height < 0
+val BmpRaw.isTopDown: Boolean get() = dibHeader.height < 0
 
 /** Bits per pixel (1, 4, 8, 16, 24, or 32). */
-val Bmp.bitsPerPixel: Int get() = dibHeader.bitsPerPixel.toInt()
+val BmpRaw.bitsPerPixel: Int get() = dibHeader.bitsPerPixel.toInt()
 
 /** Resolved compression method, or `null` for unknown codes. */
-val Bmp.compression: BmpCompression? get() = BmpCompression.fromCode(dibHeader.compression)
+val BmpRaw.compression: BmpCompression? get() = BmpCompression.fromCode(dibHeader.compression)
 
 /**
  * Number of bytes per pixel row, including padding to a 4-byte boundary.
  */
-val Bmp.rowStride: Int
+val BmpRaw.rowStride: Int
     get() {
         val rawRowBytes = (abs(dibHeader.width) * dibHeader.bitsPerPixel.toInt() + 7) / 8
         return (rawRowBytes + 3) and 0x7FFFFFFC // round up to multiple of 4

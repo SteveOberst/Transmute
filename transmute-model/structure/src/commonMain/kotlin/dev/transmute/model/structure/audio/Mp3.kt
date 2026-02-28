@@ -8,7 +8,7 @@ import dev.transmute.model.core.ByteLength
 import dev.transmute.model.core.Channels
 import dev.transmute.model.core.Hertz
 import dev.transmute.model.core.asBytes
-import dev.transmute.model.structure.MediaStructure
+import dev.transmute.model.core.RawMediaStructure
 import kotlinx.serialization.Serializable
 
 // ════════════════════════════════════════════════════════════════
@@ -93,14 +93,14 @@ data class Mp3Id3v1Tag(
  * Typed accessors parse the first-frame header and VBR info.
  */
 @Serializable
-data class Mp3(
+data class Mp3Raw(
     /** Optional ID3v2 tag at the start of the file (raw bytes). */
     val id3v2Tag: Bytes?,
     /** Audio frame data (all MPEG frames concatenated). */
     val audioData: Bytes,
     /** Optional ID3v1 tag at the end of the file (raw 128 bytes). */
     val id3v1TagData: Bytes?,
-) : MediaStructure {
+) : RawMediaStructure {
 
     // --- Binary serialization ---
 
@@ -120,7 +120,7 @@ data class Mp3(
 // --- Typed extension accessors ---
 
 /** Parse the first MPEG frame header from the audio data. */
-val Mp3.firstFrameHeader: Mp3FrameHeader?
+val Mp3Raw.firstFrameHeader: Mp3FrameHeader?
     get() {
         val d = audioData.data
         if (d.size < 4) return null
@@ -164,17 +164,17 @@ val Mp3.firstFrameHeader: Mp3FrameHeader?
     }
 
 /** Sample rate from the first audio frame. */
-val Mp3.sampleRate: Hertz?
+val Mp3Raw.sampleRate: Hertz?
     get() = firstFrameHeader?.sampleRate
 
 /** Channel count inferred from channel mode. */
-val Mp3.channels: Channels?
+val Mp3Raw.channels: Channels?
     get() = firstFrameHeader?.channelMode?.let {
         Channels(if (it == MpegChannelMode.Mono) 1 else 2)
     }
 
 /** Parsed ID3v1 tag. */
-val Mp3.id3v1Tag: Mp3Id3v1Tag?
+val Mp3Raw.id3v1Tag: Mp3Id3v1Tag?
     get() {
         val d = id3v1TagData?.data ?: return null
         if (d.size != 128) return null

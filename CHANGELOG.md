@@ -52,7 +52,7 @@
 
 * run both Android and desktop unit tests in integration workflow ([ed78ad6](https://github.com/SteveOberst/Transmute/commit/ed78ad6a4b02edd290d9f047a2904358fe4126ad))
 
-## [2.0.0](https://github.com/SteveOberst/Transmute/compare/v1.0.0...v2.0.0) (2026-02-19)
+## [2.0.0-alpha](https://github.com/SteveOberst/Transmute/compare/v1.0.0...v2.0.0) (2026-02-19)
 
 
 ### ⚠ BREAKING CHANGES
@@ -86,7 +86,7 @@
 * restore coroutine timeout for Android MediaCodec tests ([b1d7bee](https://github.com/SteveOberst/Transmute/commit/b1d7bee228537b4432d47b03b06715f65851b4ae))
 * trigger release-please PR recreation with PAT ([ba79359](https://github.com/SteveOberst/Transmute/commit/ba79359bb59975aeb6cbd1b5c96dd85c712a3266))
 
-## [0.1.2](https://github.com/SteveOberst/Transmute/compare/v0.1.1...v0.1.2) (2026-02-17)
+## [0.1.2-alpha](https://github.com/SteveOberst/Transmute/compare/v0.1.1...v0.1.2) (2026-02-17)
 
 
 ### Bug Fixes
@@ -97,7 +97,7 @@
 * **ios:** wrap entire audio roundtrip tests in try-catch Throwable ([48199cc](https://github.com/SteveOberst/Transmute/commit/48199cc2c4c3e1e9c6804e9702018592b94da8b4))
 * trigger release-please PR recreation with PAT ([ba79359](https://github.com/SteveOberst/Transmute/commit/ba79359bb59975aeb6cbd1b5c96dd85c712a3266))
 
-## [0.1.1](https://github.com/SteveOberst/Transmute/compare/v0.1.0...v0.1.1) (2026-02-17)
+## [0.1.1-alpha](https://github.com/SteveOberst/Transmute/compare/v0.1.0...v0.1.1) (2026-02-17)
 
 
 ### Features

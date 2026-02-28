@@ -8,7 +8,7 @@ import dev.transmute.model.structure.common.FtypData
 import dev.transmute.model.structure.common.IsoBmffBox
 import dev.transmute.model.structure.common.findBox
 import dev.transmute.model.structure.common.parseFtyp
-import dev.transmute.model.structure.MediaStructure
+import dev.transmute.model.core.RawMediaStructure
 import kotlinx.serialization.Serializable
 
 // --- MP4 file — complete on-disk representation ---
@@ -22,10 +22,10 @@ import kotlinx.serialization.Serializable
  * ```
  */
 @Serializable
-data class Mp4(
+data class Mp4Raw(
     /** All top-level ISO BMFF boxes in file order. */
     val boxes: List<IsoBmffBox>,
-) : MediaStructure {
+) : RawMediaStructure {
 
     // --- Binary serialization ---
 
@@ -42,26 +42,26 @@ data class Mp4(
 // --- Typed extension accessors ---
 
 /** The `ftyp` box (required by ISO BMFF spec). */
-val Mp4.ftypBox: IsoBmffBox? get() = boxes.findBox("ftyp")
+val Mp4Raw.ftypBox: IsoBmffBox? get() = boxes.findBox("ftyp")
 
 /** Parsed `ftyp` data. */
-val Mp4.ftyp: FtypData? get() = boxes.parseFtyp()
+val Mp4Raw.ftyp: FtypData? get() = boxes.parseFtyp()
 
 /** Major brand from the `ftyp` box. */
-val Mp4.majorBrand: Brand? get() = ftyp?.majorBrand
+val Mp4Raw.majorBrand: Brand? get() = ftyp?.majorBrand
 
 /** Minor version from the `ftyp` box. */
-val Mp4.minorVersion: UInt? get() = ftyp?.minorVersion
+val Mp4Raw.minorVersion: UInt? get() = ftyp?.minorVersion
 
 /** Compatible brands from the `ftyp` box. */
-val Mp4.compatibleBrands: List<Brand> get() = ftyp?.compatibleBrands ?: emptyList()
+val Mp4Raw.compatibleBrands: List<Brand> get() = ftyp?.compatibleBrands ?: emptyList()
 
 /** The `moov` (movie metadata) box (required by spec). */
-val Mp4.moovBox: IsoBmffBox? get() = boxes.findBox("moov")
+val Mp4Raw.moovBox: IsoBmffBox? get() = boxes.findBox("moov")
 
 /** The `mdat` (media data) box, or `null`. */
-val Mp4.mdatBox: IsoBmffBox? get() = boxes.findBox("mdat")
+val Mp4Raw.mdatBox: IsoBmffBox? get() = boxes.findBox("mdat")
 
 /** The `free` / `skip` boxes (padding). */
-val Mp4.freeBoxes: List<IsoBmffBox>
+val Mp4Raw.freeBoxes: List<IsoBmffBox>
     get() = boxes.filter { it.type.value == "free" || it.type.value == "skip" }

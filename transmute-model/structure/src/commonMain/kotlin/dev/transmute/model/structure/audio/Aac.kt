@@ -6,7 +6,7 @@ import dev.transmute.model.core.Bytes
 import dev.transmute.model.core.Channels
 import dev.transmute.model.core.Hertz
 import dev.transmute.model.core.asBytes
-import dev.transmute.model.structure.MediaStructure
+import dev.transmute.model.core.RawMediaStructure
 import kotlinx.serialization.Serializable
 
 // ════════════════════════════════════════════════════════════════
@@ -72,10 +72,10 @@ data class AdtsFrameHeader(
  * accessors parse the first ADTS frame header.
  */
 @Serializable
-data class Aac(
+data class AacRaw(
     /** Complete file content (all ADTS frames). */
     val data: Bytes,
-) : MediaStructure {
+) : RawMediaStructure {
 
     // --- Binary serialization ---
 
@@ -99,7 +99,7 @@ private val ADTS_SAMPLE_RATES = intArrayOf(
 )
 
 /** Parse the first ADTS frame header. */
-val Aac.firstFrameHeader: AdtsFrameHeader?
+val AacRaw.firstFrameHeader: AdtsFrameHeader?
     get() {
         val d = data.data
         if (d.size < 7) return null
@@ -127,13 +127,13 @@ val Aac.firstFrameHeader: AdtsFrameHeader?
     }
 
 /** Sample rate from the first ADTS frame. */
-val Aac.sampleRate: Hertz?
+val AacRaw.sampleRate: Hertz?
     get() = firstFrameHeader?.sampleRate
 
 /** Channel count from the first ADTS frame. */
-val Aac.channels: Channels?
+val AacRaw.channels: Channels?
     get() = firstFrameHeader?.channels
 
 /** Profile from the first ADTS frame. */
-val Aac.profile: AacProfile?
+val AacRaw.profile: AacProfile?
     get() = firstFrameHeader?.profile

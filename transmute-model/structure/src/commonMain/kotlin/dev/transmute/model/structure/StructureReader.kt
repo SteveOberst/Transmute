@@ -3,9 +3,10 @@
 package dev.transmute.model.structure
 
 import dev.transmute.model.core.Bytes
+import dev.transmute.model.core.RawMediaStructure
 
 /**
- * Reads raw file bytes into a [MediaStructure] of type [S].
+ * Reads raw file bytes into a [RawMediaStructure] of type [S].
  *
  * Each format has its own reader implementation that knows how to
  * parse the binary layout of that format into a typed structure.
@@ -21,7 +22,7 @@ import dev.transmute.model.core.Bytes
  *  png.ihdr.width  // parsed IHDR width
  * ```
  */
-interface StructureReader<out S : MediaStructure> {
+interface StructureReader<out S : RawMediaStructure> {
 
     /**
      * Quick check — can this reader likely parse [source]?

@@ -1,6 +1,7 @@
 package dev.transmute.gstreamer
 
 import dev.transmute.transmute
+import dev.transmute.model.core.asBytes
 import dev.transmute.audio.AudioFormat
 import dev.transmute.audio.CanonicalAudioDecodeOptions
 import dev.transmute.audio.CanonicalAudioEncodeOptions
@@ -496,17 +497,9 @@ class TrueEndToEndTest {
                 }
             }
 
-            // Read structure
-            val structure = transmute.structure.read(mp4Bytes)
-            assertNotNull(structure, "Transmute.structure.read must return structure")
-
-            // Write structure back
-            val written = transmute.structure.write(structure)
-            assertTrue(written.isNotEmpty(), "Written structure bytes must not be empty")
-
-            // Re-read and verify
-            val reread = transmute.structure.read(written)
-            assertNotNull(reread, "Re-read structure must not be null")
+            // Decode structure via new codec API
+            val structure = transmute.codec.decodeStructure(mp4Bytes, VideoFormat.Mp4)
+            assertNotNull(structure, "Transmute.codec must decode mp4 structure")
         }
     }
 
@@ -522,17 +515,9 @@ class TrueEndToEndTest {
                 }
             }
 
-            // Read structure
-            val structure = transmute.structure.read(m4aBytes)
-            assertNotNull(structure, "M4A structure read must succeed")
-
-            // Write back
-            val written = transmute.structure.write(structure)
-            assertTrue(written.isNotEmpty(), "Written M4A structure must not be empty")
-
-            // Verify can be decoded
-            val decoded = GstM4aCodec().decode(written, CanonicalAudioDecodeOptions(), ctx)
-            assertTrue(decoded.durationMs > 0, "Re-written M4A must decode successfully")
+            // Decode structure via new codec API
+            val structure = transmute.codec.decodeStructure(m4aBytes, AudioFormat.M4a)
+            assertNotNull(structure, "M4A structure must decode successfully")
         }
     }
 

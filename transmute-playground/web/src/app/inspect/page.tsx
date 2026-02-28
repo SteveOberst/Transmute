@@ -117,12 +117,6 @@ export default function InspectPage() {
                     <span className="capitalize">{result.domain.toLowerCase()}</span>
                     <span>·</span>
                     <span>{formatBytes(result.fileSize)}</span>
-                    {result.decodedBy && (
-                      <>
-                        <span>·</span>
-                        <span className="text-[#444456]">{result.decodedBy}</span>
-                      </>
-                    )}
                   </div>
                 )}
 

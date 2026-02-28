@@ -4,6 +4,7 @@ import type {
   HealthResponse,
   InspectResult,
   MediaDomain,
+  MediaStructure,
   PluginDescriptor,
   PluginUpdate,
   TransformInfo,

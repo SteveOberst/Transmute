@@ -6,7 +6,7 @@ import dev.transmute.model.core.Bytes
 import dev.transmute.model.core.asBytes
 import dev.transmute.model.identify.EbmlId
 import dev.transmute.model.structure.common.EbmlElement
-import dev.transmute.model.structure.MediaStructure
+import dev.transmute.model.core.RawMediaStructure
 import kotlinx.serialization.Serializable
 
 // --- Well-known Matroska EBML element IDs ---
@@ -57,10 +57,10 @@ data class EbmlHeaderData(
  * Inside the Segment are SeekHead, Info, Tracks, Clusters, Cues, etc.
  */
 @Serializable
-data class Mkv(
+data class MkvRaw(
     /** All top-level EBML elements in file order (EBML header + Segment). */
     val elements: List<EbmlElement>,
-) : MediaStructure {
+) : RawMediaStructure {
 
     // --- Binary serialization ---
 
@@ -77,15 +77,15 @@ data class Mkv(
 // --- Typed extension accessors ---
 
 /** The EBML header element. */
-val Mkv.ebmlHeader: EbmlElement?
+val MkvRaw.ebmlHeader: EbmlElement?
     get() = elements.firstOrNull { it.id == MatroskaIds.EBML }
 
 /** The Segment element (contains all media data). */
-val Mkv.segment: EbmlElement?
+val MkvRaw.segment: EbmlElement?
     get() = elements.firstOrNull { it.id == MatroskaIds.Segment }
 
 /** Parsed EBML header metadata. */
-val Mkv.headerData: EbmlHeaderData?
+val MkvRaw.headerData: EbmlHeaderData?
     get() {
         val hdr = ebmlHeader ?: return null
         val docType = hdr.children.firstOrNull { it.id == MatroskaIds.DocType }
@@ -98,11 +98,11 @@ val Mkv.headerData: EbmlHeaderData?
     }
 
 /** Info element inside the Segment. */
-val Mkv.infoElement: EbmlElement?
+val MkvRaw.infoElement: EbmlElement?
     get() = segment?.children?.firstOrNull { it.id == MatroskaIds.Info }
 
 /** Tracks element inside the Segment. */
-val Mkv.tracksElement: EbmlElement?
+val MkvRaw.tracksElement: EbmlElement?
     get() = segment?.children?.firstOrNull { it.id == MatroskaIds.Tracks }
 internal fun readEbmlUInt(bytes: ByteArray): Long {
     var v = 0L

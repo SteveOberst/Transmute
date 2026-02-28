@@ -64,18 +64,15 @@ export interface InspectResult {
   domain: MediaDomain
   format: string
   fileSize: number
-  properties: Record<string, string>
-  structure?: StructureNode
-  decodedBy?: string
+  structure?: MediaStructure
 }
 
-export interface StructureNode {
-  name: string
+/** JSON envelope for a decoded media file structure */
+export interface MediaStructure {
+  /** Type discriminator, e.g. "transmute.png" */
   type: string
-  offset: number
-  size: number
-  properties: Record<string, string>
-  children: StructureNode[]
+  /** Format-specific fields — arbitrary nested JSON */
+  value: Record<string, unknown>
 }
 
 /* /api/transform */

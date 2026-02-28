@@ -5,7 +5,7 @@ package dev.transmute.model.structure.video
 import dev.transmute.model.core.Bytes
 import dev.transmute.model.core.asBytes
 import dev.transmute.model.structure.common.EbmlElement
-import dev.transmute.model.structure.MediaStructure
+import dev.transmute.model.core.RawMediaStructure
 import kotlinx.serialization.Serializable
 
 // --- WebM file — complete on-disk representation ---
@@ -21,10 +21,10 @@ import kotlinx.serialization.Serializable
  * ```
  */
 @Serializable
-data class Webm(
+data class WebmRaw(
     /** All top-level EBML elements in file order (EBML header + Segment). */
     val elements: List<EbmlElement>,
-) : MediaStructure {
+) : RawMediaStructure {
 
     // --- Binary serialization ---
 
@@ -41,15 +41,15 @@ data class Webm(
 // --- Typed extension accessors ---
 
 /** The EBML header element. */
-val Webm.ebmlHeader: EbmlElement?
+val WebmRaw.ebmlHeader: EbmlElement?
     get() = elements.firstOrNull { it.id == MatroskaIds.EBML }
 
 /** The Segment element. */
-val Webm.segment: EbmlElement?
+val WebmRaw.segment: EbmlElement?
     get() = elements.firstOrNull { it.id == MatroskaIds.Segment }
 
 /** Parsed EBML header metadata. */
-val Webm.headerData: EbmlHeaderData?
+val WebmRaw.headerData: EbmlHeaderData?
     get() {
         val hdr = ebmlHeader ?: return null
         val docType = hdr.children.firstOrNull { it.id == MatroskaIds.DocType }
@@ -62,9 +62,9 @@ val Webm.headerData: EbmlHeaderData?
     }
 
 /** Info element inside the Segment. */
-val Webm.infoElement: EbmlElement?
+val WebmRaw.infoElement: EbmlElement?
     get() = segment?.children?.firstOrNull { it.id == MatroskaIds.Info }
 
 /** Tracks element inside the Segment. */
-val Webm.tracksElement: EbmlElement?
+val WebmRaw.tracksElement: EbmlElement?
     get() = segment?.children?.firstOrNull { it.id == MatroskaIds.Tracks }

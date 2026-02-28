@@ -5,19 +5,19 @@ package dev.transmute.structure.image
 import dev.transmute.model.core.Bytes
 import dev.transmute.model.structure.StructureReadException
 import dev.transmute.model.structure.StructureReader
-import dev.transmute.model.structure.image.Avif
+import dev.transmute.model.structure.image.AvifRaw
 import dev.transmute.structure.common.parseIsoBmffBoxes
 
 /**
- * Parses raw AVIF file bytes into an [Avif] structure.
+ * Parses raw AvifRaw file bytes into an [AvifRaw] structure.
  *
- * AVIF uses ISO BMFF with major brands `avif` or `avis`.
+ * AvifRaw uses ISO BMFF with major brands `avif` or `avis`.
  *
  * ```
  * | ftyp box | meta box | mdat box | … |
  * ```
  */
-class AvifStructureReader : StructureReader<Avif> {
+class AvifStructureReader : StructureReader<AvifRaw> {
 
     override fun canRead(source: Bytes): Boolean {
         val d = source.data
@@ -31,11 +31,11 @@ class AvifStructureReader : StructureReader<Avif> {
         return brand in AVIF_BRANDS
     }
 
-    override fun read(source: Bytes): Avif {
+    override fun read(source: Bytes): AvifRaw {
         val d = source.data
-        if (!canRead(source)) throw StructureReadException("Not an AVIF file (bad ftyp)")
+        if (!canRead(source)) throw StructureReadException("Not an AvifRaw file (bad ftyp)")
         val boxes = d.parseIsoBmffBoxes()
-        return Avif(boxes = boxes)
+        return AvifRaw(boxes = boxes)
     }
 
     companion object {

@@ -6,7 +6,7 @@ import dev.transmute.model.core.Bytes
 import dev.transmute.model.core.DecodeOptions
 import dev.transmute.model.core.EncodeOptions
 import dev.transmute.model.core.MediaFormat
-import dev.transmute.model.structure.MediaStructure
+import dev.transmute.model.core.RawMediaStructure
 import dev.transmute.common.PipelineContext
 import dev.transmute.common.TransmuteContext
 import dev.transmute.common.TransmuteLogger
@@ -24,6 +24,13 @@ import dev.transmute.plugin.installPlatformImageDefaults
 import dev.transmute.plugin.installPlatformVideoDefaults
 import dev.transmute.plugin.sortPluginInstallations
 import dev.transmute.video.*
+import dev.transmute.structure.image.*
+import dev.transmute.structure.audio.*
+import dev.transmute.structure.video.*
+import dev.transmute.model.core.MediaStructureRegistry
+import dev.transmute.model.structure.image.*
+import dev.transmute.model.structure.audio.*
+import dev.transmute.model.structure.video.*
 
 typealias DynamicImageTransmuter = ImageTransmuter<Bytes, EncodedBytes<ImageFormat>>
 typealias DynamicAudioTransmuter = AudioTransmuter<Bytes, EncodedBytes<AudioFormat>>
@@ -70,9 +77,6 @@ class Transmute private constructor(
 
   /** Decode-less format detection and lightweight probing. */
   val inspect: TransmuteInspect,
-
-  /** Read raw file bytes into [MediaStructure] objects and write them back. */
-  val structure: TransmuteStructure,
 
   val image: TransmuteImage,
   val audio: TransmuteAudio,
@@ -130,32 +134,91 @@ class Transmute private constructor(
     }
 
     fun build(): Transmute {
-      // Create mutable registries for this instance
-      val imageDecoders = MutableImageDecoderRegistry()
-      val imageEncoders = MutableImageEncoderRegistry()
-      val audioDecoders = MutableAudioDecoderRegistry()
-      val audioEncoders = MutableAudioEncoderRegistry()
-      val videoDecoders = MutableVideoDecoderRegistry()
-      val videoEncoders = MutableVideoEncoderRegistry()
+      // Create grouped codec registries for this instance
+      val imageCodecs = ImageCodecRegistry()
+      val audioCodecs = AudioCodecRegistry()
+      val videoCodecs = VideoCodecRegistry()
+      val codecs = CodecRegistry(imageCodecs, audioCodecs, videoCodecs)
       val services = ServiceRegistry()
       val aggregateDiagnostics = AggregateDiagnostics()
 
       // Install platform defaults into the local registries
-      installPlatformImageDefaults(imageDecoders, imageEncoders)
-      installPlatformAudioDefaults(audioDecoders, audioEncoders)
-      installPlatformVideoDefaults(videoDecoders, videoEncoders)
+      installPlatformImageDefaults(imageCodecs.decoders, imageCodecs.encoders)
+      installPlatformAudioDefaults(audioCodecs.decoders, audioCodecs.encoders)
+      installPlatformVideoDefaults(videoCodecs.decoders, videoCodecs.encoders)
+
+      // Register built-in raw structure decoders
+      imageCodecs.rawStructureDecoders.register(ImageFormat.Png,  PngRawDecoder())
+      imageCodecs.rawStructureDecoders.register(ImageFormat.Jpeg, JpegRawDecoder())
+      imageCodecs.rawStructureDecoders.register(ImageFormat.Bmp,  BmpRawDecoder())
+      imageCodecs.rawStructureDecoders.register(ImageFormat.Gif,  GifRawDecoder())
+      imageCodecs.rawStructureDecoders.register(ImageFormat.Tiff, TiffRawDecoder())
+      imageCodecs.rawStructureDecoders.register(ImageFormat.Webp, WebpRawDecoder())
+      imageCodecs.rawStructureDecoders.register(ImageFormat.Heif, HeifRawDecoder())
+      imageCodecs.rawStructureDecoders.register(ImageFormat.Avif, AvifRawDecoder())
+      audioCodecs.rawStructureDecoders.register(AudioFormat.Wav,  WavRawDecoder())
+      audioCodecs.rawStructureDecoders.register(AudioFormat.Mp3,  Mp3RawDecoder())
+      audioCodecs.rawStructureDecoders.register(AudioFormat.Flac, FlacRawDecoder())
+      audioCodecs.rawStructureDecoders.register(AudioFormat.Aac,  AacRawDecoder())
+      audioCodecs.rawStructureDecoders.register(AudioFormat.M4a,  M4aRawDecoder())
+      audioCodecs.rawStructureDecoders.register(AudioFormat.Ogg,  OggAudioRawDecoder())
+      audioCodecs.rawStructureDecoders.register(AudioFormat.Opus, OpusRawDecoder())
+      videoCodecs.rawStructureDecoders.register(VideoFormat.Mp4,  Mp4RawDecoder())
+      videoCodecs.rawStructureDecoders.register(VideoFormat.Mov,  MovRawDecoder())
+      videoCodecs.rawStructureDecoders.register(VideoFormat.Webm, WebmRawDecoder())
+      videoCodecs.rawStructureDecoders.register(VideoFormat.Mkv,  MkvRawDecoder())
+      videoCodecs.rawStructureDecoders.register(VideoFormat.Avi,  AviRawDecoder())
+
+      // Register built-in structure decoders
+      imageCodecs.structureDecoders.register(ImageFormat.Png,  PngStructureDecoder())
+      imageCodecs.structureDecoders.register(ImageFormat.Jpeg, JpegStructureDecoder())
+      imageCodecs.structureDecoders.register(ImageFormat.Bmp,  BmpStructureDecoder())
+      imageCodecs.structureDecoders.register(ImageFormat.Gif,  GifStructureDecoder())
+      imageCodecs.structureDecoders.register(ImageFormat.Tiff, TiffStructureDecoder())
+      imageCodecs.structureDecoders.register(ImageFormat.Webp, WebpStructureDecoder())
+      imageCodecs.structureDecoders.register(ImageFormat.Heif, HeifStructureDecoder())
+      imageCodecs.structureDecoders.register(ImageFormat.Avif, AvifStructureDecoder())
+      audioCodecs.structureDecoders.register(AudioFormat.Wav,  WavStructureDecoder())
+      audioCodecs.structureDecoders.register(AudioFormat.Mp3,  Mp3StructureDecoder())
+      audioCodecs.structureDecoders.register(AudioFormat.Flac, FlacStructureDecoder())
+      audioCodecs.structureDecoders.register(AudioFormat.Aac,  AacStructureDecoder())
+      audioCodecs.structureDecoders.register(AudioFormat.M4a,  M4aStructureDecoder())
+      audioCodecs.structureDecoders.register(AudioFormat.Ogg,  OggAudioStructureDecoder())
+      audioCodecs.structureDecoders.register(AudioFormat.Opus, OpusStructureDecoder())
+      videoCodecs.structureDecoders.register(VideoFormat.Mp4,  Mp4StructureDecoder())
+      videoCodecs.structureDecoders.register(VideoFormat.Mov,  MovStructureDecoder())
+      videoCodecs.structureDecoders.register(VideoFormat.Webm, WebmStructureDecoder())
+      videoCodecs.structureDecoders.register(VideoFormat.Mkv,  MkvStructureDecoder())
+      videoCodecs.structureDecoders.register(VideoFormat.Avi,  AviStructureDecoder())
+
+      // Register built-in MediaStructure types into the global serialization registry
+      MediaStructureRegistry.register<PngStructure>("transmute.png",       PngStructure.serializer())
+      MediaStructureRegistry.register<JpegStructure>("transmute.jpeg",     JpegStructure.serializer())
+      MediaStructureRegistry.register<BmpStructure>("transmute.bmp",       BmpStructure.serializer())
+      MediaStructureRegistry.register<GifStructure>("transmute.gif",       GifStructure.serializer())
+      MediaStructureRegistry.register<TiffStructure>("transmute.tiff",     TiffStructure.serializer())
+      MediaStructureRegistry.register<WebpStructure>("transmute.webp",     WebpStructure.serializer())
+      MediaStructureRegistry.register<HeifStructure>("transmute.heif",     HeifStructure.serializer())
+      MediaStructureRegistry.register<AvifStructure>("transmute.avif",     AvifStructure.serializer())
+      MediaStructureRegistry.register<WavStructure>("transmute.wav",       WavStructure.serializer())
+      MediaStructureRegistry.register<Mp3Structure>("transmute.mp3",       Mp3Structure.serializer())
+      MediaStructureRegistry.register<FlacStructure>("transmute.flac",     FlacStructure.serializer())
+      MediaStructureRegistry.register<AacStructure>("transmute.aac",       AacStructure.serializer())
+      MediaStructureRegistry.register<M4aStructure>("transmute.m4a",       M4aStructure.serializer())
+      MediaStructureRegistry.register<OggAudioStructure>("transmute.ogg",  OggAudioStructure.serializer())
+      MediaStructureRegistry.register<OpusStructure>("transmute.opus",     OpusStructure.serializer())
+      MediaStructureRegistry.register<Mp4Structure>("transmute.mp4",       Mp4Structure.serializer())
+      MediaStructureRegistry.register<MovStructure>("transmute.mov",       MovStructure.serializer())
+      MediaStructureRegistry.register<WebmStructure>("transmute.webm",     WebmStructure.serializer())
+      MediaStructureRegistry.register<MkvStructure>("transmute.mkv",       MkvStructure.serializer())
+      MediaStructureRegistry.register<AviStructure>("transmute.avi",       AviStructure.serializer())
 
       // Sort plugins by dependency/ordering constraints
       val sorted = sortPluginInstallations(pluginInstallations)
 
       // Apply user-registered plugins (sorted)
       val scope = TransmuteScope(
-        imageDecoders = imageDecoders,
-        imageEncoders = imageEncoders,
-        audioDecoders = audioDecoders,
-        audioEncoders = audioEncoders,
-        videoDecoders = videoDecoders,
-        videoEncoders = videoEncoders,
+        codecs = codecs,
         services = services,
       )
       for (installation in sorted) {
@@ -168,20 +231,24 @@ class Transmute private constructor(
       }
 
       val codec = TransmuteCodec(
-        imageDecoderRegistry = imageDecoders,
-        imageEncoderRegistry = imageEncoders,
-        audioDecoderRegistry = audioDecoders,
-        audioEncoderRegistry = audioEncoders,
-        videoDecoderRegistry = videoDecoders,
-        videoEncoderRegistry = videoEncoders,
+        imageDecoderRegistry = imageCodecs.decoders,
+        imageEncoderRegistry = imageCodecs.encoders,
+        audioDecoderRegistry = audioCodecs.decoders,
+        audioEncoderRegistry = audioCodecs.encoders,
+        videoDecoderRegistry = videoCodecs.decoders,
+        videoEncoderRegistry = videoCodecs.encoders,
+        imageRawStructureDecoderRegistry = imageCodecs.rawStructureDecoders,
+        imageStructureDecoderRegistry = imageCodecs.structureDecoders,
+        audioRawStructureDecoderRegistry = audioCodecs.rawStructureDecoders,
+        audioStructureDecoderRegistry = audioCodecs.structureDecoders,
+        videoRawStructureDecoderRegistry = videoCodecs.rawStructureDecoders,
+        videoStructureDecoderRegistry = videoCodecs.structureDecoders,
       )
       val inspect = TransmuteInspect(codec = codec)
-      val structure = TransmuteStructure(inspect = inspect)
 
       return Transmute(
         codec = codec,
         inspect = inspect,
-        structure = structure,
         image = TransmuteImage(codec = codec),
         audio = TransmuteAudio(codec = codec),
         video = TransmuteVideo(codec = codec),
@@ -217,7 +284,6 @@ class Transmute private constructor(
 
     val codec: TransmuteCodec get() = Default.codec
     val inspect: TransmuteInspect get() = Default.inspect
-    val structure: TransmuteStructure get() = Default.structure
     val image: TransmuteImage get() = Default.image
     val audio: TransmuteAudio get() = Default.audio
     val video: TransmuteVideo get() = Default.video

@@ -5,16 +5,16 @@ package dev.transmute.structure.audio
 import dev.transmute.model.core.Bytes
 import dev.transmute.model.structure.StructureReadException
 import dev.transmute.model.structure.StructureReader
-import dev.transmute.model.structure.audio.Opus
+import dev.transmute.model.structure.audio.OpusRaw
 import dev.transmute.structure.common.parseOggPages
 
 /**
- * Parses raw Ogg Opus file bytes into an [Opus] structure.
+ * Parses raw Ogg OpusRaw file bytes into an [OpusRaw] structure.
  *
- * Opus uses the Ogg container.  The BOS page's first packet
+ * OpusRaw uses the Ogg container.  The BOS page's first packet
  * starts with `OpusHead`.
  */
-class OpusStructureReader : StructureReader<Opus> {
+class OpusStructureReader : StructureReader<OpusRaw> {
 
     override fun canRead(source: Bytes): Boolean {
         val d = source.data
@@ -24,7 +24,7 @@ class OpusStructureReader : StructureReader<Opus> {
             d[2] != 0x67.toByte() || d[3] != 0x53.toByte()
         ) return false
 
-        // Look for Opus identification packet in first page data
+        // Look for OpusRaw identification packet in first page data
         val segCount = d[26].toInt() and 0xFF
         val dataStart = 27 + segCount
         if (dataStart + 8 > d.size) return false
@@ -35,10 +35,10 @@ class OpusStructureReader : StructureReader<Opus> {
             d[dataStart + 6] == 0x61.toByte() && d[dataStart + 7] == 0x64.toByte()    // "ad"
     }
 
-    override fun read(source: Bytes): Opus {
+    override fun read(source: Bytes): OpusRaw {
         val d = source.data
-        if (!canRead(source)) throw StructureReadException("Not an Ogg Opus file (bad signature)")
+        if (!canRead(source)) throw StructureReadException("Not an Ogg OpusRaw file (bad signature)")
         val pages = d.parseOggPages()
-        return Opus(pages = pages)
+        return OpusRaw(pages = pages)
     }
 }

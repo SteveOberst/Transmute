@@ -36,6 +36,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api(libs.kotlinx.serialization.core)
+            api(libs.kotlinx.serialization.json)
         }
 
         val desktopMain by getting

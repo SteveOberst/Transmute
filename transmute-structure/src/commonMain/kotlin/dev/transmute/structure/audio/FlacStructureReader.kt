@@ -6,16 +6,16 @@ import dev.transmute.model.core.Bytes
 import dev.transmute.model.core.asBytes
 import dev.transmute.model.structure.StructureReadException
 import dev.transmute.model.structure.StructureReader
-import dev.transmute.model.structure.audio.Flac
+import dev.transmute.model.structure.audio.FlacRaw
 import dev.transmute.model.structure.audio.FlacMetadataBlock
 import dev.transmute.model.structure.audio.FlacMetadataBlockType
 
 /**
- * Parses raw FLAC file bytes into a [Flac] structure.
+ * Parses raw FlacRaw file bytes into a [FlacRaw] structure.
  *
- * FLAC layout:
+ * FlacRaw layout:
  * ```
- * | "fLaC" (4 B) | metadata block₁ (STREAMINFO) | … | audio frames |
+ * | "FlacRaw" (4 B) | metadata block₁ (STREAMINFO) | … | audio frames |
  * ```
  *
  * Each metadata block header:
@@ -23,7 +23,7 @@ import dev.transmute.model.structure.audio.FlacMetadataBlockType
  * | isLast (1 bit) | type (7 bits) | length (24 bits BE) |
  * ```
  */
-class FlacStructureReader : StructureReader<Flac> {
+class FlacStructureReader : StructureReader<FlacRaw> {
 
     override fun canRead(source: Bytes): Boolean {
         val d = source.data
@@ -32,12 +32,12 @@ class FlacStructureReader : StructureReader<Flac> {
             d[2] == 0x61.toByte() && d[3] == 0x43.toByte()    // "aC"
     }
 
-    override fun read(source: Bytes): Flac {
+    override fun read(source: Bytes): FlacRaw {
         val d = source.data
-        if (!canRead(source)) throw StructureReadException("Not a FLAC file (bad magic)")
+        if (!canRead(source)) throw StructureReadException("Not a FlacRaw file (bad magic)")
 
         val blocks = mutableListOf<FlacMetadataBlock>()
-        var pos = 4 // skip "fLaC"
+        var pos = 4 // skip "FlacRaw"
 
         while (pos + 4 <= d.size) {
             val headerByte = d[pos].toInt() and 0xFF
@@ -50,7 +50,7 @@ class FlacStructureReader : StructureReader<Flac> {
 
             val blockEnd = pos + length
             if (blockEnd > d.size) throw StructureReadException(
-                "FLAC metadata block (type=$typeCode) at offset ${pos - 4} overflows file"
+                "FlacRaw metadata block (type=$typeCode) at offset ${pos - 4} overflows file"
             )
 
             val blockData = if (length > 0) d.copyOfRange(pos, blockEnd) else ByteArray(0)
@@ -70,7 +70,7 @@ class FlacStructureReader : StructureReader<Flac> {
             Bytes(ByteArray(0))
         }
 
-        return Flac(
+        return FlacRaw(
             metadataBlocks = blocks,
             audioData = audioData,
         )

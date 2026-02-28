@@ -7,15 +7,15 @@ import dev.transmute.model.core.asBytes
 import dev.transmute.model.identify.FourCC
 import dev.transmute.model.structure.StructureReadException
 import dev.transmute.model.structure.StructureReader
-import dev.transmute.model.structure.image.Png
+import dev.transmute.model.structure.image.PngRaw
 import dev.transmute.model.structure.image.PngChunk
 import dev.transmute.structure.common.decodeAscii
 import dev.transmute.structure.common.readU32BE
 
 /**
- * Parses raw PNG file bytes into a [Png] structure.
+ * Parses raw PngRaw file bytes into a [PngRaw] structure.
  *
- * PNG layout:
+ * PngRaw layout:
  * ```
  * | signature (8 B) | chunk₁ | chunk₂ | … | IEND chunk |
  * ```
@@ -25,7 +25,7 @@ import dev.transmute.structure.common.readU32BE
  * | length (4 B BE) | type (4 B ASCII) | data (length B) | crc (4 B) |
  * ```
  */
-class PngStructureReader : StructureReader<Png> {
+class PngStructureReader : StructureReader<PngRaw> {
 
     override fun canRead(source: Bytes): Boolean {
         val d = source.data
@@ -36,9 +36,9 @@ class PngStructureReader : StructureReader<Png> {
             d[6] == 0x1A.toByte() && d[7] == 0x0A.toByte()    // \x1a\n
     }
 
-    override fun read(source: Bytes): Png {
+    override fun read(source: Bytes): PngRaw {
         val d = source.data
-        if (!canRead(source)) throw StructureReadException("Not a PNG file (bad signature)")
+        if (!canRead(source)) throw StructureReadException("Not a PngRaw file (bad signature)")
 
         val signature = Bytes(d.copyOfRange(0, 8))
         val chunks = mutableListOf<PngChunk>()
@@ -51,7 +51,7 @@ class PngStructureReader : StructureReader<Png> {
             val dataEnd = dataStart + length.toInt()
             if (dataEnd + 4 > d.size) {
                 throw StructureReadException(
-                    "PNG chunk '$type' at offset $pos overflows file " +
+                    "PngRaw chunk '$type' at offset $pos overflows file " +
                         "(need ${dataEnd + 4}, have ${d.size})"
                 )
             }
@@ -69,6 +69,6 @@ class PngStructureReader : StructureReader<Png> {
             if (type == "IEND") break
         }
 
-        return Png(signature = signature, chunks = chunks)
+        return PngRaw(signature = signature, chunks = chunks)
     }
 }

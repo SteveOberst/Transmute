@@ -7,20 +7,20 @@ import dev.transmute.model.identify.RiffChunkId
 import dev.transmute.model.structure.StructureReadException
 import dev.transmute.model.structure.StructureReader
 import dev.transmute.model.structure.common.RiffChunk
-import dev.transmute.model.structure.video.Avi
+import dev.transmute.model.structure.video.AviRaw
 import dev.transmute.structure.common.parseRiffChildren
 import dev.transmute.structure.common.readU32LE
 
 /**
- * Parses raw AVI file bytes into an [Avi] structure.
+ * Parses raw AviRaw file bytes into an [AviRaw] structure.
  *
- * AVI uses a RIFF container with form type `AVI `.
+ * AviRaw uses a RIFF container with form type `AVI `.
  *
  * ```
  * | "RIFF" (4 B) | fileSize (4 B LE) | "AVI " (4 B) | sub-chunks… |
  * ```
  */
-class AviStructureReader : StructureReader<Avi> {
+class AviStructureReader : StructureReader<AviRaw> {
 
     override fun canRead(source: Bytes): Boolean {
         val d = source.data
@@ -31,9 +31,9 @@ class AviStructureReader : StructureReader<Avi> {
             d[10] == 0x49.toByte() && d[11] == 0x20.toByte()  // "I "
     }
 
-    override fun read(source: Bytes): Avi {
+    override fun read(source: Bytes): AviRaw {
         val d = source.data
-        if (!canRead(source)) throw StructureReadException("Not an AVI file (bad signature)")
+        if (!canRead(source)) throw StructureReadException("Not an AviRaw file (bad signature)")
 
         val fileSize = d.readU32LE(4)
         val children = d.parseRiffChildren(offset = 12, end = minOf(8 + fileSize.toInt(), d.size))
@@ -45,6 +45,6 @@ class AviStructureReader : StructureReader<Avi> {
             children = children,
         )
 
-        return Avi(riff = riff)
+        return AviRaw(riff = riff)
     }
 }

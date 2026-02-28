@@ -6,7 +6,7 @@ import dev.transmute.model.core.BinarySerializable
 import dev.transmute.model.core.Bytes
 import dev.transmute.model.core.asBytes
 import dev.transmute.model.identify.FourCC
-import dev.transmute.model.structure.MediaStructure
+import dev.transmute.model.core.RawMediaStructure
 import kotlinx.serialization.Serializable
 
 // --- Helpers — big-endian encoding ---
@@ -245,7 +245,7 @@ data class PngPlte(
  * Parsed IDAT chunk data — compressed (deflate) image data.
  *
  * A PNG file may contain multiple IDAT chunks whose data must be
- * concatenated to form the complete compressed datastream.  Each
+ * concatenated to form the complete compressed datastream. Each
  * [PngIdat] corresponds to exactly one IDAT chunk on disk.
  */
 @Serializable
@@ -788,12 +788,12 @@ data class PngFctl(
  * to obtain parsed interpretations of well-known chunk types.
  */
 @Serializable
-data class Png(
+data class PngRaw(
     /** The 8-byte PNG signature. */
     val signature: Bytes,
     /** Ordered sequence of chunks exactly as they appear on disk. */
     val chunks: List<PngChunk>,
-) : MediaStructure {
+) : RawMediaStructure {
 
     // --- Binary serialization ---
 
@@ -825,7 +825,7 @@ data class Png(
 // --- Typed extension accessors ---
 
 /** The IHDR chunk data (always present, always first). */
-val Png.ihdr: PngIhdr
+val PngRaw.ihdr: PngIhdr
     get() {
         val c = chunks.first { it.type.value == "IHDR" }
         val d = c.data.data
@@ -849,7 +849,7 @@ val Png.ihdr: PngIhdr
     }
 
 /** The PLTE chunk data, or `null` if not present. */
-val Png.plte: PngPlte?
+val PngRaw.plte: PngPlte?
     get() {
         val c = chunks.firstOrNull { it.type.value == "PLTE" } ?: return null
         val d = c.data.data
@@ -864,7 +864,7 @@ val Png.plte: PngPlte?
     }
 
 /** All IDAT chunks in file order. */
-val Png.idatChunks: List<PngIdat>
+val PngRaw.idatChunks: List<PngIdat>
     get() = chunks
         .filter { it.type.value == "IDAT" }
         .map { PngIdat(it.data) }
@@ -874,7 +874,7 @@ val Png.idatChunks: List<PngIdat>
  * This is the full deflate datastream that, when decompressed,
  * yields the filtered scanlines.
  */
-val Png.compressedImageData: Bytes
+val PngRaw.compressedImageData: Bytes
     get() {
         val parts = chunks.filter { it.type.value == "IDAT" }
         val total = parts.sumOf { it.data.size }
@@ -889,10 +889,10 @@ val Png.compressedImageData: Bytes
 
 /** The IEND marker (always present, always last). Returns [PngIend]. */
 @Suppress("unused")
-val Png.iend: PngIend get() = PngIend
+val PngRaw.iend: PngIend get() = PngIend
 
 /** The gAMA chunk data, or `null` if not present. */
-val Png.gama: PngGama?
+val PngRaw.gama: PngGama?
     get() {
         val c = chunks.firstOrNull { it.type.value == "gAMA" } ?: return null
         val d = c.data.data
@@ -904,7 +904,7 @@ val Png.gama: PngGama?
     }
 
 /** The cHRM chunk data, or `null` if not present. */
-val Png.chrm: PngChrm?
+val PngRaw.chrm: PngChrm?
     get() {
         val c = chunks.firstOrNull { it.type.value == "cHRM" } ?: return null
         val d = c.data.data
@@ -922,7 +922,7 @@ val Png.chrm: PngChrm?
     }
 
 /** The sRGB chunk data, or `null` if not present. */
-val Png.srgb: PngSrgb?
+val PngRaw.srgb: PngSrgb?
     get() {
         val c = chunks.firstOrNull { it.type.value == "sRGB" } ?: return null
         return PngSrgb(
@@ -932,7 +932,7 @@ val Png.srgb: PngSrgb?
     }
 
 /** The iCCP chunk data, or `null` if not present. */
-val Png.iccp: PngIccp?
+val PngRaw.iccp: PngIccp?
     get() {
         val c = chunks.firstOrNull { it.type.value == "iCCP" } ?: return null
         val d = c.data.data
@@ -944,7 +944,7 @@ val Png.iccp: PngIccp?
     }
 
 /** The pHYs chunk data, or `null` if not present. */
-val Png.phys: PngPhys?
+val PngRaw.phys: PngPhys?
     get() {
         val c = chunks.firstOrNull { it.type.value == "pHYs" } ?: return null
         val d = c.data.data
@@ -957,7 +957,7 @@ val Png.phys: PngPhys?
     }
 
 /** The tIME chunk data, or `null` if not present. */
-val Png.time: PngTime?
+val PngRaw.time: PngTime?
     get() {
         val c = chunks.firstOrNull { it.type.value == "tIME" } ?: return null
         val d = c.data.data
@@ -969,7 +969,7 @@ val Png.time: PngTime?
     }
 
 /** All tEXt chunks. */
-val Png.textChunks: List<PngTextChunk>
+val PngRaw.textChunks: List<PngTextChunk>
     get() = chunks.filter { it.type.value == "tEXt" }.map { c ->
         val d = c.data.data
         val nullIdx = d.indexOf(0)
@@ -980,7 +980,7 @@ val Png.textChunks: List<PngTextChunk>
     }
 
 /** All zTXt (compressed text) chunks. */
-val Png.ztxtChunks: List<PngZtxt>
+val PngRaw.ztxtChunks: List<PngZtxt>
     get() = chunks.filter { it.type.value == "zTXt" }.map { c ->
         val d = c.data.data
         val nullIdx = d.indexOf(0)
@@ -992,7 +992,7 @@ val Png.ztxtChunks: List<PngZtxt>
     }
 
 /** All iTXt (international text) chunks. */
-val Png.itxtChunks: List<PngItxt>
+val PngRaw.itxtChunks: List<PngItxt>
     get() = chunks.filter { it.type.value == "iTXt" }.map { c ->
         val d = c.data.data
         fun nextNull(from: Int): Int {
@@ -1014,7 +1014,7 @@ val Png.itxtChunks: List<PngItxt>
     }
 
 /** The tRNS chunk data, or `null` if not present. */
-val Png.trns: PngTrns?
+val PngRaw.trns: PngTrns?
     get() {
         val c = chunks.firstOrNull { it.type.value == "tRNS" } ?: return null
         val d = c.data.data
@@ -1034,14 +1034,14 @@ val Png.trns: PngTrns?
     }
 
 /** The sBIT chunk data, or `null` if not present. */
-val Png.sbit: PngSbit?
+val PngRaw.sbit: PngSbit?
     get() {
         val c = chunks.firstOrNull { it.type.value == "sBIT" } ?: return null
         return PngSbit(c.data.data.map { it.toUByte() })
     }
 
 /** The bKGD chunk data, or `null` if not present. */
-val Png.bkgd: PngBkgd?
+val PngRaw.bkgd: PngBkgd?
     get() {
         val c = chunks.firstOrNull { it.type.value == "bKGD" } ?: return null
         val d = c.data.data
@@ -1060,7 +1060,7 @@ val Png.bkgd: PngBkgd?
     }
 
 /** The hIST chunk data, or `null` if not present. */
-val Png.hist: PngHist?
+val PngRaw.hist: PngHist?
     get() {
         val c = chunks.firstOrNull { it.type.value == "hIST" } ?: return null
         val d = c.data.data
@@ -1071,7 +1071,7 @@ val Png.hist: PngHist?
     }
 
 /** All sPLT (suggested palette) chunks. */
-val Png.spltChunks: List<PngSplt>
+val PngRaw.spltChunks: List<PngSplt>
     get() = chunks.filter { it.type.value == "sPLT" }.map { c ->
         val d = c.data.data
         val nullIdx = d.indexOf(0)
@@ -1108,7 +1108,7 @@ val Png.spltChunks: List<PngSplt>
     }
 
 /** The acTL (APNG Animation Control) chunk data, or `null` if not present. */
-val Png.actl: PngActl?
+val PngRaw.actl: PngActl?
     get() {
         val c = chunks.firstOrNull { it.type.value == "acTL" } ?: return null
         val d = c.data.data
@@ -1121,7 +1121,7 @@ val Png.actl: PngActl?
     }
 
 /** All fcTL (APNG Frame Control) chunk data in file order. */
-val Png.fctlChunks: List<PngFctl>
+val PngRaw.fctlChunks: List<PngFctl>
     get() = chunks.filter { it.type.value == "fcTL" }.map { c ->
         val d = c.data.data
         fun readU32(offset: Int): UInt =

@@ -5,19 +5,19 @@ package dev.transmute.structure.image
 import dev.transmute.model.core.Bytes
 import dev.transmute.model.structure.StructureReadException
 import dev.transmute.model.structure.StructureReader
-import dev.transmute.model.structure.image.Heif
+import dev.transmute.model.structure.image.HeifRaw
 import dev.transmute.structure.common.parseIsoBmffBoxes
 
 /**
- * Parses raw HEIF/HEIC file bytes into a [Heif] structure.
+ * Parses raw HeifRaw/HEIC file bytes into a [HeifRaw] structure.
  *
- * HEIF uses ISO BMFF with major brands `heic`, `heix`, `mif1`, or `heis`.
+ * HeifRaw uses ISO BMFF with major brands `heic`, `heix`, `mif1`, or `heis`.
  *
  * ```
  * | ftyp box | meta box | mdat box | … |
  * ```
  */
-class HeifStructureReader : StructureReader<Heif> {
+class HeifStructureReader : StructureReader<HeifRaw> {
 
     override fun canRead(source: Bytes): Boolean {
         val d = source.data
@@ -31,11 +31,11 @@ class HeifStructureReader : StructureReader<Heif> {
         return brand in HEIF_BRANDS
     }
 
-    override fun read(source: Bytes): Heif {
+    override fun read(source: Bytes): HeifRaw {
         val d = source.data
-        if (!canRead(source)) throw StructureReadException("Not a HEIF/HEIC file (bad ftyp)")
+        if (!canRead(source)) throw StructureReadException("Not a HeifRaw/HEIC file (bad ftyp)")
         val boxes = d.parseIsoBmffBoxes()
-        return Heif(boxes = boxes)
+        return HeifRaw(boxes = boxes)
     }
 
     companion object {

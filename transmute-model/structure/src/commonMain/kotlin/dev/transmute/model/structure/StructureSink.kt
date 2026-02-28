@@ -3,11 +3,12 @@
 package dev.transmute.model.structure
 
 import dev.transmute.model.core.Bytes
+import dev.transmute.model.core.RawMediaStructure
 
 /**
- * Writes [MediaStructure] instances to a destination.
+ * Writes [RawMediaStructure] instances to a destination.
  *
- * Every [MediaStructure] already implements [toBytes()][dev.transmute.model.core.BinarySerializable.toBytes]
+ * Every [RawMediaStructure] already implements [toBytes()][dev.transmute.model.core.BinarySerializable.toBytes]
  * for in-memory serialisation. A [StructureSink] abstracts the *destination*:
  * a file on disk, a network stream, an in-memory buffer, etc.
  *
@@ -23,7 +24,7 @@ import dev.transmute.model.core.Bytes
  */
 interface StructureSink {
     /** Write [structure] to this sink. */
-    suspend fun write(structure: MediaStructure)
+    suspend fun write(structure: RawMediaStructure)
 
     /** Flush any buffered data. No-op for non-buffered sinks. */
     suspend fun flush() {}
@@ -38,7 +39,7 @@ interface StructureSink {
 class BytesSink : StructureSink {
     private var result: Bytes? = null
 
-    override suspend fun write(structure: MediaStructure) {
+    override suspend fun write(structure: RawMediaStructure) {
         result = structure.toBytes()
     }
 

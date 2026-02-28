@@ -5,19 +5,19 @@ package dev.transmute.structure.video
 import dev.transmute.model.core.Bytes
 import dev.transmute.model.structure.StructureReadException
 import dev.transmute.model.structure.StructureReader
-import dev.transmute.model.structure.video.Mkv
+import dev.transmute.model.structure.video.MkvRaw
 import dev.transmute.structure.common.parseEbmlElements
 
 /**
- * Parses raw MKV (Matroska Video) file bytes into an [Mkv] structure.
+ * Parses raw MkvRaw (Matroska Video) file bytes into an [MkvRaw] structure.
  *
- * MKV uses the EBML container format with DocType `matroska`.
+ * MkvRaw uses the EBML container format with DocType `matroska`.
  *
  * ```
  * | EBML Header | Segment |
  * ```
  */
-class MkvStructureReader : StructureReader<Mkv> {
+class MkvStructureReader : StructureReader<MkvRaw> {
 
     override fun canRead(source: Bytes): Boolean {
         val d = source.data
@@ -30,11 +30,11 @@ class MkvStructureReader : StructureReader<Mkv> {
         return findDocType(d) == "matroska"
     }
 
-    override fun read(source: Bytes): Mkv {
+    override fun read(source: Bytes): MkvRaw {
         val d = source.data
-        if (!canRead(source)) throw StructureReadException("Not an MKV file (bad EBML header or DocType)")
+        if (!canRead(source)) throw StructureReadException("Not an MkvRaw file (bad EBML header or DocType)")
         val elements = d.parseEbmlElements()
-        return Mkv(elements = elements)
+        return MkvRaw(elements = elements)
     }
 }
 

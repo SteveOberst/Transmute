@@ -31,16 +31,12 @@ internal class PluginInstallation<C : Any>(
 
     // Create a scope with this plugin's logger, diagnostics, and features
     val pluginScope = TransmuteScope(
-      imageDecoders = scope.imageDecoders,
-      imageEncoders = scope.imageEncoders,
-      audioDecoders = scope.audioDecoders,
-      audioEncoders = scope.audioEncoders,
-      videoDecoders = scope.videoDecoders,
-      videoEncoders = scope.videoEncoders,
+      codecs = scope.codecs,
       services = scope.services,
       diagnostics = pluginDiag,
       logger = pluginLogger,
       features = featuresConfig,
+      mediaStructures = scope.mediaStructures,
     )
     installedScope = pluginScope
     plugin.install(pluginScope, config)

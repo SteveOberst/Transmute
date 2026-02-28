@@ -8,7 +8,7 @@ import dev.transmute.model.structure.common.FtypData
 import dev.transmute.model.structure.common.IsoBmffBox
 import dev.transmute.model.structure.common.findBox
 import dev.transmute.model.structure.common.parseFtyp
-import dev.transmute.model.structure.MediaStructure
+import dev.transmute.model.core.RawMediaStructure
 import kotlinx.serialization.Serializable
 
 // --- AVIF file — complete on-disk representation ---
@@ -23,10 +23,10 @@ import kotlinx.serialization.Serializable
  * ```
  */
 @Serializable
-data class Avif(
+data class AvifRaw(
     /** All top-level ISO BMFF boxes in file order. */
     val boxes: List<IsoBmffBox>,
-) : MediaStructure {
+) : RawMediaStructure {
 
     // --- Binary serialization ---
 
@@ -43,22 +43,22 @@ data class Avif(
 // --- Typed extension accessors ---
 
 /** The `ftyp` box (required by ISO BMFF spec). */
-val Avif.ftypBox: IsoBmffBox? get() = boxes.findBox("ftyp")
+val AvifRaw.ftypBox: IsoBmffBox? get() = boxes.findBox("ftyp")
 
 /** Parsed `ftyp` data. */
-val Avif.ftyp: FtypData? get() = boxes.parseFtyp()
+val AvifRaw.ftyp: FtypData? get() = boxes.parseFtyp()
 
 /** Major brand from the `ftyp` box. */
-val Avif.majorBrand: Brand? get() = ftyp?.majorBrand
+val AvifRaw.majorBrand: Brand? get() = ftyp?.majorBrand
 
 /** Minor version from the `ftyp` box. */
-val Avif.minorVersion: UInt? get() = ftyp?.minorVersion
+val AvifRaw.minorVersion: UInt? get() = ftyp?.minorVersion
 
 /** Compatible brands from the `ftyp` box. */
-val Avif.compatibleBrands: List<Brand> get() = ftyp?.compatibleBrands ?: emptyList()
+val AvifRaw.compatibleBrands: List<Brand> get() = ftyp?.compatibleBrands ?: emptyList()
 
 /** The `meta` box (required by AVIF spec). */
-val Avif.metaBox: IsoBmffBox? get() = boxes.findBox("meta")
+val AvifRaw.metaBox: IsoBmffBox? get() = boxes.findBox("meta")
 
 /** The `mdat` (media data) box, or `null`. */
-val Avif.mdatBox: IsoBmffBox? get() = boxes.findBox("mdat")
+val AvifRaw.mdatBox: IsoBmffBox? get() = boxes.findBox("mdat")

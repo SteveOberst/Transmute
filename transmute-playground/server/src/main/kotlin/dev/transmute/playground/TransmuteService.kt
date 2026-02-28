@@ -8,7 +8,7 @@ import dev.transmute.plugin.PluginId
 import dev.transmute.image.ImageFormat
 import dev.transmute.audio.AudioFormat
 import dev.transmute.video.VideoFormat
-import dev.transmute.model.structure.StructureReaders
+import dev.transmute.model.core.asBytes
 import dev.transmute.AudioTransforms
 import dev.transmute.ImageTransforms
 import dev.transmute.Param
@@ -111,24 +111,21 @@ class TransmuteService(
                 is VideoFormat -> MediaDomainDto.VIDEO
                 else -> MediaDomainDto.IMAGE
             }
+            val structure = try {
+                transmute.codec.decodeStructure(bytes.asBytes(), format)
+            } catch (_: Exception) { null }
+
             InspectResult(
                 domain = domain,
                 format = format.label,
                 fileSize = uploaded.size,
-                properties = buildMap {
-                    put("filename", uploaded.name)
-                    put("format", format.label)
-                    put("domain", domain.name.lowercase())
-                    put("fileSize", humanReadableSize(uploaded.size))
-                    format::class.simpleName?.let { put("decodedBy", it) }
-                },
+                structure = structure,
             )
         } catch (e: Exception) {
             InspectResult(
                 domain = MediaDomainDto.IMAGE,
                 format = "error",
                 fileSize = uploaded.size,
-                properties = mapOf("error" to (e.message ?: "Unknown error")),
             )
         }
     }
@@ -147,7 +144,7 @@ class TransmuteService(
                 domain = MediaDomainDto.IMAGE,
                 canDecode = fmt in decodable,
                 canEncode = fmt in encodable,
-                hasStructureReader = StructureReaders.readerFor<Nothing>(fmt) != null,
+                hasStructureReader = transmute.codec.hasStructureDecoder(fmt),
                 providedBy = if (fmt.label in builtInFormatLabels) null else GStreamer.key.id,
             )
         }.sortedBy { it.name }
@@ -163,7 +160,7 @@ class TransmuteService(
                 domain = MediaDomainDto.AUDIO,
                 canDecode = fmt in decodable,
                 canEncode = fmt in encodable,
-                hasStructureReader = StructureReaders.readerFor<Nothing>(fmt) != null,
+                hasStructureReader = transmute.codec.hasStructureDecoder(fmt),
                 providedBy = if (fmt.label in builtInFormatLabels) null else GStreamer.key.id,
             )
         }.sortedBy { it.name }
@@ -179,7 +176,7 @@ class TransmuteService(
                 domain = MediaDomainDto.VIDEO,
                 canDecode = fmt in decodable,
                 canEncode = fmt in encodable,
-                hasStructureReader = StructureReaders.readerFor<Nothing>(fmt) != null,
+                hasStructureReader = transmute.codec.hasStructureDecoder(fmt),
                 providedBy = if (fmt.label in builtInFormatLabels) null else GStreamer.key.id,
             )
         }.sortedBy { it.name }

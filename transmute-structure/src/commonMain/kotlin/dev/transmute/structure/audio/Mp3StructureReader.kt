@@ -6,12 +6,12 @@ import dev.transmute.model.core.Bytes
 import dev.transmute.model.core.asBytes
 import dev.transmute.model.structure.StructureReadException
 import dev.transmute.model.structure.StructureReader
-import dev.transmute.model.structure.audio.Mp3
+import dev.transmute.model.structure.audio.Mp3Raw
 
 /**
- * Parses raw MP3 file bytes into an [Mp3] structure.
+ * Parses raw Mp3Raw file bytes into an [Mp3Raw] structure.
  *
- * MP3 layout:
+ * Mp3Raw layout:
  * ```
  * | [ID3v2 tag] | MPEG frame₁ | MPEG frame₂ | … | [ID3v1 tag (128 B)] |
  * ```
@@ -19,7 +19,7 @@ import dev.transmute.model.structure.audio.Mp3
  * The reader extracts the optional ID3v2 header, the raw audio frames
  * as a single blob, and the optional 128-byte ID3v1 trailer.
  */
-class Mp3StructureReader : StructureReader<Mp3> {
+class Mp3StructureReader : StructureReader<Mp3Raw> {
 
     override fun canRead(source: Bytes): Boolean {
         val d = source.data
@@ -31,9 +31,9 @@ class Mp3StructureReader : StructureReader<Mp3> {
         return false
     }
 
-    override fun read(source: Bytes): Mp3 {
+    override fun read(source: Bytes): Mp3Raw {
         val d = source.data
-        if (!canRead(source)) throw StructureReadException("Not an MP3 file")
+        if (!canRead(source)) throw StructureReadException("Not an Mp3Raw file")
 
         var audioStart = 0
 
@@ -70,11 +70,11 @@ class Mp3StructureReader : StructureReader<Mp3> {
         }
 
         val audioEnd = if (id3v1 != null) d.size - 128 else d.size
-        if (audioStart >= audioEnd) throw StructureReadException("No audio data found in MP3 file")
+        if (audioStart >= audioEnd) throw StructureReadException("No audio data found in Mp3Raw file")
 
         val audioData = d.copyOfRange(audioStart, audioEnd).asBytes()
 
-        return Mp3(
+        return Mp3Raw(
             id3v2Tag = id3v2,
             audioData = audioData,
             id3v1TagData = id3v1,

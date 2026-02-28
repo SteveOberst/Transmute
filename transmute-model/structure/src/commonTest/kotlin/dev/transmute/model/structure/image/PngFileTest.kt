@@ -85,11 +85,11 @@ private fun minimalPng(
     height: UInt = 8u,
     colorType: Int = 2,
     extraChunks: List<PngChunk> = emptyList(),
-): Png {
+): PngRaw {
     val ihdr = buildChunk("IHDR", ihdrData(width, height, colorType = colorType))
     val iend = buildChunk("IEND")
-    return Png(
-        signature = Bytes(Png.SIGNATURE.copyOf()),
+    return PngRaw(
+        signature = Bytes(PngRaw.SIGNATURE.copyOf()),
         chunks = listOf(ihdr) + extraChunks + iend,
     )
 }
@@ -161,7 +161,7 @@ class PngFileTest {
 
         // Re-parse through a Png accessor
         val chunk = buildChunk("IHDR", bytes)
-        val png = Png(Bytes(Png.SIGNATURE.copyOf()), listOf(chunk, buildChunk("IEND")))
+        val png = PngRaw(Bytes(PngRaw.SIGNATURE.copyOf()), listOf(chunk, buildChunk("IEND")))
         val parsed = png.ihdr
 
         assertEquals(original.width, parsed.width)
@@ -762,7 +762,7 @@ class PngFileTest {
         val png = minimalPng()
         val bytes = png.toBytes().data
 
-        assertContentEquals(Png.SIGNATURE, bytes.sliceArray(0..7))
+        assertContentEquals(PngRaw.SIGNATURE, bytes.sliceArray(0..7))
     }
 
     @Test

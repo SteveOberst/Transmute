@@ -7,7 +7,7 @@ import dev.transmute.model.core.Bytes
 import dev.transmute.model.core.Pixels
 import dev.transmute.model.core.asBytes
 import dev.transmute.model.identify.Endianness
-import dev.transmute.model.structure.MediaStructure
+import dev.transmute.model.core.RawMediaStructure
 import kotlinx.serialization.Serializable
 
 // --- Helpers — byte-order–aware encoding ---
@@ -159,7 +159,7 @@ data class TiffIfd(
  * captured in [extraData] for round-trip fidelity.
  */
 @Serializable
-data class Tiff(
+data class TiffRaw(
     /** Byte order: II (little-endian) or MM (big-endian). */
     val byteOrder: Endianness,
     /** Offset of the first IFD (from start of file). */
@@ -170,7 +170,7 @@ data class Tiff(
     val imageData: Bytes = Bytes(ByteArray(0)),
     /** Any extra data regions for round-trip fidelity. */
     val extraData: Bytes = Bytes(ByteArray(0)),
-) : MediaStructure {
+) : RawMediaStructure {
 
     // --- Binary serialization ---
 
@@ -230,12 +230,12 @@ data class Tiff(
 
 // --- Typed extension accessors ---
 
-private fun Tiff.tiffReadU16(d: ByteArray, off: Int): Int = when (byteOrder) {
+private fun TiffRaw.tiffReadU16(d: ByteArray, off: Int): Int = when (byteOrder) {
     Endianness.Little -> (d[off].toInt() and 0xFF) or ((d[off + 1].toInt() and 0xFF) shl 8)
     Endianness.Big    -> ((d[off].toInt() and 0xFF) shl 8) or (d[off + 1].toInt() and 0xFF)
 }
 
-private fun Tiff.tiffReadU32(d: ByteArray, off: Int): UInt = when (byteOrder) {
+private fun TiffRaw.tiffReadU32(d: ByteArray, off: Int): UInt = when (byteOrder) {
     Endianness.Little ->
         (d[off].toUInt() and 0xFFu) or
         ((d[off+1].toUInt() and 0xFFu) shl 8) or
@@ -248,7 +248,7 @@ private fun Tiff.tiffReadU32(d: ByteArray, off: Int): UInt = when (byteOrder) {
         (d[off+3].toUInt() and 0xFFu)
 }
 
-private fun Tiff.findIfd0TagValue(tagCode: UShort): Int? {
+private fun TiffRaw.findIfd0TagValue(tagCode: UShort): Int? {
     val entry = ifds.firstOrNull()?.entries?.find { it.tag == tagCode } ?: return null
     val d = entry.data.data
     return when {
@@ -258,7 +258,7 @@ private fun Tiff.findIfd0TagValue(tagCode: UShort): Int? {
     }
 }
 
-private fun Tiff.readIntValues(entry: TiffIfdEntry, ft: TiffFieldType): List<Int> {
+private fun TiffRaw.readIntValues(entry: TiffIfdEntry, ft: TiffFieldType): List<Int> {
     val d = entry.data.data
     val count = entry.count.toInt()
     return (0 until count).mapNotNull { i ->
@@ -277,15 +277,15 @@ private fun Tiff.readIntValues(entry: TiffIfdEntry, ft: TiffFieldType): List<Int
 }
 
 /** Image width from IFD 0 tag 256 (ImageWidth). */
-val Tiff.width: Pixels?
+val TiffRaw.width: Pixels?
     get() = findIfd0TagValue(TiffTag.ImageWidth.code)?.let { Pixels(it) }
 
 /** Image height from IFD 0 tag 257 (ImageLength). */
-val Tiff.height: Pixels?
+val TiffRaw.height: Pixels?
     get() = findIfd0TagValue(TiffTag.ImageLength.code)?.let { Pixels(it) }
 
 /** Bits per sample from IFD 0 tag 258. */
-val Tiff.bitsPerSample: List<Int>
+val TiffRaw.bitsPerSample: List<Int>
     get() {
         val entry = ifds.firstOrNull()?.entries?.find { it.tag == TiffTag.BitsPerSample.code } ?: return emptyList()
         val ft = TiffFieldType.fromCode(entry.fieldType) ?: return emptyList()
@@ -293,5 +293,5 @@ val Tiff.bitsPerSample: List<Int>
     }
 
 /** Compression scheme from IFD 0 tag 259. */
-val Tiff.compression: Int?
+val TiffRaw.compression: Int?
     get() = findIfd0TagValue(TiffTag.Compression.code)

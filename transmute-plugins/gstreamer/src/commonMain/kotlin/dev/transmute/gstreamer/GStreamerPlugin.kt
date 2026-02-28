@@ -174,7 +174,7 @@ object GStreamer : TransmutePlugin<GStreamerPluginConfig> {
     if (installInfo.isNotBlank()) logger.info("GStreamer available [$installInfo]")
 
     if (features.isEnabled(GStreamerFeature.AudioCodecs)) {
-      GStreamerCodecInstaller.installAudioCodecs(scope.audioDecoders, scope.audioEncoders)
+      GStreamerCodecInstaller.installAudioCodecs(scope.codecs.audio.decoders, scope.codecs.audio.encoders)
       logger.info("Registered GStreamer audio codecs")
     } else {
       logger.debug("Audio codecs feature disabled — skipping")
@@ -182,8 +182,8 @@ object GStreamer : TransmutePlugin<GStreamerPluginConfig> {
 
     if (features.isEnabled(GStreamerFeature.ImageCodecs)) {
       GStreamerCodecInstaller.installImageCodecs(
-        scope.imageDecoders,
-        scope.imageEncoders,
+        scope.codecs.image.decoders,
+        scope.codecs.image.encoders,
         features,
       )
       logger.info("Registered GStreamer image codecs")
@@ -193,8 +193,8 @@ object GStreamer : TransmutePlugin<GStreamerPluginConfig> {
 
     if (features.isEnabled(GStreamerFeature.VideoCodecs)) {
       GStreamerCodecInstaller.installVideoCodecs(
-        scope.videoDecoders,
-        scope.videoEncoders,
+        scope.codecs.video.decoders,
+        scope.codecs.video.encoders,
         features,
       )
       logger.info("Registered GStreamer video codecs")

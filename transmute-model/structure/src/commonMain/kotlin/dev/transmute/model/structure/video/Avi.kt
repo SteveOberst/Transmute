@@ -4,7 +4,7 @@ package dev.transmute.model.structure.video
 
 import dev.transmute.model.core.Bytes
 import dev.transmute.model.identify.RiffChunkId
-import dev.transmute.model.structure.MediaStructure
+import dev.transmute.model.core.RawMediaStructure
 import dev.transmute.model.structure.common.RiffChunk
 import kotlinx.serialization.Serializable
 
@@ -57,10 +57,10 @@ data class AviMainHeader(
  * ```
  */
 @Serializable
-data class Avi(
+data class AviRaw(
     /** The top-level RIFF container (id = `RIFF`, formType = `AVI `). */
     val riff: RiffChunk,
-) : MediaStructure {
+) : RawMediaStructure {
 
     // --- Binary serialization ---
 
@@ -75,22 +75,22 @@ data class Avi(
 // --- Typed extension accessors ---
 
 /** Sub-chunks inside the RIFF container. */
-val Avi.chunks: List<RiffChunk> get() = riff.children
+val AviRaw.chunks: List<RiffChunk> get() = riff.children
 
 /** The `hdrl` LIST chunk, or `null`. */
-val Avi.headerList: RiffChunk?
+val AviRaw.headerList: RiffChunk?
     get() = chunks.firstOrNull { it.id.value == "LIST" && it.formType?.value == "hdrl" }
 
 /** The `movi` LIST chunk, or `null`. */
-val Avi.movieList: RiffChunk?
+val AviRaw.movieList: RiffChunk?
     get() = chunks.firstOrNull { it.id.value == "LIST" && it.formType?.value == "movi" }
 
 /** The `idx1` index chunk, or `null`. */
-val Avi.indexChunk: RiffChunk?
+val AviRaw.indexChunk: RiffChunk?
     get() = chunks.firstOrNull { it.id.value == "idx1" }
 
 /** Parsed AVI main header from the `avih` chunk. */
-val Avi.mainHeader: AviMainHeader?
+val AviRaw.mainHeader: AviMainHeader?
     get() {
         val avih = headerList?.children?.firstOrNull { it.id.value == "avih" } ?: return null
         val d = avih.data.data
@@ -109,5 +109,5 @@ val Avi.mainHeader: AviMainHeader?
     }
 
 /** Number of stream LIST chunks (`strl`). */
-val Avi.streamCount: Int
+val AviRaw.streamCount: Int
     get() = headerList?.children?.count { it.id.value == "LIST" && it.formType?.value == "strl" } ?: 0

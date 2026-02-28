@@ -5,19 +5,19 @@ package dev.transmute.structure.video
 import dev.transmute.model.core.Bytes
 import dev.transmute.model.structure.StructureReadException
 import dev.transmute.model.structure.StructureReader
-import dev.transmute.model.structure.video.Webm
+import dev.transmute.model.structure.video.WebmRaw
 import dev.transmute.structure.common.parseEbmlElements
 
 /**
- * Parses raw WebM file bytes into a [Webm] structure.
+ * Parses raw WebmRaw file bytes into a [WebmRaw] structure.
  *
- * WebM uses the EBML container format with DocType `webm`.
+ * WebmRaw uses the EBML container format with DocType `webm`.
  *
  * ```
  * | EBML Header | Segment |
  * ```
  */
-class WebmStructureReader : StructureReader<Webm> {
+class WebmStructureReader : StructureReader<WebmRaw> {
 
     override fun canRead(source: Bytes): Boolean {
         val d = source.data
@@ -30,11 +30,11 @@ class WebmStructureReader : StructureReader<Webm> {
         return findDocType(d) == "webm"
     }
 
-    override fun read(source: Bytes): Webm {
+    override fun read(source: Bytes): WebmRaw {
         val d = source.data
-        if (!canRead(source)) throw StructureReadException("Not a WebM file (bad EBML header or DocType)")
+        if (!canRead(source)) throw StructureReadException("Not a WebmRaw file (bad EBML header or DocType 'webm')")
         val elements = d.parseEbmlElements()
-        return Webm(elements = elements)
+        return WebmRaw(elements = elements)
     }
 }
 

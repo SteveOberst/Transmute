@@ -8,7 +8,7 @@ import dev.transmute.model.structure.common.FtypData
 import dev.transmute.model.structure.common.IsoBmffBox
 import dev.transmute.model.structure.common.findBox
 import dev.transmute.model.structure.common.parseFtyp
-import dev.transmute.model.structure.MediaStructure
+import dev.transmute.model.core.RawMediaStructure
 import kotlinx.serialization.Serializable
 
 // --- MOV file — complete on-disk representation ---
@@ -26,10 +26,10 @@ import kotlinx.serialization.Serializable
  * Classic QuickTime files may omit the `ftyp` box entirely.
  */
 @Serializable
-data class Mov(
+data class MovRaw(
     /** All top-level ISO BMFF boxes (atoms) in file order. */
     val boxes: List<IsoBmffBox>,
-) : MediaStructure {
+) : RawMediaStructure {
 
     // --- Binary serialization ---
 
@@ -46,22 +46,22 @@ data class Mov(
 // --- Typed extension accessors ---
 
 /** The `ftyp` box, or `null` if not present (classic QuickTime may omit it). */
-val Mov.ftypBox: IsoBmffBox? get() = boxes.findBox("ftyp")
+val MovRaw.ftypBox: IsoBmffBox? get() = boxes.findBox("ftyp")
 
 /** Parsed `ftyp` data. */
-val Mov.ftyp: FtypData? get() = boxes.parseFtyp()
+val MovRaw.ftyp: FtypData? get() = boxes.parseFtyp()
 
 /** Major brand from the `ftyp` box. */
-val Mov.majorBrand: Brand? get() = ftyp?.majorBrand
+val MovRaw.majorBrand: Brand? get() = ftyp?.majorBrand
 
 /** Minor version from the `ftyp` box. */
-val Mov.minorVersion: UInt? get() = ftyp?.minorVersion
+val MovRaw.minorVersion: UInt? get() = ftyp?.minorVersion
 
 /** Compatible brands from the `ftyp` box. */
-val Mov.compatibleBrands: List<Brand> get() = ftyp?.compatibleBrands ?: emptyList()
+val MovRaw.compatibleBrands: List<Brand> get() = ftyp?.compatibleBrands ?: emptyList()
 
 /** The `moov` (movie metadata) box (required by spec). */
-val Mov.moovBox: IsoBmffBox? get() = boxes.findBox("moov")
+val MovRaw.moovBox: IsoBmffBox? get() = boxes.findBox("moov")
 
 /** The `mdat` (media data) box, or `null`. */
-val Mov.mdatBox: IsoBmffBox? get() = boxes.findBox("mdat")
+val MovRaw.mdatBox: IsoBmffBox? get() = boxes.findBox("mdat")

@@ -5,7 +5,7 @@ package dev.transmute.model.structure.image
 import dev.transmute.model.core.Bytes
 import dev.transmute.model.core.Pixels
 import dev.transmute.model.identify.RiffChunkId
-import dev.transmute.model.structure.MediaStructure
+import dev.transmute.model.core.RawMediaStructure
 import dev.transmute.model.structure.common.RiffChunk
 import kotlinx.serialization.Serializable
 
@@ -50,10 +50,10 @@ enum class WebpFormat {
  * ```
  */
 @Serializable
-data class Webp(
+data class WebpRaw(
     /** The top-level RIFF container chunk (id = `RIFF`, formType = `WEBP`). */
     val riff: RiffChunk,
-) : MediaStructure {
+) : RawMediaStructure {
 
     // --- Binary serialization ---
 
@@ -68,28 +68,28 @@ data class Webp(
 // --- Typed extension accessors ---
 
 /** Sub-chunks inside the RIFF container. */
-val Webp.chunks: List<RiffChunk> get() = riff.children
+val WebpRaw.chunks: List<RiffChunk> get() = riff.children
 
 /** Inferred encoding format from the first sub-chunk. */
-val Webp.format: WebpFormat
+val WebpRaw.format: WebpFormat
     get() = chunks.firstOrNull()?.let { WebpFormat.fromChunkId(it.id) } ?: WebpFormat.Lossy
 
 /** `true` when an ALPH or VP8X chunk indicates alpha is present. */
-val Webp.hasAlpha: Boolean
+val WebpRaw.hasAlpha: Boolean
     get() {
         val vp8x = chunks.firstOrNull { it.id.value == "VP8X" } ?: return chunks.any { it.id.value == "ALPH" }
         return vp8x.data.size >= 4 && (vp8x.data[0].toInt() and 0x10) != 0
     }
 
 /** `true` when a VP8X chunk indicates animation is present. */
-val Webp.hasAnimation: Boolean
+val WebpRaw.hasAnimation: Boolean
     get() {
         val vp8x = chunks.firstOrNull { it.id.value == "VP8X" } ?: return false
         return vp8x.data.size >= 4 && (vp8x.data[0].toInt() and 0x02) != 0
     }
 
 /** Image width parsed from VP8X, VP8L, or VP8 bitstream. */
-val Webp.width: Pixels?
+val WebpRaw.width: Pixels?
     get() {
         val vp8x = chunks.firstOrNull { it.id.value == "VP8X" }
         if (vp8x != null && vp8x.data.size >= 10) {
@@ -114,7 +114,7 @@ val Webp.width: Pixels?
     }
 
 /** Image height parsed from VP8X, VP8L, or VP8 bitstream. */
-val Webp.height: Pixels?
+val WebpRaw.height: Pixels?
     get() {
         val vp8x = chunks.firstOrNull { it.id.value == "VP8X" }
         if (vp8x != null && vp8x.data.size >= 10) {

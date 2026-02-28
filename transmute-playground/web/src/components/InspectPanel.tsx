@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import type { InspectResult } from '@/lib/types'
 import { motion } from 'framer-motion'
 
@@ -40,38 +41,19 @@ export default function InspectPanel({ result }: Props) {
         </span>
       </div>
 
-      {/* Properties table */}
-      <div className="p-5">
-        <table className="w-full text-sm">
-          <tbody>
-            {Object.entries(result.properties).map(([key, value], i) => (
-              <motion.tr
-                key={key}
-                initial={{ opacity: 0, x: -8 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.04 }}
-                className="border-b border-[var(--surface-3)]/50 last:border-0"
-              >
-                <td className="py-2 pr-4 font-mono text-xs text-[#888898] whitespace-nowrap">
-                  {key}
-                </td>
-                <td className="py-2 font-mono text-xs text-white">
-                  {value}
-                </td>
-              </motion.tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Structure tree (if available) */}
+      {/* Structure tree */}
       {result.structure && (
-        <div className="px-5 pb-5">
-          <div className="text-xs text-[#666680] font-mono mb-2 uppercase tracking-wider">
-            Structure
+        <div className="p-5">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-xs text-[#666680] font-mono uppercase tracking-wider">
+              Structure
+            </span>
+            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[var(--surface-2)] text-[#555568] border border-[var(--surface-3)]">
+              {result.structure.type}
+            </span>
           </div>
-          <div className="code-block max-h-60 overflow-y-auto text-xs">
-            <StructureTree node={result.structure} depth={0} />
+          <div className="code-block max-h-96 overflow-y-auto text-xs p-3 rounded-xl bg-[var(--surface-2)] border border-[var(--surface-3)]">
+            <JsonTree value={result.structure.value} depth={0} />
           </div>
         </div>
       )}
@@ -79,29 +61,95 @@ export default function InspectPanel({ result }: Props) {
   )
 }
 
-/* ── Structure tree renderer ──────────────────────────────────────── */
+/* ── Generic JSON tree renderer ────────────────────────────────────── */
 
-function StructureTree({ node, depth }: { node: InspectResult['structure']; depth: number }) {
-  if (!node) return null
-  const indent = '  '.repeat(depth)
+type JsonValue = string | number | boolean | null | JsonValue[] | { [k: string]: JsonValue }
+
+function JsonTree({ value, depth }: { value: unknown; depth: number }) {
+  if (value === null || value === undefined) {
+    return <span className="text-[#666680]">null</span>
+  }
+  if (typeof value === 'boolean') {
+    return <span className="text-[var(--accent)]">{value ? 'true' : 'false'}</span>
+  }
+  if (typeof value === 'number') {
+    return <span className="text-[#a8d8a8]">{value}</span>
+  }
+  if (typeof value === 'string') {
+    return <span className="text-[#e8c07a]">&quot;{value}&quot;</span>
+  }
+  if (Array.isArray(value)) {
+    return <JsonArray arr={value} depth={depth} />
+  }
+  if (typeof value === 'object') {
+    return <JsonObject obj={value as Record<string, unknown>} depth={depth} />
+  }
+  return <span className="text-[#888898]">{String(value)}</span>
+}
+
+function JsonObject({ obj, depth }: { obj: Record<string, unknown>; depth: number }) {
+  const [expanded, setExpanded] = useState(depth < 2)
+  const entries = Object.entries(obj)
+
+  if (entries.length === 0) {
+    return <span className="text-[#555568]">{'{}'}</span>
+  }
+
   return (
-    <>
-      <div>
-        <span className="text-[var(--accent)]">{indent}{node.name}</span>
-        <span className="text-[#555566]"> ({node.type})</span>
-        {node.size > 0 && (
-          <span className="text-[#444455]"> [{formatBytes(node.size)}]</span>
-        )}
-      </div>
-      {Object.entries(node.properties).map(([k, v]) => (
-        <div key={k} className="text-[#666680]">
-          {indent}  {k}: <span className="text-[#999]">{v}</span>
+    <span>
+      <button
+        onClick={() => setExpanded(e => !e)}
+        className="text-[#555568] hover:text-[#888898] transition-colors font-mono"
+      >
+        {expanded ? '▾' : '▸'}
+      </button>
+      {!expanded && (
+        <span className="text-[#555568] ml-1 italic text-[10px]">
+          {'{' + entries.length + ' fields}'}
+        </span>
+      )}
+      {expanded && (
+        <div className="pl-4 border-l border-[var(--surface-3)]/40 ml-1">
+          {entries.map(([k, v]) => (
+            <div key={k} className="my-0.5">
+              <span className="text-[#888898]">{k}</span>
+              <span className="text-[#555568]">: </span>
+              <JsonTree value={v} depth={depth + 1} />
+            </div>
+          ))}
         </div>
-      ))}
-      {node.children?.map((child, i) => (
-        <StructureTree key={i} node={child} depth={depth + 1} />
-      ))}
-    </>
+      )}
+    </span>
+  )
+}
+
+function JsonArray({ arr, depth }: { arr: unknown[]; depth: number }) {
+  const [expanded, setExpanded] = useState(depth < 1 && arr.length <= 8)
+
+  if (arr.length === 0) {
+    return <span className="text-[#555568]">[]</span>
+  }
+
+  return (
+    <span>
+      <button
+        onClick={() => setExpanded(e => !e)}
+        className="text-[#555568] hover:text-[#888898] transition-colors font-mono"
+      >
+        {expanded ? '▾' : '▸'}
+      </button>
+      <span className="text-[#555568] ml-1 text-[10px]">[{arr.length}]</span>
+      {expanded && (
+        <div className="pl-4 border-l border-[var(--surface-3)]/40 ml-1">
+          {arr.map((item, i) => (
+            <div key={i} className="my-0.5">
+              <span className="text-[#555568] text-[10px] mr-1">{i}</span>
+              <JsonTree value={item} depth={depth + 1} />
+            </div>
+          ))}
+        </div>
+      )}
+    </span>
   )
 }
 

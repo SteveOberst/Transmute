@@ -34,6 +34,10 @@ kotlin {
             api(project(":transmute-model:core"))
             api(project(":transmute-model:identify"))
             api(project(":transmute-model:structure"))
+            api(project(":transmute-codec"))
+            api(project(":transmute-image"))
+            api(project(":transmute-audio"))
+            api(project(":transmute-video"))
         }
 
         commonTest.dependencies {

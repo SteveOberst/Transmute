@@ -57,7 +57,7 @@ class AudioFileTests {
 
     @Test
     fun aacFileConstruction() {
-        val file = Aac(data = ByteArray(100).asBytes())
+        val file = AacRaw(data = ByteArray(100).asBytes())
         assertEquals(100, file.toBytes().data.size)
     }
 
@@ -100,7 +100,7 @@ class AudioFileTests {
         // byte6: buffer_fullness[5:0] | num_raw_data_blocks[1:0] → 111111 00 = 0xFC
         d[6] = 0xFC.toByte()
 
-        val file = Aac(data = d.asBytes())
+        val file = AacRaw(data = d.asBytes())
         val hdr = file.firstFrameHeader
         assertNotNull(hdr)
         assertEquals(Hertz(44100), hdr.sampleRate)
@@ -130,7 +130,7 @@ class AudioFileTests {
         streamInfoData[13] = 0xF0.toByte()
 
         val block = FlacMetadataBlock(FlacMetadataBlockType.StreamInfo, isLast = true, data = streamInfoData.asBytes())
-        val file = Flac(metadataBlocks = listOf(block), audioData = ByteArray(50).asBytes())
+        val file = FlacRaw(metadataBlocks = listOf(block), audioData = ByteArray(50).asBytes())
 
         assertEquals(Hertz(44100), file.sampleRate)
         assertEquals(Channels(2), file.channels)
@@ -171,7 +171,7 @@ class AudioFileTests {
 
     @Test
     fun mp3FileConstruction() {
-        val file = Mp3(id3v2Tag = null, audioData = ByteArray(100).asBytes(), id3v1TagData = null)
+        val file = Mp3Raw(id3v2Tag = null, audioData = ByteArray(100).asBytes(), id3v1TagData = null)
         assertEquals(100, file.toBytes().data.size)
         assertNull(file.id3v1Tag)
     }
@@ -186,7 +186,7 @@ class AudioFileTests {
         "Hello".encodeToByteArray().copyInto(tag, 3)
         tag[127] = 0xFF.toByte() // genre 255
 
-        val file = Mp3(null, ByteArray(10).asBytes(), tag.asBytes())
+        val file = Mp3Raw(null, ByteArray(10).asBytes(), tag.asBytes())
         val parsed = file.id3v1Tag
         assertNotNull(parsed)
         assertEquals("Hello", parsed.title)
@@ -202,7 +202,7 @@ class AudioFileTests {
         // channelMode=01(JointStereo), modeExt=00, copyright=0, original=0, emphasis=00
         // → 0x40
         val frameData = byteArrayOf(0xFF.toByte(), 0xFB.toByte(), 0x90.toByte(), 0x40.toByte())
-        val file = Mp3(null, (frameData + ByteArray(100)).asBytes(), null)
+        val file = Mp3Raw(null, (frameData + ByteArray(100)).asBytes(), null)
         val hdr = file.firstFrameHeader
         assertNotNull(hdr)
         assertEquals(MpegVersion.Mpeg1, hdr.version)
@@ -231,7 +231,7 @@ class AudioFileTests {
     @Test
     fun m4aFileWithFtyp() {
         val ftypData = buildFtypData("M4A ", 512, listOf("isom", "M4A "))
-        val file = M4a(boxes = listOf(IsoBmffBox(FourCC("ftyp"), ftypData)))
+        val file = M4aRaw(boxes = listOf(IsoBmffBox(FourCC("ftyp"), ftypData)))
 
         assertEquals(Brand(FourCC("M4A ")), file.majorBrand)
         assertEquals(512u, file.minorVersion)
@@ -242,7 +242,7 @@ class AudioFileTests {
 
     @Test
     fun oggAudioFileConstruction() {
-        val file = OggAudio(pages = emptyList())
+        val file = OggAudioRaw(pages = emptyList())
         assertEquals(0, file.toBytes().data.size)
         assertTrue(file.streamSerialNumbers.isEmpty())
     }
@@ -270,7 +270,7 @@ class AudioFileTests {
             segmentTable = byteArrayOf(30).asBytes(),
             data = vorbisIdPacket.asBytes(),
         )
-        val file = OggAudio(pages = listOf(page))
+        val file = OggAudioRaw(pages = listOf(page))
 
         assertEquals(Hertz(44100), file.sampleRate)
         assertEquals(Channels(2), file.channels)
@@ -286,7 +286,7 @@ class AudioFileTests {
 
     @Test
     fun opusFileConstruction() {
-        val file = Opus(pages = emptyList())
+        val file = OpusRaw(pages = emptyList())
         // Default sample rate is 48000 (Opus standard)
         assertEquals(Hertz(48000), file.sampleRate)
     }
@@ -314,7 +314,7 @@ class AudioFileTests {
             segmentTable = byteArrayOf(19).asBytes(),
             data = opusHead.asBytes(),
         )
-        val file = Opus(pages = listOf(page))
+        val file = OpusRaw(pages = listOf(page))
 
         assertEquals(Hertz(48000), file.sampleRate)
         assertEquals(Channels(2), file.channels)
@@ -333,7 +333,7 @@ class AudioFileTests {
         val fmtChunk = RiffChunk(RiffChunkId("fmt "), 16u, data = fmtData)
         val dataChunk = RiffChunk(RiffChunkId("data"), 100u, data = ByteArray(100).asBytes())
         val riff = RiffChunk(RiffChunkId("RIFF"), 128u, formType = RiffChunkId("WAVE"), children = listOf(fmtChunk, dataChunk))
-        val file = Wav(riff)
+        val file = WavRaw(riff)
 
         val fmt = file.fmt
         assertNotNull(fmt)
@@ -355,7 +355,7 @@ class AudioFileTests {
         val fmtData = buildFmtData(format = 1, channels = 1, sr = 22050, bps = 8)
         val fmtChunk = RiffChunk(RiffChunkId("fmt "), 16u, data = fmtData)
         val riff = RiffChunk(RiffChunkId("RIFF"), 28u, formType = RiffChunkId("WAVE"), children = listOf(fmtChunk))
-        val file = Wav(riff)
+        val file = WavRaw(riff)
 
         assertEquals(Hertz(22050), file.sampleRate)
         assertEquals(Channels(1), file.channels)

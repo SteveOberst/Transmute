@@ -5,20 +5,20 @@ package dev.transmute.structure.video
 import dev.transmute.model.core.Bytes
 import dev.transmute.model.structure.StructureReadException
 import dev.transmute.model.structure.StructureReader
-import dev.transmute.model.structure.video.Mp4
+import dev.transmute.model.structure.video.Mp4Raw
 import dev.transmute.structure.common.parseIsoBmffBoxes
 
 /**
- * Parses raw MP4 file bytes into an [Mp4] structure.
+ * Parses raw Mp4Raw file bytes into an [Mp4Raw] structure.
  *
- * MP4 uses the ISO BMFF container with brands like `isom`, `mp41`,
+ * Mp4Raw uses the ISO BMFF container with brands like `isom`, `mp41`,
  * `mp42`, `iso2`, `iso5`, `iso6`, `dash`, `msdh`, `msix`.
  *
  * ```
  * | ftyp box | moov box | mdat box | … |
  * ```
  */
-class Mp4StructureReader : StructureReader<Mp4> {
+class Mp4StructureReader : StructureReader<Mp4Raw> {
 
     override fun canRead(source: Bytes): Boolean {
         val d = source.data
@@ -31,11 +31,11 @@ class Mp4StructureReader : StructureReader<Mp4> {
         return brand in MP4_BRANDS
     }
 
-    override fun read(source: Bytes): Mp4 {
+    override fun read(source: Bytes): Mp4Raw {
         val d = source.data
-        if (!canRead(source)) throw StructureReadException("Not an MP4 file (bad ftyp)")
+        if (!canRead(source)) throw StructureReadException("Not an Mp4Raw file (bad ftyp)")
         val boxes = d.parseIsoBmffBoxes()
-        return Mp4(boxes = boxes)
+        return Mp4Raw(boxes = boxes)
     }
 
     companion object {

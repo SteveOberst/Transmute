@@ -8,7 +8,7 @@ import dev.transmute.model.structure.common.FtypData
 import dev.transmute.model.structure.common.IsoBmffBox
 import dev.transmute.model.structure.common.findBox
 import dev.transmute.model.structure.common.parseFtyp
-import dev.transmute.model.structure.MediaStructure
+import dev.transmute.model.core.RawMediaStructure
 import kotlinx.serialization.Serializable
 
 // --- HEIF / HEIC file — complete on-disk representation ---
@@ -26,10 +26,10 @@ import kotlinx.serialization.Serializable
  * ```
  */
 @Serializable
-data class Heif(
+data class HeifRaw(
     /** All top-level ISO BMFF boxes in file order. */
     val boxes: List<IsoBmffBox>,
-) : MediaStructure {
+) : RawMediaStructure {
 
     // --- Binary serialization ---
 
@@ -46,22 +46,22 @@ data class Heif(
 // --- Typed extension accessors ---
 
 /** The `ftyp` box (required by ISO BMFF spec). */
-val Heif.ftypBox: IsoBmffBox? get() = boxes.findBox("ftyp")
+val HeifRaw.ftypBox: IsoBmffBox? get() = boxes.findBox("ftyp")
 
 /** Parsed `ftyp` data. */
-val Heif.ftyp: FtypData? get() = boxes.parseFtyp()
+val HeifRaw.ftyp: FtypData? get() = boxes.parseFtyp()
 
 /** Major brand from the `ftyp` box. */
-val Heif.majorBrand: Brand? get() = ftyp?.majorBrand
+val HeifRaw.majorBrand: Brand? get() = ftyp?.majorBrand
 
 /** Minor version from the `ftyp` box. */
-val Heif.minorVersion: UInt? get() = ftyp?.minorVersion
+val HeifRaw.minorVersion: UInt? get() = ftyp?.minorVersion
 
 /** Compatible brands from the `ftyp` box. */
-val Heif.compatibleBrands: List<Brand> get() = ftyp?.compatibleBrands ?: emptyList()
+val HeifRaw.compatibleBrands: List<Brand> get() = ftyp?.compatibleBrands ?: emptyList()
 
 /** The `meta` box (required by HEIF spec). */
-val Heif.metaBox: IsoBmffBox? get() = boxes.findBox("meta")
+val HeifRaw.metaBox: IsoBmffBox? get() = boxes.findBox("meta")
 
 /** The `mdat` (media data) box, or `null`. */
-val Heif.mdatBox: IsoBmffBox? get() = boxes.findBox("mdat")
+val HeifRaw.mdatBox: IsoBmffBox? get() = boxes.findBox("mdat")
