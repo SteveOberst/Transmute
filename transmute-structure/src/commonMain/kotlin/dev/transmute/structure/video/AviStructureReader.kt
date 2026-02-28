@@ -12,9 +12,9 @@ import dev.transmute.structure.common.parseRiffChildren
 import dev.transmute.structure.common.readU32LE
 
 /**
- * Parses raw AviRaw file bytes into an [AviRaw] structure.
+ * Parses raw AVI file bytes into an [AviRaw] structure.
  *
- * AviRaw uses a RIFF container with form type `AVI `.
+ * AVI uses a RIFF container with form type `AVI `.
  *
  * ```
  * | "RIFF" (4 B) | fileSize (4 B LE) | "AVI " (4 B) | sub-chunks… |

@@ -37,6 +37,7 @@ import kotlin.reflect.full.memberFunctions
  */
 class TransmuteService(
     private val tempDir: File = File(System.getProperty("java.io.tmpdir"), "transmute-playground"),
+    initiallyDisabledPlugins: Set<PluginId> = emptySet(),
 ) {
     private val log = LoggerFactory.getLogger(TransmuteService::class.java)
     private val files = ConcurrentHashMap<String, UploadedFile>()
@@ -44,7 +45,7 @@ class TransmuteService(
     // -- Plugin management (dynamic) -------------------------------------------
 
     private val featureOverrides = mutableMapOf<String, Boolean>()
-    private val disabledPlugins = mutableSetOf<PluginId>()
+    private val disabledPlugins = mutableSetOf<PluginId>().apply { addAll(initiallyDisabledPlugins) }
 
     /** All plugins that this playground knows about, keyed by plugin ID string. */
     private val knownPlugins: Map<String, PluginId> = mapOf(
@@ -340,6 +341,9 @@ class TransmuteService(
         val inputFile = files[request.fileHandle] ?: error("File not found: ${request.fileHandle}")
         val inputBytes = inputFile.file.readBytes().asBytes()
         val fmt = request.outputFormat.lowercase().trim()
+        require(fmt in IMAGE_FORMAT_EXTENSIONS || fmt in AUDIO_FORMAT_EXTENSIONS || fmt in VIDEO_FORMAT_EXTENSIONS) {
+            "Unsupported output format: '$fmt'"
+        }
 
         return when {
             fmt in IMAGE_FORMAT_EXTENSIONS -> executeImageTransform(inputBytes, fmt, request.pipeline)
@@ -420,7 +424,8 @@ class TransmuteService(
             try {
                 fn.callBy(argMap)
             } catch (e: Exception) {
-                log.warn("Failed to instantiate transform '${step.transformId}': ${e.message}")
+                val root = e.cause ?: e
+                log.warn("Failed to instantiate transform '${step.transformId}': ${root.message}")
                 null
             }
         }
@@ -472,6 +477,10 @@ class TransmuteService(
         /** Extension strings that map to the audio domain. */
         private val AUDIO_FORMAT_EXTENSIONS =
             setOf("wav", "mp3", "aac", "m4a", "flac", "ogg", "opus")
+
+        /** Extension strings that map to the video domain. */
+        private val VIDEO_FORMAT_EXTENSIONS =
+            setOf("mp4", "mov", "webm", "mkv", "avi")
 
         private fun toImageFormat(s: String): ImageFormat = when (s) {
             "jpeg", "jpg" -> ImageFormat.Jpeg

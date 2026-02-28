@@ -13,7 +13,7 @@ import dev.transmute.structure.common.decodeAscii
 import dev.transmute.structure.common.readU32BE
 
 /**
- * Parses raw PngRaw file bytes into a [PngRaw] structure.
+ * Parses raw PNG file bytes into a [PngRaw] structure.
  *
  * PngRaw layout:
  * ```

@@ -8,9 +8,9 @@ import dev.transmute.model.structure.StructureReader
 import dev.transmute.model.structure.audio.AacRaw
 
 /**
- * Parses raw AacRaw ADTS file bytes into an [AacRaw] structure.
+ * Parses raw AAC ADTS file bytes into an [AacRaw] structure.
  *
- * AacRaw ADTS is a stream of self-delimiting frames starting with a
+ * AAC ADTS is a stream of self-delimiting frames starting with a
  * 12-bit sync word (`0xFFF`).  The entire file is stored as an
  * opaque blob since individual frame parsing is expensive.
  */
@@ -25,7 +25,7 @@ class AacStructureReader : StructureReader<AacRaw> {
     }
 
     override fun read(source: Bytes): AacRaw {
-        if (!canRead(source)) throw StructureReadException("Not an AacRaw ADTS file (bad sync word)")
+        if (!canRead(source)) throw StructureReadException("Not an AAC ADTS file (bad sync word)")
         return AacRaw(data = source)
     }
 }

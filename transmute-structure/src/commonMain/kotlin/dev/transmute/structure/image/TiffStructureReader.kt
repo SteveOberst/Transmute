@@ -12,7 +12,7 @@ import dev.transmute.model.structure.image.TiffIfd
 import dev.transmute.model.structure.image.TiffIfdEntry
 
 /**
- * Parses raw TiffRaw file bytes into a [TiffRaw] structure.
+ * Parses raw TIFF file bytes into a [TiffRaw] structure.
  *
  * TiffRaw layout:
  * ```

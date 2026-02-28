@@ -14,9 +14,9 @@ import dev.transmute.structure.common.parseRiffChildren
 import dev.transmute.structure.common.readU32LE
 
 /**
- * Parses raw WavRaw file bytes into a [WavRaw] structure.
+ * Parses raw WAV file bytes into a [WavRaw] structure.
  *
- * WavRaw files use the RIFF container format:
+ * WAV files use the RIFF container format:
  * ```
  * | "RIFF" (4 B) | fileSize (4 B LE) | "WAVE" (4 B) | sub-chunks… |
  * ```

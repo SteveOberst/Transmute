@@ -11,7 +11,7 @@ import dev.transmute.model.structure.audio.FlacMetadataBlock
 import dev.transmute.model.structure.audio.FlacMetadataBlockType
 
 /**
- * Parses raw FlacRaw file bytes into a [FlacRaw] structure.
+ * Parses raw FLAC file bytes into a [FlacRaw] structure.
  *
  * FlacRaw layout:
  * ```

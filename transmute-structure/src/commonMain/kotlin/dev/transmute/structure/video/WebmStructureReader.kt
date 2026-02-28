@@ -9,7 +9,7 @@ import dev.transmute.model.structure.video.WebmRaw
 import dev.transmute.structure.common.parseEbmlElements
 
 /**
- * Parses raw WebmRaw file bytes into a [WebmRaw] structure.
+ * Parses raw WebM file bytes into a [WebmRaw] structure.
  *
  * WebmRaw uses the EBML container format with DocType `webm`.
  *

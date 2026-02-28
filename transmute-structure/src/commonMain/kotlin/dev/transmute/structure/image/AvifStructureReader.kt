@@ -9,7 +9,7 @@ import dev.transmute.model.structure.image.AvifRaw
 import dev.transmute.structure.common.parseIsoBmffBoxes
 
 /**
- * Parses raw AvifRaw file bytes into an [AvifRaw] structure.
+ * Parses raw AVIF file bytes into an [AvifRaw] structure.
  *
  * AvifRaw uses ISO BMFF with major brands `avif` or `avis`.
  *

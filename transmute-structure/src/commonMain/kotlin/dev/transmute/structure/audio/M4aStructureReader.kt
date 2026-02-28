@@ -9,7 +9,7 @@ import dev.transmute.model.structure.audio.M4aRaw
 import dev.transmute.structure.common.parseIsoBmffBoxes
 
 /**
- * Parses raw M4aRaw file bytes into an [M4aRaw] structure.
+ * Parses raw M4A file bytes into an [M4aRaw] structure.
  *
  * M4aRaw is an audio-only ISO BMFF container with brands like `M4A `,
  * `M4B `, `mp42`, or `isom` containing only audio tracks.

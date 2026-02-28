@@ -33,8 +33,7 @@ fun main() {
     }.start(wait = true)
 }
 
-fun Application.configureServer() {
-    val service = TransmuteService()
+fun Application.configureServer(service: TransmuteService = TransmuteService()) {
 
     // -- Serialization --------------------------------------------------------
     install(ContentNegotiation) {

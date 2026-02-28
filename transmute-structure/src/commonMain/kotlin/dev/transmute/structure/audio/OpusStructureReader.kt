@@ -9,9 +9,9 @@ import dev.transmute.model.structure.audio.OpusRaw
 import dev.transmute.structure.common.parseOggPages
 
 /**
- * Parses raw Ogg OpusRaw file bytes into an [OpusRaw] structure.
+ * Parses raw Opus file bytes into an [OpusRaw] structure.
  *
- * OpusRaw uses the Ogg container.  The BOS page's first packet
+ * Opus uses the Ogg container.  The BOS page's first packet
  * starts with `OpusHead`.
  */
 class OpusStructureReader : StructureReader<OpusRaw> {
@@ -37,7 +37,7 @@ class OpusStructureReader : StructureReader<OpusRaw> {
 
     override fun read(source: Bytes): OpusRaw {
         val d = source.data
-        if (!canRead(source)) throw StructureReadException("Not an Ogg OpusRaw file (bad signature)")
+        if (!canRead(source)) throw StructureReadException("Not an Opus file (bad Ogg header signature)")
         val pages = d.parseOggPages()
         return OpusRaw(pages = pages)
     }

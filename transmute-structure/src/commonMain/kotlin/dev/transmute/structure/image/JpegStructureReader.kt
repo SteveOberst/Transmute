@@ -12,7 +12,7 @@ import dev.transmute.model.structure.image.JpegSegment
 import dev.transmute.structure.common.readU16BE
 
 /**
- * Parses raw JpegRaw file bytes into a [JpegRaw] structure.
+ * Parses raw JPEG file bytes into a [JpegRaw] structure.
  *
  * JpegRaw layout:
  * ```

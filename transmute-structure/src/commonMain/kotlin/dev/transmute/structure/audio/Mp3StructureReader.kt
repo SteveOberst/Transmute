@@ -9,7 +9,7 @@ import dev.transmute.model.structure.StructureReader
 import dev.transmute.model.structure.audio.Mp3Raw
 
 /**
- * Parses raw Mp3Raw file bytes into an [Mp3Raw] structure.
+ * Parses raw MP3 file bytes into an [Mp3Raw] structure.
  *
  * Mp3Raw layout:
  * ```

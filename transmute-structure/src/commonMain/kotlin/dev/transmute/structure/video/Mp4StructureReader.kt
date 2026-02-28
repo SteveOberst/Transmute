@@ -9,7 +9,7 @@ import dev.transmute.model.structure.video.Mp4Raw
 import dev.transmute.structure.common.parseIsoBmffBoxes
 
 /**
- * Parses raw Mp4Raw file bytes into an [Mp4Raw] structure.
+ * Parses raw MP4 file bytes into an [Mp4Raw] structure.
  *
  * Mp4Raw uses the ISO BMFF container with brands like `isom`, `mp41`,
  * `mp42`, `iso2`, `iso5`, `iso6`, `dash`, `msdh`, `msix`.

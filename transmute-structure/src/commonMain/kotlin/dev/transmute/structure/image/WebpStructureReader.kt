@@ -12,7 +12,7 @@ import dev.transmute.structure.common.parseRiffChildren
 import dev.transmute.structure.common.readU32LE
 
 /**
- * Parses raw WebpRaw file bytes into a [WebpRaw] structure.
+ * Parses raw WebP file bytes into a [WebpRaw] structure.
  *
  * WebP layout:
  * ```

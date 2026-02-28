@@ -15,7 +15,7 @@ import dev.transmute.structure.common.decodeAscii
 import dev.transmute.structure.common.readU16LE
 
 /**
- * Parses raw GifRaw file bytes into a [GifRaw] structure.
+ * Parses raw GIF file bytes into a [GifRaw] structure.
  *
  * GifRaw layout:
  * ```

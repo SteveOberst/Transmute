@@ -15,7 +15,7 @@ import dev.transmute.structure.common.readU16LE
 import dev.transmute.structure.common.readU32LE
 
 /**
- * Parses raw BmpRaw file bytes into a [BmpRaw] structure.
+ * Parses raw BMP file bytes into a [BmpRaw] structure.
  *
  * BmpRaw layout:
  * ```
