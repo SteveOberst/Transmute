@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Navbar from '@/components/Navbar'
 import { fetchPlugins, updatePlugin } from '@/lib/api'
+import { useToast } from '@/components/Toast'
 import type { PluginDescriptor, FeatureDescriptor } from '@/lib/types'
 
 export default function PluginsPage() {
@@ -11,7 +12,7 @@ export default function PluginsPage() {
   const [loaded, setLoaded] = useState(false)
   const [expandedKey, setExpandedKey] = useState<string | null>(null)
   const [updating, setUpdating] = useState<string | null>(null)
-  const [toggleError, setToggleError] = useState<string | null>(null)
+  const toast = useToast()
 
   useEffect(() => {
     fetchPlugins()
@@ -25,7 +26,6 @@ export default function PluginsPage() {
   const toggleFeature = useCallback(
     async (pluginKey: string, featureId: string, enabled: boolean) => {
       setUpdating(featureId)
-      setToggleError(null)
       try {
         const updated = await updatePlugin(pluginKey, {
           features: { [featureId]: enabled },
@@ -34,7 +34,7 @@ export default function PluginsPage() {
           prev.map((p) => (p.key === pluginKey ? updated : p)),
         )
       } catch (e: unknown) {
-        setToggleError(e instanceof Error ? e.message : 'Feature update failed')
+        toast.error(e instanceof Error ? e.message : 'Feature update failed')
       } finally {
         setUpdating(null)
       }
@@ -45,14 +45,13 @@ export default function PluginsPage() {
   const togglePlugin = useCallback(
     async (pluginKey: string, enabled: boolean) => {
       setUpdating(pluginKey)
-      setToggleError(null)
       try {
         const updated = await updatePlugin(pluginKey, { enabled })
         setPlugins((prev) =>
           prev.map((p) => (p.key === pluginKey ? updated : p)),
         )
       } catch (e: unknown) {
-        setToggleError(e instanceof Error ? e.message : 'Plugin update failed')
+        toast.error(e instanceof Error ? e.message : 'Plugin update failed')
       } finally {
         setUpdating(null)
       }
@@ -84,21 +83,6 @@ export default function PluginsPage() {
             Toggling features will rebuild the internal Transmute instance.
           </motion.p>
         </div>
-
-        {/* Error banner */}
-        <AnimatePresence>
-          {toggleError && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="mb-4 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-mono flex items-center justify-between"
-            >
-              <span>{toggleError}</span>
-              <button onClick={() => setToggleError(null)} className="text-red-400/60 hover:text-red-400 ml-4">✕</button>
-            </motion.div>
-          )}
-        </AnimatePresence>
 
         {!loaded ? (
           <div className="flex justify-center py-20">

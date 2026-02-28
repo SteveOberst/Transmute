@@ -7,6 +7,8 @@ import FileDropZone from '@/components/FileDropZone'
 import MediaPreview from '@/components/MediaPreview'
 import InspectPanel from '@/components/InspectPanel'
 import { uploadFile, inspectFile } from '@/lib/api'
+import { formatBytes } from '@/lib/utils'
+import { useToast } from '@/components/Toast'
 import type { FileHandle, InspectResult, MediaDomain } from '@/lib/types'
 
 export default function InspectPage() {
@@ -15,7 +17,7 @@ export default function InspectPage() {
   const [handle, setHandle] = useState<FileHandle | null>(null)
   const [result, setResult] = useState<InspectResult | null>(null)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const toast = useToast()
 
   const localUrlRef = useRef<string | null>(null)
   useEffect(() => () => {
@@ -23,7 +25,6 @@ export default function InspectPage() {
   }, [])
 
   const handleFile = useCallback(async (dropped: File) => {
-    setError(null)
     setResult(null)
 
     if (localUrlRef.current) URL.revokeObjectURL(localUrlRef.current)
@@ -39,7 +40,7 @@ export default function InspectPage() {
       const insp = await inspectFile(h.handle)
       setResult(insp)
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Inspect failed')
+      toast.error(e instanceof Error ? e.message : 'Inspect failed')
     } finally {
       setLoading(false)
     }
@@ -49,7 +50,6 @@ export default function InspectPage() {
     setFile(null)
     setHandle(null)
     setResult(null)
-    setError(null)
     if (localUrlRef.current) {
       URL.revokeObjectURL(localUrlRef.current)
       localUrlRef.current = null
@@ -128,20 +128,6 @@ export default function InspectPage() {
                 </button>
               </div>
 
-              {/* Error */}
-              <AnimatePresence>
-                {error && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="mx-4 mt-2 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-mono shrink-0"
-                  >
-                    {error}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
               {/* Two-pane body */}
               <div className="flex-1 flex overflow-hidden min-h-0">
                 {/* Left: media preview */}
@@ -172,8 +158,3 @@ export default function InspectPage() {
   )
 }
 
-function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`
-}

@@ -6,19 +6,25 @@ import dev.transmute.gstreamer.GStreamer
 import dev.transmute.playground.shared.*
 import dev.transmute.plugin.PluginId
 import dev.transmute.image.ImageFormat
+import dev.transmute.image.ImageTransform
 import dev.transmute.audio.AudioFormat
+import dev.transmute.audio.AudioTransform
 import dev.transmute.video.VideoFormat
+import dev.transmute.video.VideoTransform
 import dev.transmute.model.core.asBytes
 import dev.transmute.AudioTransforms
 import dev.transmute.ImageTransforms
 import dev.transmute.Param
 import dev.transmute.TransformDescriptor
 import dev.transmute.VideoTransforms
+import org.slf4j.LoggerFactory
 import java.io.File
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
+import kotlin.reflect.KParameter
 import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.full.instanceParameter
 import kotlin.reflect.full.memberFunctions
 
 /**
@@ -31,6 +37,7 @@ import kotlin.reflect.full.memberFunctions
 class TransmuteService(
     private val tempDir: File = File(System.getProperty("java.io.tmpdir"), "transmute-playground"),
 ) {
+    private val log = LoggerFactory.getLogger(TransmuteService::class.java)
     private val files = ConcurrentHashMap<String, UploadedFile>()
 
     // -- Plugin management (dynamic) -------------------------------------------
@@ -328,11 +335,187 @@ class TransmuteService(
         }
     }
 
+    // -- Transform execution ──────────────────────────────────────────────────
+
+    /**
+     * Executes a [TransformRequest] against a previously uploaded file using
+     * the Transmute DSL.
+     *
+     * Transform instances are discovered at runtime via the same reflection-based
+     * scanning used in [discoverTransforms]: factory functions on [ImageTransforms],
+     * [AudioTransforms], and [VideoTransforms] are matched by [TransformDescriptor.id],
+     * then invoked with parsed parameter values.
+     */
+    suspend fun executeTransform(request: TransformRequest): ByteArray {
+        val inputFile = files[request.fileHandle] ?: error("File not found: ${request.fileHandle}")
+        val inputBytes = inputFile.file.readBytes().asBytes()
+        val fmt = request.outputFormat.lowercase().trim()
+
+        return when {
+            fmt in IMAGE_FORMAT_EXTENSIONS -> executeImageTransform(inputBytes, fmt, request.pipeline)
+            fmt in AUDIO_FORMAT_EXTENSIONS -> executeAudioTransform(inputBytes, fmt, request.pipeline)
+            else -> executeVideoTransform(inputBytes, fmt, request.pipeline)
+        }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private suspend fun executeImageTransform(
+        input: dev.transmute.model.core.Bytes,
+        formatStr: String,
+        pipeline: List<TransformStep>,
+    ): ByteArray {
+        val format = toImageFormat(formatStr)
+        val transforms = buildTransformInstances(ImageTransforms, pipeline) as List<ImageTransform>
+        return transmute.image.to(format) {
+            transform { transforms.forEach { add(it) } }
+        }.transmute(input).bytes.data
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private suspend fun executeAudioTransform(
+        input: dev.transmute.model.core.Bytes,
+        formatStr: String,
+        pipeline: List<TransformStep>,
+    ): ByteArray {
+        val format = toAudioFormat(formatStr)
+        val transforms = buildTransformInstances(AudioTransforms, pipeline) as List<AudioTransform>
+        return transmute.audio.to(format) {
+            transform { transforms.forEach { add(it) } }
+        }.transmute(input).bytes.data
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private suspend fun executeVideoTransform(
+        input: dev.transmute.model.core.Bytes,
+        formatStr: String,
+        pipeline: List<TransformStep>,
+    ): ByteArray {
+        val format = toVideoFormat(formatStr)
+        val transforms = buildTransformInstances(VideoTransforms, pipeline) as List<VideoTransform>
+        return transmute.video.to(format) {
+            transform { transforms.forEach { add(it) } }
+        }.transmute(input).bytes.data
+    }
+
+    /**
+     * Builds a list of transform instances from [steps] by matching each
+     * [TransformStep.transformId] to a [TransformDescriptor]-annotated function on
+     * [factory] and invoking it via [kotlin.reflect.KCallable.callBy].
+     *
+     * Parameters supplied by the caller are type-coerced from strings; parameters
+     * absent from [TransformStep.parameters] fall back to the factory function's
+     * Kotlin default value (if any).
+     */
+    private fun buildTransformInstances(factory: Any, steps: List<TransformStep>): List<Any> {
+        val fns = factory::class.memberFunctions.filter { it.findAnnotation<TransformDescriptor>() != null }
+        return steps.mapNotNull { step ->
+            val fn = fns.find { fn -> fn.findAnnotation<TransformDescriptor>()?.id == step.transformId }
+                ?: run {
+                    log.warn("Unknown transform id '${step.transformId}' — skipping")
+                    return@mapNotNull null
+                }
+
+            val argMap = mutableMapOf<KParameter, Any?>(fn.instanceParameter!! to factory)
+            fn.parameters.drop(1).forEach { param ->
+                val paramName = param.name ?: return@forEach
+                val rawValue = step.parameters[paramName]
+                if (rawValue != null) {
+                    val parsed = parseParamValue(rawValue, param)
+                    if (parsed != null) argMap[param] = parsed
+                }
+                // If rawValue is null and param.isOptional: callBy uses the Kotlin default.
+                // If rawValue is null and !param.isOptional: callBy will throw a meaningful error.
+            }
+
+            try {
+                fn.callBy(argMap)
+            } catch (e: Exception) {
+                log.warn("Failed to instantiate transform '${step.transformId}': ${e.message}")
+                null
+            }
+        }
+    }
+
+    /**
+     * Coerces a raw string [value] to the Kotlin type expected by [param].
+     *
+     * Handles primitives (Int, Long, Float, Double, Boolean), IntArray, enum constants,
+     * and falls back to String for all other types.
+     */
+    private fun parseParamValue(value: String, param: KParameter): Any? {
+        val classifier = param.type.classifier
+        val unwrapped = if (param.type.isMarkedNullable && classifier == null)
+            param.type.arguments.firstOrNull()?.type?.classifier
+        else classifier
+
+        return try {
+            when {
+                unwrapped == Int::class -> value.toInt()
+                unwrapped == Long::class -> value.toLong()
+                unwrapped == Float::class -> value.toFloat()
+                unwrapped == Double::class -> value.toDouble()
+                unwrapped == Boolean::class -> value.toBooleanStrict()
+                unwrapped == IntArray::class -> value.split(",").map { it.trim().toInt() }.toIntArray()
+                unwrapped is KClass<*> && unwrapped.java.isEnum ->
+                    unwrapped.java.enumConstants.first { (it as Enum<*>).name.equals(value, ignoreCase = true) }
+                else -> value.ifEmpty { null }
+            }
+        } catch (e: Exception) {
+            log.warn("Could not parse param '${param.name}' value='$value': ${e.message}")
+            null
+        }
+    }
+
     // -- Cleanup ----------------------------------------------------------------
 
     fun cleanup() {
         transmute.close()
         tempDir.deleteRecursively()
+    }
+
+    // ── Format helpers ────────────────────────────────────────────────────────
+
+    companion object {
+        /** Extension strings that map to the image domain. */
+        private val IMAGE_FORMAT_EXTENSIONS =
+            setOf("jpeg", "jpg", "png", "webp", "heif", "heic", "avif", "gif", "bmp", "tiff")
+
+        /** Extension strings that map to the audio domain. */
+        private val AUDIO_FORMAT_EXTENSIONS =
+            setOf("wav", "mp3", "aac", "m4a", "flac", "ogg", "opus")
+
+        private fun toImageFormat(s: String): ImageFormat = when (s) {
+            "jpeg", "jpg" -> ImageFormat.Jpeg
+            "png" -> ImageFormat.Png
+            "webp" -> ImageFormat.Webp
+            "heif" -> ImageFormat.Heif
+            "heic" -> ImageFormat.Heic
+            "avif" -> ImageFormat.Avif
+            "gif" -> ImageFormat.Gif
+            "bmp" -> ImageFormat.Bmp
+            "tiff" -> ImageFormat.Tiff
+            else -> ImageFormat.Jpeg
+        }
+
+        private fun toAudioFormat(s: String): AudioFormat = when (s) {
+            "wav" -> AudioFormat.Wav
+            "mp3" -> AudioFormat.Mp3
+            "aac" -> AudioFormat.Aac
+            "m4a" -> AudioFormat.M4a
+            "flac" -> AudioFormat.Flac
+            "ogg" -> AudioFormat.Ogg
+            "opus" -> AudioFormat.Opus
+            else -> AudioFormat.Wav
+        }
+
+        private fun toVideoFormat(s: String): VideoFormat = when (s) {
+            "mp4" -> VideoFormat.Mp4
+            "mov" -> VideoFormat.Mov
+            "webm" -> VideoFormat.Webm
+            "mkv" -> VideoFormat.Mkv
+            "avi" -> VideoFormat.Avi
+            else -> VideoFormat.Mp4
+        }
     }
 }
 

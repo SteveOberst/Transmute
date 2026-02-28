@@ -14,6 +14,8 @@ import {
   executeTransform,
   fileUrl,
 } from '@/lib/api'
+import { formatBytes } from '@/lib/utils'
+import { useToast } from '@/components/Toast'
 import type {
   FileHandle,
   InspectResult,
@@ -41,8 +43,8 @@ export default function TransformPage() {
 
   const [processing, setProcessing] = useState(false)
   const [uploading, setUploading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [pipelineOpen, setPipelineOpen] = useState(false)
+  const toast = useToast()
 
   const localUrlRef = useRef<string | null>(null)
 
@@ -56,7 +58,7 @@ export default function TransformPage() {
   }, [])
 
   const handleFile = useCallback(async (dropped: File) => {
-    setError(null); setResult(null); setResultUrl(null); setPipeline([])
+    setResult(null); setResultUrl(null); setPipeline([])
     if (localUrlRef.current) URL.revokeObjectURL(localUrlRef.current)
     const blobUrl = URL.createObjectURL(dropped)
     localUrlRef.current = blobUrl
@@ -70,16 +72,16 @@ export default function TransformPage() {
       setInspection(insp)
       setOutputFormat(insp.format.toLowerCase())
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Upload failed')
+      toast.error(e instanceof Error ? e.message : 'Upload failed')
     } finally { setUploading(false) }
-  }, [])
+  }, [toast])
 
   const handleTransform = useCallback(async (
     currentHandle: FileHandle,
     currentFormat: string,
     currentPipeline: TransformStep[],
   ) => {
-    setError(null); setProcessing(true)
+    setProcessing(true)
     try {
       const res = await executeTransform({
         fileHandle: currentHandle.handle,
@@ -88,10 +90,11 @@ export default function TransformPage() {
       })
       setResult(res)
       setResultUrl(fileUrl(res.resultHandle))
+      toast.success('Transform complete', `${formatBytes(res.fileSize)} · ${res.durationMs}ms`)
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Transform failed')
+      toast.error(e instanceof Error ? e.message : 'Transform failed')
     } finally { setProcessing(false) }
-  }, [])
+  }, [toast])
 
   const autoRunTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => {
@@ -104,9 +107,27 @@ export default function TransformPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [handle, outputFormat, pipeline, uploading])
 
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault()
+        if (handle && !uploading && !processing) handleTransform(handle, outputFormat, pipeline)
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault()
+        if (result && resultUrl) {
+          const a = document.createElement('a')
+          a.href = resultUrl; a.download = ''; a.click()
+        }
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [handle, uploading, processing, handleTransform, outputFormat, pipeline, result, resultUrl])
+
   const reset = useCallback(() => {
     setFile(null); setHandle(null); setInspection(null); setPipeline([])
-    setOutputFormat(''); setResult(null); setResultUrl(null); setError(null)
+    setOutputFormat(''); setResult(null); setResultUrl(null)
     setPipelineOpen(false)
     if (localUrlRef.current) { URL.revokeObjectURL(localUrlRef.current); localUrlRef.current = null }
     setLocalOriginalUrl(null)
@@ -155,15 +176,6 @@ export default function TransformPage() {
                 )}
                 <button onClick={reset} className="ml-auto text-[#444456] hover:text-[#888898] text-xs font-mono transition-colors">x clear</button>
               </div>
-
-              {/* Error banner */}
-              <AnimatePresence>
-                {error && (
-                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
-                    className="mx-4 mb-1 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-mono shrink-0"
-                  >{error}</motion.div>
-                )}
-              </AnimatePresence>
 
               {/* Media area - relative container for overlay */}
               <div className="flex-1 relative min-h-0">
@@ -277,10 +289,4 @@ function AudioPlayer({ label, src, accent = false }: { label: string; src: strin
       <audio src={src} controls className="w-full rounded-xl" />
     </div>
   )
-}
-
-function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`
 }

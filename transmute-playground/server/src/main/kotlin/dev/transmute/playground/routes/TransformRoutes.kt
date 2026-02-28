@@ -20,14 +20,12 @@ fun Route.transformRoutes(service: TransmuteService) {
 
         try {
             val startTime = System.currentTimeMillis()
-            val inputBytes = uploaded.file.readBytes()
 
-            // For now, return a stub result indicating the pipeline was received.
-            // Full transform execution will be wired in Phase 3 when the pipeline
-            // builder is connected to the actual Transmute transform DSL.
+            // Execute the transform pipeline via the Transmute DSL.
+            val resultBytes = service.executeTransform(request)
             val resultHandle = service.storeFile(
                 "${uploaded.name}.${request.outputFormat}",
-                inputBytes, // placeholder: return original bytes
+                resultBytes,
             )
 
             val durationMs = System.currentTimeMillis() - startTime
@@ -38,10 +36,13 @@ fun Route.transformRoutes(service: TransmuteService) {
                 TransformResult(
                     resultHandle = resultHandle.handle,
                     outputFormat = request.outputFormat,
-                    fileSize = inputBytes.size.toLong(),
-                    properties = mapOf(
-                        "pipeline" to request.pipeline.joinToString(" → ") { it.transformId },
-                    ),
+                    fileSize = resultBytes.size.toLong(),
+                    properties = buildMap {
+                        put("inputSize", uploaded.size.toString())
+                        if (request.pipeline.isNotEmpty()) {
+                            put("pipeline", request.pipeline.joinToString(" → ") { it.transformId })
+                        }
+                    },
                     generatedCode = code,
                     durationMs = durationMs,
                 )

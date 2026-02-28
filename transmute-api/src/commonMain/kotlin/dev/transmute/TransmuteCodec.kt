@@ -87,8 +87,7 @@ class TransmuteCodec internal constructor(
     } ?: throw IllegalArgumentException("No raw structure decoder registered for format: $format")
     val ctx = createContext(loggerOverride = null, decodeOptions = NoDecodeOptions, encodeOptions = NoEncodeOptions)
     @Suppress("UNCHECKED_CAST")
-    return (decoder as dev.transmute.codec.Decoder<MediaFormat<*, *>, RawMediaStructure, NoDecodeOptions>)
-      .decode(source, NoDecodeOptions, ctx)
+    return decoder.decode(source, NoDecodeOptions, ctx)
   }
 
   /**
@@ -107,8 +106,7 @@ class TransmuteCodec internal constructor(
     } ?: throw IllegalArgumentException("No structure decoder registered for format: $format")
     val ctx = createContext(loggerOverride = null, decodeOptions = NoDecodeOptions, encodeOptions = NoEncodeOptions)
     @Suppress("UNCHECKED_CAST")
-    return (decoder as dev.transmute.codec.Decoder<MediaFormat<*, *>, MediaStructure, NoDecodeOptions>)
-      .decode(source, NoDecodeOptions, ctx)
+    return decoder.decode(source, NoDecodeOptions, ctx)
   }
 
   /**

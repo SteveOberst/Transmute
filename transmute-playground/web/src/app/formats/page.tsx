@@ -5,12 +5,14 @@ import { motion } from 'framer-motion'
 import Navbar from '@/components/Navbar'
 import FormatGrid from '@/components/FormatGrid'
 import { fetchFormats } from '@/lib/api'
+import { useToast } from '@/components/Toast'
 import type { FormatInfo, MediaDomain } from '@/lib/types'
 
 export default function FormatsPage() {
   const [formats, setFormats] = useState<FormatInfo[]>([])
   const [domain, setDomain] = useState<MediaDomain | null>(null)
   const [loaded, setLoaded] = useState(false)
+  const toast = useToast()
 
   useEffect(() => {
     fetchFormats()
@@ -18,7 +20,10 @@ export default function FormatsPage() {
         setFormats(data)
         setLoaded(true)
       })
-      .catch(() => setLoaded(true))
+      .catch((e: unknown) => {
+        setLoaded(true)
+        toast.error(e instanceof Error ? e.message : 'Failed to load formats')
+      })
   }, [])
 
   const counts = {

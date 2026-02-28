@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import type { InspectResult } from '@/lib/types'
 import { motion } from 'framer-motion'
+import { formatBytes } from '@/lib/utils'
 
 interface Props {
   result: InspectResult
@@ -153,10 +154,4 @@ function JsonArray({ arr, depth }: { arr: unknown[]; depth: number }) {
   )
 }
 
-/* ── Utility ──────────────────────────────────────────────────────── */
 
-function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`
-}
