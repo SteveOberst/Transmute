@@ -26,8 +26,20 @@ suspend fun decodeToWav(oggBytes: ByteArray): ByteArray =
   }.transmute(oggBytes.asBytes()).bytes.data
 ```
 
-## Notes
+## Structure Reading
 
-- Open and royalty-free.
+OGG Vorbis files can be parsed into an `OggAudio` structure that mirrors the Ogg bitstream layout:
+
+```kotlin
+val ogg: OggAudio = Transmute.structure.read(oggBytes.asBytes(), AudioFormat.Ogg)
+
+// Round-trip
+val raw = Transmute.structure.write(ogg)
+```
+
+The reader parses Ogg page headers (capture pattern, stream serial number, page sequence number)
+and collects logical bitstream packets. See `docs/structures.md`.
+
+## Notes
 - iOS can decode OGG but cannot encode to it.
 - Desktop requires the optional `transmute-gstreamer` module with GStreamer installed.

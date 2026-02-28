@@ -26,8 +26,20 @@ suspend fun decodeToWav(m4aBytes: ByteArray): ByteArray =
   }.transmute(m4aBytes.asBytes()).bytes.data
 ```
 
-## Notes
+## Structure Reading
 
-- M4A is a container; the codec is typically AAC.
+M4A files can be parsed into an `M4a` structure that mirrors the ISO BMFF box layout:
+
+```kotlin
+val m4a: M4a = Transmute.structure.read(m4aBytes.asBytes(), AudioFormat.M4a)
+
+// Round-trip
+val raw = Transmute.structure.write(m4a)
+```
+
+The reader walks `ftyp`, `moov`, `mdat`, and nested boxes (`trak`, `mdia`, `hdlr`, etc.).
+`ftyp.majorBrand` is typically `"M4A "` or `"isom"`. See `docs/structures.md`.
+
+## Notes
 - Great compatibility on iOS and modern Android.
 - Desktop requires the optional `transmute-gstreamer` module with GStreamer installed.

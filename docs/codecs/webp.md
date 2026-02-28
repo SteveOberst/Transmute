@@ -26,8 +26,20 @@ suspend fun convertToWebpLossless(inputBytes: ByteArray): ByteArray =
   }.transmute(inputBytes.asBytes()).bytes.data
 ```
 
-## Notes
+## Structure Reading
 
-- Great compression for both photos (lossy) and graphics (lossless).
+WebP files can be parsed into a `Webp` structure that mirrors the RIFF container layout:
+
+```kotlin
+val webp: Webp = Transmute.structure.read(webpBytes.asBytes(), ImageFormat.Webp)
+
+// Round-trip
+val raw = Transmute.structure.write(webp)
+```
+
+The reader parses the outer RIFF/WEBP wrapper, then the VP8 / VP8L / VP8X sub-chunk and optional
+extended chunks (color profile, animation, metadata). See `docs/structures.md`.
+
+## Notes
 - Supports alpha transparency.
 - Widely supported on Android; good support on iOS and modern desktop workflows.

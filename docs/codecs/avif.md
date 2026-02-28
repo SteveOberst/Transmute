@@ -26,8 +26,20 @@ suspend fun decodeToPng(avifBytes: ByteArray): ByteArray =
   }.transmute(avifBytes.asBytes()).bytes.data
 ```
 
-## Notes
+## Structure Reading
 
-- Android decode support depends on OS version; encoding support is limited.
+AVIF files can be parsed into an `Avif` structure that mirrors the ISO BMFF box layout:
+
+```kotlin
+val avif: Avif = Transmute.structure.read(avifBytes.asBytes(), ImageFormat.Avif)
+
+// Round-trip
+val raw = Transmute.structure.write(avif)
+```
+
+The reader walks `ftyp`, `meta`, and `mdat` boxes. `ftyp.majorBrand` is typically `"avif"` or `"avis"` for
+AVIF sequences. See `docs/structures.md`.
+
+## Notes encoding support is limited.
 - Desktop requires the optional `transmute-gstreamer` module with GStreamer installed.
 - iOS offers AVIF support on newer versions.

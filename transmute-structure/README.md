@@ -27,14 +27,29 @@ and video domains.
 `Mp4StructureReader`, `MovStructureReader`, `WebmStructureReader`,
 `MkvStructureReader`, `AviStructureReader`
 
-## Bulk Registration
+## Pre-built Instances
+
+`DefaultStructureReaders` ships singleton instances for all 20 readers.
+`DefaultStructureDecoders` ships pre-built `Decoder` wrappers (raw + typed)
+for every format.
+
+Register inside a `TransmutePlugin`:
 
 ```kotlin
-// Register all built-in readers at once
-DefaultStructureReaders.installDefaults()
+// Register one reader
+scope.codecs.image.structureDecoders.register(
+    ImageFormat.Png, DefaultStructureDecoders.png
+)
 
-// Or register individually
-StructureReaders.register(DefaultStructureReaders.png, ImageFormat.Png)
+// Bulk-register all image structure decoders
+DefaultStructureDecoders.allImageDecoders.forEach { dec ->
+    dec.decodableFormats.forEach { fmt ->
+        scope.codecs.image.structureDecoders.register(fmt as ImageFormat, dec)
+    }
+}
+
+// Access the full reader list (recommended sniff order)
+val readers = DefaultStructureReaders.all
 ```
 
 ### Common Parsers

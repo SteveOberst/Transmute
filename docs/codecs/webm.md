@@ -26,8 +26,20 @@ suspend fun convertToMp4(webmBytes: ByteArray): ByteArray =
   }.transmute(webmBytes.asBytes()).bytes.data
 ```
 
-## Notes
+## Structure Reading
 
-- Open and royalty-free container format.
+WebM files can be parsed into a `Webm` structure that mirrors the EBML element hierarchy:
+
+```kotlin
+val webm: Webm = Transmute.structure.read(webmBytes.asBytes(), VideoFormat.Webm)
+
+// Round-trip
+val raw = Transmute.structure.write(webm)
+```
+
+The reader validates the EBML header (magic `0x1A 0x45 0xDF 0xA3`), then walks Segment, SeekHead,
+Info, Tracks, and Cluster elements. See `docs/structures.md`.
+
+## Notes
 - iOS can decode WebM (via platform support) but cannot encode to it.
 - Desktop requires the optional `transmute-gstreamer` module with GStreamer installed.

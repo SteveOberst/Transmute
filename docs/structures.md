@@ -74,6 +74,68 @@ A `StructureReader<S>` reads bytes into a `MediaStructure` subtype. Every `Media
 All structure readers live in the `transmute-structure` module.
 You can also register custom readers (see below).
 
+## Pre-built Readers and Decoders
+
+`transmute-structure` ships two objects that give you direct access to all built-in
+readers and decoders without instantiating them yourself.
+
+### `DefaultStructureReaders`
+
+`DefaultStructureReaders` holds pre-built `StructureReader` singleton instances for
+all 20 supported formats:
+
+```kotlin
+import dev.transmute.structure.DefaultStructureReaders
+
+val pngReader  = DefaultStructureReaders.png    // PngStructureReader
+val wavReader  = DefaultStructureReaders.wav    // WavStructureReader
+val mp4Reader  = DefaultStructureReaders.mp4    // Mp4StructureReader
+
+// Full list available via the `all` property (image + audio + video, sniff order):
+DefaultStructureReaders.all.forEach { reader ->
+    val bytes: Bytes = /* … */
+    if (reader.canRead(bytes)) println("Matched: $reader")
+}
+```
+
+### `DefaultStructureDecoders`
+
+`DefaultStructureDecoders` wraps each reader in a `Decoder<F, OUT, NoDecodeOptions>`
+using the `rawDecoderFor` / `structureDecoderFor` factory functions. There is no need
+to subclass `Decoder` manually:
+
+```kotlin
+import dev.transmute.structure.DefaultStructureDecoders
+
+// Individual decoders
+val png    = DefaultStructureDecoders.png       // Decoder<ImageFormat, PngStructure, …>
+val pngRaw = DefaultStructureDecoders.pngRaw   // Decoder<ImageFormat, PngRaw, …>
+val wav    = DefaultStructureDecoders.wav       // Decoder<AudioFormat, WavStructure, …>
+
+// Domain lists (recommended sniff order):
+DefaultStructureDecoders.allImageDecoders      // List<Decoder<ImageFormat, …>>
+DefaultStructureDecoders.allAudioDecoders
+DefaultStructureDecoders.allVideoDecoders
+DefaultStructureDecoders.allImageRawDecoders
+DefaultStructureDecoders.allAudioRawDecoders
+DefaultStructureDecoders.allVideoRawDecoders
+```
+
+**Registering in a plugin** — bulk-register a domain in one pass:
+
+```kotlin
+import dev.transmute.structure.DefaultStructureDecoders
+
+override fun install(scope: TransmuteScope, config: MyConfig) {
+    // Register all image structure decoders
+    DefaultStructureDecoders.allImageDecoders.forEach { dec ->
+        dec.decodableFormats.forEach { fmt ->
+            scope.codecs.image.structureDecoders.register(fmt as ImageFormat, dec)
+        }
+    }
+}
+```
+
 ## Auto-Detection
 
 When you call `Transmute.structure.read(bytes)` without specifying a format:

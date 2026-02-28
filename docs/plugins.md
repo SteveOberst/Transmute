@@ -110,22 +110,28 @@ object MinimalPlugin : SimpleTransmutePlugin() {
 
 ### TransmuteScope
 
-The `TransmuteScope` passed to `install()` exposes mutable registries for all three
+The `TransmuteScope` passed to `install()` exposes a `CodecRegistry` for all three
 media domains, a per-plugin logger, a type-safe service registry, structured diagnostics,
-and feature toggles:
+feature toggles, and a `MediaStructure` serialization scope:
 
-| Property        | Type                          | Purpose                             |
-|-----------------|-------------------------------|-------------------------------------|
-| `imageDecoders` | `MutableImageDecoderRegistry` | Register image decoders             |
-| `imageEncoders` | `MutableImageEncoderRegistry` | Register image encoders             |
-| `audioDecoders` | `MutableAudioDecoderRegistry` | Register audio decoders             |
-| `audioEncoders` | `MutableAudioEncoderRegistry` | Register audio encoders             |
-| `videoDecoders` | `MutableVideoDecoderRegistry` | Register video decoders             |
-| `videoEncoders` | `MutableVideoEncoderRegistry` | Register video encoders             |
-| `logger`        | `PluginLogger`                | Per-plugin logger instance          |
-| `services`      | `ServiceRegistry`             | Type-safe cross-plugin services     |
-| `diagnostics`   | `PluginDiagnostics`           | Structured health/status reporting  |
-| `features`      | `PluginFeaturesConfig`        | User-configured feature toggles     |
+| Property          | Type                              | Purpose                                                        |
+|-------------------|-----------------------------------|----------------------------------------------------------------|
+| `codecs`          | `CodecRegistry`                   | All codec registries grouped by domain (`image`, `audio`, `video`) |
+| `logger`          | `PluginLogger`                    | Per-plugin logger tagged with the plugin's key                 |
+| `services`        | `ServiceRegistry`                 | Type-safe cross-plugin services                                |
+| `diagnostics`     | `PluginDiagnostics`               | Structured health/status reporting                             |
+| `features`        | `PluginFeaturesConfig`            | User-configured feature toggles                               |
+| `mediaStructures` | `MediaStructureRegistrationScope` | Register `MediaStructure` subtypes for JSON serialization      |
+
+`CodecRegistry` groups each domain's four mutable registries:
+
+| Access path                               | Purpose                                    |
+|-------------------------------------------|--------------------------------------------|
+| `scope.codecs.image.decoders`             | IR image decoders (pixels)                 |
+| `scope.codecs.image.encoders`             | IR image encoders (pixels)                 |
+| `scope.codecs.image.rawStructureDecoders` | Bytes → `RawMediaStructure` decoders       |
+| `scope.codecs.image.structureDecoders`    | Bytes → `MediaStructure` decoders          |
+| `scope.codecs.audio.*` / `scope.codecs.video.*` | Same four registries for audio/video |
 
 ### Per-Plugin Logging
 
@@ -260,7 +266,7 @@ Plugin code checks feature state at install time using the typed constant:
 ```kotlin
 override fun install(scope: TransmuteScope, config: MyConfig) {
     if (scope.features.isEnabled(GStreamerFeature.ImageEncoding)) {
-        scope.imageEncoders.register(HeifEncoder())
+        scope.codecs.image.encoders.register(HeifEncoder())
     }
 }
 ```

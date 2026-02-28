@@ -26,8 +26,20 @@ suspend fun decodeToWav(opusBytes: ByteArray): ByteArray =
   }.transmute(opusBytes.asBytes()).bytes.data
 ```
 
-## Notes
+## Structure Reading
 
-- Excellent quality at low bitrates.
+Opus files can be parsed into an `Opus` structure that mirrors the Ogg container for Opus bitstreams:
+
+```kotlin
+val opus: Opus = Transmute.structure.read(opusBytes.asBytes(), AudioFormat.Opus)
+
+// Round-trip
+val raw = Transmute.structure.write(opus)
+```
+
+The reader validates the Ogg page capture pattern and the `OpusHead` / `OpusTags` identification
+packets on the first page. See `docs/structures.md`.
+
+## Notes
 - Great for speech, music, and mixed content.
 - Desktop requires the optional `transmute-gstreamer` module with GStreamer installed.

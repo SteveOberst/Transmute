@@ -35,12 +35,12 @@ For reusable codec bundles, wrap registration in a `TransmutePlugin`:
 
 ```kotlin
 object MyCodecPlugin : TransmutePlugin<MyCodecConfig> {
-    override val key = "com.example.my-codec"
+    override val key = pluginId("com.example.my-codec")
     override fun createConfig() = MyCodecConfig()
 
     override fun install(scope: TransmuteScope, config: MyCodecConfig) {
-        scope.imageDecoders.register(MyWebpDecoder())
-        scope.imageEncoders.register(MyWebpEncoder())
+        scope.codecs.image.decoders.register(MyWebpDecoder())
+        scope.codecs.image.encoders.register(MyWebpEncoder())
     }
 }
 
@@ -86,11 +86,53 @@ class MyTiffStructureReader : StructureReader<MyTiffStructure> {
     }
 }
 
-// Register for a specific format
+// Register via the static TransmuteStructure API (app-level, outside a plugin):
 Transmute.structure.register(MyTiffStructureReader(), ImageFormat.Tiff)
 ```
 
 Custom readers override the built-in reader when registered for the same format.
+
+### Structure decoders inside a plugin: `rawDecoderFor` / `structureDecoderFor`
+
+When registering structure readers inside a `TransmutePlugin`, use the factory
+functions `rawDecoderFor` and `structureDecoderFor` from `transmute-structure`
+instead of creating named subclasses:
+
+```kotlin
+import dev.transmute.structure.rawDecoderFor
+import dev.transmute.structure.structureDecoderFor
+
+object MyPlugin : SimpleTransmutePlugin() {
+    override val key = pluginId("com.example.my-plugin")
+
+    override fun install(scope: TransmuteScope) {
+        // Raw decoder: bytes → RawMediaStructure (no toStructure() step)
+        val myRawDecoder = rawDecoderFor(ImageFormat.Tiff, MyTiffStructureReader())
+        scope.codecs.image.rawStructureDecoders.register(ImageFormat.Tiff, myRawDecoder)
+
+        // Full structure decoder: bytes → MediaStructure (applies toStructure())
+        val myDecoder = structureDecoderFor(ImageFormat.Tiff, MyTiffStructureReader()) {
+            toStructure() // extension on MyTiffStructure
+        }
+        scope.codecs.image.structureDecoders.register(ImageFormat.Tiff, myDecoder)
+    }
+}
+```
+
+Both factory functions create anonymous `Decoder<F, OUT, NoDecodeOptions>` instances
+that delegate `sniff` and `decode` to the underlying `StructureReader` — no boilerplate
+subclasses needed.
+
+The pre-built reader singletons in `DefaultStructureReaders` can be used directly:
+
+```kotlin
+import dev.transmute.structure.DefaultStructureReaders
+import dev.transmute.structure.rawDecoderFor
+
+// Reuse the built-in WAV reader instead of instantiating your own:
+val wavRaw = rawDecoderFor(AudioFormat.Wav, DefaultStructureReaders.wav)
+scope.codecs.audio.rawStructureDecoders.register(AudioFormat.Wav, wavRaw)
+```
 
 ### Reading from a TSource
 

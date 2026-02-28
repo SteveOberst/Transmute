@@ -26,7 +26,19 @@ suspend fun convertToMp4(mkvBytes: ByteArray): ByteArray =
   }.transmute(mkvBytes.asBytes()).bytes.data
 ```
 
-## Notes
+## Structure Reading
 
-- Very flexible container; common in archival and enthusiast workflows.
+MKV files can be parsed into a `Mkv` structure that mirrors the EBML element hierarchy:
+
+```kotlin
+val mkv: Mkv = Transmute.structure.read(mkvBytes.asBytes(), VideoFormat.Mkv)
+
+// Round-trip
+val raw = Transmute.structure.write(mkv)
+```
+
+MKV shares the EBML format with WebM. The reader validates the EBML header and walks Segment,
+SeekHead, Info, Tracks, Chapters, and Cluster elements. See `docs/structures.md`.
+
+## Notes
 - Desktop requires the optional `transmute-gstreamer` module with GStreamer installed.

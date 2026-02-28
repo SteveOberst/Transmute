@@ -26,7 +26,19 @@ suspend fun convertToMp4(aviBytes: ByteArray): ByteArray =
   }.transmute(aviBytes.asBytes()).bytes.data
 ```
 
-## Notes
+## Structure Reading
 
-- Legacy container format; prefer MP4 for modern workflows.
+AVI files can be parsed into an `Avi` structure that mirrors the RIFF container layout:
+
+```kotlin
+val avi: Avi = Transmute.structure.read(aviBytes.asBytes(), VideoFormat.Avi)
+
+// Round-trip
+val raw = Transmute.structure.write(avi)
+```
+
+The reader validates the `RIFF....AVI ` signature, then recursively parses `LIST` chunks (`hdrl`,
+`movi`) and leaf chunks (`avih`, `strh`, `strf`, `idx1`). See `docs/structures.md`.
+
+## Notes
 - Desktop requires the optional `transmute-gstreamer` module with GStreamer installed.

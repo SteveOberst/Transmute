@@ -26,7 +26,19 @@ suspend fun convertToMp4(movBytes: ByteArray): ByteArray =
   }.transmute(movBytes.asBytes()).bytes.data
 ```
 
-## Notes
+## Structure Reading
 
-- Great compatibility within Apple ecosystems.
+MOV files can be parsed into a `Mov` structure that mirrors the ISO BMFF / QuickTime box layout:
+
+```kotlin
+val mov: Mov = Transmute.structure.read(movBytes.asBytes(), VideoFormat.Mov)
+
+// Round-trip
+val raw = Transmute.structure.write(mov)
+```
+
+The reader handles both `ftyp`-leading files (modern MOV) and bare `moov`-first QuickTime files.
+See `docs/structures.md`.
+
+## Notes
 - Desktop requires the optional `transmute-gstreamer` module with GStreamer installed.

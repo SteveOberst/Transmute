@@ -26,7 +26,19 @@ suspend fun decodeToPng(gifBytes: ByteArray): ByteArray =
   }.transmute(gifBytes.asBytes()).bytes.data
 ```
 
-## Notes
+## Structure Reading
 
-- Limited to 256 colors; expect banding/dithering for photos.
+GIF files can be parsed into a `Gif` structure that mirrors the block-based layout:
+
+```kotlin
+val gif: Gif = Transmute.structure.read(gifBytes.asBytes(), ImageFormat.Gif)
+
+// Round-trip
+val raw = Transmute.structure.write(gif)
+```
+
+The reader captures the logical screen descriptor, global color table, and all extension/image blocks
+(including Netscape loop extension for animated GIFs). See `docs/structures.md`.
+
+## Notes expect banding/dithering for photos.
 - Primarily used for simple animations and stickers.

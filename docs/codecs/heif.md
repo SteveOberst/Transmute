@@ -26,8 +26,20 @@ suspend fun decodeToJpeg(heifBytes: ByteArray): ByteArray =
   }.transmute(heifBytes.asBytes()).bytes.data
 ```
 
-## Notes
+## Structure Reading
 
-- Android can decode HEIF/HEIC on modern devices but encode support is limited.
+HEIF/HEIC files can be parsed into a `Heif` structure that mirrors the ISO BMFF box layout:
+
+```kotlin
+val heif: Heif = Transmute.structure.read(heifBytes.asBytes(), ImageFormat.Heif)
+
+// Round-trip
+val raw = Transmute.structure.write(heif)
+```
+
+The reader walks the `ftyp`, `meta`, `mdat`, and `moov`/`hdlr` boxes, capturing all atoms at top-level
+resolution. See `docs/structures.md`.
+
+## Notes but encode support is limited.
 - Desktop requires the optional `transmute-gstreamer` module with GStreamer installed.
 - iOS offers strong native HEIF/HEIC support.

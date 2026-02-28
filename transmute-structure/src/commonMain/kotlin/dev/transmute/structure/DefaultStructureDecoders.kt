@@ -24,9 +24,13 @@ import dev.transmute.video.VideoFormat
  * scope.codecs.audio.rawStructureDecoders.register(AudioFormat.Flac, DefaultStructureDecoders.flacRaw)
  * ```
  *
- * Or bulk-register all structure decoders for a domain:
+ * Or bulk-register via the domain lists:
  * ```kotlin
- * DefaultStructureDecoders.registerAll(scope.codecs)
+ * DefaultStructureDecoders.allImageDecoders.forEach { dec ->
+ *     dec.decodableFormats.forEach { fmt ->
+ *         scope.codecs.image.structureDecoders.register(fmt as ImageFormat, dec)
+ *     }
+ * }
  * ```
  */
 object DefaultStructureDecoders {
