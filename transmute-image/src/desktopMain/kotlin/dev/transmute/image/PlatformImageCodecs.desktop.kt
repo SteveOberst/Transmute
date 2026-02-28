@@ -9,8 +9,4 @@ actual fun installPlatformImageCodecs(
 ) {
   decoders.register(JvmImageIoDecoder())
   encoders.register(JvmImageIoEncoder())
-
-  // Note: HEIF, HEIC, and AVIF codecs are provided by the optional
-  // transmute-gstreamer module. Add it as a dependency and configure
-  // via TransmuteContext { gstreamer() } to enable them.
 }

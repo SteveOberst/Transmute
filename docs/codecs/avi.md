@@ -4,11 +4,11 @@ AVI is a legacy video container format. It is still encountered frequently in ar
 
 ## Platform Support
 
-| Platform | Decode | Encode | Engine |
-|----------|--------|--------|--------|
-| Android  | ✅     | ✅     | MediaCodec |
-| Desktop  | ✅     | ✅     | GStreamer (requires `transmute-gstreamer`) |
-| iOS      | ✅     | ❌     | AVFoundation (decode only) |
+| Platform | Decode | Encode | Engine                                     |
+|----------|--------|--------|--------------------------------------------|
+| Android  | ✅      | ✅      | MediaCodec                                 |
+| Desktop  | ✅      | ✅      | GStreamer (requires `transmute-gstreamer`) |
+| iOS      | ✅      | ❌      | AVFoundation (decode only)                 |
 
 ## Usage
 

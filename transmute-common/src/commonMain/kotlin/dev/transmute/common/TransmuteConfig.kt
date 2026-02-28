@@ -22,4 +22,8 @@ package dev.transmute.common
  *
  * @see TransmuteContext
  */
+@Deprecated(
+    message = "TransmuteConfig is being phased out. Use TransmuteContext or the instance-based Transmute { } builder with plugins instead.",
+    level = DeprecationLevel.WARNING,
+)
 object TransmuteConfig

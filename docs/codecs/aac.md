@@ -4,11 +4,11 @@ AAC (Advanced Audio Coding) is a modern lossy audio codec that provides better q
 
 ## Platform Support
 
-| Platform | Decode | Encode | Engine |
-|----------|--------|--------|--------|
-| Android  | ✅     | ✅     | MediaCodec |
-| Desktop  | ✅     | ✅     | GStreamer (requires `transmute-gstreamer`) |
-| iOS      | ✅     | ✅     | AVFoundation |
+| Platform | Decode | Encode | Engine                                     |
+|----------|--------|--------|--------------------------------------------|
+| Android  | ✅      | ✅      | MediaCodec                                 |
+| Desktop  | ✅      | ✅      | GStreamer (requires `transmute-gstreamer`) |
+| iOS      | ✅      | ✅      | AVFoundation                               |
 
 ## Usage
 

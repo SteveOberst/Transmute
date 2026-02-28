@@ -182,7 +182,7 @@ class VideoFrameRateTransform(
   val targetFps: Double,
 ) : VideoTransform {
   override fun wouldTransform(hint: VideoHint): Boolean =
-    hint.fps == null || hint.fps > targetFps
+    hint.frameRate == null || hint.frameRate > targetFps
 
   override val id = TransformId("video.framerate")
 

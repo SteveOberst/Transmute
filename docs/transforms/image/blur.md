@@ -4,9 +4,9 @@ Apply a box blur to an image.
 
 ## Parameters
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| radius | Int | - | Blur radius; 1 = 3×3 kernel, 2 = 5×5, etc. |
+| Parameter | Type | Default | Description                                |
+|-----------|------|---------|--------------------------------------------|
+| radius    | Int  | -       | Blur radius; 1 = 3×3 kernel, 2 = 5×5, etc. |
 
 ## Usage
 

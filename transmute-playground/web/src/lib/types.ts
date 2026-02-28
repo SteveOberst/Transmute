@@ -1,0 +1,158 @@
+/* ── Shared DTO types matching the Kotlin shared module ─────────────── */
+
+export type MediaDomain = 'IMAGE' | 'AUDIO' | 'VIDEO'
+
+export type ParameterType =
+  | 'INT'
+  | 'FLOAT'
+  | 'BOOLEAN'
+  | 'STRING'
+  | 'ENUM'
+  | 'INT_ARRAY'
+
+/* /api/upload */
+export interface FileHandle {
+  handle: string
+  originalName: string
+  fileSize: number
+  domain?: MediaDomain
+  format?: string
+}
+
+/* /api/health */
+export interface HealthResponse {
+  status: string
+  pluginCount: number
+  imageFormats: number
+  audioFormats: number
+  videoFormats: number
+  diagnostics: Record<string, boolean>
+}
+
+/* /api/formats */
+export interface FormatInfo {
+  name: string
+  domain: MediaDomain
+  canDecode: boolean
+  canEncode: boolean
+  hasStructureReader?: boolean
+  providedBy?: string
+  encodeOptions?: OptionSchema[]
+}
+
+/* /api/transforms */
+export interface TransformInfo {
+  id: string
+  domain: MediaDomain
+  description: string
+  parameters?: ParameterSchema[]
+}
+
+export interface ParameterSchema {
+  name: string
+  type: ParameterType
+  required?: boolean
+  default?: string
+  min?: string
+  max?: string
+  enumValues?: string[]
+  description: string
+}
+
+/* /api/inspect/{handle} */
+export interface InspectResult {
+  domain: MediaDomain
+  format: string
+  fileSize: number
+  properties: Record<string, string>
+  structure?: StructureNode
+  decodedBy?: string
+}
+
+export interface StructureNode {
+  name: string
+  type: string
+  offset: number
+  size: number
+  properties: Record<string, string>
+  children: StructureNode[]
+}
+
+/* /api/transform */
+export interface TransformRequest {
+  fileHandle: string
+  outputFormat: string
+  pipeline: TransformStep[]
+  encodeOptions?: Record<string, string>
+  metadataPolicy?: string
+}
+
+export interface TransformStep {
+  transformId: string
+  parameters?: Record<string, string>
+}
+
+export interface TransformResult {
+  resultHandle: string
+  outputFormat: string
+  fileSize: number
+  properties: Record<string, string>
+  generatedCode: string
+  durationMs: number
+}
+
+/* /api/plugins */
+export interface PluginDescriptor {
+  key: string
+  name: string
+  description: string
+  version?: string
+  enabled: boolean
+  status?: PluginStatusInfo
+  domains: MediaDomain[]
+  features: FeatureDescriptor[]
+  options?: OptionSchema[]
+  addedFormats: string[]
+}
+
+export interface PluginStatusInfo {
+  available: boolean
+  reason?: string
+  details?: Record<string, string>
+}
+
+export interface FeatureDescriptor {
+  id: string
+  name: string
+  description: string
+  defaultEnabled: boolean
+  currentlyEnabled: boolean
+}
+
+export interface OptionSchema {
+  id: string
+  name: string
+  type: ParameterType
+  default?: string
+  enumValues?: string[]
+  description: string
+}
+
+export interface PluginUpdate {
+  enabled?: boolean
+  features?: Record<string, boolean>
+}
+
+/* WebSocket /ws/progress */
+export interface ProgressEvent {
+  jobId: string
+  stage: string
+  progress: number
+  message?: string
+}
+
+/* /api/waveform/{handle} */
+export interface WaveformData {
+  samples: number[]
+  sampleRate: number
+}

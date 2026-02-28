@@ -21,12 +21,12 @@ a pull request.
 
 ### Prerequisites
 
-| Tool        | Minimum Version         | Notes                                                                              |
-|-------------|-------------------------|------------------------------------------------------------------------------------|
-| JDK         | 17                      | Temurin or any standard JDK                                                        |
-| Android SDK | API 26+ (compileSdk 35) | Required for Android targets                                                       |
-| Kotlin      | 2.2.21                  | Managed by Gradle version catalog                                                  |
-| GStreamer   | 1.x                     | Optional - needed for AAC/M4A/Opus/HEIF/AVIF/video codecs on Desktop              |
+| Tool        | Minimum Version         | Notes                                                                |
+|-------------|-------------------------|----------------------------------------------------------------------|
+| JDK         | 17                      | Temurin or any standard JDK                                          |
+| Android SDK | API 26+ (compileSdk 35) | Required for Android targets                                         |
+| Kotlin      | 2.2.21                  | Managed by Gradle version catalog                                    |
+| GStreamer   | 1.x (bundled)           | Bundled by default; AAC/M4A/Opus/HEIF/AVIF/video codecs on Desktop   |
 
 ### Clone & Build
 
@@ -38,43 +38,48 @@ cd Transmute
 ./gradlew build
 
 # Desktop-only compile check
-./gradlew :transmute-core:compileKotlinDesktop \
-          :transmute-image:compileKotlinDesktop \
+./gradlew :transmute-image:compileKotlinDesktop \
           :transmute-audio:compileKotlinDesktop \
-          :transmute-video:compileKotlinDesktop
+          :transmute-video:compileKotlinDesktop \
+          :transmute-structure:compileKotlinDesktop
 
 # Run all desktop tests
 ./gradlew desktopTest
 ```
 
-### GStreamer (Optional)
+### GStreamer (Bundled by Default)
 
-Formats marked **+gst** in the README codec tables require a system-installed
-[GStreamer](https://gstreamer.freedesktop.org/) runtime and the optional
-`transmute-gstreamer` module. Without GStreamer, Desktop supports WAV, MP3,
+The `transmute-gstreamer` module ships a bundled
+[GStreamer](https://gstreamer.freedesktop.org/) runtime that is extracted
+automatically on first use. Without GStreamer, Desktop supports WAV, MP3,
 FLAC decode, OGG decode, BMP, PNG, JPEG, WebP, GIF, and TIFF natively.
 
-```bash
-# macOS
-brew install gstreamer gst-plugins-good gst-plugins-bad
-
-# Ubuntu/Debian
-sudo apt install gstreamer1.0-tools gstreamer1.0-plugins-good gstreamer1.0-plugins-bad
-
-# Windows
-# Install from https://gstreamer.freedesktop.org/download/
-# or: winget install GStreamer.GStreamer
-```
-
-Enable GStreamer codecs in your `TransmuteContext`:
+Enable GStreamer codecs via the plugin system:
 
 ```kotlin
-val ctx = TransmuteContext {
-    gstreamer {
-        audio = true   // AAC, M4A, Opus, FLAC encode, OGG encode
-        video = true   // MP4, MOV, WebM, AVI, MKV
-        image = true   // HEIF, HEIC, AVIF
+// All features (audio, video, image) are enabled by default
+val transmute = Transmute {
+    plugins {
+        install(GStreamer)
     }
+}
+
+// Or selectively disable features you don't need:
+val slim = Transmute {
+    plugins {
+        install(GStreamer) {
+            disable(GStreamerFeature.LegacyAvi)      // skip legacy AVI
+            disable(GStreamerFeature.ImageEncoding)  // skip HEIF/AVIF encoding
+        }
+    }
+}
+```
+
+To use a custom (pre-existing) GStreamer installation instead of the bundled one:
+
+```kotlin
+install(GStreamer) {
+    installFrom(TPath.of("/opt/gstreamer"))
 }
 ```
 
@@ -84,19 +89,24 @@ val ctx = TransmuteContext {
 
 ```
 Transmute/
-â”œ-- transmute-api/        # Public facade (Transmute.kt, Transformers.kt, *TransmuterExt.kt)
-â”œ-- transmute-core/       # Codec/Transform base types, IR types, TransmuteConfig
-â”œ-- transmute-audio/      # Audio codecs + transforms
-â”œ-- transmute-image/      # Image codecs + transforms
-â”œ-- transmute-video/      # Video codecs + transforms
-â”œ-- gradle/
-â”‚   â””-- libs.versions.toml  # Version catalog
-â”œ-- .github/workflows/
-â”‚   â”œ-- ci.yml            # Unit tests on every push + PR
-â”‚   â”œ-- integration.yml   # Full integration tests (Android emulator, iOS sim, desktop)
-â”‚   â””-- release.yml       # release-please + publish (gates on integration tests)
-â”œ-- release-please-config.json
-â””-- .release-please-manifest.json
+├── transmute-api/         # Public facade (Transmute.kt, Transformers.kt, *TransmuterExt.kt)
+├── transmute-common/      # Shared utilities, TransmuteContext, logging
+├── transmute-codec/       # Codec infrastructure — registry, encode/decode handler base
+├── transmute-model/       # Umbrella for model sub-modules (core, identify, structure, view, stream, metadata, diagnostics)
+├── transmute-structure/   # Structure readers — parse raw bytes into typed MediaStructure
+├── transmute-filesystem/  # Cross-platform filesystem abstraction (core, okio)
+├── transmute-audio/       # Audio codecs + transforms
+├── transmute-image/       # Image codecs + transforms
+├── transmute-video/       # Video codecs + transforms
+├── transmute-gstreamer/   # Optional GStreamer-backed codecs
+├── gradle/
+│   └── libs.versions.toml  # Version catalog
+├── .github/workflows/
+│   ├── ci.yml            # Unit tests on every push + PR
+│   ├── integration.yml   # Full integration tests (Android emulator, iOS sim, desktop)
+│   └── release.yml       # release-please + publish (gates on integration tests)
+├── release-please-config.json
+└── .release-please-manifest.json
 ```
 
 Each media module follows the same pattern:

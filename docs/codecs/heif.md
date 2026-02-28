@@ -4,11 +4,11 @@ HEIF/HEIC are modern image formats used heavily in Apple ecosystems. They offer 
 
 ## Platform Support
 
-| Platform | Decode | Encode | Engine |
-|----------|--------|--------|--------|
-| Android  | ✅     | ❌     | BitmapFactory (decode only) |
-| Desktop  | ✅     | ✅     | GStreamer (requires `transmute-gstreamer`) |
-| iOS      | ✅     | ✅     | CoreGraphics (CGImage) |
+| Platform | Decode | Encode | Engine                                     |
+|----------|--------|--------|--------------------------------------------|
+| Android  | ✅      | ❌      | BitmapFactory (decode only)                |
+| Desktop  | ✅      | ✅      | GStreamer (requires `transmute-gstreamer`) |
+| iOS      | ✅      | ✅      | CoreGraphics (CGImage)                     |
 
 ## Usage
 

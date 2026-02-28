@@ -4,11 +4,11 @@ Ogg Vorbis is an open-source lossy audio format. It provides good quality at low
 
 ## Platform Support
 
-| Platform | Decode | Encode | Engine |
-|----------|--------|--------|--------|
-| Android  | ✅     | ✅     | MediaCodec |
-| Desktop  | ✅     | ✅     | GStreamer (requires `transmute-gstreamer`) |
-| iOS      | ✅     | ❌     | AVFoundation (decode only) |
+| Platform | Decode | Encode | Engine                                     |
+|----------|--------|--------|--------------------------------------------|
+| Android  | ✅      | ✅      | MediaCodec                                 |
+| Desktop  | ✅      | ✅      | GStreamer (requires `transmute-gstreamer`) |
+| iOS      | ✅      | ❌      | AVFoundation (decode only)                 |
 
 ## Usage
 

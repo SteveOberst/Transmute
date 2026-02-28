@@ -2,7 +2,19 @@
 
 `Transmute.codec` is the codec facade: **decode**, **encode**, format detection, and range decode (audio/video).
 
-It is a lightweight singleton that provides access to decode, encode, and format detection.
+It is a lightweight accessor that provides access to decode, encode, and format detection.
+
+The static `Transmute.codec` delegates to `Transmute.Default`. For plugin-based setups,
+use an instance:
+
+```kotlin
+val transmute = Transmute {
+    plugins { install(GStreamer) }
+}
+val codec = transmute.codec
+```
+
+See [plugins.md](plugins.md) for the full plugin system documentation.
 
 If you want to build and reuse the *default* codec pipelines directly, each domain exposes:
 
@@ -44,7 +56,7 @@ suspend fun codecExample(bytes: ByteArray) {
   val out =
     codec.image.encode(
       decoded = decoded,
-      options = JpegEncodeOptions(quality = 0.9f, metadataPolicy = dev.transmute.core.MetadataPolicy.PRESERVE),
+      options = JpegEncodeOptions(quality = 0.9f, metadataPolicy = dev.transmute.codec.MetadataPolicy.PRESERVE),
     )
 
   val outBytes = out.bytes.data

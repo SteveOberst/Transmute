@@ -13,14 +13,10 @@ actual fun installPlatformAudioCodecs(
   decoders.register(mp3Codec)
   encoders.register(mp3Codec)
 
-  // Decode-only codecs – encoding requires the transmute-gstreamer module.
+  // Decode-only codecs – encoding requires the transmute-gstreamer plugin.
   val flacCodec = JvmFlacCodec()
   decoders.register(flacCodec)
 
   val oggCodec = JvmOggVorbisCodec()
   decoders.register(oggCodec)
-
-  // Note: AAC, M4A, and Opus codecs are provided by the optional
-  // transmute-gstreamer module. Add it as a dependency and configure
-  // via TransmuteContext { gstreamer() } to enable them.
 }

@@ -9,11 +9,13 @@ Kotlin Multiplatform media conversion, compression and transformation - image, a
 ## Features
 
 - Single `commonMain` API for image, audio, and video conversion across Android, Desktop (JVM), and iOS
+- Instance-based API with plugin system — create isolated `Transmute` instances with custom codec configurations
 - Native platform codecs by default — no external dependencies for common formats
 - Optional `transmute-gstreamer` module fills platform gaps (HEIF/AVIF on Desktop, OGG/Opus on iOS, video on Desktop, etc.)
 - Pure-Kotlin WAV and BMP codecs that work on all platforms without native dependencies
 - Pipeline-based decode/transform/encode: decode produces an IR, transforms operate on the IR, encode consumes the IR (swap default handlers or build custom typed pipelines)
 - Structure reading: parse files into typed Kotlin data classes mirroring on-disk layout (PNG chunks, JPEG segments, RIFF containers, etc.) without decoding pixel/sample data
+- Suspending I/O via `TSource`, `TSink`, `TChannel` — non-blocking byte streams on every platform, with lambda sugar for structure reads and in-place transforms
 - Image resample filters: Nearest, Bilinear, Mitchell, Catmull-Rom, Lanczos3 (with anti-alias for downscale)
 - 27 transforms across all three media types (scale, crop, rotate, blur, normalize, trim, fade, gain, speed, compressor, etc.)
 - Configurable logging with level filtering and pluggable logger backends
@@ -64,6 +66,36 @@ suspend fun quickStart(
 }
 ```
 
+### Structure Lambda Sugar & Suspending I/O
+
+```kotlin
+// Lambda sugar — parsed structure is the receiver
+val width: Int = transmute.structure.read<Png>(pngBytes.asBytes(), ImageFormat.Png) {
+    ihdr.width.toInt()
+}
+
+// Read from a TSource (suspending, non-blocking)
+val src: TSource = ByteArraySource(pngBytes)
+val png: Png = transmute.structure.read<Png>(src, ImageFormat.Png)
+
+// Bridge: Bytes.asSource() / Bytes.asChannel()
+val png2: Png = transmute.structure.read<Png>(pngBytes.asBytes().asSource(), ImageFormat.Png)
+
+// In-place transform via TChannel
+val ch: TChannel = ByteArrayChannel(pngBytes)
+transmute.structure.transform<Png>(ch, ImageFormat.Png) {
+    edit { ihdr = ihdr.copy(width = 100u) }
+}
+
+// Write to a TSink
+val sink = ByteArraySink()
+transmute.structure.writeTo(pngStructure, sink)
+```
+
+All I/O-bound structure methods are `suspend` functions. For synchronous callers:
+`runBlocking { transmute.structure.read<Png>(src, format) }`.
+```
+
 ## Building Transmuters
 
 Transmuters are reusable objects you build once and apply to many inputs.
@@ -94,7 +126,71 @@ suspend fun toPng(bytes: ByteArray): ByteArray =
 
 Decode pipelines are generic over `IN`, so you can accept custom inputs by supplying your own decode stage:
 See “Advanced Pipelines” below for a full example.
+## Instance-Based API & Plugins
 
+Transmute supports both a convenient static API (`Transmute.image { ... }`) and a fully
+instance-based API where each `Transmute` instance carries its own codec registries.
+
+### Creating Instances
+
+```kotlin
+// Default instance — same as static Transmute.image / Transmute.audio / etc.
+val default = Transmute()
+
+// Instance with GStreamer plugin for desktop HEIF/AVIF/video support
+// All features (audio, video, image) are enabled by default
+val transmute = Transmute {
+    plugins {
+        install(GStreamer)
+    }
+}
+
+// Or selectively disable features you don't need:
+val slim = Transmute {
+    plugins {
+        install(GStreamer) {
+            disable(GStreamerFeature.LegacyAvi)      // skip AVI container
+            disable(GStreamerFeature.ImageEncoding)  // skip HEIF/AVIF encoding
+        }
+    }
+}
+
+// Use the instance exactly like the static API
+val jpeg = transmute.image {
+    scale(maxWidth = 1920, maxHeight = 1080)
+    encode { options(JpegEncodeOptions(quality = 0.85f)) }
+}.transmute(pngBytes.asBytes())
+```
+
+### Writing a Plugin
+
+Implement `TransmutePlugin<C>` to register custom codecs or services:
+
+```kotlin
+object MyCodecPlugin : TransmutePlugin<MyCodecConfig> {
+    override val key = pluginId("com.example.my-codec")
+    override fun createConfig() = MyCodecConfig()
+
+    override fun install(scope: TransmuteScope, config: MyCodecConfig) {
+        scope.imageDecoders.register(MyCustomDecoder())
+        scope.imageEncoders.register(MyCustomEncoder())
+    }
+}
+
+// For plugins with no configuration, extend SimpleTransmutePlugin:
+object MinimalPlugin : SimpleTransmutePlugin() {
+    override val key = pluginId("com.example.minimal")
+    override fun install(scope: TransmuteScope) {
+        scope.audioDecoders.register(MyAudioDecoder())
+    }
+}
+```
+
+### Backward Compatibility
+
+The static `Transmute.image`, `Transmute.codec`, etc. properties delegate to a lazy
+default instance (`Transmute.Default`) that uses platform codecs only. Existing code
+continues to work without changes.
 ## Docs
 
 See `docs/README.md` for a full index.
@@ -106,8 +202,25 @@ See `docs/README.md` for a full index.
 - `docs/inspect.md` — format detection + thumbnail extraction
 - `docs/format-detection.md` — per-domain and cross-domain detection
 - `docs/extending.md` — custom codecs, transforms & structure readers
+- `docs/plugins.md` — instance-based API & plugin system
+- `docs/gstreamer.md` — optional GStreamer integration
 - `docs/codecs/` — per-format platform support notes
 - `docs/transforms/` — per-transform documentation
+
+### Module READMEs
+
+Each `transmute-*` module has its own README with types, dependencies, and usage:
+
+[transmute-api](transmute-api/README.md) ·
+[transmute-codec](transmute-codec/README.md) ·
+[transmute-common](transmute-common/README.md) ·
+[transmute-audio](transmute-audio/README.md) ·
+[transmute-image](transmute-image/README.md) ·
+[transmute-video](transmute-video/README.md) ·
+[transmute-structure](transmute-structure/README.md) ·
+[transmute-model](transmute-model/README.md) ·
+[transmute-filesystem](transmute-filesystem/README.md) ·
+[transmute-gstreamer](transmute-plugins/gstreamer/README.md)
 
 ## Advanced Pipelines
 
@@ -258,26 +371,27 @@ Individual modules are also available: `transmute-image`, `transmute-audio`, `tr
 
 ## Modules
 
-| Module                    | Purpose                                                                             |
-|---------------------------|-------------------------------------------------------------------------------------|\n| `transmute-api`           | Public facade — `Transmute` object, `Transformers` factory, DSL extension functions |
-| `transmute-common`        | Shared utilities, base types (`Bytes`, `MediaFormat`), pipeline, logging            |
-| `transmute-codec`         | Codec infrastructure — registry, encode/decode handler base, format detection       |
-| `transmute-model`         | Umbrella for model sub-modules                                                      |
-| `transmute-model:core`    | Core model types, `MediaIR`, intermediate representations                           |
-| `transmute-model:identify`| Format identification / magic-bytes sniffing                                        |
-| `transmute-model:structure`| Binary structure types (`MediaStructure`) mirroring on-disk layout                 |
-| `transmute-model:view`    | Read-only & mutable view wrappers over structures (`StructureView`)                 |
-| `transmute-model:stream`  | Streaming byte-channel views                                                        |
-| `transmute-model:metadata`| Metadata models (EXIF, ID3, Vorbis comments, …)                                    |
-| `transmute-model:diagnostics`| Diagnostics & validation helpers                                                 |
-| `transmute-filesystem`    | File-system abstraction umbrella                                                    |
-| `transmute-filesystem:core`| Core file-system types                                                             |
-| `transmute-filesystem:okio`| Okio-backed file-system implementation                                             |
-| `transmute-image`         | Image codecs (JPEG, PNG, WebP, HEIF, AVIF, GIF, BMP, TIFF) + transforms            |
-| `transmute-audio`         | Audio codecs (WAV, MP3, AAC, FLAC, OGG, Opus, M4A) + transforms                    |
-| `transmute-video`         | Video codecs (MP4, MOV, WebM, AVI, MKV) + transforms                               |
-| `transmute-structure`     | Structure readers — parse raw bytes into typed `MediaStructure` data classes         |
-| `transmute-gstreamer`     | Optional GStreamer-backed codecs — fills platform gaps automatically                |
+| Module                        | Purpose                                                                             |
+|-------------------------------|-------------------------------------------------------------------------------------| 
+| `transmute-api`               | Public facade — `Transmute` object, `Transformers` factory, DSL extension functions |
+| `transmute-common`            | Shared utilities, base types (`Bytes`, `MediaFormat`), pipeline, logging            |
+| `transmute-codec`             | Codec infrastructure — registry, encode/decode handler base, format detection       |
+| `transmute-model`             | Umbrella for model sub-modules                                                      |
+| `transmute-model:core`        | Core model types, `MediaIR`, intermediate representations                           |
+| `transmute-model:identify`    | Format identification / magic-bytes sniffing                                        |
+| `transmute-model:structure`   | Binary structure types (`MediaStructure`) mirroring on-disk layout                  |
+| `transmute-model:view`        | Read-only & mutable view wrappers over structures (`StructureView`)                 |
+| `transmute-model:stream`      | Streaming byte-channel views                                                        |
+| `transmute-model:metadata`    | Metadata models (EXIF, ID3, Vorbis comments, …)                                     |
+| `transmute-model:diagnostics` | Diagnostics & validation helpers                                                    |
+| `transmute-filesystem`        | File-system abstraction umbrella                                                    |
+| `transmute-filesystem:core`   | Core file-system types                                                              |
+| `transmute-filesystem:okio`   | Okio-backed file-system implementation                                              |
+| `transmute-image`             | Image codecs (JPEG, PNG, WebP, HEIF, AVIF, GIF, BMP, TIFF) + transforms             |
+| `transmute-audio`             | Audio codecs (WAV, MP3, AAC, FLAC, OGG, Opus, M4A) + transforms                     |
+| `transmute-video`             | Video codecs (MP4, MOV, WebM, AVI, MKV) + transforms                                |
+| `transmute-structure`         | Structure readers — parse raw bytes into typed `MediaStructure` data classes        |
+| `transmute-gstreamer`         | Optional GStreamer-backed codecs — fills platform gaps automatically                |
 
 ## Codec Support
 
@@ -387,30 +501,60 @@ kotlin {
 }
 ```
 
-Register GStreamer as a supplementary codec provider **once** at application
-startup, before any codec operations:
+### Plugin Installation (all platforms)
+
+GStreamer codecs are enabled via the plugin system. Create a `Transmute` instance
+with the `GStreamer` plugin installed:
 
 ```kotlin
-import dev.transmute.gstreamer.GStreamerCodecInstaller
+val transmute = Transmute {
+    plugins {
+        install(GStreamer)  // all features enabled by default
+    }
+}
 
-fun main() {
-    // GStreamer codecs automatically fill gaps left by native platform codecs.
-    // If GStreamer is not installed on the system, the calls are safe no-ops.
-    GStreamerCodecInstaller.registerAsSupplementary()
+// Now all codec operations transparently use GStreamer where needed:
+val heif = transmute.image {
+    scale(maxWidth = 512, maxHeight = 512)
+}.transmute(inputBytes.asBytes())
+```
 
-    // Now all codec operations transparently use GStreamer where needed:
-    //   Audio  – AAC, M4A, Opus, FLAC encode, OGG encode
-    //   Image  – HEIF, HEIC, AVIF
-    //   Video  – MP4, MOV, WebM, AVI, MKV
+If GStreamer is not installed on the system, the plugin is a silent no-op.
+Set `diagnostics(true)` to see why GStreamer was or was not detected:
+
+```kotlin
+val transmute = Transmute {
+    plugins {
+        install(GStreamer) {
+            // Point to a custom GStreamer install root
+            installFrom(TPath.of("C:\\gstreamer\\1.0\\msvc_x86_64"))
+
+            // Or with additional search paths
+            // installFrom(TPath.of("/opt/gstreamer"), listOf(TPath.of("/opt/gstreamer/bin")))
+
+            // Print diagnostic messages if GStreamer is not found
+            diagnostics(true)
+
+            // Subprocess timeout (default: 30 s)
+            timeout(60_000L)
+
+            // Per-plugin logging configuration
+            configure {
+                logging {
+                    level(LogLevel.DEBUG)
+                }
+            }
+        }
+    }
 }
 ```
 
-You can also install GStreamer codecs explicitly into specific registries:
+You can also install GStreamer codecs directly into mutable registries:
 
 ```kotlin
-GStreamerCodecInstaller.installAudioCodecs(AudioRegistries.decoders, AudioRegistries.encoders)
-GStreamerCodecInstaller.installImageCodecs(ImageRegistries.decoders, ImageRegistries.encoders)
-GStreamerCodecInstaller.installVideoCodecs(VideoRegistries.decoders, VideoRegistries.encoders)
+val decoders = MutableAudioDecoderRegistry()
+val encoders = MutableAudioEncoderRegistry()
+GStreamerCodecInstaller.installAudioCodecs(decoders, encoders)
 ```
 
 GStreamer is detected automatically via the system PATH. On Desktop/JVM, codecs
@@ -422,10 +566,12 @@ On Windows, the `GSTREAMER_1_0_ROOT_MSVC_X86_64` /
 `GSTREAMER_1_0_ROOT_X86_64` environment variables and common install paths are
 also checked.
 
+For full details, see [docs/gstreamer.md](docs/gstreamer.md).
+
 ## Custom Codecs & Transforms
 
 ```kotlin
-// Register a custom codec
+// Register a custom codec via a plugin
 class MyWebpDecoder : ImageDecoder {
     override val supportedFormats = setOf(ImageFormat.Webp)
     override fun sniff(data: Bytes): ImageFormat? = /* magic bytes */ null
@@ -441,8 +587,18 @@ class MyWebpEncoder : ImageEncoder {
         context: TransmuteContext,
     ): Bytes = TODO()
 }
-ImageRegistries.register(MyWebpDecoder())
-ImageRegistries.register(MyWebpEncoder())
+
+// Register via a Transmute instance (preferred)
+val transmute = Transmute {
+    plugins {
+        install(object : SimpleTransmutePlugin("my-webp") {
+            override fun install(scope: TransmuteScope) {
+                scope.imageDecoders.register(MyWebpDecoder())
+                scope.imageEncoders.register(MyWebpEncoder())
+            }
+        })
+    }
+}
 
 // Custom transform - no registration needed
 class WatermarkTransform(private val logo: ByteArray) : Transform<ImageIR> {

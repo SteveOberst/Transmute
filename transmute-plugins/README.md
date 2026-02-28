@@ -1,0 +1,88 @@
+# Transmute Plugins
+
+Official plugin catalog for the Transmute media processing library.
+
+## Available Plugins
+
+| Plugin      | Module                          | Key                        | Description                                      |
+|-------------|---------------------------------|----------------------------|--------------------------------------------------|
+| `GStreamer` | `transmute-plugins:gstreamer`   | `GStreamer.key`            | HEIF/AVIF, OGG/Opus/FLAC, MP4/MOV/WebM/AVI/MKV  |
+
+## Installation
+
+Plugins live under `transmute-plugins:<name>` in the Gradle project hierarchy.
+Add the plugin module to your dependencies alongside `transmute-api`:
+
+```kotlin
+dependencies {
+    implementation("dev.transmute:transmute-api:<version>")
+    implementation("dev.transmute:transmute-gstreamer:<version>")
+}
+```
+
+Then install the plugin via the builder DSL:
+
+```kotlin
+// All features (audio, video, image) are enabled by default
+val transmute = Transmute {
+    plugins {
+        install(GStreamer)
+    }
+}
+```
+
+### Feature Toggles
+
+Plugins declare typed `PluginFeature` constants for fine-grained control.
+Use `configure { features { } }` with strongly-typed feature references:
+
+```kotlin
+val transmute = Transmute {
+    plugins {
+        install(GStreamer) {
+            disable(GStreamerFeature.LegacyAvi)       // skip AVI codec
+            disable(GStreamerFeature.ImageEncoding)    // skip HEIF/AVIF encoding
+        }
+    }
+}
+```
+
+**GStreamer features:**
+
+| Feature                          | Default | Description                                           |
+|----------------------------------|---------|-------------------------------------------------------|
+| `GStreamerFeature.AudioCodecs`   | enabled | AAC, M4A, Opus, FLAC/OGG encode                      |
+| `GStreamerFeature.ImageCodecs`   | enabled | HEIF, HEIC, AVIF decode/encode                        |
+| `GStreamerFeature.ImageEncoding` | enabled | HEIF/AVIF encoding via x265enc/av1enc                 |
+| `GStreamerFeature.VideoCodecs`   | enabled | MP4, MOV, WebM, AVI, MKV                              |
+| `GStreamerFeature.LegacyAvi`    | enabled | Legacy AVI container support                           |
+
+## Plugin System Features
+
+Every plugin installed through the `Transmute { }` builder gets access to:
+
+| Feature             | API                                        | Description                              |
+|---------------------|--------------------------------------------|------------------------------------------|
+| Typed keys          | `PluginId`                                 | Strongly-typed plugin identification     |
+| Typed features      | `PluginFeature`                            | Strongly-typed feature toggle constants  |
+| Typed services      | `scope.services`                           | Type-safe `ServiceRegistry` for sharing  |
+| Diagnostics         | `scope.diagnostics`                        | Structured health / status reporting     |
+| Feature toggles     | `scope.features` / `configure { features }` | Named enable/disable switches           |
+| Per-plugin logging  | `scope.logger`                             | Auto-tagged `PluginLogger`               |
+| Ordering            | `dependsOn` / `installAfter` / `installBefore` | Dependency and ordering control     |
+| Lifecycle hooks     | `PluginLifecycle`                          | `onInstalled()` + `onClose()` callbacks  |
+
+See [docs/plugins.md](../docs/plugins.md) for the full plugin system documentation.
+
+## Writing a New Plugin
+
+1. Create a new module under `transmute-plugins/` (e.g. `transmute-plugins/my-plugin`).
+2. Add the module in `settings.gradle.kts`:
+   ```kotlin
+   include(":transmute-plugins:my-plugin")
+   ```
+3. Implement `TransmutePlugin<C>` (or extend `SimpleTransmutePlugin` for config-free plugins).
+   Each plugin must declare a `PluginId` and optionally a set of `PluginFeature` constants.
+4. Add an entry to the catalog table above.
+
+See the [GStreamer plugin](gstreamer/README.md) for a complete reference implementation.

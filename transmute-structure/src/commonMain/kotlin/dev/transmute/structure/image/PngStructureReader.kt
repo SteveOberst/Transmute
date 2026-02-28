@@ -9,6 +9,8 @@ import dev.transmute.model.structure.StructureReadException
 import dev.transmute.model.structure.StructureReader
 import dev.transmute.model.structure.image.Png
 import dev.transmute.model.structure.image.PngChunk
+import dev.transmute.structure.common.decodeAscii
+import dev.transmute.structure.common.readU32BE
 
 /**
  * Parses raw PNG file bytes into a [Png] structure.
@@ -70,14 +72,3 @@ class PngStructureReader : StructureReader<Png> {
         return Png(signature = signature, chunks = chunks)
     }
 }
-
-// --- Byte helpers ---
-
-private fun ByteArray.readU32BE(off: Int): UInt =
-    ((this[off].toUInt() and 0xFFu) shl 24) or
-        ((this[off + 1].toUInt() and 0xFFu) shl 16) or
-        ((this[off + 2].toUInt() and 0xFFu) shl 8) or
-        (this[off + 3].toUInt() and 0xFFu)
-
-private fun ByteArray.decodeAscii(off: Int, len: Int): String =
-    String(CharArray(len) { this[off + it].toInt().toChar() })

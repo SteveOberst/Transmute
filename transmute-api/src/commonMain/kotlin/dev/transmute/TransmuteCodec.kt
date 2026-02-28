@@ -1,11 +1,15 @@
 package dev.transmute
 
 import dev.transmute.audio.AudioDecodeOptions
+import dev.transmute.audio.AudioDecoderRegistry
 import dev.transmute.audio.AudioEncodeOptions
+import dev.transmute.audio.AudioEncoderRegistry
 import dev.transmute.audio.AudioFormat
 import dev.transmute.audio.AudioFormatDetector
 import dev.transmute.audio.AudioIR
 import dev.transmute.audio.AudioRegistries
+import dev.transmute.audio.MutableAudioDecoderRegistry
+import dev.transmute.audio.MutableAudioEncoderRegistry
 import dev.transmute.audio.CanonicalAudioDecodeOptions
 import dev.transmute.audio.CanonicalAudioEncodeOptions
 import dev.transmute.model.core.Bytes
@@ -24,24 +28,39 @@ import dev.transmute.codec.pipeline.EncodedBytes
 import dev.transmute.image.CanonicalImageDecodeOptions
 import dev.transmute.image.CanonicalImageEncodeOptions
 import dev.transmute.image.ImageDecodeOptions
+import dev.transmute.image.ImageDecoderRegistry
 import dev.transmute.image.ImageEncodeOptions
+import dev.transmute.image.ImageEncoderRegistry
 import dev.transmute.image.ImageFormat
 import dev.transmute.image.ImageFormatDetector
 import dev.transmute.image.ImageIR
 import dev.transmute.image.ImageRegistries
+import dev.transmute.image.MutableImageDecoderRegistry
+import dev.transmute.image.MutableImageEncoderRegistry
 import dev.transmute.video.CanonicalVideoDecodeOptions
 import dev.transmute.video.CanonicalVideoEncodeOptions
 import dev.transmute.video.VideoDecodeOptions
+import dev.transmute.video.VideoDecoderRegistry
 import dev.transmute.video.VideoEncodeOptions
+import dev.transmute.video.VideoEncoderRegistry
 import dev.transmute.video.VideoFormat
 import dev.transmute.video.VideoFormatDetector
 import dev.transmute.video.VideoIR
 import dev.transmute.video.VideoRegistries
+import dev.transmute.video.MutableVideoDecoderRegistry
+import dev.transmute.video.MutableVideoEncoderRegistry
 
-class TransmuteCodec internal constructor() {
-  val image: ImageCodec = ImageCodec()
-  val audio: AudioCodec = AudioCodec()
-  val video: VideoCodec = VideoCodec()
+class TransmuteCodec internal constructor(
+  imageDecoderRegistry: ImageDecoderRegistry? = null,
+  imageEncoderRegistry: ImageEncoderRegistry? = null,
+  audioDecoderRegistry: AudioDecoderRegistry? = null,
+  audioEncoderRegistry: AudioEncoderRegistry? = null,
+  videoDecoderRegistry: VideoDecoderRegistry? = null,
+  videoEncoderRegistry: VideoEncoderRegistry? = null,
+) {
+  val image: ImageCodec = ImageCodec(imageDecoderRegistry, imageEncoderRegistry)
+  val audio: AudioCodec = AudioCodec(audioDecoderRegistry, audioEncoderRegistry)
+  val video: VideoCodec = VideoCodec(videoDecoderRegistry, videoEncoderRegistry)
 }
 
 data class ConfiguredDecoder<F : MediaFormat<*, *>, OUT, OPTS : DecodeOptions>(
@@ -75,11 +94,32 @@ data class ConfiguredEncoder<F : MediaFormat<*, *>, IN, OPTS : EncodeOptions>(
   }
 }
 
-class ImageCodec internal constructor() {
+class ImageCodec internal constructor(
+  private val decoderRegistry: ImageDecoderRegistry? = null,
+  private val encoderRegistry: ImageEncoderRegistry? = null,
+) {
   private val defaultDecodePipeline: DecodePipeline<Bytes, Decoded<ImageFormat, ImageIR>> =
-    defaultImageBytesDecodePipeline()
+    defaultImageBytesDecodePipeline(decoderRegistry)
   private val defaultEncodePipeline: EncodePipeline<Decoded<ImageFormat, ImageIR>, EncodedBytes<ImageFormat>> =
-    defaultDynamicImageEncodePipeline()
+    defaultDynamicImageEncodePipeline(encoderRegistry)
+
+  /** All image formats for which a decoder is registered. */
+  val decodableFormats: Set<ImageFormat>
+    get() {
+      if (decoderRegistry == null) ImageRegistries.installDefaultsIfEmpty()
+      return (decoderRegistry ?: ImageRegistries.decoders).let { reg ->
+        if (reg is MutableImageDecoderRegistry) reg.supportedFormats else emptySet()
+      }
+    }
+
+  /** All image formats for which an encoder is registered. */
+  val encodableFormats: Set<ImageFormat>
+    get() {
+      if (encoderRegistry == null) ImageRegistries.installDefaultsIfEmpty()
+      return (encoderRegistry ?: ImageRegistries.encoders).let { reg ->
+        if (reg is MutableImageEncoderRegistry) reg.supportedFormats else emptySet()
+      }
+    }
 
   fun detectFormat(source: Bytes): ImageFormat = ImageFormatDetector.detect(source)
 
@@ -89,8 +129,10 @@ class ImageCodec internal constructor() {
       pipeline = defaultDecodePipeline,
       sniffFormat = { bytes -> detectFormat(bytes).takeUnless { it == ImageFormat.Unknown } },
       decodableFormatsProvider = {
-        ImageRegistries.installDefaultsIfEmpty()
-        ImageRegistries.decoders.supportedFormats
+        if (decoderRegistry == null) ImageRegistries.installDefaultsIfEmpty()
+        (decoderRegistry ?: ImageRegistries.decoders).let { reg ->
+          if (reg is MutableImageDecoderRegistry) reg.supportedFormats else emptySet()
+        }
       },
     )
 
@@ -105,8 +147,10 @@ class ImageCodec internal constructor() {
       pipeline = pipeline,
       sniffFormat = { bytes -> detectFormat(bytes).takeUnless { it == ImageFormat.Unknown } },
       decodableFormatsProvider = {
-        ImageRegistries.installDefaultsIfEmpty()
-        ImageRegistries.decoders.supportedFormats
+        if (decoderRegistry == null) ImageRegistries.installDefaultsIfEmpty()
+        (decoderRegistry ?: ImageRegistries.decoders).let { reg ->
+          if (reg is MutableImageDecoderRegistry) reg.supportedFormats else emptySet()
+        }
       },
     )
   }
@@ -116,8 +160,10 @@ class ImageCodec internal constructor() {
       options = CanonicalImageEncodeOptions(),
       pipeline = defaultEncodePipeline,
       encodableFormatsProvider = {
-        ImageRegistries.installDefaultsIfEmpty()
-        ImageRegistries.encoders.supportedFormats
+        if (encoderRegistry == null) ImageRegistries.installDefaultsIfEmpty()
+        (encoderRegistry ?: ImageRegistries.encoders).let { reg ->
+          if (reg is MutableImageEncoderRegistry) reg.supportedFormats else emptySet()
+        }
       },
     )
 
@@ -132,8 +178,10 @@ class ImageCodec internal constructor() {
       options = stage.options,
       pipeline = pipeline,
       encodableFormatsProvider = {
-        ImageRegistries.installDefaultsIfEmpty()
-        ImageRegistries.encoders.supportedFormats
+        if (encoderRegistry == null) ImageRegistries.installDefaultsIfEmpty()
+        (encoderRegistry ?: ImageRegistries.encoders).let { reg ->
+          if (reg is MutableImageEncoderRegistry) reg.supportedFormats else emptySet()
+        }
       },
     )
   }
@@ -155,11 +203,32 @@ class ImageCodec internal constructor() {
   }
 }
 
-class AudioCodec internal constructor() {
+class AudioCodec internal constructor(
+  private val decoderRegistry: AudioDecoderRegistry? = null,
+  private val encoderRegistry: AudioEncoderRegistry? = null,
+) {
   private val defaultDecodePipeline: DecodePipeline<Bytes, Decoded<AudioFormat, AudioIR>> =
-    defaultAudioBytesDecodePipeline()
+    defaultAudioBytesDecodePipeline(decoderRegistry)
   private val defaultEncodePipeline: EncodePipeline<Decoded<AudioFormat, AudioIR>, EncodedBytes<AudioFormat>> =
-    defaultDynamicAudioEncodePipeline()
+    defaultDynamicAudioEncodePipeline(encoderRegistry)
+
+  /** All audio formats for which a decoder is registered. */
+  val decodableFormats: Set<AudioFormat>
+    get() {
+      if (decoderRegistry == null) AudioRegistries.installDefaultsIfEmpty()
+      return (decoderRegistry ?: AudioRegistries.decoders).let { reg ->
+        if (reg is MutableAudioDecoderRegistry) reg.supportedFormats else emptySet()
+      }
+    }
+
+  /** All audio formats for which an encoder is registered. */
+  val encodableFormats: Set<AudioFormat>
+    get() {
+      if (encoderRegistry == null) AudioRegistries.installDefaultsIfEmpty()
+      return (encoderRegistry ?: AudioRegistries.encoders).let { reg ->
+        if (reg is MutableAudioEncoderRegistry) reg.supportedFormats else emptySet()
+      }
+    }
 
   fun detectFormat(source: Bytes): AudioFormat = AudioFormatDetector.detect(source)
 
@@ -169,8 +238,10 @@ class AudioCodec internal constructor() {
       pipeline = defaultDecodePipeline,
       sniffFormat = { bytes -> detectFormat(bytes).takeUnless { it == AudioFormat.Unknown } },
       decodableFormatsProvider = {
-        AudioRegistries.installDefaultsIfEmpty()
-        AudioRegistries.decoders.supportedFormats
+        if (decoderRegistry == null) AudioRegistries.installDefaultsIfEmpty()
+        (decoderRegistry ?: AudioRegistries.decoders).let { reg ->
+          if (reg is MutableAudioDecoderRegistry) reg.supportedFormats else emptySet()
+        }
       },
     )
 
@@ -185,8 +256,10 @@ class AudioCodec internal constructor() {
       pipeline = pipeline,
       sniffFormat = { bytes -> detectFormat(bytes).takeUnless { it == AudioFormat.Unknown } },
       decodableFormatsProvider = {
-        AudioRegistries.installDefaultsIfEmpty()
-        AudioRegistries.decoders.supportedFormats
+        if (decoderRegistry == null) AudioRegistries.installDefaultsIfEmpty()
+        (decoderRegistry ?: AudioRegistries.decoders).let { reg ->
+          if (reg is MutableAudioDecoderRegistry) reg.supportedFormats else emptySet()
+        }
       },
     )
   }
@@ -196,8 +269,10 @@ class AudioCodec internal constructor() {
       options = CanonicalAudioEncodeOptions(),
       pipeline = defaultEncodePipeline,
       encodableFormatsProvider = {
-        AudioRegistries.installDefaultsIfEmpty()
-        AudioRegistries.encoders.supportedFormats
+        if (encoderRegistry == null) AudioRegistries.installDefaultsIfEmpty()
+        (encoderRegistry ?: AudioRegistries.encoders).let { reg ->
+          if (reg is MutableAudioEncoderRegistry) reg.supportedFormats else emptySet()
+        }
       },
     )
 
@@ -212,8 +287,10 @@ class AudioCodec internal constructor() {
       options = stage.options,
       pipeline = pipeline,
       encodableFormatsProvider = {
-        AudioRegistries.installDefaultsIfEmpty()
-        AudioRegistries.encoders.supportedFormats
+        if (encoderRegistry == null) AudioRegistries.installDefaultsIfEmpty()
+        (encoderRegistry ?: AudioRegistries.encoders).let { reg ->
+          if (reg is MutableAudioEncoderRegistry) reg.supportedFormats else emptySet()
+        }
       },
     )
   }
@@ -235,11 +312,32 @@ class AudioCodec internal constructor() {
   }
 }
 
-class VideoCodec internal constructor() {
+class VideoCodec internal constructor(
+  private val decoderRegistry: VideoDecoderRegistry? = null,
+  private val encoderRegistry: VideoEncoderRegistry? = null,
+) {
   private val defaultDecodePipeline: DecodePipeline<Bytes, Decoded<VideoFormat, VideoIR>> =
-    defaultVideoBytesDecodePipeline()
+    defaultVideoBytesDecodePipeline(decoderRegistry)
   private val defaultEncodePipeline: EncodePipeline<Decoded<VideoFormat, VideoIR>, EncodedBytes<VideoFormat>> =
-    defaultDynamicVideoEncodePipeline()
+    defaultDynamicVideoEncodePipeline(encoderRegistry)
+
+  /** All video formats for which a decoder is registered. */
+  val decodableFormats: Set<VideoFormat>
+    get() {
+      if (decoderRegistry == null) VideoRegistries.installDefaultsIfEmpty()
+      return (decoderRegistry ?: VideoRegistries.decoders).let { reg ->
+        if (reg is MutableVideoDecoderRegistry) reg.supportedFormats else emptySet()
+      }
+    }
+
+  /** All video formats for which an encoder is registered. */
+  val encodableFormats: Set<VideoFormat>
+    get() {
+      if (encoderRegistry == null) VideoRegistries.installDefaultsIfEmpty()
+      return (encoderRegistry ?: VideoRegistries.encoders).let { reg ->
+        if (reg is MutableVideoEncoderRegistry) reg.supportedFormats else emptySet()
+      }
+    }
 
   fun detectFormat(source: Bytes): VideoFormat = VideoFormatDetector.detect(source)
 
@@ -249,8 +347,10 @@ class VideoCodec internal constructor() {
       pipeline = defaultDecodePipeline,
       sniffFormat = { bytes -> detectFormat(bytes).takeUnless { it == VideoFormat.Unknown } },
       decodableFormatsProvider = {
-        VideoRegistries.installDefaultsIfEmpty()
-        VideoRegistries.decoders.supportedFormats
+        if (decoderRegistry == null) VideoRegistries.installDefaultsIfEmpty()
+        (decoderRegistry ?: VideoRegistries.decoders).let { reg ->
+          if (reg is MutableVideoDecoderRegistry) reg.supportedFormats else emptySet()
+        }
       },
     )
 
@@ -265,8 +365,10 @@ class VideoCodec internal constructor() {
       pipeline = pipeline,
       sniffFormat = { bytes -> detectFormat(bytes).takeUnless { it == VideoFormat.Unknown } },
       decodableFormatsProvider = {
-        VideoRegistries.installDefaultsIfEmpty()
-        VideoRegistries.decoders.supportedFormats
+        if (decoderRegistry == null) VideoRegistries.installDefaultsIfEmpty()
+        (decoderRegistry ?: VideoRegistries.decoders).let { reg ->
+          if (reg is MutableVideoDecoderRegistry) reg.supportedFormats else emptySet()
+        }
       },
     )
   }
@@ -276,8 +378,10 @@ class VideoCodec internal constructor() {
       options = CanonicalVideoEncodeOptions(),
       pipeline = defaultEncodePipeline,
       encodableFormatsProvider = {
-        VideoRegistries.installDefaultsIfEmpty()
-        VideoRegistries.encoders.supportedFormats
+        if (encoderRegistry == null) VideoRegistries.installDefaultsIfEmpty()
+        (encoderRegistry ?: VideoRegistries.encoders).let { reg ->
+          if (reg is MutableVideoEncoderRegistry) reg.supportedFormats else emptySet()
+        }
       },
     )
 
@@ -292,8 +396,10 @@ class VideoCodec internal constructor() {
       options = stage.options,
       pipeline = pipeline,
       encodableFormatsProvider = {
-        VideoRegistries.installDefaultsIfEmpty()
-        VideoRegistries.encoders.supportedFormats
+        if (encoderRegistry == null) VideoRegistries.installDefaultsIfEmpty()
+        (encoderRegistry ?: VideoRegistries.encoders).let { reg ->
+          if (reg is MutableVideoEncoderRegistry) reg.supportedFormats else emptySet()
+        }
       },
     )
   }

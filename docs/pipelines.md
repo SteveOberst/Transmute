@@ -239,3 +239,21 @@ var decode = PipelineBuilder.start<Bytes>().startWith(ImageCodecs.Decode.DEFAULT
 decode += tap { decoded, ctx -> ctx.logger.info("decoded ${decoded.format}") }
 val pipeline = decode.build()
 ```
+
+## Codec Registration & Plugins
+
+Pipeline handlers rely on codecs from the registries. Codecs can be registered:
+
+- **Directly** via `ImageRegistries.register(...)`, `AudioRegistries.register(...)`, etc.
+- **Via plugins** using the `Transmute { plugins { install(...) } }` builder DSL.
+
+When using the instance-based API, each `Transmute` instance gets its own registries populated
+by installed plugins. See [plugins.md](plugins.md) for details.
+
+## See Also
+
+- [codec.md](codec.md) — decode, encode, and format detection facade
+- [extending.md](extending.md) — custom codecs, transforms, and structure readers
+- [plugins.md](plugins.md) — instance-based API and plugin system
+- Module READMEs: [transmute-codec](../transmute-codec/README.md),
+  [transmute-api](../transmute-api/README.md)

@@ -4,11 +4,11 @@ JPEG (Joint Photographic Experts Group) is a widely-used lossy image compression
 
 ## Platform Support
 
-| Platform | Decode | Encode | Engine |
-|----------|--------|--------|--------|
-| Android  | ✅     | ✅     | BitmapFactory / Bitmap.compress |
-| Desktop  | ✅     | ✅     | ImageIO (javax.imageio) |
-| iOS      | ✅     | ✅     | CoreGraphics (CGImage) |
+| Platform | Decode | Encode | Engine                          |
+|----------|--------|--------|---------------------------------|
+| Android  | ✅      | ✅      | BitmapFactory / Bitmap.compress |
+| Desktop  | ✅      | ✅      | ImageIO (javax.imageio)         |
+| iOS      | ✅      | ✅      | CoreGraphics (CGImage)          |
 
 ## Usage
 

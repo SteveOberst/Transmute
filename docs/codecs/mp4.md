@@ -4,11 +4,11 @@ MP4 is the most widely-used video container format, typically containing H.264 (
 
 ## Platform Support
 
-| Platform | Decode | Encode | Engine |
-|----------|--------|--------|--------|
-| Android  | ✅     | ✅     | MediaCodec |
-| Desktop  | ✅     | ✅     | GStreamer (requires `transmute-gstreamer`) |
-| iOS      | ✅     | ✅     | AVFoundation / AVAssetWriter |
+| Platform | Decode | Encode | Engine                                     |
+|----------|--------|--------|--------------------------------------------|
+| Android  | ✅      | ✅      | MediaCodec                                 |
+| Desktop  | ✅      | ✅      | GStreamer (requires `transmute-gstreamer`) |
+| iOS      | ✅      | ✅      | AVFoundation / AVAssetWriter               |
 
 ## Usage
 

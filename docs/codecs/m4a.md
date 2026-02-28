@@ -4,11 +4,11 @@ M4A is an audio-only MP4 container, typically containing AAC audio. It is widely
 
 ## Platform Support
 
-| Platform | Decode | Encode | Engine |
-|----------|--------|--------|--------|
-| Android  | ✅     | ✅     | MediaCodec |
-| Desktop  | ✅     | ✅     | GStreamer (requires `transmute-gstreamer`) |
-| iOS      | ✅     | ✅     | AVFoundation |
+| Platform | Decode | Encode | Engine                                     |
+|----------|--------|--------|--------------------------------------------|
+| Android  | ✅      | ✅      | MediaCodec                                 |
+| Desktop  | ✅      | ✅      | GStreamer (requires `transmute-gstreamer`) |
+| iOS      | ✅      | ✅      | AVFoundation                               |
 
 ## Usage
 

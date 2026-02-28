@@ -5,6 +5,9 @@ plugins {
     `maven-publish`
 }
 
+// Unique group to avoid GAV collision with :transmute-filesystem:core
+group = "${rootProject.group}.model"
+
 kotlin {
     val isMac = System.getProperty("os.name").startsWith("Mac", ignoreCase = true)
 

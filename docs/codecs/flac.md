@@ -4,11 +4,11 @@ FLAC (Free Lossless Audio Codec) is a lossless audio format. It compresses audio
 
 ## Platform Support
 
-| Platform | Decode | Encode | Engine |
-|----------|--------|--------|--------|
-| Android  | ✅     | ✅     | MediaCodec |
-| Desktop  | ✅     | ✅     | JFlac (decode) / GStreamer (+gst encode) |
-| iOS      | ✅     | ❌     | AVFoundation (decode only) |
+| Platform | Decode | Encode | Engine                                   |
+|----------|--------|--------|------------------------------------------|
+| Android  | ✅      | ✅      | MediaCodec                               |
+| Desktop  | ✅      | ✅      | JFlac (decode) / GStreamer (+gst encode) |
+| iOS      | ✅      | ❌      | AVFoundation (decode only)               |
 
 ## Usage
 

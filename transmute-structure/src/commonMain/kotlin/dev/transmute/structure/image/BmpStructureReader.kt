@@ -10,6 +10,9 @@ import dev.transmute.model.structure.image.Bmp
 import dev.transmute.model.structure.image.BmpColorEntry
 import dev.transmute.model.structure.image.BmpDibHeader
 import dev.transmute.model.structure.image.BmpFileHeader
+import dev.transmute.structure.common.readI32LE
+import dev.transmute.structure.common.readU16LE
+import dev.transmute.structure.common.readU32LE
 
 /**
  * Parses raw BMP file bytes into a [Bmp] structure.
@@ -133,20 +136,3 @@ class BmpStructureReader : StructureReader<Bmp> {
         )
     }
 }
-
-// --- Byte helpers ---
-
-private fun ByteArray.readU16LE(off: Int): Int =
-    (this[off].toInt() and 0xFF) or ((this[off + 1].toInt() and 0xFF) shl 8)
-
-private fun ByteArray.readU32LE(off: Int): UInt =
-    (this[off].toUInt() and 0xFFu) or
-        ((this[off + 1].toUInt() and 0xFFu) shl 8) or
-        ((this[off + 2].toUInt() and 0xFFu) shl 16) or
-        ((this[off + 3].toUInt() and 0xFFu) shl 24)
-
-private fun ByteArray.readI32LE(off: Int): Int =
-    (this[off].toInt() and 0xFF) or
-        ((this[off + 1].toInt() and 0xFF) shl 8) or
-        ((this[off + 2].toInt() and 0xFF) shl 16) or
-        ((this[off + 3].toInt() and 0xFF) shl 24)

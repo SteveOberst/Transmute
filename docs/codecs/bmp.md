@@ -4,11 +4,11 @@ BMP (Bitmap) is a simple, mostly uncompressed image format. It is large but easy
 
 ## Platform Support
 
-| Platform | Decode | Encode | Engine |
-|----------|--------|--------|--------|
-| Android  | ✅     | ✅     | Pure Kotlin |
-| Desktop  | ✅     | ✅     | Pure Kotlin |
-| iOS      | ✅     | ✅     | Pure Kotlin |
+| Platform | Decode | Encode | Engine      |
+|----------|--------|--------|-------------|
+| Android  | ✅      | ✅      | Pure Kotlin |
+| Desktop  | ✅      | ✅      | Pure Kotlin |
+| iOS      | ✅      | ✅      | Pure Kotlin |
 
 ## Usage
 

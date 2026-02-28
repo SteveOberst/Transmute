@@ -15,7 +15,7 @@ package dev.transmute.video
  *     encode { options { metadataPolicy = MetadataPolicy.STRIP_ALL } }
  * }
  *
- * val hint = VideoHint(width = item.width, height = item.height, fps = item.fps)
+ * val hint = VideoHint(width = item.width, height = item.height, frameRate = item.frameRate)
  * if (transmuter.wouldTransmute(hint)) {
  *     val compressed = transmuter.transmute(item.bytes.asBytes())
  * }
@@ -27,7 +27,7 @@ data class VideoHint(
     /** Frame height in pixels, or `null` if unknown. */
     val height: Int? = null,
     /** Frame rate in frames per second, or `null` if unknown. */
-    val fps: Double? = null,
+    val frameRate: Double? = null,
     /** Track duration in milliseconds, or `null` if unknown. */
     val durationMs: Long? = null,
     /** Detected or declared format, or `null` if unknown. */

@@ -9,6 +9,7 @@ import dev.transmute.model.structure.StructureReader
 import dev.transmute.model.structure.image.Jpeg
 import dev.transmute.model.structure.image.JpegMarkerType
 import dev.transmute.model.structure.image.JpegSegment
+import dev.transmute.structure.common.readU16BE
 
 /**
  * Parses raw JPEG file bytes into a [Jpeg] structure.
@@ -118,8 +119,3 @@ class JpegStructureReader : StructureReader<Jpeg> {
         return data.copyOfRange(start, pos)
     }
 }
-
-// --- Byte helpers ---
-
-private fun ByteArray.readU16BE(off: Int): Int =
-    ((this[off].toInt() and 0xFF) shl 8) or (this[off + 1].toInt() and 0xFF)

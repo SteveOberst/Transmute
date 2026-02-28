@@ -4,8 +4,7 @@ actual fun installPlatformVideoCodecs(
   decoders: MutableVideoDecoderRegistry,
   encoders: MutableVideoEncoderRegistry,
 ) {
-  // Desktop has no native video codecs.
-  // All video decode/encode is provided by the optional transmute-gstreamer
-  // module. Add it as a dependency and configure via
-  // TransmuteContext { gstreamer() } to enable MP4, MOV, WebM, AVI, MKV.
+  // Desktop/JVM has no built-in video codecs.
+  // Use the GStreamer plugin for video support:
+  //   transmute { plugins { install(GStreamer) } }
 }

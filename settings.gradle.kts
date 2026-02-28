@@ -7,7 +7,8 @@ pluginManagement {
 }
 
 dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    @Suppress("UnstableApiUsage")
+    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
     repositories {
         google()
         mavenCentral()
@@ -35,5 +36,10 @@ include(
     ":transmute-audio",
     ":transmute-video",
     ":transmute-image",
-    ":transmute-gstreamer",
+    ":transmute-plugins",
+    ":transmute-plugins:catalog",
+    ":transmute-plugins:gstreamer",
+    ":transmute-playground",
+    ":transmute-playground:shared",
+    ":transmute-playground:server",
 )

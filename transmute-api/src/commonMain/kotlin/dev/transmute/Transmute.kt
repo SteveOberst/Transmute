@@ -1,7 +1,6 @@
 package dev.transmute
 
 import dev.transmute.audio.*
-import dev.transmute.codec.*
 import dev.transmute.codec.pipeline.*
 import dev.transmute.model.core.Bytes
 import dev.transmute.model.core.DecodeOptions
@@ -14,6 +13,16 @@ import dev.transmute.common.TransmuteLogger
 import dev.transmute.common.TransmuteLogging
 import dev.transmute.model.core.asBytes
 import dev.transmute.image.*
+import dev.transmute.plugin.AggregateDiagnostics
+import dev.transmute.plugin.InstalledPluginInfo
+import dev.transmute.plugin.PluginInstallation
+import dev.transmute.plugin.ServiceRegistry
+import dev.transmute.plugin.TransmutePlugin
+import dev.transmute.plugin.TransmuteScope
+import dev.transmute.plugin.installPlatformAudioDefaults
+import dev.transmute.plugin.installPlatformImageDefaults
+import dev.transmute.plugin.installPlatformVideoDefaults
+import dev.transmute.plugin.sortPluginInstallations
 import dev.transmute.video.*
 
 typealias DynamicImageTransmuter = ImageTransmuter<Bytes, EncodedBytes<ImageFormat>>
@@ -55,27 +64,190 @@ suspend fun <IN, F : MediaFormat<*, *>> Transmuter<IN, EncodedBytes<F>>.transmut
 }
 
 /** Public API facade for Transmute. */
-object Transmute {
-
+class Transmute private constructor(
   /** Low-level decode / encode / format detection. */
-  val codec: TransmuteCodec = TransmuteCodec()
+  val codec: TransmuteCodec,
 
   /** Decode-less format detection and lightweight probing. */
-  val inspect: TransmuteInspect = TransmuteInspect(codec = codec)
+  val inspect: TransmuteInspect,
 
   /** Read raw file bytes into [MediaStructure] objects and write them back. */
-  val structure: TransmuteStructure = TransmuteStructure(inspect = inspect)
+  val structure: TransmuteStructure,
 
-  val image: TransmuteImage = TransmuteImage()
-  val audio: TransmuteAudio = TransmuteAudio()
-  val video: TransmuteVideo = TransmuteVideo()
+  val image: TransmuteImage,
+  val audio: TransmuteAudio,
+  val video: TransmuteVideo,
+
+  /** Aggregated diagnostics from all installed plugins. */
+  val diagnostics: AggregateDiagnostics = AggregateDiagnostics(),
+
+  /** Shared service registry populated by plugins. */
+  val services: ServiceRegistry = ServiceRegistry(),
+
+  /** Plugin installations (kept for lifecycle management). */
+  private val installations: List<PluginInstallation<*>> = emptyList(),
+) {
+
+  /** Metadata for all installed plugins (key, features, dependencies). */
+  val installedPlugins: List<InstalledPluginInfo>
+    get() = installations.map { inst ->
+      InstalledPluginInfo(
+        key = inst.plugin.key,
+        features = inst.plugin.features,
+        dependsOn = inst.plugin.dependsOn,
+      )
+    }
 
   suspend fun transmute(type: TransmuteType, source: ByteArray): ByteArray = when (type) {
     TransmuteType.Image -> image().transmute(source.asBytes()).bytes.data
     TransmuteType.Audio -> audio().transmute(source.asBytes()).bytes.data
     TransmuteType.Video -> video().transmute(source.asBytes()).bytes.data
   }
+
+  /**
+   * Close this Transmute instance, releasing resources held by plugins.
+   *
+   * Calls [PluginLifecycle.onClose] on all installed plugins that implement it.
+   */
+  fun close() {
+    for (installation in installations) {
+      installation.fireOnClose()
+    }
+  }
+
+  // -- Builder DSL ----------------------------------------------------------
+
+  class Builder internal constructor() {
+    private var loggerOverride: TransmuteLogger? = null
+    private val pluginInstallations = mutableListOf<PluginInstallation<*>>()
+
+    /** Override the default logger for this instance. */
+    fun logger(logger: TransmuteLogger): Builder = apply { loggerOverride = logger }
+
+    /** Install plugins that register decoders, encoders, and other extensions. */
+    fun plugins(block: PluginBlock.() -> Unit): Builder = apply {
+      PluginBlock(pluginInstallations).block()
+    }
+
+    fun build(): Transmute {
+      // Create mutable registries for this instance
+      val imageDecoders = MutableImageDecoderRegistry()
+      val imageEncoders = MutableImageEncoderRegistry()
+      val audioDecoders = MutableAudioDecoderRegistry()
+      val audioEncoders = MutableAudioEncoderRegistry()
+      val videoDecoders = MutableVideoDecoderRegistry()
+      val videoEncoders = MutableVideoEncoderRegistry()
+      val services = ServiceRegistry()
+      val aggregateDiagnostics = AggregateDiagnostics()
+
+      // Install platform defaults into the local registries
+      installPlatformImageDefaults(imageDecoders, imageEncoders)
+      installPlatformAudioDefaults(audioDecoders, audioEncoders)
+      installPlatformVideoDefaults(videoDecoders, videoEncoders)
+
+      // Sort plugins by dependency/ordering constraints
+      val sorted = sortPluginInstallations(pluginInstallations)
+
+      // Apply user-registered plugins (sorted)
+      val scope = TransmuteScope(
+        imageDecoders = imageDecoders,
+        imageEncoders = imageEncoders,
+        audioDecoders = audioDecoders,
+        audioEncoders = audioEncoders,
+        videoDecoders = videoDecoders,
+        videoEncoders = videoEncoders,
+        services = services,
+      )
+      for (installation in sorted) {
+        installation.apply(scope, aggregateDiagnostics)
+      }
+
+      // Fire onInstalled for plugins implementing PluginLifecycle
+      for (installation in sorted) {
+        installation.fireOnInstalled()
+      }
+
+      val codec = TransmuteCodec(
+        imageDecoderRegistry = imageDecoders,
+        imageEncoderRegistry = imageEncoders,
+        audioDecoderRegistry = audioDecoders,
+        audioEncoderRegistry = audioEncoders,
+        videoDecoderRegistry = videoDecoders,
+        videoEncoderRegistry = videoEncoders,
+      )
+      val inspect = TransmuteInspect(codec = codec)
+      val structure = TransmuteStructure(inspect = inspect)
+
+      return Transmute(
+        codec = codec,
+        inspect = inspect,
+        structure = structure,
+        image = TransmuteImage(codec = codec),
+        audio = TransmuteAudio(codec = codec),
+        video = TransmuteVideo(codec = codec),
+        diagnostics = aggregateDiagnostics,
+        services = services,
+        installations = sorted,
+      )
+    }
+  }
+
+  class PluginBlock internal constructor(
+    private val installations: MutableList<PluginInstallation<*>>,
+  ) {
+    /** Install a plugin with optional configuration. */
+    fun <C : Any> install(
+      plugin: TransmutePlugin<C>,
+      block: C.() -> Unit = {},
+    ) {
+      installations.add(PluginInstallation(plugin, block))
+    }
+  }
+
+  companion object {
+    /**
+     * Lazily built default instance that uses platform defaults and no plugins.
+     *
+     * Backward-compatible: existing code using `Transmute.image`, `Transmute.codec`, etc.
+     * will use this instance transparently.
+     */
+    val Default: Transmute by lazy { Builder().build() }
+
+    // -- Backward-compatible delegated properties --
+
+    val codec: TransmuteCodec get() = Default.codec
+    val inspect: TransmuteInspect get() = Default.inspect
+    val structure: TransmuteStructure get() = Default.structure
+    val image: TransmuteImage get() = Default.image
+    val audio: TransmuteAudio get() = Default.audio
+    val video: TransmuteVideo get() = Default.video
+
+    suspend fun transmute(type: TransmuteType, source: ByteArray): ByteArray =
+      Default.transmute(type, source)
+  }
 }
+
+/**
+ * Top-level factory function for building a [transmute] instance.
+ *
+ * ```kotlin
+ * val transmute = Transmute {
+ *     plugins {
+ *         install(GStreamer) {
+ *             domains(MediaDomain.AUDIO or MediaDomain.VIDEO)
+ *
+ *             configure {
+ *                 logging {
+ *                     level(LogLevel.DEBUG)
+ *                 }
+ *             }
+ *         }
+ *     }
+ * }
+ * ```
+ */
+fun transmute(block: Transmute.Builder.() -> Unit = {}): Transmute =
+  Transmute.Builder().apply(block).build()
 
 class DynamicImageTransmuterBuilder<IN, OUT> internal constructor(
   private val defaultDecodePipeline: (() -> DecodePipeline<IN, Decoded<ImageFormat, ImageIR>>)? = null,
@@ -490,34 +662,46 @@ class VideoTransmuter<IN, OUT> internal constructor(
 
 // -- Shared helpers --
 
-internal fun defaultImageBytesDecodePipeline(): DecodePipeline<Bytes, Decoded<ImageFormat, ImageIR>> =
+internal fun defaultImageBytesDecodePipeline(
+  decoders: ImageDecoderRegistry? = null,
+): DecodePipeline<Bytes, Decoded<ImageFormat, ImageIR>> =
   PipelineBuilder.start<Bytes>()
-    .then(ImageDecodeHandler())
+    .then(if (decoders != null) ImageDecodeHandler(decoders = decoders) else ImageDecodeHandler())
     .build()
 
-internal fun defaultAudioBytesDecodePipeline(): DecodePipeline<Bytes, Decoded<AudioFormat, AudioIR>> =
+internal fun defaultAudioBytesDecodePipeline(
+  decoders: AudioDecoderRegistry? = null,
+): DecodePipeline<Bytes, Decoded<AudioFormat, AudioIR>> =
   PipelineBuilder.start<Bytes>()
-    .then(AudioDecodeHandler())
+    .then(if (decoders != null) AudioDecodeHandler(decoders = decoders) else AudioDecodeHandler())
     .build()
 
-internal fun defaultVideoBytesDecodePipeline(): DecodePipeline<Bytes, Decoded<VideoFormat, VideoIR>> =
+internal fun defaultVideoBytesDecodePipeline(
+  decoders: VideoDecoderRegistry? = null,
+): DecodePipeline<Bytes, Decoded<VideoFormat, VideoIR>> =
   PipelineBuilder.start<Bytes>()
-    .then(VideoDecodeHandler())
+    .then(if (decoders != null) VideoDecodeHandler(decoders = decoders) else VideoDecodeHandler())
     .build()
 
-internal fun defaultDynamicImageEncodePipeline(): EncodePipeline<Decoded<ImageFormat, ImageIR>, EncodedBytes<ImageFormat>> =
+internal fun defaultDynamicImageEncodePipeline(
+  encoders: ImageEncoderRegistry? = null,
+): EncodePipeline<Decoded<ImageFormat, ImageIR>, EncodedBytes<ImageFormat>> =
   PipelineBuilder.start<Decoded<ImageFormat, ImageIR>>()
-    .then(ImageDynamicEncodeHandler())
+    .then(if (encoders != null) ImageDynamicEncodeHandler(encoders = encoders) else ImageDynamicEncodeHandler())
     .build()
 
-internal fun defaultDynamicAudioEncodePipeline(): EncodePipeline<Decoded<AudioFormat, AudioIR>, EncodedBytes<AudioFormat>> =
+internal fun defaultDynamicAudioEncodePipeline(
+  encoders: AudioEncoderRegistry? = null,
+): EncodePipeline<Decoded<AudioFormat, AudioIR>, EncodedBytes<AudioFormat>> =
   PipelineBuilder.start<Decoded<AudioFormat, AudioIR>>()
-    .then(AudioDynamicEncodeHandler())
+    .then(if (encoders != null) AudioDynamicEncodeHandler(encoders = encoders) else AudioDynamicEncodeHandler())
     .build()
 
-internal fun defaultDynamicVideoEncodePipeline(): EncodePipeline<Decoded<VideoFormat, VideoIR>, EncodedBytes<VideoFormat>> =
+internal fun defaultDynamicVideoEncodePipeline(
+  encoders: VideoEncoderRegistry? = null,
+): EncodePipeline<Decoded<VideoFormat, VideoIR>, EncodedBytes<VideoFormat>> =
   PipelineBuilder.start<Decoded<VideoFormat, VideoIR>>()
-    .then(VideoDynamicEncodeHandler())
+    .then(if (encoders != null) VideoDynamicEncodeHandler(encoders = encoders) else VideoDynamicEncodeHandler())
     .build()
 
 internal fun createContext(

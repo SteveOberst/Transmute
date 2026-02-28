@@ -29,13 +29,35 @@ ImageRegistries.register(MyWebpEncoder())
 
 You can also register unified codecs, or register core `Decoder` / `Encoder` instances directly; see `transmute-*/.../ImageRegistry.kt` / `AudioRegistry.kt` / `VideoRegistry.kt`.
 
+### Via the Plugin System
+
+For reusable codec bundles, wrap registration in a `TransmutePlugin`:
+
+```kotlin
+object MyCodecPlugin : TransmutePlugin<MyCodecConfig> {
+    override val key = "com.example.my-codec"
+    override fun createConfig() = MyCodecConfig()
+
+    override fun install(scope: TransmuteScope, config: MyCodecConfig) {
+        scope.imageDecoders.register(MyWebpDecoder())
+        scope.imageEncoders.register(MyWebpEncoder())
+    }
+}
+
+val transmute = Transmute {
+    plugins { install(MyCodecPlugin) }
+}
+```
+
+See [plugins.md](plugins.md) for the full plugin system documentation.
+
 ## Custom transforms
 
 Transforms are just `Transform<IR>` implementations. You can add them directly in a transmuter:
 
 ```kotlin
 class WatermarkTransform : dev.transmute.codec.pipeline.Transform<ImageIR> {
-    override val id = dev.transmute.core.pipeline.TransformId("image.watermark")
+    override val id = dev.transmute.codec.pipeline.TransformId("image.watermark")
     override suspend fun apply(ir: ImageIR, ctx: TransmuteContext): ImageIR = TODO()
 }
 
@@ -68,5 +90,30 @@ class MyTiffStructureReader : StructureReader<MyTiffStructure> {
 Transmute.structure.register(MyTiffStructureReader(), ImageFormat.Tiff)
 ```
 
-Custom readers override the built-in reader when registered for the same format. See `docs/structures.md` for the full structure API.
+Custom readers override the built-in reader when registered for the same format.
+
+### Reading from a TSource
+
+Once registered, your reader works automatically with all `TransmuteStructure` overloads,
+including the suspending `TSource` variants:
+
+```kotlin
+suspend fun readTiff(source: TSource): MyTiffStructure =
+    Transmute.structure.read(source, ImageFormat.Tiff)
+
+// Lambda sugar
+suspend fun tiffWidth(source: TSource): Int =
+    Transmute.structure.read<MyTiffStructure>(source, ImageFormat.Tiff) { width }
+```
+
+See [structures.md](structures.md) for the full structure API, including
+IO abstractions (`TSource`, `TSink`, `TChannel`).
+
+## Module reference
+
+| Module                | README                                     | Key types                                    |
+|-----------------------|--------------------------------------------|----------------------------------------------|
+| `transmute-codec`     | [README](../transmute-codec/README.md)     | Decoder, Encoder, Pipeline                   |
+| `transmute-structure` | [README](../transmute-structure/README.md) | StructureReader, all 20 readers              |
+| `transmute-api`       | [README](../transmute-api/README.md)       | TransmuteStructure, TSource, TSink, TChannel |
 

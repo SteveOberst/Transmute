@@ -9,6 +9,9 @@ import dev.transmute.model.structure.StructureReadException
 import dev.transmute.model.structure.StructureReader
 import dev.transmute.model.structure.audio.Wav
 import dev.transmute.model.structure.common.RiffChunk
+import dev.transmute.structure.common.decodeAscii
+import dev.transmute.structure.common.parseRiffChildren
+import dev.transmute.structure.common.readU32LE
 
 /**
  * Parses raw WAV file bytes into a [Wav] structure.
@@ -40,7 +43,7 @@ class WavStructureReader : StructureReader<Wav> {
         val formType = d.decodeAscii(8, 4)
         if (formType != "WAVE") throw StructureReadException("Not a WAV file: form type '$formType'")
 
-        val children = parseRiffChildren(d, offset = 12, end = minOf(8 + fileSize.toInt(), d.size))
+        val children = d.parseRiffChildren(offset = 12, end = minOf(8 + fileSize.toInt(), d.size))
 
         val riff = RiffChunk(
             id = RiffChunkId("RIFF"),
@@ -52,60 +55,3 @@ class WavStructureReader : StructureReader<Wav> {
         return Wav(riff = riff)
     }
 }
-
-/**
- * Parse sub-chunks within a RIFF/LIST container.
- */
-private fun parseRiffChildren(
-    data: ByteArray,
-    offset: Int,
-    end: Int,
-): List<RiffChunk> {
-    val chunks = mutableListOf<RiffChunk>()
-    var pos = offset
-
-    while (pos + 8 <= end) {
-        val id = data.decodeAscii(pos, 4)
-        val size = data.readU32LE(pos + 4)
-        val payloadStart = pos + 8
-        val payloadEnd = minOf(payloadStart + size.toInt(), end)
-
-        if (id == "RIFF" || id == "LIST") {
-            val ft = if (payloadStart + 4 <= end) data.decodeAscii(payloadStart, 4) else "    "
-            val children = parseRiffChildren(data, payloadStart + 4, payloadEnd)
-            chunks += RiffChunk(
-                id = RiffChunkId(id),
-                size = size,
-                formType = RiffChunkId(ft),
-                children = children,
-            )
-        } else {
-            val payload = if (payloadEnd > payloadStart) {
-                data.copyOfRange(payloadStart, payloadEnd)
-            } else {
-                ByteArray(0)
-            }
-            chunks += RiffChunk(
-                id = RiffChunkId(id),
-                size = size,
-                data = payload.asBytes(),
-            )
-        }
-
-        // Advance past payload + optional pad byte
-        pos = payloadEnd + (size.toInt() % 2)
-    }
-
-    return chunks
-}
-
-// --- Byte helpers ---
-
-private fun ByteArray.readU32LE(off: Int): UInt =
-    (this[off].toUInt() and 0xFFu) or
-        ((this[off + 1].toUInt() and 0xFFu) shl 8) or
-        ((this[off + 2].toUInt() and 0xFFu) shl 16) or
-        ((this[off + 3].toUInt() and 0xFFu) shl 24)
-
-private fun ByteArray.decodeAscii(off: Int, len: Int): String =
-    String(CharArray(len) { this[off + it].toInt().toChar() })

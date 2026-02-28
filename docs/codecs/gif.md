@@ -4,11 +4,11 @@ GIF (Graphics Interchange Format) is a legacy image format best known for simple
 
 ## Platform Support
 
-| Platform | Decode | Encode | Engine |
-|----------|--------|--------|--------|
-| Android  | ✅     | ❌     | BitmapFactory (decode only) |
-| Desktop  | ✅     | ✅     | ImageIO (javax.imageio) |
-| iOS      | ✅     | ✅     | CoreGraphics (CGImage) |
+| Platform | Decode | Encode | Engine                      |
+|----------|--------|--------|-----------------------------|
+| Android  | ✅      | ❌      | BitmapFactory (decode only) |
+| Desktop  | ✅      | ✅      | ImageIO (javax.imageio)     |
+| iOS      | ✅      | ✅      | CoreGraphics (CGImage)      |
 
 ## Usage
 

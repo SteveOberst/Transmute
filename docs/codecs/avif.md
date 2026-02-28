@@ -4,11 +4,11 @@ AVIF is a next-generation image format based on AV1. It provides excellent compr
 
 ## Platform Support
 
-| Platform | Decode | Encode | Engine |
-|----------|--------|--------|--------|
-| Android  | ✅     | ❌     | ImageDecoder (decode only) |
-| Desktop  | ✅     | ✅     | GStreamer (requires `transmute-gstreamer`) |
-| iOS      | ✅     | ✅     | CoreGraphics (CGImage) |
+| Platform | Decode | Encode | Engine                                     |
+|----------|--------|--------|--------------------------------------------|
+| Android  | ✅      | ❌      | ImageDecoder (decode only)                 |
+| Desktop  | ✅      | ✅      | GStreamer (requires `transmute-gstreamer`) |
+| iOS      | ✅      | ✅      | CoreGraphics (CGImage)                     |
 
 ## Usage
 
