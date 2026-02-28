@@ -33,7 +33,7 @@ class JpegStructureReader : StructureReader<JpegRaw> {
 
     override fun read(source: Bytes): JpegRaw {
         val d = source.data
-        if (!canRead(source)) throw StructureReadException("Not a JpegRaw file (bad SOI marker)")
+        if (!canRead(source)) throw StructureReadException("Not a JPEG file (bad SOI marker)")
 
         val segments = mutableListOf<JpegSegment>()
         var pos = 0

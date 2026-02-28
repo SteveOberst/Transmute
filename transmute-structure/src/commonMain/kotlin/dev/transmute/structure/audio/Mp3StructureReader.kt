@@ -33,7 +33,7 @@ class Mp3StructureReader : StructureReader<Mp3Raw> {
 
     override fun read(source: Bytes): Mp3Raw {
         val d = source.data
-        if (!canRead(source)) throw StructureReadException("Not an Mp3Raw file")
+        if (!canRead(source)) throw StructureReadException("Not an MP3 file")
 
         var audioStart = 0
 
@@ -70,7 +70,7 @@ class Mp3StructureReader : StructureReader<Mp3Raw> {
         }
 
         val audioEnd = if (id3v1 != null) d.size - 128 else d.size
-        if (audioStart >= audioEnd) throw StructureReadException("No audio data found in Mp3Raw file")
+        if (audioStart >= audioEnd) throw StructureReadException("No audio data found in MP3 file")
 
         val audioData = d.copyOfRange(audioStart, audioEnd).asBytes()
 

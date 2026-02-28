@@ -33,7 +33,7 @@ class HeifStructureReader : StructureReader<HeifRaw> {
 
     override fun read(source: Bytes): HeifRaw {
         val d = source.data
-        if (!canRead(source)) throw StructureReadException("Not a HeifRaw/HEIC file (bad ftyp)")
+        if (!canRead(source)) throw StructureReadException("Not a HEIF/HEIC file (bad ftyp)")
         val boxes = d.parseIsoBmffBoxes()
         return HeifRaw(boxes = boxes)
     }

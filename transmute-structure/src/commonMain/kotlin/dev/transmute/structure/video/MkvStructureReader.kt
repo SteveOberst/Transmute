@@ -32,7 +32,7 @@ class MkvStructureReader : StructureReader<MkvRaw> {
 
     override fun read(source: Bytes): MkvRaw {
         val d = source.data
-        if (!canRead(source)) throw StructureReadException("Not an MkvRaw file (bad EBML header or DocType)")
+        if (!canRead(source)) throw StructureReadException("Not an MKV file (bad EBML header or DocType)")
         val elements = d.parseEbmlElements()
         return MkvRaw(elements = elements)
     }

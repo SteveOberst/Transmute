@@ -38,7 +38,7 @@ class MovStructureReader : StructureReader<MovRaw> {
 
     override fun read(source: Bytes): MovRaw {
         val d = source.data
-        if (!canRead(source)) throw StructureReadException("Not a MovRaw file (bad signature)")
+        if (!canRead(source)) throw StructureReadException("Not a MOV file (bad signature)")
         val boxes = d.parseIsoBmffBoxes()
         return MovRaw(boxes = boxes)
     }

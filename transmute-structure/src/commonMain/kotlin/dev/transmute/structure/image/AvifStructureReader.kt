@@ -33,7 +33,7 @@ class AvifStructureReader : StructureReader<AvifRaw> {
 
     override fun read(source: Bytes): AvifRaw {
         val d = source.data
-        if (!canRead(source)) throw StructureReadException("Not an AvifRaw file (bad ftyp)")
+        if (!canRead(source)) throw StructureReadException("Not an AVIF file (bad ftyp)")
         val boxes = d.parseIsoBmffBoxes()
         return AvifRaw(boxes = boxes)
     }

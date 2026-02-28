@@ -34,7 +34,7 @@ class FlacStructureReader : StructureReader<FlacRaw> {
 
     override fun read(source: Bytes): FlacRaw {
         val d = source.data
-        if (!canRead(source)) throw StructureReadException("Not a FlacRaw file (bad magic)")
+        if (!canRead(source)) throw StructureReadException("Not a FLAC file (bad magic)")
 
         val blocks = mutableListOf<FlacMetadataBlock>()
         var pos = 4 // skip "FlacRaw"

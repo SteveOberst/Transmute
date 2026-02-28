@@ -36,12 +36,12 @@ class GifStructureReader : StructureReader<GifRaw> {
 
     override fun read(source: Bytes): GifRaw {
         val d = source.data
-        if (!canRead(source)) throw StructureReadException("Not a GifRaw file (bad signature)")
-        if (d.size < 13) throw StructureReadException("GifRaw file too small (${d.size} bytes)")
+        if (!canRead(source)) throw StructureReadException("Not a GIF file (bad signature)")
+        if (d.size < 13) throw StructureReadException("GIF file too small (${d.size} bytes)")
 
         val sigStr = d.decodeAscii(0, 6)
         val version = GifVersion.fromSignature(sigStr)
-            ?: throw StructureReadException("Unknown GifRaw version: '$sigStr'")
+            ?: throw StructureReadException("Unknown GIF version: '$sigStr'")
 
         // Logical Screen Descriptor (7 bytes at offset 6)
         val lsd = GifLogicalScreenDescriptor(

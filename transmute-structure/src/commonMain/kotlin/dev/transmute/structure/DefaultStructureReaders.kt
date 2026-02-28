@@ -32,9 +32,10 @@ import dev.transmute.structure.video.WebmStructureReader
  *
  * ```kotlin
  * // Inside a TransmutePlugin.install(scope, config) block:
- * scope.codecs.image.structureDecoders.register(ImageFormat.Png, PngStructureDecoder())
+ * scope.codecs.image.structureDecoders.register(ImageFormat.Png, DefaultStructureDecoders.png)
  *
- * // Or wire the whole module by iterating DefaultStructureDecoders.all.
+ * // Or bulk-register all structure decoders for a domain:
+ * DefaultStructureDecoders.allImageDecoders.forEach { scope.codecs.image.structureDecoders.register(it.decodableFormats.first(), it) }
  * ```
  */
 object DefaultStructureReaders {

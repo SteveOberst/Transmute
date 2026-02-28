@@ -31,7 +31,7 @@ class TiffStructureReader : StructureReader<TiffRaw> {
 
     override fun read(source: Bytes): TiffRaw {
         val d = source.data
-        if (!canRead(source)) throw StructureReadException("Not a TiffRaw file (bad signature)")
+        if (!canRead(source)) throw StructureReadException("Not a TIFF file (bad signature)")
 
         val byteOrder = if (d[0] == 0x49.toByte()) Endianness.Little else Endianness.Big
         val firstIfdOffset = readU32(d, 4, byteOrder)

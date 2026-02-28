@@ -38,7 +38,7 @@ class PngStructureReader : StructureReader<PngRaw> {
 
     override fun read(source: Bytes): PngRaw {
         val d = source.data
-        if (!canRead(source)) throw StructureReadException("Not a PngRaw file (bad signature)")
+        if (!canRead(source)) throw StructureReadException("Not a PNG file (bad signature)")
 
         val signature = Bytes(d.copyOfRange(0, 8))
         val chunks = mutableListOf<PngChunk>()

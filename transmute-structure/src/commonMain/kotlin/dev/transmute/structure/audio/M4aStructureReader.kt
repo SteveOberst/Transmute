@@ -34,7 +34,7 @@ class M4aStructureReader : StructureReader<M4aRaw> {
 
     override fun read(source: Bytes): M4aRaw {
         val d = source.data
-        if (!canRead(source)) throw StructureReadException("Not an M4aRaw file (bad ftyp)")
+        if (!canRead(source)) throw StructureReadException("Not an M4A file (bad ftyp)")
         val boxes = d.parseIsoBmffBoxes()
         return M4aRaw(boxes = boxes)
     }

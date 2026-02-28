@@ -34,14 +34,14 @@ class WavStructureReader : StructureReader<WavRaw> {
 
     override fun read(source: Bytes): WavRaw {
         val d = source.data
-        if (d.size < 12) throw StructureReadException("WavRaw file too small (${d.size} bytes)")
+        if (d.size < 12) throw StructureReadException("WAV file too small (${d.size} bytes)")
 
         val riffId = d.decodeAscii(0, 4)
         if (riffId != "RIFF") throw StructureReadException("Not a RIFF file: got '$riffId'")
 
         val fileSize = d.readU32LE(4)
         val formType = d.decodeAscii(8, 4)
-        if (formType != "WAVE") throw StructureReadException("Not a WavRaw file: form type '$formType'")
+        if (formType != "WAVE") throw StructureReadException("Not a WAV file: form type '$formType'")
 
         val children = d.parseRiffChildren(offset = 12, end = minOf(8 + fileSize.toInt(), d.size))
 

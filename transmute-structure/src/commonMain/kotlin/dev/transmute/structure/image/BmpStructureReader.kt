@@ -31,8 +31,8 @@ class BmpStructureReader : StructureReader<BmpRaw> {
 
     override fun read(source: Bytes): BmpRaw {
         val d = source.data
-        if (!canRead(source)) throw StructureReadException("Not a BmpRaw file (bad signature)")
-        if (d.size < 54) throw StructureReadException("BmpRaw file too small (${d.size} bytes)")
+        if (!canRead(source)) throw StructureReadException("Not a BMP file (bad signature)")
+        if (d.size < 54) throw StructureReadException("BMP file too small (${d.size} bytes)")
 
         // --- File header (14 bytes) ---
         val signature = d.readU16LE(0).toUShort()

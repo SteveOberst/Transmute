@@ -32,7 +32,7 @@ class WebpStructureReader : StructureReader<WebpRaw> {
 
     override fun read(source: Bytes): WebpRaw {
         val d = source.data
-        if (!canRead(source)) throw StructureReadException("Not a WebpRaw file (bad signature)")
+        if (!canRead(source)) throw StructureReadException("Not a WebP file (bad signature)")
 
         val fileSize = d.readU32LE(4)
         val children = d.parseRiffChildren(offset = 12, end = minOf(8 + fileSize.toInt(), d.size))

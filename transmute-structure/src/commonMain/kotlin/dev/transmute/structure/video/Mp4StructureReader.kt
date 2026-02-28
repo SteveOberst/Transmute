@@ -33,7 +33,7 @@ class Mp4StructureReader : StructureReader<Mp4Raw> {
 
     override fun read(source: Bytes): Mp4Raw {
         val d = source.data
-        if (!canRead(source)) throw StructureReadException("Not an Mp4Raw file (bad ftyp)")
+        if (!canRead(source)) throw StructureReadException("Not an MP4 file (bad ftyp)")
         val boxes = d.parseIsoBmffBoxes()
         return Mp4Raw(boxes = boxes)
     }

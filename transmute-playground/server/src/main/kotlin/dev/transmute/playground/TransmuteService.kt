@@ -11,6 +11,7 @@ import dev.transmute.audio.AudioFormat
 import dev.transmute.audio.AudioTransform
 import dev.transmute.video.VideoFormat
 import dev.transmute.video.VideoTransform
+import dev.transmute.model.core.MediaFormat
 import dev.transmute.model.core.asBytes
 import dev.transmute.AudioTransforms
 import dev.transmute.ImageTransforms
@@ -148,46 +149,21 @@ class TransmuteService(
 
     fun allFormats(): List<FormatInfo> = imageFormats() + audioFormats() + videoFormats()
 
-    fun imageFormats(): List<FormatInfo> {
-        val decodable = transmute.codec.image.decodableFormats
-        val encodable = transmute.codec.image.encodableFormats
-        val allKnown = (decodable + encodable).filterNot { it is ImageFormat.Unknown }
-        return allKnown.map { fmt ->
-            FormatInfo(
-                name = fmt.label,
-                domain = MediaDomainDto.IMAGE,
-                canDecode = fmt in decodable,
-                canEncode = fmt in encodable,
-                hasStructureReader = transmute.codec.hasStructureDecoder(fmt),
-                providedBy = if (fmt.label in builtInFormatLabels) null else GStreamer.key.id,
-            )
-        }.sortedBy { it.name }
-    }
+    fun imageFormats() = formatList(MediaDomainDto.IMAGE, transmute.codec.image.decodableFormats, transmute.codec.image.encodableFormats) { it is ImageFormat.Unknown }
+    fun audioFormats() = formatList(MediaDomainDto.AUDIO, transmute.codec.audio.decodableFormats, transmute.codec.audio.encodableFormats) { it is AudioFormat.Unknown }
+    fun videoFormats() = formatList(MediaDomainDto.VIDEO, transmute.codec.video.decodableFormats, transmute.codec.video.encodableFormats) { it is VideoFormat.Unknown }
 
-    fun audioFormats(): List<FormatInfo> {
-        val decodable = transmute.codec.audio.decodableFormats
-        val encodable = transmute.codec.audio.encodableFormats
-        val allKnown = (decodable + encodable).filterNot { it is AudioFormat.Unknown }
+    private fun <F : MediaFormat<*, *>> formatList(
+        domain: MediaDomainDto,
+        decodable: Set<F>,
+        encodable: Set<F>,
+        isUnknown: (F) -> Boolean,
+    ): List<FormatInfo> {
+        val allKnown = (decodable + encodable).filterNot(isUnknown)
         return allKnown.map { fmt ->
             FormatInfo(
                 name = fmt.label,
-                domain = MediaDomainDto.AUDIO,
-                canDecode = fmt in decodable,
-                canEncode = fmt in encodable,
-                hasStructureReader = transmute.codec.hasStructureDecoder(fmt),
-                providedBy = if (fmt.label in builtInFormatLabels) null else GStreamer.key.id,
-            )
-        }.sortedBy { it.name }
-    }
-
-    fun videoFormats(): List<FormatInfo> {
-        val decodable = transmute.codec.video.decodableFormats
-        val encodable = transmute.codec.video.encodableFormats
-        val allKnown = (decodable + encodable).filterNot { it is VideoFormat.Unknown }
-        return allKnown.map { fmt ->
-            FormatInfo(
-                name = fmt.label,
-                domain = MediaDomainDto.VIDEO,
+                domain = domain,
                 canDecode = fmt in decodable,
                 canEncode = fmt in encodable,
                 hasStructureReader = transmute.codec.hasStructureDecoder(fmt),
@@ -312,19 +288,20 @@ class TransmuteService(
     }
 
     private fun deriveAddedFormats(): List<String> = buildList {
-        (transmute.codec.image.decodableFormats + transmute.codec.image.encodableFormats)
-            .filterNot { it is ImageFormat.Unknown }
-            .filter { it.label !in builtInFormatLabels }
-            .forEach { add(it.label) }
-        (transmute.codec.audio.decodableFormats + transmute.codec.audio.encodableFormats)
-            .filterNot { it is AudioFormat.Unknown }
-            .filter { it.label !in builtInFormatLabels }
-            .forEach { add(it.label) }
-        (transmute.codec.video.decodableFormats + transmute.codec.video.encodableFormats)
-            .filterNot { it is VideoFormat.Unknown }
-            .filter { it.label !in builtInFormatLabels }
-            .forEach { add(it.label) }
+        val codec = transmute.codec
+        collectAddedLabels(codec.image.decodableFormats, codec.image.encodableFormats)
+        collectAddedLabels(codec.audio.decodableFormats, codec.audio.encodableFormats)
+        collectAddedLabels(codec.video.decodableFormats, codec.video.encodableFormats)
     }.distinct().sorted()
+
+    private fun <F : MediaFormat<*, *>> MutableList<String>.collectAddedLabels(
+        decodable: Set<F>,
+        encodable: Set<F>,
+    ) {
+        (decodable + encodable)
+            .filter { it.label.lowercase() != "unknown" && it.label !in builtInFormatLabels }
+            .forEach { add(it.label) }
+    }
 
     @Synchronized
     fun rebuildTransmute() {
@@ -506,7 +483,7 @@ class TransmuteService(
             "gif" -> ImageFormat.Gif
             "bmp" -> ImageFormat.Bmp
             "tiff" -> ImageFormat.Tiff
-            else -> ImageFormat.Jpeg
+            else -> throw IllegalArgumentException("Unsupported image format: $s")
         }
 
         private fun toAudioFormat(s: String): AudioFormat = when (s) {
@@ -517,7 +494,7 @@ class TransmuteService(
             "flac" -> AudioFormat.Flac
             "ogg" -> AudioFormat.Ogg
             "opus" -> AudioFormat.Opus
-            else -> AudioFormat.Wav
+            else -> throw IllegalArgumentException("Unsupported audio format: $s")
         }
 
         private fun toVideoFormat(s: String): VideoFormat = when (s) {
@@ -526,7 +503,7 @@ class TransmuteService(
             "webm" -> VideoFormat.Webm
             "mkv" -> VideoFormat.Mkv
             "avi" -> VideoFormat.Avi
-            else -> VideoFormat.Mp4
+            else -> throw IllegalArgumentException("Unsupported video format: $s")
         }
     }
 }

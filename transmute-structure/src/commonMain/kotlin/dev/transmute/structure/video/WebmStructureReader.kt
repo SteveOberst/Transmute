@@ -32,7 +32,7 @@ class WebmStructureReader : StructureReader<WebmRaw> {
 
     override fun read(source: Bytes): WebmRaw {
         val d = source.data
-        if (!canRead(source)) throw StructureReadException("Not a WebmRaw file (bad EBML header or DocType 'webm')")
+        if (!canRead(source)) throw StructureReadException("Not a WebM file (bad EBML header or DocType 'webm')")
         val elements = d.parseEbmlElements()
         return WebmRaw(elements = elements)
     }
