@@ -50,6 +50,16 @@ class TransmuteService(
         GStreamer.key.id to GStreamer.key,
     )
 
+    /** Human-readable display name for known plugins. */
+    private val pluginDisplayNames: Map<String, String> = mapOf(
+        GStreamer.key.id to "GStreamer",
+    )
+
+    /** Short description for known plugins. */
+    private val pluginDescriptions: Map<String, String> = mapOf(
+        GStreamer.key.id to "GStreamer-based codec backend — adds video, audio and container support via libgstreamer.",
+    )
+
     /**
      * Format labels available without any plugins installed.
      * Used to distinguish platform-native formats from plugin-provided ones.
@@ -129,11 +139,8 @@ class TransmuteService(
                 structure = structure,
             )
         } catch (e: Exception) {
-            InspectResult(
-                domain = MediaDomainDto.IMAGE,
-                format = "error",
-                fileSize = uploaded.size,
-            )
+            log.error("Inspect failed for handle='$handle': ${e.message}", e)
+            throw e
         }
     }
 
@@ -209,10 +216,9 @@ class TransmuteService(
                     val pa = param.findAnnotation<Param>() ?: return@mapNotNull null
                     val paramName = param.name ?: return@mapNotNull null
                     val classifier = param.type.classifier
-                    // Unwrap nullable wrapper (Long? → Long, etc.)
-                    val unwrapped = if (param.type.isMarkedNullable && classifier == null) {
-                        param.type.arguments.firstOrNull()?.type?.classifier
-                    } else classifier
+                    // For nullable types (Long?, Float?, etc.) Kotlin reflection
+                    // keeps the classifier set to the underlying class, so we use it directly.
+                    val unwrapped = classifier
                     val (type, enumVals) = when {
                         unwrapped == Int::class || unwrapped == Long::class -> ParameterType.INT to null
                         unwrapped == Float::class || unwrapped == Double::class -> ParameterType.FLOAT to null
@@ -254,8 +260,8 @@ class TransmuteService(
             val info = installed[keyId]
             PluginDescriptor(
                 key = keyId,
-                name = keyId.substringAfterLast('.').replaceFirstChar { it.uppercase() },
-                description = "Transmute plugin: $keyId",
+                name = pluginDisplayNames[keyId] ?: keyId.substringAfterLast('.').replaceFirstChar { it.uppercase() },
+                description = pluginDescriptions[keyId] ?: "Transmute plugin: $keyId",
                 version = null,
                 enabled = pluginId !in disabledPlugins,
                 status = PluginStatusInfo(available = true),
@@ -307,13 +313,20 @@ class TransmuteService(
 
     private fun deriveAddedFormats(): List<String> = buildList {
         (transmute.codec.image.decodableFormats + transmute.codec.image.encodableFormats)
-            .filterNot { it is ImageFormat.Unknown }.forEach { add(it.label) }
+            .filterNot { it is ImageFormat.Unknown }
+            .filter { it.label !in builtInFormatLabels }
+            .forEach { add(it.label) }
         (transmute.codec.audio.decodableFormats + transmute.codec.audio.encodableFormats)
-            .filterNot { it is AudioFormat.Unknown }.forEach { add(it.label) }
+            .filterNot { it is AudioFormat.Unknown }
+            .filter { it.label !in builtInFormatLabels }
+            .forEach { add(it.label) }
         (transmute.codec.video.decodableFormats + transmute.codec.video.encodableFormats)
-            .filterNot { it is VideoFormat.Unknown }.forEach { add(it.label) }
+            .filterNot { it is VideoFormat.Unknown }
+            .filter { it.label !in builtInFormatLabels }
+            .forEach { add(it.label) }
     }.distinct().sorted()
 
+    @Synchronized
     fun rebuildTransmute() {
         transmute.close()
         transmute = buildTransmute()
@@ -443,21 +456,20 @@ class TransmuteService(
      * and falls back to String for all other types.
      */
     private fun parseParamValue(value: String, param: KParameter): Any? {
+        // For nullable types (Long?, Float?, etc.) Kotlin reflection keeps the
+        // classifier set to the underlying class, so we use it directly.
         val classifier = param.type.classifier
-        val unwrapped = if (param.type.isMarkedNullable && classifier == null)
-            param.type.arguments.firstOrNull()?.type?.classifier
-        else classifier
 
         return try {
             when {
-                unwrapped == Int::class -> value.toInt()
-                unwrapped == Long::class -> value.toLong()
-                unwrapped == Float::class -> value.toFloat()
-                unwrapped == Double::class -> value.toDouble()
-                unwrapped == Boolean::class -> value.toBooleanStrict()
-                unwrapped == IntArray::class -> value.split(",").map { it.trim().toInt() }.toIntArray()
-                unwrapped is KClass<*> && unwrapped.java.isEnum ->
-                    unwrapped.java.enumConstants.first { (it as Enum<*>).name.equals(value, ignoreCase = true) }
+                classifier == Int::class -> value.toInt()
+                classifier == Long::class -> value.toLong()
+                classifier == Float::class -> value.toFloat()
+                classifier == Double::class -> value.toDouble()
+                classifier == Boolean::class -> value.lowercase() == "true"
+                classifier == IntArray::class -> value.split(",").map { it.trim().toInt() }.toIntArray()
+                classifier is KClass<*> && classifier.java.isEnum ->
+                    classifier.java.enumConstants.first { (it as Enum<*>).name.equals(value, ignoreCase = true) }
                 else -> value.ifEmpty { null }
             }
         } catch (e: Exception) {

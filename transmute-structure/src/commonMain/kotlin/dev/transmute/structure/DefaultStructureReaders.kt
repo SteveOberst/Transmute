@@ -27,12 +27,14 @@ import dev.transmute.structure.video.WebmStructureReader
  * Pre-built [StructureReader][dev.transmute.model.structure.StructureReader]
  * instances for all formats shipped in this module.
  *
- * These are **not** automatically registered — call [installDefaults] or
- * register them manually via [StructureReaders][dev.transmute.model.structure.StructureReaders].
+ * These are **not** automatically registered. Register them via the plugin
+ * scope's codec registries:
  *
  * ```kotlin
- * // One-liner: register all built-in readers
- * DefaultStructureReaders.installDefaults()
+ * // Inside a TransmutePlugin.install(scope, config) block:
+ * scope.codecs.image.structureDecoders.register(ImageFormat.Png, PngStructureDecoder())
+ *
+ * // Or wire the whole module by iterating DefaultStructureDecoders.all.
  * ```
  */
 object DefaultStructureReaders {

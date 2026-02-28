@@ -22,6 +22,12 @@ internal class PluginInstallation<C : Any>(
   fun apply(scope: TransmuteScope, aggregateDiagnostics: AggregateDiagnostics) {
     val config = plugin.createConfig().apply(configure)
 
+    // TODO: call (plugin as? PluginConfigValidation<C>)?.validate(config) and throw
+    //       PluginConfigException when any ERROR-severity ConfigProblems are reported.
+    // TODO: read (plugin as? PluginExecutionPolicy)?.executionPolicy and pass to dispatcher.
+    // TODO: call (plugin as? PluginMetricsRecorder)?.createMetricsHook() and wire to codecs.
+    // TODO: read (plugin as? PluginRegistryPriority)?.registryPriority and sort registry entries.
+
     // Extract PluginConfigure if the config exposes one
     val pluginConfigure = (config as? HasPluginConfigure)?.pluginConfigure
     pluginConfigure?.let { pluginLogger.applyConfig(it.loggerConfig) }

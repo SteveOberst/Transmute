@@ -57,25 +57,46 @@ fun Route.transformRoutes(service: TransmuteService) {
 }
 
 /**
- * Generates Kotlin code representing the current transform pipeline.
+ * Generates illustrative Kotlin code representing the current transform pipeline.
+ *
+ * Uses the public `transmute.$domain.to($format) { transform { add(...) } }.transmute(input)`
+ * DSL form that matches the Transmute API.
  */
 private fun generateCode(request: TransformRequest): String = buildString {
-    val domain = when {
-        request.outputFormat.lowercase() in listOf("jpeg", "jpg", "png", "webp", "heif", "avif", "gif", "bmp", "tiff") -> "image"
-        request.outputFormat.lowercase() in listOf("wav", "mp3", "aac", "m4a", "flac", "ogg", "opus") -> "audio"
-        else -> "video"
+    val fmt = request.outputFormat.lowercase()
+
+    val imageFormats = setOf("jpeg", "jpg", "png", "webp", "heif", "heic", "avif", "gif", "bmp", "tiff")
+    val audioFormats = setOf("wav", "mp3", "aac", "m4a", "flac", "ogg", "opus")
+
+    val (domain, formatEnum) = when {
+        fmt in imageFormats -> {
+            val name = if (fmt == "jpg") "jpeg" else fmt
+            "image" to "ImageFormat.${name.replaceFirstChar { it.uppercase() }}"
+        }
+        fmt in audioFormats ->
+            "audio" to "AudioFormat.${fmt.replaceFirstChar { it.uppercase() }}"
+        else ->
+            "video" to "VideoFormat.${fmt.replaceFirstChar { it.uppercase() }}"
     }
 
-    appendLine("val result = transmute.$domain {")
-    for (step in request.pipeline) {
-        val params = step.parameters.entries.joinToString(", ") { (k, v) ->
-            "$k = $v"
+    appendLine("val result = transmute.$domain.to($formatEnum) {")
+    if (request.pipeline.isNotEmpty()) {
+        appendLine("    transform {")
+        for (step in request.pipeline) {
+            val params = step.parameters.entries.joinToString(", ") { (k, v) ->
+                val literal = v.toIntOrNull()?.toString()
+                    ?: v.toLongOrNull()?.let { "${it}L" }
+                    ?: v.toFloatOrNull()?.let { "${it}f" }
+                    ?: v.toBooleanStrictOrNull()?.toString()
+                "$k = ${literal ?: "\"$v\""}"
+            }
+            if (params.isEmpty()) {
+                appendLine("        add(${step.transformId}())")
+            } else {
+                appendLine("        add(${step.transformId}($params))")
+            }
         }
-        if (params.isEmpty()) {
-            appendLine("    ${step.transformId}()")
-        } else {
-            appendLine("    ${step.transformId}($params)")
-        }
+        appendLine("    }")
     }
-    appendLine("}.transmute(input)")
+    append("}.transmute(input)")
 }
