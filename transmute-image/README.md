@@ -39,7 +39,7 @@ TwelveMonkeys ImageIO.
 | `ImageScaleTransform` | Scale by factor |
 | `ImageResizeTransform` | Resize to target dimensions |
 | `ImageCropTransform` | Crop to rectangle |
-| `ImageRotateTransform` | Rotate by degrees |
+| `ImageRotateTransform` | Auto-rotate from EXIF orientation |
 | `ImageGrayscaleTransform` | Convert to grayscale |
 | `ImageFlipTransform` | Flip horizontal/vertical |
 | `ImageBrightnessContrastTransform` | Adjust brightness and contrast |

@@ -11,7 +11,7 @@ on Android, Desktop/JVM, and iOS.
 | `ImageScaleTransform` | `scale` | Fit within bounds, preserve aspect ratio | [scale.md](image/scale.md) |
 | `ImageResizeTransform` | `resize` | Exact resize with resample filter (Lanczos3, Mitchell, etc.) | [resize.md](image/resize.md) |
 | `ImageCropTransform` | `crop` | Crop to sub-region | [crop.md](image/crop.md) |
-| `ImageRotateTransform` | `rotate` | Auto-rotate from EXIF orientation | [rotate.md](image/rotate.md) |
+| `ImageRotateTransform` | `autoRotate` | Auto-rotate from EXIF orientation | [rotate.md](image/rotate.md) |
 | `ImageGrayscaleTransform` | `grayscale` | BT.709 luma conversion | [grayscale.md](image/grayscale.md) |
 | `ImageFlipTransform` | `flip` | Mirror horizontally / vertically | [flip.md](image/flip.md) |
 | `ImageBrightnessContrastTransform` | `brightnessContrast` | Adjust brightness (−255..+255) and contrast (0..3) | [brightness-contrast.md](image/brightness-contrast.md) |

@@ -33,11 +33,15 @@ and video-specific transforms. Reuses `ImageIR` types for video frames and
 
 ### Transforms
 
-| Transform | Purpose |
-|-----------|---------|
-| `VideoRotateTransform` | Rotate video frames |
-| `VideoCropTransform` | Crop video frames |
-| `VideoSpeedTransform` | Playback speed adjustment |
+| Transform | DSL | Purpose |
+|-----------|-----|---------|
+| `VideoTrimTransform` | `trim` | Trim to time range |
+| `VideoResizeTransform` | `resize` | Resize frames, preserve aspect ratio |
+| `VideoFrameRateTransform` | `frameRate` | Change frame rate |
+| `VideoRemoveAudioTransform` | `removeAudio` | Strip audio track |
+| `VideoCropTransform` | `crop` | Crop frames to sub-region |
+| `VideoSpeedTransform` | `speed` | Playback speed adjustment |
+| `VideoRotateTransform` | `rotate` | Rotate frames 90°/180°/270° |
 
 ## Dependencies
 
