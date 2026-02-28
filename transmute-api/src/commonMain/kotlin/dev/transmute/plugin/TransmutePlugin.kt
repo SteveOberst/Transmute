@@ -69,7 +69,7 @@ interface TransmutePlugin<C : Any> {
  * object MySimplePlugin : SimpleTransmutePlugin() {
  *     override val key = pluginId("my-plugin")
  *     override fun install(scope: TransmuteScope) {
- *         scope.imageDecoders.register(MyDecoder())
+ *         scope.codecs.image.decoders.register(MyDecoder())
  *     }
  * }
  * ```

@@ -172,8 +172,8 @@ object MyCodecPlugin : TransmutePlugin<MyCodecConfig> {
     override fun createConfig() = MyCodecConfig()
 
     override fun install(scope: TransmuteScope, config: MyCodecConfig) {
-        scope.imageDecoders.register(MyCustomDecoder())
-        scope.imageEncoders.register(MyCustomEncoder())
+        scope.codecs.image.decoders.register(MyCustomDecoder())
+        scope.codecs.image.encoders.register(MyCustomEncoder())
     }
 }
 
@@ -181,7 +181,7 @@ object MyCodecPlugin : TransmutePlugin<MyCodecConfig> {
 object MinimalPlugin : SimpleTransmutePlugin() {
     override val key = pluginId("com.example.minimal")
     override fun install(scope: TransmuteScope) {
-        scope.audioDecoders.register(MyAudioDecoder())
+        scope.codecs.audio.decoders.register(MyAudioDecoder())
     }
 }
 ```
@@ -591,10 +591,11 @@ class MyWebpEncoder : ImageEncoder {
 // Register via a Transmute instance (preferred)
 val transmute = Transmute {
     plugins {
-        install(object : SimpleTransmutePlugin("my-webp") {
+        install(object : SimpleTransmutePlugin() {
+            override val key = pluginId("my-webp")
             override fun install(scope: TransmuteScope) {
-                scope.imageDecoders.register(MyWebpDecoder())
-                scope.imageEncoders.register(MyWebpEncoder())
+                scope.codecs.image.decoders.register(MyWebpDecoder())
+                scope.codecs.image.encoders.register(MyWebpEncoder())
             }
         })
     }

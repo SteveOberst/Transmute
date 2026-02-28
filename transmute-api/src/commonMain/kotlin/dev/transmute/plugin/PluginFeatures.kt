@@ -28,7 +28,7 @@ package dev.transmute.plugin
  * ```kotlin
  * override fun install(scope: TransmuteScope, config: MyConfig) {
  *     if (scope.features.isEnabled(MyFeature.FastEncode)) {
- *         scope.imageEncoders.register(HwAccelEncoder())
+ *         scope.codecs.image.encoders.register(HwAccelEncoder())
  *     }
  * }
  * ```

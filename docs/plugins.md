@@ -83,10 +83,10 @@ object MyCodecPlugin : TransmutePlugin<MyCodecConfig> {
 
     override fun install(scope: TransmuteScope, config: MyCodecConfig) {
         if (config.enableDecoder) {
-            scope.imageDecoders.register(MyDecoder())
+            scope.codecs.image.decoders.register(MyDecoder())
         }
         if (config.enableEncoder) {
-            scope.imageEncoders.register(MyEncoder())
+            scope.codecs.image.encoders.register(MyEncoder())
         }
     }
 }
@@ -103,7 +103,7 @@ For plugins that don't need configuration, extend `SimpleTransmutePlugin`:
 object MinimalPlugin : SimpleTransmutePlugin() {
     override val key = pluginId("com.example.minimal")
     override fun install(scope: TransmuteScope) {
-        scope.audioDecoders.register(MyAudioDecoder())
+        scope.codecs.audio.decoders.register(MyAudioDecoder())
     }
 }
 ```
