@@ -6,14 +6,14 @@ Change the frame rate of a video.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| targetFps | Double | - | Desired output frames per second |
+| fps | Double | - | Desired output frames per second |
 
 ## Usage
 
 ### DSL
 
 ```kotlin
-Transmute.video { frameRate(targetFps = 30.0) }.transmute(bytes.asBytes()).bytes.data
+Transmute.video { frameRate(fps = 30.0) }.transmute(bytes.asBytes()).bytes.data
 ```
 
 ### Pipeline

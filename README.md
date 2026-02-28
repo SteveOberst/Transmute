@@ -295,7 +295,7 @@ val fromBufferedImage = Transmute.image.custom.from<Bytes> {
 
 ## Logging
 
-Transmute uses a structured logging API. By default, logging is set to `INFO` level.
+Transmute uses a structured logging API. By default, logging is set to `WARN` level.
 
 ```kotlin
 

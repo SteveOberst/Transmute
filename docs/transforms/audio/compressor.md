@@ -8,8 +8,8 @@ Dynamic range compressor - reduces the volume of loud passages.
 |-----------|------|---------|-------------|
 | thresholdDb | Float | -20f | Level above which compression is applied (dB) |
 | ratio | Float | 4f | Compression ratio (e.g., 4:1) |
-| attackMs | Float | 5f | Attack time in milliseconds |
-| releaseMs | Float | 50f | Release time in milliseconds |
+| attackMs | Float | 10f | Attack time in milliseconds |
+| releaseMs | Float | 100f | Release time in milliseconds |
 | makeupGainDb | Float | 0f | Post-compression gain boost in dB |
 
 ## Usage

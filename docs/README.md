@@ -2,8 +2,8 @@
 
 Transmute is designed as a small, stable top-level API (`Transmute`) backed by:
 
-- `Transmute.codec()` for one-shot decode/encode
-- `Transmute.inspect()` for format detection and inspection
+- `Transmute.codec` for one-shot decode/encode
+- `Transmute.inspect` for format detection and inspection
 - `Transmute.structure` for reading/writing raw file structures (headers, chunks, atoms)
 - Transmuters (`Transmute.image { ... }`, `Transmute.audio { ... }`, `Transmute.video { ... }`) for decode -> transforms -> encode
 - Instance-based API with plugin system: `Transmute { plugins { install(GStreamer) } }`
