@@ -16,7 +16,7 @@ class InMemoryFileSystemTest {
     private val testPath = TPath.of("/test.txt")
     private val testData = "Hello, Transmute!".encodeToByteArray()
 
-    // ── exists / metadata ──────────────────────────────────────
+    // -- exists / metadata --------------------------------------
 
     @Test
     fun existsReturnsFalseForMissingFile() {
@@ -62,7 +62,7 @@ class InMemoryFileSystemTest {
         assertFalse(meta.isRegularFile)
     }
 
-    // ── read / write ───────────────────────────────────────────
+    // -- read / write -------------------------------------------
 
     @Test
     fun readReturnsWrittenData() {
@@ -113,7 +113,7 @@ class InMemoryFileSystemTest {
         assertTrue(f.exists(TPath.of("/a/b/c")))
     }
 
-    // ── Streaming read / write ─────────────────────────────────
+    // -- Streaming read / write ---------------------------------
 
     @Test
     fun openReadReturnsCorrectContent() {
@@ -170,7 +170,7 @@ class InMemoryFileSystemTest {
         assertContentEquals(testData, f.read(testPath))
     }
 
-    // ── Directory operations ───────────────────────────────────
+    // -- Directory operations -----------------------------------
 
     @Test
     fun createDirectoryAndList() {
@@ -212,7 +212,7 @@ class InMemoryFileSystemTest {
         }
     }
 
-    // ── Delete ─────────────────────────────────────────────────
+    // -- Delete -------------------------------------------------
 
     @Test
     fun deleteRemovesFile() {
@@ -250,7 +250,7 @@ class InMemoryFileSystemTest {
         assertFalse(f.exists(dir))
     }
 
-    // ── Copy / Move ────────────────────────────────────────────
+    // -- Copy / Move --------------------------------------------
 
     @Test
     fun copyCopiesFileContent() {

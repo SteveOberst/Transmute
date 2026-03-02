@@ -15,7 +15,7 @@ import dev.transmute.structure.common.parseIsoBmffBoxes
  * `mp42`, `iso2`, `iso5`, `iso6`, `dash`, `msdh`, `msix`.
  *
  * ```
- * | ftyp box | moov box | mdat box | … |
+ * | ftyp box | moov box | mdat box | ... |
  * ```
  */
 class Mp4StructureReader : StructureReader<Mp4Raw> {

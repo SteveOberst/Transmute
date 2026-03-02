@@ -137,7 +137,7 @@ object ImageTestHelpers {
   // --- Pixel comparison ---
 
   /**
-   * Returns the pixel value at (x, y) as an [IntArray] of [bpp] channels (0–255).
+   * Returns the pixel value at (x, y) as an [IntArray] of [bpp] channels (0-255).
    */
   fun pixelAt(ir: ImageIR, x: Int, y: Int): IntArray {
     val buffer = ir.buffer as ByteArrayPixelBuffer
@@ -153,7 +153,7 @@ object ImageTestHelpers {
    * Returns the maximum absolute difference across all pixels and channels.
    * A return value of 0 means the images are identical.
    *
-   * For lossy codec testing, a tolerance of 3–10 is typical for JPEG.
+   * For lossy codec testing, a tolerance of 3-10 is typical for JPEG.
    */
   fun peakDifference(a: ImageIR, b: ImageIR): Int {
     require(a.width == b.width && a.height == b.height) {

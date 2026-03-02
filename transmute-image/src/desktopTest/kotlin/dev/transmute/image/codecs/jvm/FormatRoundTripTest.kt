@@ -25,7 +25,7 @@ import dev.transmute.image.CanonicalImageDecodeOptions
 import dev.transmute.image.JpegEncodeOptions
 
 /**
- * Integration tests that exercise the full encode → detect → decode pipeline,
+ * Integration tests that exercise the full encode -> detect -> decode pipeline,
  * and multi-transform pipelines (crop + scale + rotate + encode + decode).
  *
  * These prove that the entire conversion chain works end-to-end with real
@@ -59,7 +59,7 @@ class FormatRoundTripTest {
     assertEquals(ImageFormat.Png, ImageFormatDetector.detect(bytes))
   }
 
-  // --- Full loop: encode → detect → decode → verify ---
+  // --- Full loop: encode -> detect -> decode -> verify ---
 
   @Test
   fun pngFullLoopLossless() = runTest {
@@ -123,7 +123,7 @@ class FormatRoundTripTest {
 
   @Test
   fun cropThenEncodePngThenDecode() = runTest {
-    // 200×200 gradient, crop center 100×100, encode to PNG, decode back
+    // 200x200 gradient, crop center 100x100, encode to PNG, decode back
     val original = horizontalGradient(200, 200, startR = 0, endR = 200)
     val cropped = ImageCropTransform(x = 50, y = 50, cropWidth = 100, cropHeight = 100)
       .apply(original, ctx)
@@ -131,7 +131,7 @@ class FormatRoundTripTest {
     assertEquals(100, cropped.width)
     assertEquals(100, cropped.height)
 
-    // First pixel in crop was at x=50 in original → R≈50
+    // First pixel in crop was at x=50 in original -> R50
     val cropLeft = pixelAt(cropped, 0, 0)
     assertEquals(50, cropLeft[0], "Crop left edge R should be ~50")
 
@@ -148,7 +148,7 @@ class FormatRoundTripTest {
 
   @Test
   fun rotateThenScaleThenEncodeJpeg() = runTest {
-    // 400×300 image, rotate 90° → 300×400, scale → 150×200, encode JPEG → decode
+    // 400x300 image, rotate 90 deg -> 300x400, scale -> 150x200, encode JPEG -> decode
     val original = solidColor(400, 300, r = 100, g = 200, b = 50)
 
     val rotated = ImageRotateTransform(90).apply(original, ctx)
@@ -179,25 +179,25 @@ class FormatRoundTripTest {
   fun cropThenRotateThenEncodePng() = runTest {
     val original = horizontalGradient(300, 200, startR = 0, endR = 255)
 
-    // Crop 100×200 from x=100
+    // Crop 100x200 from x=100
     val cropped = ImageCropTransform(x = 100, y = 0, cropWidth = 100, cropHeight = 200)
       .apply(original, ctx)
     assertEquals(100, cropped.width)
     assertEquals(200, cropped.height)
 
-    // Rotate 180°
+    // Rotate 180 deg
     val rotated = ImageRotateTransform(180)
       .apply(cropped, ctx)
     assertEquals(100, rotated.width)
     assertEquals(200, rotated.height)
 
-    // The gradient was R: 100→199 left to right. After 180° it should be reversed.
+    // The gradient was R: 100->199 left to right. After 180 deg it should be reversed.
     val leftAfterRotate = pixelAt(rotated, 0, 0)
     val rightAfterRotate = pixelAt(rotated, 99, 0)
     assertTrue(leftAfterRotate[0] > rightAfterRotate[0],
       "After 180° rotation, gradient should be reversed")
 
-    // Encode to PNG → decode → verify dimensions
+    // Encode to PNG -> decode -> verify dimensions
     val bytes = encodePng(rotated)
     assertEquals(ImageFormat.Png, ImageFormatDetector.detect(bytes))
 
@@ -226,13 +226,13 @@ class FormatRoundTripTest {
     assertEquals(ImageFormat.Jpeg, ImageFormatDetector.detect(lowBytes))
   }
 
-  // --- Edge: 1×1 pixel survives the whole pipeline ---
+  // --- Edge: 1x1 pixel survives the whole pipeline ---
 
   @Test
   fun singlePixelSurvivesFullPipeline() = runTest {
     val original = solidColor(1, 1, r = 42, g = 84, b = 168)
 
-    // PNG encode → detect → decode
+    // PNG encode -> detect -> decode
     val pngBytes = encodePng(original)
     assertEquals(ImageFormat.Png, ImageFormatDetector.detect(pngBytes))
     val decodedPng = decoder.decode(pngBytes, CanonicalImageDecodeOptions(), ctx)

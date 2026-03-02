@@ -30,7 +30,7 @@ private const val GSTREAMER_CONFIG_KEY = "transmute.gstreamer.config"
  *
  * Creates combined registries containing both native platform codecs and
  * GStreamer additions for the enabled domains. By default, the bundled
- * GStreamer runtime is used — no separate installation required.
+ * GStreamer runtime is used - no separate installation required.
  *
  * ```kotlin
  * val ctx = TransmuteContext {

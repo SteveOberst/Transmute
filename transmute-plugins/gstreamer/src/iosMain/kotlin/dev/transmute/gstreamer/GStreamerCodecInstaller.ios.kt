@@ -102,7 +102,7 @@ internal actual fun installGstVideoCodecs(
 internal actual fun configureResolver(
     installation: GStreamerInstallation,
 ) {
-    // No-op on iOS — GStreamer is bundled via cinterop (GStreamer.framework)
+    // No-op on iOS - GStreamer is bundled via cinterop (GStreamer.framework)
 }
 
 internal actual fun resolverDiagnostics(): String = ""

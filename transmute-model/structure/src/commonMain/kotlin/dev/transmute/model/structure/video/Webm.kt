@@ -8,7 +8,7 @@ import dev.transmute.model.structure.common.EbmlElement
 import dev.transmute.model.core.RawMediaStructure
 import kotlinx.serialization.Serializable
 
-// --- WebM file — complete on-disk representation ---
+// --- WebM file - complete on-disk representation ---
 
 /**
  * Canonical representation of a WebM file as written to disk.

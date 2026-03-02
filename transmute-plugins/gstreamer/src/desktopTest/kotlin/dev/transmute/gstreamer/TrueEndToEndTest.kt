@@ -39,7 +39,7 @@ import kotlin.test.assertTrue
  * 3. Some tests also exercise the **full `Transmute { }` API** including
  *    transform pipelines.
  *
- * This validates the entire chain: encode â†’ structure parse â†’ decode.
+ * This validates the entire chain: encode -> structure parse -> decode.
  *
  * Soft-skipped when GStreamer is not available locally.
  */
@@ -47,9 +47,9 @@ class TrueEndToEndTest {
 
     private val ctx = testContext()
 
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-    // AUDIO: Generate real media â†’ Structure Reader â†’ Decode
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // =======================================================================
+    // AUDIO: Generate real media -> Structure Reader -> Decode
+    // =======================================================================
 
     @Test
     fun aac_realMedia_structureReaderAccepts() = runTest {
@@ -140,7 +140,7 @@ class TrueEndToEndTest {
 
     @Test
     fun mp3_realMedia_structureReaderAccepts() = runTest {
-        // MP3 encoding via Jump3r (pure-Java LAME) â€” no GStreamer needed
+        // MP3 encoding via Jump3r (pure-Java LAME) - no GStreamer needed
         val audioIR = GStreamerTestHelpers.sineWave(durationMs = 500, sampleRate = 44100)
         val mp3Bytes = JvmMp3Codec().encode(audioIR, AudioFormat.Mp3, CanonicalAudioEncodeOptions(), testContext())
 
@@ -156,9 +156,9 @@ class TrueEndToEndTest {
         assertTrue(decoded.durationMs > 0, "MP3 must decode with positive duration")
     }
 
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-    // VIDEO: Generate real media â†’ Structure Reader â†’ Decode
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // =======================================================================
+    // VIDEO: Generate real media -> Structure Reader -> Decode
+    // =======================================================================
 
     @Test
     fun mp4_realMedia_structureReaderAccepts() = runTest {
@@ -249,9 +249,9 @@ class TrueEndToEndTest {
         }
     }
 
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-    // IMAGE (GStreamer): Generate real media â†’ Structure Reader â†’ Decode
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // =======================================================================
+    // IMAGE (GStreamer): Generate real media -> Structure Reader -> Decode
+    // =======================================================================
 
     @Test
     fun heif_realMedia_structureReaderAccepts() = runTest {
@@ -288,9 +288,9 @@ class TrueEndToEndTest {
         }
     }
 
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-    // IMAGE (JvmImageIo): Generate real media â†’ Structure Reader â†’ Decode
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // =======================================================================
+    // IMAGE (JvmImageIo): Generate real media -> Structure Reader -> Decode
+    // =======================================================================
 
     @Test
     fun jpeg_realMedia_structureReaderAccepts() = runTest {
@@ -383,9 +383,9 @@ class TrueEndToEndTest {
         assertTrue(structure.riff.children.isNotEmpty(), "WebP must have RIFF children")
     }
 
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // =======================================================================
     // FULL TRANSMUTE API: Transmute { }.image { } pipeline
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // =======================================================================
 
     @Test
     fun transmuteApi_image_decodeTransformEncode() = runTest {
@@ -400,7 +400,7 @@ class TrueEndToEndTest {
             val original = GStreamerTestHelpers.solidColor(64, 64, r = 200, g = 100, b = 50)
             val heifBytes = GstImageEncoder().encode(original, ImageFormat.Heif, HeifEncodeOptions(), ctx)
 
-            // Run through Transmute API: HEIF â†’ decode â†’ (identity transform) â†’ encode HEIF
+            // Run through Transmute API: HEIF -> decode -> (identity transform) -> encode HEIF
             val transmuter = transmute.image {
                 encode {
                     options(HeifEncodeOptions())
@@ -430,7 +430,7 @@ class TrueEndToEndTest {
             val originalIR = GStreamerTestHelpers.sineWave(durationMs = 300, sampleRate = 44100)
             val aacBytes = GstAacCodec().encode(originalIR, AudioFormat.Aac, CanonicalAudioEncodeOptions(), ctx)
 
-            // Run through Transmute API: AAC â†’ decode â†’ encode M4A
+            // Run through Transmute API: AAC -> decode -> encode M4A
             val transmuter = transmute.audio {
                 encode {
                     options(CanonicalAudioEncodeOptions(outputFormat = OutputFormat.Exact(AudioFormat.M4a)))
@@ -462,7 +462,7 @@ class TrueEndToEndTest {
             )
             val mp4Bytes = GstMp4Codec().encode(videoIR, VideoFormat.Mp4, CanonicalVideoEncodeOptions(), ctx)
 
-            // Run through Transmute API: MP4 â†’ decode â†’ encode WebM
+            // Run through Transmute API: MP4 -> decode -> encode WebM
             val transmuter = transmute.video {
                 encode {
                     options(CanonicalVideoEncodeOptions(outputFormat = OutputFormat.Exact(VideoFormat.Webm)))
@@ -479,9 +479,9 @@ class TrueEndToEndTest {
         }
     }
 
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-    // TRANSMUTE STRUCTURE API: Parse â†’ Write â†’ Re-parse
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // =======================================================================
+    // TRANSMUTE STRUCTURE API: Parse -> Write -> Re-parse
+    // =======================================================================
 
     @Test
     fun transmuteStructure_mp4_readWriteRoundtrip() = runTest {
@@ -521,9 +521,9 @@ class TrueEndToEndTest {
         }
     }
 
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // =======================================================================
     // INSPECT: thumbnailFirstFrame
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // =======================================================================
 
     @Test
     fun inspect_thumbnailFirstFrame_extractsFromVideo() = runTest {

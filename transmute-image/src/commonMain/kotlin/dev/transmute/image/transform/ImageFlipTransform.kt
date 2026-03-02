@@ -14,8 +14,8 @@ import dev.transmute.codec.pipeline.TransformId
  * Supports any [PixelFormat][dev.transmute.image.PixelFormat] because it
  * operates on whole-pixel byte spans, not individual channels.
  *
- * @param horizontal Mirror left ↔ right.
- * @param vertical Mirror top ↔ bottom.
+ * @param horizontal Mirror left  right.
+ * @param vertical Mirror top  bottom.
  */
 class ImageFlipTransform(
   val horizontal: Boolean = false,

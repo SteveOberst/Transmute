@@ -17,7 +17,7 @@ import dev.transmute.structure.common.readU32LE
  * AVI uses a RIFF container with form type `AVI `.
  *
  * ```
- * | "RIFF" (4 B) | fileSize (4 B LE) | "AVI " (4 B) | sub-chunks… |
+ * | "RIFF" (4 B) | fileSize (4 B LE) | "AVI " (4 B) | sub-chunks... |
  * ```
  */
 class AviStructureReader : StructureReader<AviRaw> {

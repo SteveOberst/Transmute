@@ -66,7 +66,7 @@ export default function InspectPage() {
       <div className="flex flex-col flex-1 overflow-hidden">
         <AnimatePresence mode="wait">
           {!localUrl ? (
-            /* ── Empty state ──────────────────────────────────────── */
+            /* -- Empty state ---------------------------------------- */
             <motion.div
               key="empty"
               initial={{ opacity: 0, scale: 0.97 }}
@@ -85,7 +85,7 @@ export default function InspectPage() {
               </div>
             </motion.div>
           ) : (
-            /* ── Inspect view ─────────────────────────────────────── */
+            /* -- Inspect view --------------------------------------- */
             <motion.div
               key="inspect"
               initial={{ opacity: 0 }}

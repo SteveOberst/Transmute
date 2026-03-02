@@ -16,7 +16,7 @@ internal actual fun installGstAudioCodecs(
 ) {
     if (!GStreamerResolver.available) return
 
-    // Full codecs — decode + encode
+    // Full codecs - decode + encode
     val aac = GstAacCodec()
     decoders.register(aac)
     encoders.register(aac)
@@ -29,7 +29,7 @@ internal actual fun installGstAudioCodecs(
     decoders.register(opus)
     encoders.register(opus)
 
-    // Encode-only — decode is handled natively by JFlac / JOrbis
+    // Encode-only - decode is handled natively by JFlac / JOrbis
     encoders.register(GstFlacEncoder())
     encoders.register(GstOggVorbisEncoder())
 }

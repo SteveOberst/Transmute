@@ -15,7 +15,7 @@ import dev.transmute.structure.common.parseIsoBmffBoxes
  * `M4B `, `mp42`, or `isom` containing only audio tracks.
  *
  * ```
- * | ftyp box | moov box | mdat box | … |
+ * | ftyp box | moov box | mdat box | ... |
  * ```
  */
 class M4aStructureReader : StructureReader<M4aRaw> {

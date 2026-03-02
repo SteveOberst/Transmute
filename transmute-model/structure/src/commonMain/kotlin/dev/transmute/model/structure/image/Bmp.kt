@@ -10,7 +10,7 @@ import dev.transmute.model.core.RawMediaStructure
 import kotlinx.serialization.Serializable
 import kotlin.math.abs
 
-// --- Helpers — little-endian encoding ---
+// --- Helpers - little-endian encoding ---
 
 private fun UInt.toLittleEndianBytes(): ByteArray = byteArrayOf(
     this.toByte(),
@@ -97,7 +97,7 @@ data class BmpFileHeader(
     }
 }
 
-// --- DIB header (BITMAPINFOHEADER — 40 bytes minimum) ---
+// --- DIB header (BITMAPINFOHEADER - 40 bytes minimum) ---
 
 /**
  * The DIB (Device-Independent Bitmap) header that immediately follows
@@ -160,7 +160,7 @@ data class BmpDibHeader(
     }
 }
 
-// --- Colour-table entry (RGBQUAD — 4 bytes) ---
+// --- Colour-table entry (RGBQUAD - 4 bytes) ---
 
 /**
  * A single colour-table entry (RGBQUAD) as stored in BMP files.
@@ -186,7 +186,7 @@ data class BmpColorEntry(
     }
 }
 
-// --- BMP file — complete on-disk representation ---
+// --- BMP file - complete on-disk representation ---
 
 /**
  * Canonical representation of a BMP file as written to disk.

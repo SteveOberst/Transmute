@@ -15,7 +15,7 @@ import kotlinx.serialization.Serializable
 data class AviStructure(
     /** Parsed AVI main header (`avih` chunk). */
     val mainHeader: AviMainHeader?,
-    /** Number of logical streams (video + audio + …). */
+    /** Number of logical streams (video + audio + ...). */
     val streamCount: Int,
 ) : MediaStructure
 

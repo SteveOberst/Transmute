@@ -65,7 +65,7 @@ class GifStructureReaderTest {
         val sig = "GIF89a".encodeToByteArray()
         // packed = 0x80 means GCT present, size = 2^(0+1) = 2 entries
         val lsd = byteArrayOf(0x01, 0x00, 0x01, 0x00, 0x80.toByte(), 0x00, 0x00)
-        // GCT: 2 entries × 3 bytes
+        // GCT: 2 entries x 3 bytes
         val gct = byteArrayOf(0xFF.toByte(), 0x00, 0x00, 0x00, 0xFF.toByte(), 0x00)
         val trailer = byteArrayOf(0x3B)
         val data = sig + lsd + gct + trailer

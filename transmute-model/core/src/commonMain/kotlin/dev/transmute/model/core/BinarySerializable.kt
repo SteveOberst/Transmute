@@ -4,7 +4,7 @@ package dev.transmute.model.core
 
 /**
  * Marks a type whose instances can be serialized to their canonical
- * binary representation — the exact bytes as they would appear on disk.
+ * binary representation - the exact bytes as they would appear on disk.
  *
  * For a [RawMediaStructure] implementation
  * (e.g. `PngRaw`), [toBytes] produces a valid file that can be written

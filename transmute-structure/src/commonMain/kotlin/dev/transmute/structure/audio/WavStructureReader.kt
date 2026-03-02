@@ -18,7 +18,7 @@ import dev.transmute.structure.common.readU32LE
  *
  * WAV files use the RIFF container format:
  * ```
- * | "RIFF" (4 B) | fileSize (4 B LE) | "WAVE" (4 B) | sub-chunks… |
+ * | "RIFF" (4 B) | fileSize (4 B LE) | "WAVE" (4 B) | sub-chunks... |
  * ```
  */
 class WavStructureReader : StructureReader<WavRaw> {

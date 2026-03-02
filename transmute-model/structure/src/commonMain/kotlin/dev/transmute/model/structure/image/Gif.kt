@@ -9,7 +9,7 @@ import dev.transmute.model.core.asBytes
 import dev.transmute.model.core.RawMediaStructure
 import kotlinx.serialization.Serializable
 
-// --- Helpers — little-endian encoding ---
+// --- Helpers - little-endian encoding ---
 
 private fun UShort.toLittleEndianBytes(): ByteArray = byteArrayOf(
     this.toByte(),
@@ -23,9 +23,9 @@ private fun UShort.toLittleEndianBytes(): ByteArray = byteArrayOf(
  */
 @Serializable
 enum class GifVersion(val signature: String) {
-    /** GIF87a — original specification (no extensions). */
+    /** GIF87a - original specification (no extensions). */
     Gif87a("GIF87a"),
-    /** GIF89a — adds extensions (graphic control, application, comment). */
+    /** GIF89a - adds extensions (graphic control, application, comment). */
     Gif89a("GIF89a");
 
     companion object {
@@ -45,9 +45,9 @@ enum class GifVersion(val signature: String) {
  *
  * Packed byte layout:
  * - bit 7: Global Color Table flag
- * - bits 4–6: colour resolution (bits per primary colour minus 1)
+ * - bits 4-6: colour resolution (bits per primary colour minus 1)
  * - bit 3: sort flag
- * - bits 0–2: size of Global Color Table (2^(N+1) entries)
+ * - bits 0-2: size of Global Color Table (2^(N+1) entries)
  */
 @Serializable
 data class GifLogicalScreenDescriptor(
@@ -61,7 +61,7 @@ data class GifLogicalScreenDescriptor(
     /** `true` when a Global Color Table follows this descriptor. */
     val hasGlobalColorTable: Boolean get() = (packed.toInt() and 0x80) != 0
 
-    /** Colour resolution: bits per primary colour (1–8). */
+    /** Colour resolution: bits per primary colour (1-8). */
     val colorResolution: Int get() = ((packed.toInt() shr 4) and 0x07) + 1
 
     /** Whether the Global Color Table is sorted by frequency. */
@@ -109,11 +109,11 @@ data class GifColor(
  * GIF files are a sequence of blocks after the header and optional
  * Global Color Table.  Blocks are introduced by a single byte:
  *
- * - `0x2C` — Image Descriptor (followed by optional Local Color Table,
- *   LZW minimum code size byte, and sub-block–encoded image data)
- * - `0x21` — Extension Introducer (followed by a label byte and
- *   sub-block–encoded extension data)
- * - `0x3B` — Trailer (end of file)
+ * - `0x2C` - Image Descriptor (followed by optional Local Color Table,
+ *   LZW minimum code size byte, and sub-block-encoded image data)
+ * - `0x21` - Extension Introducer (followed by a label byte and
+ *   sub-block-encoded extension data)
+ * - `0x3B` - Trailer (end of file)
  *
  * The [data] field contains the **complete** raw bytes of the block
  * starting immediately **after** the introducer byte.  For image blocks
@@ -165,7 +165,7 @@ data class GifImageDescriptor(
 enum class GifDisposalMethod {
     /** No disposal specified. */
     None,
-    /** Do not dispose — leave graphic in place. */
+    /** Do not dispose - leave graphic in place. */
     DoNotDispose,
     /** Restore to background colour. */
     RestoreToBackground,
@@ -205,7 +205,7 @@ data class GifApplicationExtension(
     val data: Bytes,
 )
 
-// --- GIF file — complete on-disk representation ---
+// --- GIF file - complete on-disk representation ---
 
 /**
  * Canonical representation of a GIF file as written to disk.

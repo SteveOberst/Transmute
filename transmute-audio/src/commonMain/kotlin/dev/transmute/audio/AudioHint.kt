@@ -5,7 +5,7 @@ package dev.transmute.audio
  *
  * Used with [dev.transmute.AudioTransmuter.wouldTransmute] to determine whether a configured
  * transmuter would produce any change on an audio file without decoding it.
- * All properties are nullable — `null` means the value is unknown, and the
+ * All properties are nullable - `null` means the value is unknown, and the
  * transmuter will conservatively assume the transform *might* apply.
  *
  * ```kotlin

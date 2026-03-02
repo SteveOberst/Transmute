@@ -21,7 +21,7 @@ import kotlin.math.sin
  * Test utilities for GStreamer integration tests.
  *
  * Provides synthetic media generators and soft-skip guards for
- * GStreamer-dependent tests. Self-contained — does not depend on
+ * GStreamer-dependent tests. Self-contained - does not depend on
  * test helpers from other modules (which aren't on the test classpath).
  */
 object GStreamerTestHelpers {

@@ -11,7 +11,7 @@ import dev.transmute.model.core.Bytes
 
 // ---------------------------------------------------------------------------
 // GStreamer-backed image codecs for Android.
-// Handles HEIF, HEIC, AVIF via GStreamer JNI → PNG intermediate →
+// Handles HEIF, HEIC, AVIF via GStreamer JNI -> PNG intermediate ->
 // Android BitmapFactory.
 // ---------------------------------------------------------------------------
 

@@ -16,7 +16,7 @@ import dev.transmute.model.structure.image.TiffIfdEntry
  *
  * TiffRaw layout:
  * ```
- * | byte-order (2 B) | magic 42 (2 B) | firstIfdOffset (4 B) | IFDs & data … |
+ * | byte-order (2 B) | magic 42 (2 B) | firstIfdOffset (4 B) | IFDs & data ... |
  * ```
  */
 class TiffStructureReader : StructureReader<TiffRaw> {
@@ -86,7 +86,7 @@ class TiffStructureReader : StructureReader<TiffRaw> {
         }
 
         // The remaining data after header + IFDs is image/extra data.
-        // For simplicity we leave imageData and extraData empty — the IFD
+        // For simplicity we leave imageData and extraData empty - the IFD
         // entries contain resolved value pointers already.
         return TiffRaw(
             byteOrder = byteOrder,

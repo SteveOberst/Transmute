@@ -19,7 +19,7 @@ sealed interface ImageDecodeOptions : DecodeOptions {
 }
 
 /**
- * Format-agnostic decode options — no special configuration.
+ * Format-agnostic decode options - no special configuration.
  */
 data class CanonicalImageDecodeOptions(
   override val acceptedInputFormats: Set<ImageFormat> = emptySet(),

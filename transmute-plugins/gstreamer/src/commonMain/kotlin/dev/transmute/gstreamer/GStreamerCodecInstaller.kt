@@ -64,7 +64,7 @@ object GStreamerCodecInstaller {
      * Register GStreamer image codecs with feature-toggle control.
      *
      * When [GStreamerFeature.ImageEncoding] is disabled in [features],
-     * only decoders are registered — the HEIF/AVIF encoder is skipped.
+     * only decoders are registered - the HEIF/AVIF encoder is skipped.
      */
     fun installImageCodecs(
         decoders: MutableImageDecoderRegistry,
@@ -139,7 +139,7 @@ internal expect fun resolverDiagnostics(): String
  * Returns a short human-readable description of the resolved GStreamer
  * installation, suitable for an INFO-level log line.
  *
- * Example: `"system → /usr/bin/gst-launch-1.0"`
+ * Example: `"system -> /usr/bin/gst-launch-1.0"`
  *
  * Returns an empty string on platforms where GStreamer is not available
  * or where discovery is handled natively (Android / iOS).

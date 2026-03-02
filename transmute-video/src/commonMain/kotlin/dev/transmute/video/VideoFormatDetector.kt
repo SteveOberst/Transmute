@@ -47,7 +47,7 @@ object VideoFormatDetector {
       ) return VideoFormat.Mp4
     }
 
-    // AVI: RIFF....AVI␠
+    // AVI: RIFF....AVI
     if (data.size >= 12 &&
       data[0] == 'R'.code.toByte() && data[1] == 'I'.code.toByte() &&
       data[2] == 'F'.code.toByte() && data[3] == 'F'.code.toByte() &&

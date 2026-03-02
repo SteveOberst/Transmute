@@ -48,7 +48,7 @@ export default function CodePreview({ code }: Props) {
   )
 }
 
-/* ── Minimal Kotlin syntax colouring ──────────────────────────────── */
+/* -- Minimal Kotlin syntax colouring -------------------------------- */
 
 function highlightKotlin(code: string): React.ReactNode[] {
   const lines = code.split('\n')

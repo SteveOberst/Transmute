@@ -17,7 +17,7 @@ package dev.transmute.plugin
  * }
  * ```
  *
- * The Transmute runtime is not required to enforce this policy itself — it is
+ * The Transmute runtime is not required to enforce this policy itself - it is
  * informational and intended for dispatchers (e.g. a server-side coroutine dispatcher)
  * that wrap codec calls.
  */
@@ -36,7 +36,7 @@ interface PluginExecutionPolicy {
 sealed class ExecutionPolicy {
 
     /**
-     * No special constraints — the runtime may call codec operations from any
+     * No special constraints - the runtime may call codec operations from any
      * thread or coroutine context it chooses.
      */
     data object Default : ExecutionPolicy()
@@ -52,7 +52,7 @@ sealed class ExecutionPolicy {
      * The plugin's codec operations may run concurrently, but no more than [limit]
      * operations at the same time.
      *
-     * @param limit Maximum number of simultaneous codec operations. Must be ≥ 1.
+     * @param limit Maximum number of simultaneous codec operations. Must be >= 1.
      */
     data class MaxParallelism(val limit: Int) : ExecutionPolicy() {
         init { require(limit >= 1) { "MaxParallelism limit must be ≥ 1, got $limit" } }

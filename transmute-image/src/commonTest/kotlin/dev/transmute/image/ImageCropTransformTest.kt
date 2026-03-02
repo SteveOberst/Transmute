@@ -19,7 +19,7 @@ class ImageCropTransformTest {
 
   @Test
   fun cropCenterRegion() = runTest {
-    // 100×100 solid blue, crop center 50×50
+    // 100x100 solid blue, crop center 50x50
     val input = solidColor(100, 100, r = 0, g = 0, b = 255)
     val crop = ImageCropTransform(x = 25, y = 25, cropWidth = 50, cropHeight = 50)
     val result = crop.apply(input, testContext())
@@ -35,9 +35,9 @@ class ImageCropTransformTest {
 
   @Test
   fun cropPreservesGradientValues() = runTest {
-    // Horizontal gradient 256×10: R goes 0→255 left→right
+    // Horizontal gradient 256x10: R goes 0->255 left->right
     val input = horizontalGradient(256, 10, startR = 0, endR = 255, startG = 0, endG = 0, startB = 0, endB = 0)
-    // Crop columns 100..199 → the R value at x=0 in the crop should equal ~100
+    // Crop columns 100..199 -> the R value at x=0 in the crop should equal ~100
     val crop = ImageCropTransform(x = 100, y = 0, cropWidth = 100, cropHeight = 10)
     val result = crop.apply(input, testContext())
 
@@ -65,7 +65,7 @@ class ImageCropTransformTest {
     assertEquals(10, result.width)
     assertEquals(10, result.height)
 
-    // Top-left 10×10 block should be all red (colorA)
+    // Top-left 10x10 block should be all red (colorA)
     assertContentEquals(intArrayOf(255, 0, 0, 255), pixelAt(result, 0, 0))
     assertContentEquals(intArrayOf(255, 0, 0, 255), pixelAt(result, 9, 9))
   }
@@ -96,7 +96,7 @@ class ImageCropTransformTest {
   @Test
   fun cropBeyondBoundsGetsClamped() = runTest {
     val input = solidColor(50, 50, r = 200, g = 100, b = 50)
-    // Request extends beyond edge: x=40, cropWidth=100 → clamped to cropWidth=10
+    // Request extends beyond edge: x=40, cropWidth=100 -> clamped to cropWidth=10
     val crop = ImageCropTransform(x = 40, y = 40, cropWidth = 100, cropHeight = 100)
     val result = crop.apply(input, testContext())
 
@@ -120,7 +120,7 @@ class ImageCropTransformTest {
   fun cropZeroSizeReturnsOriginal() = runTest {
     val input = solidColor(50, 50, r = 100, g = 100, b = 100)
     val crop = ImageCropTransform(x = 50, y = 50, cropWidth = 10, cropHeight = 10)
-    // x=50 is clamped, then cropWidth = min(10, 50-50) = 0 → returns original
+    // x=50 is clamped, then cropWidth = min(10, 50-50) = 0 -> returns original
     val result = crop.apply(input, testContext())
     assertSame(input, result, "Zero-size crop should return original")
   }

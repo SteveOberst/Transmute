@@ -13,7 +13,7 @@ import kotlin.reflect.KClass
  * concrete serializer at runtime, without relying on `SerializersModule`.
  *
  * ## typeId conventions
- * - Built-in types: `"transmute.png"`, `"transmute.jpeg"`, `"transmute.wav"`, …
+ * - Built-in types: `"transmute.png"`, `"transmute.jpeg"`, `"transmute.wav"`, ...
  * - Plugin types: `"<plugin-id>.<format>"`, e.g. `"myplugin.customformat"`
  * - **Never** use class names: they change with refactors.
  *

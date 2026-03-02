@@ -38,7 +38,7 @@ internal object GStreamerIosBridge {
         val handle = dlopen(null, RTLD_LAZY) ?: return false
         val gstInit = dlsym(handle, "gst_init_check") ?: return false
 
-        // Call gst_init_check(NULL, NULL, NULL) — returns gboolean
+        // Call gst_init_check(NULL, NULL, NULL) - returns gboolean
         gst.gst_init_check(null, null, null) != 0
     } catch (_: Throwable) {
         false

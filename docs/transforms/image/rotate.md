@@ -15,18 +15,18 @@ Supported angles: 90°, 180°, 270°. Rotation is a pure pixel shuffle — no in
 ### DSL
 
 ```kotlin
-// 90° clockwise (default)
+// 90 deg clockwise (default)
 Transmute.image { rotate() }.transmute(bytes.asBytes()).bytes.data
 
-// 180° (upside-down)
+// 180 deg (upside-down)
 Transmute.image { rotate(180) }.transmute(bytes.asBytes()).bytes.data
 ```
 
 ### Pipeline
 
 ```kotlin
-transform { add(Transformers.image().rotate()) }      // 90° CW (default)
-transform { add(Transformers.image().rotate(180)) }   // 180°
+transform { add(Transformers.image().rotate()) }      // 90 deg CW (default)
+transform { add(Transformers.image().rotate(180)) }   // 180 deg
 ```
 
 ## Notes

@@ -20,15 +20,15 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 /**
- * Phase 3 — Cross-format and pipeline integration tests.
+ * Phase 3 - Cross-format and pipeline integration tests.
  *
  * These tests exercise scenarios that span multiple codecs or combine
- * encode → transform → re-encode workflows:
+ * encode -> transform -> re-encode workflows:
  *
- * - Audio cross-format: encode with one codec → decode with another
- * - Video container swap: MP4 → decode → re-encode WebM → decode → verify
- * - Transform + re-encode: decode → resize frames → encode to different container
- * - Multi-track: encode video with stereo audio → decode → verify both tracks
+ * - Audio cross-format: encode with one codec -> decode with another
+ * - Video container swap: MP4 -> decode -> re-encode WebM -> decode -> verify
+ * - Transform + re-encode: decode -> resize frames -> encode to different container
+ * - Multi-track: encode video with stereo audio -> decode -> verify both tracks
  *
  * All tests are **soft-skipped** when GStreamer is not installed locally.
  */
@@ -36,9 +36,9 @@ class CrossFormatPipelineTest {
 
     private val ctx = testContext()
 
-    // ───────────────────────────────────────────────────────────────────────
+    // -----------------------------------------------------------------------
     // Audio cross-format
-    // ───────────────────────────────────────────────────────────────────────
+    // -----------------------------------------------------------------------
 
     /**
      * Encode a sine wave to AAC, then decode to AudioIR, then re-encode to M4A,
@@ -72,7 +72,7 @@ class CrossFormatPipelineTest {
     }
 
     /**
-     * Encode as Opus, decode, re-encode as AAC — verifying the pipeline
+     * Encode as Opus, decode, re-encode as AAC - verifying the pipeline
      * can bridge between OGG-based and raw-ADTS codecs.
      */
     @Test
@@ -97,12 +97,12 @@ class CrossFormatPipelineTest {
         }
     }
 
-    // ───────────────────────────────────────────────────────────────────────
+    // -----------------------------------------------------------------------
     // Video container swap
-    // ───────────────────────────────────────────────────────────────────────
+    // -----------------------------------------------------------------------
 
     /**
-     * Encode as MP4 → decode → re-encode as WebM → decode → verify dimensions
+     * Encode as MP4 -> decode -> re-encode as WebM -> decode -> verify dimensions
      * and duration survive the container swap.
      */
     @Test
@@ -136,7 +136,7 @@ class CrossFormatPipelineTest {
     }
 
     /**
-     * Encode as AVI → decode → re-encode as MKV → decode → verify.
+     * Encode as AVI -> decode -> re-encode as MKV -> decode -> verify.
      */
     @Test
     fun video_aviToMkv_containerSwap() = runTest {
@@ -161,20 +161,20 @@ class CrossFormatPipelineTest {
         }
     }
 
-    // ───────────────────────────────────────────────────────────────────────
+    // -----------------------------------------------------------------------
     // Transform + re-encode
-    // ───────────────────────────────────────────────────────────────────────
+    // -----------------------------------------------------------------------
 
     /**
-     * Decode MP4 → resize frames to a smaller resolution → encode as MKV →
-     * decode MKV → verify the new dimensions persisted.
+     * Decode MP4 -> resize frames to a smaller resolution -> encode as MKV ->
+     * decode MKV -> verify the new dimensions persisted.
      *
      * This simulates a real-world "transcode + resize" pipeline.
      */
     @Test
     fun video_decodeResizeReencode_mp4ToMkv() = runTest {
         requireGStreamer {
-            // Encode a 320×240 source
+            // Encode a 320x240 source
             val mp4 = GstMp4Codec()
             val source = GStreamerTestHelpers.syntheticVideo(
                 width = 320, height = 240, frameRate = 10.0, durationMs = 500,
@@ -182,7 +182,7 @@ class CrossFormatPipelineTest {
             val mp4Bytes = mp4.encode(source, VideoFormat.Mp4, CanonicalVideoEncodeOptions(), ctx)
             val decoded = mp4.decode(mp4Bytes, CanonicalVideoDecodeOptions(), ctx)
 
-            // "Resize" by creating new frames at 160×120
+            // "Resize" by creating new frames at 160x120
             val resizedWidth = 160
             val resizedHeight = 120
             val resized = resizeVideoIR(decoded, resizedWidth, resizedHeight)
@@ -206,9 +206,9 @@ class CrossFormatPipelineTest {
         }
     }
 
-    // ───────────────────────────────────────────────────────────────────────
+    // -----------------------------------------------------------------------
     // Multi-track (video + audio)
-    // ───────────────────────────────────────────────────────────────────────
+    // -----------------------------------------------------------------------
 
     /**
      * Encode a video with stereo audio via MP4, decode, and verify that
@@ -279,14 +279,14 @@ class CrossFormatPipelineTest {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
+    // =======================================================================
     // Helpers
-    // ═══════════════════════════════════════════════════════════════════════
+    // =======================================================================
 
     /**
      * Creates a new [VideoIR] with frames re-created at the given dimensions.
      *
-     * This is a simplified "resize" — it generates new black frames at the
+     * This is a simplified "resize" - it generates new black frames at the
      * target resolution rather than actually scaling pixel data. This is
      * sufficient to verify that the encode pipeline respects the new dimensions.
      */

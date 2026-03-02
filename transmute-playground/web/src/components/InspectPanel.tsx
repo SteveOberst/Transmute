@@ -62,7 +62,7 @@ export default function InspectPanel({ result }: Props) {
   )
 }
 
-/* ── Generic JSON tree renderer ────────────────────────────────────── */
+/* -- Generic JSON tree renderer -------------------------------------- */
 
 type JsonValue = string | number | boolean | null | JsonValue[] | { [k: string]: JsonValue }
 

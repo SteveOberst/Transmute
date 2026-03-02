@@ -46,7 +46,7 @@ class AviStructureReaderTest {
 
     @Test
     fun canReadRejectsWave() {
-        // Build a RIFF + "WAVE" file — should be rejected by AVI reader
+        // Build a RIFF + "WAVE" file - should be rejected by AVI reader
         val wave = ByteArray(12)
         "RIFF".encodeToByteArray().copyInto(wave, 0)
         writeU32LE(wave, 4, 4)

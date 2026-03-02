@@ -185,7 +185,7 @@ class VideoCropTransformTest {
     val result = VideoCropTransform(x = 80, y = 80, cropWidth = 200, cropHeight = 200)
       .apply(video, context)
 
-    // Should be clamped to 20×20 (100-80=20).
+    // Should be clamped to 20x20 (100-80=20).
     assertEquals(20, result.videoTrack.width)
     assertEquals(20, result.videoTrack.height)
   }

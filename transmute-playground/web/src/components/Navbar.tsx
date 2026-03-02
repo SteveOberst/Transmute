@@ -31,7 +31,7 @@ export default function Navbar() {
       bg-[var(--surface-0)]/80 backdrop-blur-xl
     ">
       <div className="relative max-w-7xl mx-auto px-6 h-14 flex items-center">
-        {/* Brand — left */}
+        {/* Brand - left */}
         <Link href="/" className="flex items-center gap-3 group shrink-0">
           <div className="
             w-8 h-8 rounded-lg bg-[var(--accent)] flex items-center justify-center
@@ -51,7 +51,7 @@ export default function Navbar() {
           </span>
         </Link>
 
-        {/* Navigation — absolutely centered */}
+        {/* Navigation - absolutely centered */}
         <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1">
           {navItems.map((item) => {
             const active = item.href === '/'
@@ -76,7 +76,7 @@ export default function Navbar() {
           })}
         </div>
 
-        {/* Right side — status + GitHub */}
+        {/* Right side - status + GitHub */}
         <div className="ml-auto flex items-center gap-4 shrink-0">
           {/* Status */}
           <div className="flex items-center gap-2">

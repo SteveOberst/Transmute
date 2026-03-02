@@ -34,7 +34,7 @@ internal object GStreamerAndroidImageEngine {
     // -- Decode ---------------------------------------------------------------
 
     /**
-     * Decode HEIF/HEIC/AVIF to [ImageIR] via GStreamer → PNG → BitmapFactory.
+     * Decode HEIF/HEIC/AVIF to [ImageIR] via GStreamer -> PNG -> BitmapFactory.
      */
     suspend fun decode(
         source: Bytes,
@@ -73,7 +73,7 @@ internal object GStreamerAndroidImageEngine {
             val pixels = IntArray(w * h)
             bitmap.getPixels(pixels, 0, w, 0, 0, w, h)
 
-            // Convert ARGB_8888 (Android) → RGBA_8888
+            // Convert ARGB_8888 (Android) -> RGBA_8888
             val rgba = ByteArray(w * h * 4)
             for (i in pixels.indices) {
                 val argb = pixels[i]
@@ -105,7 +105,7 @@ internal object GStreamerAndroidImageEngine {
     // -- Encode ---------------------------------------------------------------
 
     /**
-     * Encode [ImageIR] to HEIF/HEIC/AVIF via PNG → GStreamer pipeline.
+     * Encode [ImageIR] to HEIF/HEIC/AVIF via PNG -> GStreamer pipeline.
      */
     suspend fun encode(
         ir: ImageIR,
@@ -129,7 +129,7 @@ internal object GStreamerAndroidImageEngine {
         val tmpOut = File.createTempFile("transmute_gst_img_enc_out_", ".$ext")
 
         try {
-            // Convert RGBA_8888 → ARGB_8888 (Android int format)
+            // Convert RGBA_8888 -> ARGB_8888 (Android int format)
             val rgba = buffer.data
             val pixels = IntArray(w * h)
             for (i in 0 until w * h) {

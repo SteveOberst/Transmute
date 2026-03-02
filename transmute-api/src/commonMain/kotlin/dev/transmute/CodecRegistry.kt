@@ -19,7 +19,7 @@ import dev.transmute.video.MutableVideoDecoderRegistry
 import dev.transmute.video.MutableVideoEncoderRegistry
 import kotlinx.serialization.KSerializer
 
-// ── Generic structure-decoder registry ──────────────────────────────────────
+// -- Generic structure-decoder registry --------------------------------------
 
 /**
  * Generic format-keyed registry for structure decoders.
@@ -48,7 +48,7 @@ class MutableDecoderRegistry<F : MediaFormat<*, *>, OUT> {
     val supportedFormats: Set<MediaFormat<*, *>> get() = byFormat.keys.toSet()
 }
 
-// ── Domain codec registries ──────────────────────────────────────────────────
+// -- Domain codec registries --------------------------------------------------
 
 /**
  * Holds all mutable codec registries for image formats.
@@ -61,9 +61,9 @@ class ImageCodecRegistry(
     val decoders: MutableImageDecoderRegistry = MutableImageDecoderRegistry(),
     /** IR (pixel-data) encoders for image formats. */
     val encoders: MutableImageEncoderRegistry = MutableImageEncoderRegistry(),
-    /** Raw on-disk structure decoders — bytes → [RawMediaStructure]. */
+    /** Raw on-disk structure decoders - bytes -> [RawMediaStructure]. */
     val rawStructureDecoders: MutableDecoderRegistry<ImageFormat, RawMediaStructure> = MutableDecoderRegistry(),
-    /** Developer-friendly structure decoders — bytes → [MediaStructure]. */
+    /** Developer-friendly structure decoders - bytes -> [MediaStructure]. */
     val structureDecoders: MutableDecoderRegistry<ImageFormat, MediaStructure> = MutableDecoderRegistry(),
 )
 
@@ -111,7 +111,7 @@ class CodecRegistry(
     val video: VideoCodecRegistry = VideoCodecRegistry(),
 )
 
-// ── MediaStructure registration scope ────────────────────────────────────────
+// -- MediaStructure registration scope ----------------------------------------
 
 /**
  * Thin wrapper over [MediaStructureRegistry] that scopes plugin registrations

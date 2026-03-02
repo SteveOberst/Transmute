@@ -11,7 +11,7 @@ import dev.transmute.model.structure.common.parseFtyp
 import dev.transmute.model.core.RawMediaStructure
 import kotlinx.serialization.Serializable
 
-// --- AVIF file — complete on-disk representation ---
+// --- AVIF file - complete on-disk representation ---
 
 /**
  * Canonical representation of an AVIF file as written to disk.
@@ -19,7 +19,7 @@ import kotlinx.serialization.Serializable
  * AVIF uses the ISO BMFF container with AV1 image codec.  The file
  * is a sequence of top-level boxes:
  * ```
- * | ftyp | meta | mdat | … |
+ * | ftyp | meta | mdat | ... |
  * ```
  */
 @Serializable

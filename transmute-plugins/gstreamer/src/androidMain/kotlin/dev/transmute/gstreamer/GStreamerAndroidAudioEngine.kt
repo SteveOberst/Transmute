@@ -61,7 +61,7 @@ internal object GStreamerAndroidAudioEngine {
     }
 
     /**
-     * Decode [source] to an [AudioIR] via GStreamer → WAV → WavDecoder.
+     * Decode [source] to an [AudioIR] via GStreamer -> WAV -> WavDecoder.
      */
     suspend fun decode(
         source: ByteArray,

@@ -24,7 +24,7 @@ import dev.transmute.filesystem.TPath
 class GStreamerConfig(
     /** Which media domains have GStreamer-backed codecs registered. */
     val domains: MediaDomain = MediaDomain.ALL,
-    /** How GStreamer binaries are located — bundled, custom path, or system. */
+    /** How GStreamer binaries are located - bundled, custom path, or system. */
     val installation: GStreamerInstallation = GStreamerInstallation.Bundled,
     /** Subprocess timeout in milliseconds (default: 30 000). */
     val timeoutMs: Long = 30_000L,

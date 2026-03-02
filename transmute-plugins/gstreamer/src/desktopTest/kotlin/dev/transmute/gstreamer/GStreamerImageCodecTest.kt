@@ -16,8 +16,8 @@ import kotlin.test.assertTrue
 /**
  * End-to-end integration tests for GStreamer image codecs.
  *
- * Tests exercise HEIF/HEIC/AVIF decode (GStreamer â†’ PNG â†’ ImageIO) and
- * encode (ImageIO â†’ PNG â†’ GStreamer â†’ target) pipelines.
+ * Tests exercise HEIF/HEIC/AVIF decode (GStreamer -> PNG -> ImageIO) and
+ * encode (ImageIO -> PNG -> GStreamer -> target) pipelines.
  *
  * Encode tests require specific GStreamer elements:
  * - `x265enc` for HEIF/HEIC
@@ -95,7 +95,7 @@ class GStreamerImageCodecTest {
 
     @Test
     fun sniff_nonIsoBmff_returnsNull() {
-        // RIFF header â€“ not ISO BMFF
+        // RIFF header - not ISO BMFF
         assertNull(decoder.sniff(Bytes(byteArrayOf(
             'R'.code.toByte(), 'I'.code.toByte(), 'F'.code.toByte(), 'F'.code.toByte(),
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -107,7 +107,7 @@ class GStreamerImageCodecTest {
         assertNull(decoder.sniff(Bytes(byteArrayOf(0x00, 0x00, 0x00))))
     }
 
-    // -- HEIF encode â†’ decode roundtrip -------------------------------------
+    // -- HEIF encode -> decode roundtrip -------------------------------------
 
     @Test
     fun heif_encodeAndDecode_roundTrip() = runTest {
@@ -123,7 +123,7 @@ class GStreamerImageCodecTest {
         }
     }
 
-    // -- HEIC encode â†’ decode roundtrip -------------------------------------
+    // -- HEIC encode -> decode roundtrip -------------------------------------
 
     @Test
     fun heic_encodeAndDecode_roundTrip() = runTest {
@@ -139,7 +139,7 @@ class GStreamerImageCodecTest {
         }
     }
 
-    // -- AVIF encode â†’ decode roundtrip -------------------------------------
+    // -- AVIF encode -> decode roundtrip -------------------------------------
 
     @Test
     fun avif_encodeAndDecode_roundTrip() = runTest {

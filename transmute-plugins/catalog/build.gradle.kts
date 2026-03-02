@@ -31,7 +31,7 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            // Re-export all first-party plugins — catalog consumers get everything
+            // Re-export all first-party plugins - catalog consumers get everything
             // with a single dependency on this module.
             api(project(":transmute-api"))
         }

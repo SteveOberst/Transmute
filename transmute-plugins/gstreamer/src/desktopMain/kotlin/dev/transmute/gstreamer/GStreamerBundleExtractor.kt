@@ -28,7 +28,7 @@ import java.nio.file.StandardCopyOption
  */
 internal object GStreamerBundleExtractor {
 
-    /** Version marker — change when bundled GStreamer binaries are updated. */
+    /** Version marker - change when bundled GStreamer binaries are updated. */
     private const val BUNDLE_VERSION = "1.24.0"
 
     private val cacheDir: File by lazy {

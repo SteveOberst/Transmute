@@ -6,7 +6,7 @@ import kotlinx.coroutines.sync.withLock
 /**
  * A suspending **read-write** byte channel.
  *
- * `TChannel` combines [TSource] and [TSink] — it can read the current
+ * `TChannel` combines [TSource] and [TSink] - it can read the current
  * content of a resource and write updated content back. This is the
  * primary abstraction for **in-place transforms** where Transmute
  * reads a file, applies mutations, and writes the result back.

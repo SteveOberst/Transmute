@@ -1,4 +1,4 @@
-/* ── Shared DTO types matching the Kotlin shared module ─────────────── */
+/* -- Shared DTO types matching the Kotlin shared module --------------- */
 
 export type MediaDomain = 'IMAGE' | 'AUDIO' | 'VIDEO'
 
@@ -65,13 +65,22 @@ export interface InspectResult {
   format: string
   fileSize: number
   structure?: MediaStructure
+  metadata?: MediaMetadata[]
+}
+
+/** JSON envelope for decoded metadata (EXIF, XMP, ICC, ID3, etc.) */
+export interface MediaMetadata {
+  /** Type discriminator, e.g. "transmute.exif" */
+  type: string
+  /** Metadata-type-specific fields - arbitrary nested JSON */
+  value: Record<string, unknown>
 }
 
 /** JSON envelope for a decoded media file structure */
 export interface MediaStructure {
   /** Type discriminator, e.g. "transmute.png" */
   type: string
-  /** Format-specific fields — arbitrary nested JSON */
+  /** Format-specific fields - arbitrary nested JSON */
   value: Record<string, unknown>
 }
 

@@ -11,7 +11,7 @@ import dev.transmute.model.structure.common.parseFtyp
 import dev.transmute.model.core.RawMediaStructure
 import kotlinx.serialization.Serializable
 
-// --- MOV file — complete on-disk representation ---
+// --- MOV file - complete on-disk representation ---
 
 /**
  * Canonical representation of a MOV (QuickTime) file as written to disk.
@@ -20,7 +20,7 @@ import kotlinx.serialization.Serializable
  * QuickTime-specific brands and atom semantics.  The file is a
  * sequence of top-level boxes:
  * ```
- * | ftyp | moov | mdat | … |
+ * | ftyp | moov | mdat | ... |
  * ```
  *
  * Classic QuickTime files may omit the `ftyp` box entirely.

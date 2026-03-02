@@ -139,13 +139,13 @@ class PngFileTest {
     @Test
     fun ihdrBitsPerPixelRgb() {
         val png = minimalPng(colorType = 2) // RGB, 8 bit
-        assertEquals(24, png.ihdr.bitsPerPixel) // 8 × 3
+        assertEquals(24, png.ihdr.bitsPerPixel) // 8 x 3
     }
 
     @Test
     fun ihdrBitsPerPixelRgba() {
         val png = minimalPng(colorType = 6) // RGBA, 8 bit
-        assertEquals(32, png.ihdr.bitsPerPixel) // 8 × 4
+        assertEquals(32, png.ihdr.bitsPerPixel) // 8 x 4
     }
 
     @Test
@@ -266,7 +266,7 @@ class PngFileTest {
 
     @Test
     fun gamaAccessorParsesCorrectly() {
-        // gamma = 1/2.2 → 45455
+        // gamma = 1/2.2 -> 45455
         val gammaBytes = 45455u.be()
         val png = minimalPng(extraChunks = listOf(buildChunk("gAMA", gammaBytes)))
 
@@ -755,7 +755,7 @@ class PngFileTest {
         assertNull(PngColorType.fromCode(99))
     }
 
-    // --- Png.toBytes() — full file serialization ---
+    // --- Png.toBytes() - full file serialization ---
 
     @Test
     fun toBytesStartsWithPngSignature() {
@@ -777,7 +777,7 @@ class PngFileTest {
         )
 
         val bytes1 = png.toBytes().data
-        // Re-assemble from the same chunks — bytes should be identical
+        // Re-assemble from the same chunks - bytes should be identical
         val bytes2 = png.toBytes().data
         assertContentEquals(bytes1, bytes2)
     }
@@ -788,7 +788,7 @@ class PngFileTest {
         val png = minimalPng(extraChunks = listOf(buildChunk("IDAT", idatData)))
         val bytes = png.toBytes().data
 
-        // 8 (sig) + 3 chunks × (4 len + 4 type + data + 4 crc)
+        // 8 (sig) + 3 chunks x (4 len + 4 type + data + 4 crc)
         // IHDR: 12 + 13 = 25
         // IDAT: 12 + 5  = 17
         // IEND: 12 + 0  = 12

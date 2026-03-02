@@ -43,7 +43,7 @@ data class EbmlHeaderData(
     val docTypeReadVersion: Int,
 )
 
-// --- MKV file — complete on-disk representation ---
+// --- MKV file - complete on-disk representation ---
 
 /**
  * Canonical representation of an MKV (Matroska) file as written to disk.

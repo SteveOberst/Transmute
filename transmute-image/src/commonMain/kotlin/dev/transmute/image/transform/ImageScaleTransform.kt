@@ -12,7 +12,7 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 
 /**
- * Scales an [ImageIR] to fit within [maxWidth]×[maxHeight] while
+ * Scales an [ImageIR] to fit within [maxWidth]x[maxHeight] while
  * preserving the original aspect ratio.
  *
  * Uses bilinear interpolation for quality downscaling.
@@ -75,8 +75,8 @@ class ImageScaleTransform(
   companion object {
 
     /**
-     * Computes the largest dimensions that fit within [maxW]×[maxH]
-     * while preserving the aspect ratio of [srcW]×[srcH].
+     * Computes the largest dimensions that fit within [maxW]x[maxH]
+     * while preserving the aspect ratio of [srcW]x[srcH].
      */
     fun fitDimensions(srcW: Int, srcH: Int, maxW: Int, maxH: Int): Pair<Int, Int> {
       val scaleX = maxW.toDouble() / srcW

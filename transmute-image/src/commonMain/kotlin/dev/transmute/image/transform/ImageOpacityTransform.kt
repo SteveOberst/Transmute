@@ -56,7 +56,7 @@ class ImageOpacityTransform(
       }
 
       PixelFormat.RGB_888 -> {
-        // Promote to RGBA and set alpha to opacity × 255.
+        // Promote to RGBA and set alpha to opacity x 255.
         val newAlpha = (clampedOpacity * 255f).toInt().coerceIn(0, 255).toByte()
         val dstStride = w * 4
         val dstData = ByteArray(h * dstStride)

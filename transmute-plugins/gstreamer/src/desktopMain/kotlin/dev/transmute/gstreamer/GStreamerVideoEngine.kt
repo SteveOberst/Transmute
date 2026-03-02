@@ -25,11 +25,11 @@ import java.io.InputStream
 /**
  * Video engine using GStreamer subprocess (`gst-launch-1.0` / `gst-discoverer-1.0`).
  *
- * **Probe**: gst-discoverer-1.0 → structured media info.
+ * **Probe**: gst-discoverer-1.0 -> structured media info.
  *
  * **Decode**: gst-launch-1.0 pipes raw RGBA frames to stdout, audio extracted as WAV.
  *
- * **Encode**: raw RGBA frames + WAV audio temp files → gst-launch-1.0 → target container.
+ * **Encode**: raw RGBA frames + WAV audio temp files -> gst-launch-1.0 -> target container.
  */
 internal object GStreamerVideoEngine {
 
@@ -167,7 +167,7 @@ internal object GStreamerVideoEngine {
             info.frameCount
         }
 
-        // Create streaming frame reader (owns tmpIn — deletes when exhausted)
+        // Create streaming frame reader (owns tmpIn - deletes when exhausted)
         val frameStream = GStreamerFrameStream(
             inputFile = tmpIn,
             width = info.width,

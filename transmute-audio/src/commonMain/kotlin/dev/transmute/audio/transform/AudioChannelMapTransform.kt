@@ -14,8 +14,8 @@ import dev.transmute.codec.pipeline.TransformId
  * The [mapping] array defines which source channel feeds each output
  * channel. `mapping[outputCh] = sourceCh`. For example:
  *
- * - Swap stereo: `intArrayOf(1, 0)` - right → left, left → right
- * - Mono → stereo: `intArrayOf(0, 0)` - duplicate channel 0
+ * - Swap stereo: `intArrayOf(1, 0)` - right -> left, left -> right
+ * - Mono -> stereo: `intArrayOf(0, 0)` - duplicate channel 0
  * - Pick centre from 5.1: `intArrayOf(2)` - extract channel 2 only
  *
  * Source indices that exceed the actual channel count wrap around

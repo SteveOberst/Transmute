@@ -43,7 +43,7 @@ interface PluginMetricsRecorder {
  * Receives timing and error notifications for codec operations performed by a plugin.
  *
  * All methods have no-op default implementations so that partial instrumentation
- * is easy — override only the events you care about.
+ * is easy - override only the events you care about.
  */
 interface MetricsHook {
 

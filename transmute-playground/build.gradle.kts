@@ -1,7 +1,7 @@
 // Umbrella module for the Transmute Playground.
-// Sub-modules: shared, server, web (Next.js — not a Gradle module)
+// Sub-modules: shared, server, web (Next.js - not a Gradle module)
 
-/* ── Dev tasks: start frontend & backend for local development ───────────── */
+/* -- Dev tasks: start frontend & backend for local development ------------- */
 
 val isWindows = org.gradle.internal.os.OperatingSystem.current().isWindows
 val npmCmd = if (isWindows) "npm.cmd" else "npm"
@@ -39,7 +39,7 @@ tasks.register("dev") {
     doLast {
         val webDir = file("web")
 
-        /** Gracefully terminate a process tree: SIGTERM → 3 s wait → SIGKILL */
+        /** Gracefully terminate a process tree: SIGTERM -> 3 s wait -> SIGKILL */
         fun destroyTree(process: Process) {
             // Collect descendants eagerly before signalling the root
             val children = process.toHandle().descendants()

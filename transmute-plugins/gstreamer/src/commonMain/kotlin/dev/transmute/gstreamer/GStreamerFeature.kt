@@ -54,7 +54,7 @@ object GStreamerFeature {
      * HEIF/AVIF encoding via GStreamer (requires `x265enc` or `av1enc`
      * GStreamer elements to be installed).
      *
-     * Disabling this feature still allows HEIF/AVIF *decoding* — only
+     * Disabling this feature still allows HEIF/AVIF *decoding* - only
      * the encoder registration is skipped. This is useful when the
      * required GStreamer encoder elements are not available.
      */

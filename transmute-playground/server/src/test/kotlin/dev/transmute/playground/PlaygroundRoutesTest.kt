@@ -24,7 +24,7 @@ class PlaygroundRoutesTest {
         initiallyDisabledPlugins = setOf(GStreamer.key),
     )
 
-    // ── /api/health ───────────────────────────────────────────────────────────
+    // -- /api/health -----------------------------------------------------------
 
     @Test
     fun healthRouteReturns200() = testApplication {
@@ -33,7 +33,7 @@ class PlaygroundRoutesTest {
         assertEquals(HttpStatusCode.OK, response.status)
     }
 
-    // ── /api/formats ──────────────────────────────────────────────────────────
+    // -- /api/formats ----------------------------------------------------------
 
     @Test
     fun formatsRouteReturns200() = testApplication {
@@ -49,7 +49,7 @@ class PlaygroundRoutesTest {
         assertTrue(response.headers[HttpHeaders.ContentType]?.contains("json") == true)
     }
 
-    // ── /api/transforms ───────────────────────────────────────────────────────
+    // -- /api/transforms -------------------------------------------------------
 
     @Test
     fun transformsRouteReturns200() = testApplication {
@@ -58,7 +58,7 @@ class PlaygroundRoutesTest {
         assertEquals(HttpStatusCode.OK, response.status)
     }
 
-    // ── /api/plugins ──────────────────────────────────────────────────────────
+    // -- /api/plugins ----------------------------------------------------------
 
     @Test
     fun pluginsRouteReturns200() = testApplication {
@@ -81,7 +81,7 @@ class PlaygroundRoutesTest {
         assertEquals(HttpStatusCode.NotFound, response.status)
     }
 
-    // ── /api/files ────────────────────────────────────────────────────────────
+    // -- /api/files ------------------------------------------------------------
 
     @Test
     fun filesListRouteReturns200() = testApplication {
@@ -97,7 +97,7 @@ class PlaygroundRoutesTest {
         assertEquals(HttpStatusCode.NotFound, response.status)
     }
 
-    // ── /api/upload ───────────────────────────────────────────────────────────
+    // -- /api/upload -----------------------------------------------------------
 
     @Test
     fun uploadWithFilePart201() = testApplication {
@@ -139,7 +139,7 @@ class PlaygroundRoutesTest {
         assertEquals(HttpStatusCode.BadRequest, response.status)
     }
 
-    // ── /api/inspect ──────────────────────────────────────────────────────────
+    // -- /api/inspect ----------------------------------------------------------
 
     @Test
     fun inspectUnknownHandleReturns404() = testApplication {

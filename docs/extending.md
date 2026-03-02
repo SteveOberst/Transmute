@@ -106,11 +106,11 @@ object MyPlugin : SimpleTransmutePlugin() {
     override val key = pluginId("com.example.my-plugin")
 
     override fun install(scope: TransmuteScope) {
-        // Raw decoder: bytes → RawMediaStructure (no toStructure() step)
+        // Raw decoder: bytes -> RawMediaStructure (no toStructure() step)
         val myRawDecoder = rawDecoderFor(ImageFormat.Tiff, MyTiffStructureReader())
         scope.codecs.image.rawStructureDecoders.register(ImageFormat.Tiff, myRawDecoder)
 
-        // Full structure decoder: bytes → MediaStructure (applies toStructure())
+        // Full structure decoder: bytes -> MediaStructure (applies toStructure())
         val myDecoder = structureDecoderFor(ImageFormat.Tiff, MyTiffStructureReader()) {
             toStructure() // extension on MyTiffStructure
         }

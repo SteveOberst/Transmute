@@ -158,7 +158,7 @@ your config class must implement `HasPluginConfigure`:
 class MyPluginConfig : HasPluginConfigure {
     override val pluginConfigure = PluginConfigure()
 
-    // Plugin-specific settings…
+    // Plugin-specific settings...
 
     fun configure(block: PluginConfigure.() -> Unit) {
         pluginConfigure.apply(block)
@@ -323,7 +323,7 @@ object MyPlugin : TransmutePlugin<MyConfig>, PluginLifecycle {
     override val key = pluginId("com.example.my-plugin")
 
     override fun install(scope: TransmuteScope, config: MyConfig) {
-        // Normal installation…
+        // Normal installation...
     }
 
     override fun onInstalled(scope: TransmuteScope) {

@@ -71,7 +71,7 @@ object ImageFormatDetector {
       return ImageFormat.Webp
     }
 
-    // ISO BMFF ftyp box → HEIC / HEIF / AVIF
+    // ISO BMFF ftyp box -> HEIC / HEIF / AVIF
     if (data.size >= 12 &&
         b[4] == 0x66.toByte() && b[5] == 0x74.toByte() && b[6] == 0x79.toByte() && b[7] == 0x70.toByte()) {
       val brand = String(byteArrayOf(b[8], b[9], b[10], b[11]))

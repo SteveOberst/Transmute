@@ -43,7 +43,7 @@ value class Latin1String(val value: String) {
     override fun toString(): String = value
 }
 
-/** URI string. No structural validation is performed — this is a semantic wrapper only. */
+/** URI string. No structural validation is performed - this is a semantic wrapper only. */
 @Serializable
 @JvmInline
 value class UriString(val value: String) {

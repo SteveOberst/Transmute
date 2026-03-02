@@ -22,7 +22,7 @@ import kotlin.test.assertTrue
  */
 class ImageFileTests {
 
-    // ── helpers ──
+    // -- helpers --
 
     private fun buildFtypData(major: String, minorVer: Int, compat: List<String>): Bytes {
         val out = ByteArray(8 + compat.size * 4)
@@ -36,7 +36,7 @@ class ImageFileTests {
         return out.asBytes()
     }
 
-    // ── Bmp ──
+    // -- Bmp --
 
     @Test
     fun bmpFileConstructionAndToBytes() {
@@ -84,7 +84,7 @@ class ImageFileTests {
         assertEquals(14, BmpFileHeader.SIZE)
     }
 
-    // ── Gif ──
+    // -- Gif --
 
     @Test
     fun gifFileConstruction() {
@@ -136,7 +136,7 @@ class ImageFileTests {
         assertTrue(file.isAnimated)
     }
 
-    // ── Jpeg ──
+    // -- Jpeg --
 
     @Test
     fun jpegFileMinimal() {
@@ -187,7 +187,7 @@ class ImageFileTests {
         assertEquals(JpegComponent(1, 2, 2, 0), JpegComponent(1, 2, 2, 0))
     }
 
-    // ── Heif ──
+    // -- Heif --
 
     @Test
     fun heifFileWithFtyp() {
@@ -202,7 +202,7 @@ class ImageFileTests {
         assertTrue(bytes.data.isNotEmpty())
     }
 
-    // ── Avif ──
+    // -- Avif --
 
     @Test
     fun avifFileWithFtyp() {
@@ -213,7 +213,7 @@ class ImageFileTests {
         assertTrue(file.toBytes().data.isNotEmpty())
     }
 
-    // ── Tiff ──
+    // -- Tiff --
 
     @Test
     fun tiffFileLittleEndian() {
@@ -249,7 +249,7 @@ class ImageFileTests {
         assertEquals(TiffTag.Compression, TiffTag.fromCode(259u.toUShort()))
     }
 
-    // ── Webp ──
+    // -- Webp --
 
     @Test
     fun webpFileConstruction() {

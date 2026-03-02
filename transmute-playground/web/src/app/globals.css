@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap');
 @import "tailwindcss";
 
-/* ── Tailwind v4 theme ──────────────────────────────────────────────── */
+/* -- Tailwind v4 theme ------------------------------------------------ */
 @theme {
   --color-surface-0: #0A0A0F;
   --color-surface-1: #111118;
@@ -37,7 +37,7 @@
   --toast-subtext: var(--color-text-muted);
 }
 
-/* ── Light theme overrides ──────────────────────────────────────────── */
+/* -- Light theme overrides -------------------------------------------- */
 [data-theme="light"] {
   --surface-0: #F5F0E8;
   --surface-1: #EDE8DD;
@@ -57,7 +57,7 @@
   --toast-info-border: rgba(37, 99, 235, 0.22);
 }
 
-/* ── Base reset ─────────────────────────────────────────────────────── */
+/* -- Base reset ------------------------------------------------------- */
 html {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
@@ -72,7 +72,7 @@ body {
   overflow-x: hidden;
 }
 
-/* ── Film-grain noise overlay ───────────────────────────────────────── */
+/* -- Film-grain noise overlay ----------------------------------------- */
 body::before {
   content: '';
   position: fixed;
@@ -85,7 +85,7 @@ body::before {
   background-size: 256px 256px;
 }
 
-/* ── Scrollbar ───────────────────────────────────────────────────────── */
+/* -- Scrollbar --------------------------------------------------------- */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -101,13 +101,13 @@ body::before {
   background: var(--accent);
 }
 
-/* ── Selection ───────────────────────────────────────────────────────── */
+/* -- Selection --------------------------------------------------------- */
 ::selection {
   background: rgba(255, 107, 53, 0.3);
   color: #fff;
 }
 
-/* ── Typography utilities ────────────────────────────────────────────── */
+/* -- Typography utilities ---------------------------------------------- */
 .font-display {
   font-family: 'DM Serif Display', Georgia, serif;
 }
@@ -115,7 +115,7 @@ body::before {
   font-family: 'JetBrains Mono', 'Fira Code', monospace;
 }
 
-/* ── Glow effects ────────────────────────────────────────────────────── */
+/* -- Glow effects ------------------------------------------------------ */
 .glow-accent {
   box-shadow: 0 0 20px var(--accent-glow), 0 0 60px rgba(255, 107, 53, 0.1);
 }
@@ -123,7 +123,7 @@ body::before {
   box-shadow: 0 0 8px var(--accent-glow);
 }
 
-/* ── Diagonal divider ────────────────────────────────────────────────── */
+/* -- Diagonal divider -------------------------------------------------- */
 .diagonal-top::before {
   content: '';
   position: absolute;
@@ -136,7 +136,7 @@ body::before {
   z-index: -1;
 }
 
-/* ── Animated gradient border ────────────────────────────────────────── */
+/* -- Animated gradient border ------------------------------------------ */
 @property --angle {
   syntax: '<angle>';
   initial-value: 0deg;
@@ -156,7 +156,7 @@ body::before {
   to { --angle: 360deg; }
 }
 
-/* ── Pulse dot ───────────────────────────────────────────────────────── */
+/* -- Pulse dot --------------------------------------------------------- */
 .pulse-dot {
   position: relative;
 }
@@ -177,7 +177,7 @@ body::before {
   50% { box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
 }
 
-/* ── Staggered entrance ─────────────────────────────────────────────── */
+/* -- Staggered entrance ----------------------------------------------- */
 @keyframes fade-up {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
@@ -194,7 +194,7 @@ body::before {
 .stagger-7 { animation-delay: 0.35s; }
 .stagger-8 { animation-delay: 0.40s; }
 
-/* ── Code block style ────────────────────────────────────────────────── */
+/* -- Code block style -------------------------------------------------- */
 .code-block {
   background: var(--surface-1);
   border: 1px solid var(--surface-3);
@@ -208,7 +208,7 @@ body::before {
   white-space: pre;
 }
 
-/* ── Domain color chips ─────────────────────────────────────────────── */
+/* -- Domain color chips ----------------------------------------------- */
 .chip-image  { --chip: #a78bfa; }
 .chip-audio  { --chip: #38bdf8; }
 .chip-video  { --chip: #34d399; }
@@ -218,7 +218,7 @@ body::before {
   background: color-mix(in srgb, var(--chip) 8%, transparent);
 }
 
-/* ── Drop zone shimmer ──────────────────────────────────────────────── */
+/* -- Drop zone shimmer ------------------------------------------------ */
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }

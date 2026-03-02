@@ -14,12 +14,12 @@ import kotlin.math.pow
  *
  * Silence is defined as consecutive frames where all channels are
  * below [thresholdDb]. The threshold is in dBFS (decibels relative
- * to full scale), so −40 dB means roughly 1% of max amplitude.
+ * to full scale), so 40 dB means roughly 1% of max amplitude.
  *
  * A minimum hold period ([minSilenceMs]) prevents the trimmer from
  * cutting brief pauses in speech or between musical phrases.
  *
- * @param thresholdDb Silence floor in dBFS. Default −40 dB.
+ * @param thresholdDb Silence floor in dBFS. Default 40 dB.
  * @param minSilenceMs Minimum consecutive silence before trimming. Default 100 ms.
  * @param trimStart Whether to trim leading silence.
  * @param trimEnd Whether to trim trailing silence.

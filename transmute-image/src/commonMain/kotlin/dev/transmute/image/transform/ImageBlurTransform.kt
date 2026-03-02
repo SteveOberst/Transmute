@@ -12,15 +12,15 @@ import dev.transmute.codec.pipeline.TransformId
  * Applies a box blur to an [ImageIR].
  *
  * Box blur is separable - we run a 1-D horizontal pass then a 1-D
- * vertical pass, each O(width×height) regardless of [radius]. This
- * keeps the total cost O(N) instead of the O(N×R²) of a naive 2-D kernel.
+ * vertical pass, each O(widthxheight) regardless of [radius]. This
+ * keeps the total cost O(N) instead of the O(NxR2) of a naive 2-D kernel.
  *
  * Box blur produces slightly blockier results than Gaussian, but it is
  * much simpler and faster in pure Kotlin where we don't have SIMD.
  * Stacking two passes at the same radius approximates a tent filter;
  * three passes approximates Gaussian.
  *
- * @param radius Blur radius in pixels. 1 = 3×3 kernel, 2 = 5×5, etc.
+ * @param radius Blur radius in pixels. 1 = 3x3 kernel, 2 = 5x5, etc.
  */
 class ImageBlurTransform(
   val radius: Int = 1,

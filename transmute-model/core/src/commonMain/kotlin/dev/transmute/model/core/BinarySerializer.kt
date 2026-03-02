@@ -12,7 +12,7 @@ import kotlinx.serialization.modules.SerializersModule
  * A kotlinx [BinaryFormat] that produces the canonical on-disk binary
  * representation of [BinarySerializable] types.
  *
- * **Encoding** delegates entirely to [BinarySerializable.toBytes] —
+ * **Encoding** delegates entirely to [BinarySerializable.toBytes] -
  * the serialization descriptor and encoder are not used; the value
  * must implement [BinarySerializable].
  *

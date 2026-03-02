@@ -13,7 +13,7 @@ import {
 } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 
-/* ── Types ────────────────────────────────────────────────────────────── */
+/* -- Types -------------------------------------------------------------- */
 
 type ToastKind = 'error' | 'success' | 'info' | 'warning'
 
@@ -32,7 +32,7 @@ interface ToastContextValue {
   info: (message: string, detail?: string) => void
 }
 
-/* ── Context ───────────────────────────────────────────────────────────── */
+/* -- Context ------------------------------------------------------------- */
 
 const ToastContext = createContext<ToastContextValue>({
   toast: () => {},
@@ -90,7 +90,7 @@ export function useToast(): ToastContextValue {
   return useContext(ToastContext)
 }
 
-/* ── Icons ─────────────────────────────────────────────────────────────── */
+/* -- Icons --------------------------------------------------------------- */
 
 const icons: Record<ToastKind, ReactElement> = {
   error: (
@@ -126,7 +126,7 @@ const palette: Record<ToastKind, { bg: string; border: string; icon: string; bar
   info:    { bg: 'var(--toast-info-bg)',    border: 'var(--toast-info-border)',    icon: '#60a5fa', bar: '#60a5fa' },
 }
 
-/* ── Container ──────────────────────────────────────────────────────────── */
+/* -- Container ------------------------------------------------------------ */
 
 function ToastContainer({
   toasts,
@@ -149,7 +149,7 @@ function ToastContainer({
   )
 }
 
-/* ── Single Toast ───────────────────────────────────────────────────────── */
+/* -- Single Toast --------------------------------------------------------- */
 
 function ToastItem({ toast: t, onDismiss }: { toast: Toast; onDismiss: (id: string) => void }) {
   const p = palette[t.kind]

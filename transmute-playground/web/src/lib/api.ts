@@ -12,7 +12,7 @@ import type {
   TransformResult,
 } from './types'
 
-/* ── Base URL ────────────────────────────────────────────────────────── */
+/* -- Base URL ---------------------------------------------------------- */
 
 const BASE =
   process.env.NEXT_PUBLIC_API_URL ??
@@ -30,13 +30,13 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>
 }
 
-/* ── Health ──────────────────────────────────────────────────────────── */
+/* -- Health ------------------------------------------------------------ */
 
 export async function fetchHealth(): Promise<HealthResponse> {
   return request('/api/health')
 }
 
-/* ── Formats & Transforms ────────────────────────────────────────────── */
+/* -- Formats & Transforms ---------------------------------------------- */
 
 export async function fetchFormats(domain?: MediaDomain): Promise<FormatInfo[]> {
   const q = domain ? `?domain=${domain}` : ''
@@ -48,7 +48,7 @@ export async function fetchTransforms(domain?: MediaDomain): Promise<TransformIn
   return request(`/api/transforms${q}`)
 }
 
-/* ── Upload & Files ──────────────────────────────────────────────────── */
+/* -- Upload & Files ---------------------------------------------------- */
 
 export async function uploadFile(file: File): Promise<FileHandle> {
   const form = new FormData()
@@ -66,7 +66,7 @@ export function fileUrl(handle: string): string {
   return `${BASE}/api/files/${handle}`
 }
 
-/* ── Transform ───────────────────────────────────────────────────────── */
+/* -- Transform --------------------------------------------------------- */
 
 export async function executeTransform(req: TransformRequest): Promise<TransformResult> {
   return request('/api/transform', {
@@ -75,7 +75,7 @@ export async function executeTransform(req: TransformRequest): Promise<Transform
   })
 }
 
-/* ── Plugins ─────────────────────────────────────────────────────────── */
+/* -- Plugins ----------------------------------------------------------- */
 
 export async function fetchPlugins(): Promise<PluginDescriptor[]> {
   return request('/api/plugins')
@@ -95,7 +95,7 @@ export async function updatePlugin(
   })
 }
 
-/* ── Progress WebSocket ──────────────────────────────────────────────── */
+/* -- Progress WebSocket ------------------------------------------------ */
 
 export function connectProgress(
   onMessage: (data: unknown) => void,

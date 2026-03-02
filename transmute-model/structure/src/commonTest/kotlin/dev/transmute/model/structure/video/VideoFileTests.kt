@@ -23,7 +23,7 @@ import kotlin.test.assertNotNull
  */
 class VideoFileTests {
 
-    // ── helpers ──
+    // -- helpers --
 
     private fun buildFtypData(major: String, minorVer: Int, compat: List<String>): Bytes {
         val out = ByteArray(8 + compat.size * 4)
@@ -37,7 +37,7 @@ class VideoFileTests {
         return out.asBytes()
     }
 
-    // ── Avi ──
+    // -- Avi --
 
     @Test
     fun aviFileConstruction() {
@@ -56,11 +56,11 @@ class VideoFileTests {
     fun aviMainHeaderParsing() {
         // Build a 56-byte avih chunk with known values (all LE)
         val d = ByteArray(56)
-        // microSecPerFrame at offset 0 = 33333 (30fps) → LE 0x2535_8200 no, 33333=0x8235
+        // microSecPerFrame at offset 0 = 33333 (30fps) -> LE 0x2535_8200 no, 33333=0x8235
         d[0] = 0x35; d[1] = 0x82.toByte()
-        // width at offset 32 = 640 → LE 0x0280
+        // width at offset 32 = 640 -> LE 0x0280
         d[32] = 0x80.toByte(); d[33] = 0x02
-        // height at offset 36 = 480 → LE 0x01E0
+        // height at offset 36 = 480 -> LE 0x01E0
         d[36] = 0xE0.toByte(); d[37] = 0x01
 
         val avih = RiffChunk(RiffChunkId("avih"), 56u, data = d.asBytes())
@@ -74,7 +74,7 @@ class VideoFileTests {
         assertEquals(480u, hdr.height)
     }
 
-    // ── Mkv ──
+    // -- Mkv --
 
     @Test
     fun mkvFileConstruction() {
@@ -102,7 +102,7 @@ class VideoFileTests {
         assertEquals(0, file.toBytes().data.size)
     }
 
-    // ── Mov ──
+    // -- Mov --
 
     @Test
     fun movFileWithFtyp() {
@@ -117,7 +117,7 @@ class VideoFileTests {
         assertNotNull(file.moovBox)
     }
 
-    // ── Mp4 ──
+    // -- Mp4 --
 
     @Test
     fun mp4FileWithFtyp() {
@@ -137,7 +137,7 @@ class VideoFileTests {
         assertEquals(f1, f2)
     }
 
-    // ── Webm ──
+    // -- Webm --
 
     @Test
     fun webmFileConstruction() {
@@ -158,7 +158,7 @@ class VideoFileTests {
         assertEquals(0, file.toBytes().data.size)
     }
 
-    // ── Ref types still work ──
+    // -- Ref types still work --
 
     @Test
     fun isoBmffBoxRefNestedChildren() {

@@ -28,7 +28,7 @@ data class VorbisIdentification(
     val blockSize1: Int,
 )
 
-// --- Ogg Vorbis file — complete on-disk representation ---
+// --- Ogg Vorbis file - complete on-disk representation ---
 
 /**
  * Canonical representation of an Ogg Vorbis file as written to disk.

@@ -16,8 +16,8 @@ import kotlin.test.assertTrue
 /**
  * End-to-end integration tests for GStreamer video codecs.
  *
- * Tests exercise the full encode (VideoIR â†’ GStreamer subprocess â†’ bytes)
- * and decode (bytes â†’ GStreamer subprocess â†’ VideoIR) pipelines for each
+ * Tests exercise the full encode (VideoIR -> GStreamer subprocess -> bytes)
+ * and decode (bytes -> GStreamer subprocess -> VideoIR) pipelines for each
  * supported video format: MP4, MOV, WebM, AVI, MKV.
  *
  * Soft-skipped when GStreamer is not installed locally.
@@ -151,7 +151,7 @@ class GStreamerVideoCodecTest {
     fun webm_sniff_ebmlHeader() {
         // EBML header: 0x1A45DFA3
         val header = byteArrayOf(0x1A, 0x45, 0xDF.toByte(), 0xA3.toByte())
-        // Short data, no matroska marker â†’ defaults to WebM
+        // Short data, no matroska marker -> defaults to WebM
         assertEquals(VideoFormat.Webm, webm.sniff(Bytes(header)))
     }
 
@@ -251,7 +251,7 @@ class GStreamerVideoCodecTest {
 
     @Test
     fun mkv_sniff_shortEbml_returnsNull() {
-        // EBML header but < 40 bytes, no matroska marker â†’ null for MKV
+        // EBML header but < 40 bytes, no matroska marker -> null for MKV
         val header = byteArrayOf(0x1A, 0x45, 0xDF.toByte(), 0xA3.toByte())
         assertNull(mkv.sniff(Bytes(header)))
     }

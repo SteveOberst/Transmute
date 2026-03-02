@@ -20,7 +20,7 @@ enum class WebpFormat {
     Lossy,
     /** Lossless compression (VP8L). */
     Lossless,
-    /** Extended format (VP8X — may combine lossy/lossless with alpha, animation, etc.). */
+    /** Extended format (VP8X - may combine lossy/lossless with alpha, animation, etc.). */
     Extended;
 
     companion object {
@@ -36,17 +36,17 @@ enum class WebpFormat {
     }
 }
 
-// --- WebP file — complete on-disk representation ---
+// --- WebP file - complete on-disk representation ---
 
 /**
  * Canonical representation of a WebP file as written to disk.
  *
  * WebP uses a RIFF container with form type `WEBP`.  The top-level
  * RIFF chunk wraps one or more sub-chunks (VP8, VP8L, VP8X, ALPH,
- * ANIM, ANMF, EXIF, XMP, ICCP…).
+ * ANIM, ANMF, EXIF, XMP, ICCP...).
  *
  * ```
- * | RIFF (4 B) | fileSize (4 B LE) | WEBP (4 B) | sub-chunks… |
+ * | RIFF (4 B) | fileSize (4 B LE) | WEBP (4 B) | sub-chunks... |
  * ```
  */
 @Serializable

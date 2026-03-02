@@ -22,7 +22,7 @@ import dev.transmute.video.transform.*
  * ```
  *
  * Functions in the sub-factories are annotated with [TransformDescriptor]
- * and [Param] for runtime catalog discovery — no hardcoding in the server.
+ * and [Param] for runtime catalog discovery - no hardcoding in the server.
  */
 object Transformers {
 
@@ -36,12 +36,12 @@ object Transformers {
     fun video(): VideoTransforms = VideoTransforms
 }
 
-// ── Image transform factory ────────────────────────────────────────────────
+// -- Image transform factory ------------------------------------------------
 
 /** Creates image [Transform][dev.transmute.codec.pipeline.Transform] instances. */
 object ImageTransforms {
 
-    /** Scale to fit within [maxWidth]×[maxHeight], preserving aspect ratio. No upscaling. */
+    /** Scale to fit within [maxWidth]x[maxHeight], preserving aspect ratio. No upscaling. */
     @TransformDescriptor("scale", "Proportionally scale to fit within bounds, preserving aspect ratio")
     fun scale(
         @Param("Maximum width in pixels", required = true) maxWidth: Int,
@@ -49,9 +49,9 @@ object ImageTransforms {
     ) = ImageScaleTransform(maxWidth, maxHeight)
 
     /**
-     * Resize to exact [targetWidth]×[targetHeight] using a configurable resample [filter].
+     * Resize to exact [targetWidth]x[targetHeight] using a configurable resample [filter].
      *
-     * Unlike [scale], this does **not** preserve aspect ratio — it resizes to the
+     * Unlike [scale], this does **not** preserve aspect ratio - it resizes to the
      * exact dimensions specified. Set [allowUpscale] to `false` to skip images
      * that are already smaller than the target.
      */
@@ -72,7 +72,7 @@ object ImageTransforms {
         @Param("Crop height in pixels", required = true) height: Int,
     ) = ImageCropTransform(x, y, width, height)
 
-    /** Rotate clockwise by [degrees] (90, 180, or 270). Defaults to 90°. */
+    /** Rotate clockwise by [degrees] (90, 180, or 270). Defaults to 90 deg. */
     @TransformDescriptor("rotate", "Rotate by an explicit number of degrees clockwise (90, 180, or 270)")
     fun rotate(
         @Param("Clockwise rotation angle; must be 90, 180, or 270", default = "90", enumValues = "90,180,270") degrees: Int = 90,
@@ -89,14 +89,14 @@ object ImageTransforms {
         @Param("Flip vertically (mirror top-bottom)", default = "false") vertical: Boolean = false,
     ) = ImageFlipTransform(horizontal, vertical)
 
-    /** Adjust brightness and/or contrast. Brightness: −255..+255, contrast: 0..3. */
+    /** Adjust brightness and/or contrast. Brightness: 255..+255, contrast: 0..3. */
     @TransformDescriptor("brightnessContrast", "Adjust brightness and contrast")
     fun brightnessContrast(
         @Param("Brightness adjustment (−255 to +255)", default = "0.0", min = "-255", max = "255") brightness: Float = 0f,
         @Param("Contrast multiplier (0 = flat grey, 1 = no change, 3 = high contrast)", default = "1.0", min = "0", max = "3") contrast: Float = 1f,
     ) = ImageBrightnessContrastTransform(brightness, contrast)
 
-    /** Apply box blur. Radius: 1 = 3×3, 2 = 5×5, etc. */
+    /** Apply box blur. Radius: 1 = 3x3, 2 = 5x5, etc. */
     @TransformDescriptor("blur", "Apply box blur")
     fun blur(
         @Param("Blur radius (1 = 3×3 kernel, 2 = 5×5, …)", default = "1", min = "1", max = "20") radius: Int = 1,
@@ -109,7 +109,7 @@ object ImageTransforms {
     ) = ImageOpacityTransform(opacity)
 }
 
-// ── Audio transform factory ────────────────────────────────────────────────
+// -- Audio transform factory ------------------------------------------------
 
 /** Creates audio [Transform][dev.transmute.codec.pipeline.Transform] instances. */
 object AudioTransforms {
@@ -133,20 +133,20 @@ object AudioTransforms {
         @Param("Fade-out duration in milliseconds", default = "0", min = "0") fadeOutMs: Long = 0,
     ) = AudioFadeTransform(fadeInMs, fadeOutMs)
 
-    /** Trim to time range (milliseconds). [endMs] = null → end of audio. */
+    /** Trim to time range (milliseconds). [endMs] = null -> end of audio. */
     @TransformDescriptor("trim", "Trim to a specific time range")
     fun trim(
         @Param("Start time in milliseconds", required = true, min = "0") startMs: Long,
         @Param("End time in milliseconds (omit to trim to end)") endMs: Long? = null,
     ) = AudioTrimTransform(startMs, endMs)
 
-    /** Apply volume gain in decibels (+dB louder, −dB quieter). */
+    /** Apply volume gain in decibels (+dB louder, dB quieter). */
     @TransformDescriptor("gain", "Apply volume gain or attenuation in decibels")
     fun gain(
         @Param("Gain in decibels (+dB = louder, −dB = quieter)", required = true, min = "-60", max = "60") db: Float,
     ) = AudioGainTransform(db)
 
-    /** Convert stereo → mono by averaging channels. */
+    /** Convert stereo -> mono by averaging channels. */
     @TransformDescriptor("mono", "Mix down to mono by averaging channels")
     fun mono() = AudioMonoTransform()
 
@@ -179,26 +179,26 @@ object AudioTransforms {
         @Param("Makeup gain in dB applied after compression", default = "0.0", min = "-20", max = "20") makeupGainDb: Float = 0f,
     ) = AudioCompressorTransform(thresholdDb, ratio, attackMs, releaseMs, makeupGainDb)
 
-    /** Remap audio channels. [mapping] defines output→source channel indices. */
+    /** Remap audio channels. [mapping] defines output->source channel indices. */
     @TransformDescriptor("channelMap", "Remap audio channels to a different layout")
     fun channelMap(
         @Param("Output-to-source channel index mapping (e.g. [0, 0] for left→mono)", required = true) mapping: IntArray,
     ) = AudioChannelMapTransform(mapping)
 }
 
-// ── Video transform factory ────────────────────────────────────────────────
+// -- Video transform factory ------------------------------------------------
 
 /** Creates video [Transform][dev.transmute.codec.pipeline.Transform] instances. */
 object VideoTransforms {
 
-    /** Trim to time range (milliseconds). [endMs] = null → end of video. */
+    /** Trim to time range (milliseconds). [endMs] = null -> end of video. */
     @TransformDescriptor("trim", "Trim to a specific time range")
     fun trim(
         @Param("Start time in milliseconds", required = true, min = "0") startMs: Long,
         @Param("End time in milliseconds (omit to keep to end)") endMs: Long? = null,
     ) = VideoTrimTransform(startMs, endMs)
 
-    /** Resize frames to fit within [maxWidth]×[maxHeight], preserving aspect ratio. */
+    /** Resize frames to fit within [maxWidth]x[maxHeight], preserving aspect ratio. */
     @TransformDescriptor("resize", "Resize frames to fit within bounds, preserving aspect ratio")
     fun resize(
         @Param("Maximum frame width in pixels", required = true) maxWidth: Int,
@@ -230,7 +230,7 @@ object VideoTransforms {
         @Param("Speed multiplier (0.5 = half speed, 2.0 = double speed)", required = true, min = "0.25", max = "4.0") speed: Float,
     ) = VideoSpeedTransform(speed)
 
-    /** Rotate frames by 90°, 180°, or 270° clockwise. */
+    /** Rotate frames by 90 deg, 180 deg, or 270 deg clockwise. */
     @TransformDescriptor("rotate", "Rotate video frames (90°, 180°, or 270° clockwise)")
     fun rotate(
         @Param("Rotation in degrees — must be 90, 180, or 270", required = true, enumValues = "90,180,270") degrees: Int,

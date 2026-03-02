@@ -9,9 +9,9 @@ import dev.transmute.model.core.asBytes
 import dev.transmute.model.core.RawMediaStructure
 import kotlinx.serialization.Serializable
 
-// ════════════════════════════════════════════════════════════════
+// ================================================================
 //  AAC enums
-// ════════════════════════════════════════════════════════════════
+// ================================================================
 
 /**
  * AAC audio object type (profile).
@@ -30,9 +30,9 @@ enum class AacProfile(val objectType: Int) {
     }
 }
 
-// ════════════════════════════════════════════════════════════════
+// ================================================================
 //  Typed model: ADTS frame header
-// ════════════════════════════════════════════════════════════════
+// ================================================================
 
 /**
  * Parsed ADTS (Audio Data Transport Stream) frame header.
@@ -41,7 +41,7 @@ enum class AacProfile(val objectType: Int) {
  * ```
  * | syncword (12 b) | ID (1 b) | layer (2 b) | protection (1 b) |
  * | profile (2 b) | samplingFreqIdx (4 b) | private (1 b) | channelConfig (3 b) |
- * | … | frameLength (13 b) | … |
+ * | ... | frameLength (13 b) | ... |
  * ```
  */
 @Serializable
@@ -55,16 +55,16 @@ data class AdtsFrameHeader(
     val isMpeg4: Boolean,
 )
 
-// ════════════════════════════════════════════════════════════════
-//  AAC file — complete on-disk representation
-// ════════════════════════════════════════════════════════════════
+// ================================================================
+//  AAC file - complete on-disk representation
+// ================================================================
 
 /**
  * Canonical representation of a raw AAC ADTS file as written to disk.
  *
  * A raw ADTS file is a stream of self-delimiting ADTS frames:
  * ```
- * | Frame 0 (header + payload) | Frame 1 | … |
+ * | Frame 0 (header + payload) | Frame 1 | ... |
  * ```
  *
  * Storing every individual frame is impractical, so the file's

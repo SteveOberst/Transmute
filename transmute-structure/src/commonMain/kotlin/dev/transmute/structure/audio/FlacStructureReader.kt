@@ -15,7 +15,7 @@ import dev.transmute.model.structure.audio.FlacMetadataBlockType
  *
  * FlacRaw layout:
  * ```
- * | "FlacRaw" (4 B) | metadata block₁ (STREAMINFO) | … | audio frames |
+ * | "FlacRaw" (4 B) | metadata block1 (STREAMINFO) | ... | audio frames |
  * ```
  *
  * Each metadata block header:

@@ -24,13 +24,13 @@ class OkioFileSystem(
     private val delegate: FileSystem,
 ) : TransmuteFileSystem {
 
-    // ── Path conversion ────────────────────────────────────────
+    // -- Path conversion ----------------------------------------
 
     private fun TPath.toOkio(): okio.Path = toString().toPath()
 
     private fun okio.Path.toTPath(): TPath = TPath.of(toString())
 
-    // ── Metadata ───────────────────────────────────────────────
+    // -- Metadata -----------------------------------------------
 
     override fun exists(path: TPath): Boolean =
         delegate.exists(path.toOkio())
@@ -52,7 +52,7 @@ class OkioFileSystem(
         )
     }
 
-    // ── Bulk read / write ──────────────────────────────────────
+    // -- Bulk read / write --------------------------------------
 
     override fun read(path: TPath): ByteArray {
         val okPath = path.toOkio()
@@ -80,7 +80,7 @@ class OkioFileSystem(
         }
     }
 
-    // ── Streaming / random-access ──────────────────────────────
+    // -- Streaming / random-access ------------------------------
 
     override fun openRead(path: TPath): ReadHandle {
         val okPath = path.toOkio()
@@ -106,7 +106,7 @@ class OkioFileSystem(
         return OkioWriteHandle(handle, appendMode = mode == WriteMode.Append)
     }
 
-    // ── Directory operations ───────────────────────────────────
+    // -- Directory operations -----------------------------------
 
     override fun list(path: TPath): List<TPath> {
         val okPath = path.toOkio()
@@ -125,7 +125,7 @@ class OkioFileSystem(
         }
     }
 
-    // ── Delete ─────────────────────────────────────────────────
+    // -- Delete -------------------------------------------------
 
     override fun delete(path: TPath, recursive: Boolean) {
         val okPath = path.toOkio()
@@ -137,7 +137,7 @@ class OkioFileSystem(
         }
     }
 
-    // ── Copy / Move ────────────────────────────────────────────
+    // -- Copy / Move --------------------------------------------
 
     override fun copy(source: TPath, target: TPath, overwrite: Boolean) {
         val src = source.toOkio()
@@ -160,7 +160,7 @@ class OkioFileSystem(
     }
 }
 
-// ── OkioReadHandle ─────────────────────────────────────────────
+// -- OkioReadHandle ---------------------------------------------
 
 private class OkioReadHandle(
     private val handle: okio.FileHandle,
@@ -187,7 +187,7 @@ private class OkioReadHandle(
     }
 }
 
-// ── OkioWriteHandle ────────────────────────────────────────────
+// -- OkioWriteHandle --------------------------------------------
 
 private class OkioWriteHandle(
     private val handle: okio.FileHandle,

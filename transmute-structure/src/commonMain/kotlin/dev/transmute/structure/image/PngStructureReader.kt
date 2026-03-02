@@ -17,7 +17,7 @@ import dev.transmute.structure.common.readU32BE
  *
  * PngRaw layout:
  * ```
- * | signature (8 B) | chunk₁ | chunk₂ | … | IEND chunk |
+ * | signature (8 B) | chunk1 | chunk2 | ... | IEND chunk |
  * ```
  *
  * Each chunk:

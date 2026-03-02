@@ -11,7 +11,7 @@ import dev.transmute.model.core.Bytes
 
 // ---------------------------------------------------------------------------
 // GStreamer-backed image codecs for iOS.
-// Handles HEIF, HEIC, AVIF via GStreamer cinterop → PNG intermediate →
+// Handles HEIF, HEIC, AVIF via GStreamer cinterop -> PNG intermediate ->
 // CoreGraphics.
 // ---------------------------------------------------------------------------
 

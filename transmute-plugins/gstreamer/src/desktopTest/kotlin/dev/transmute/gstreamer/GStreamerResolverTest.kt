@@ -6,7 +6,7 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 /**
- * Tests for [GStreamerResolver] — the GStreamer binary discovery logic.
+ * Tests for [GStreamerResolver] - the GStreamer binary discovery logic.
  *
  * The `available` property must always return a boolean (never throw).
  * Path lookups and element checks are tested only when GStreamer is present.
@@ -50,7 +50,7 @@ class GStreamerResolverTest {
     @Test
     fun hasElement_coreElement_returnsTrue() {
         requireGStreamer {
-            // "decodebin" is part of gstreamer1.0-plugins-base — always available.
+            // "decodebin" is part of gstreamer1.0-plugins-base - always available.
             assertTrue(
                 GStreamerResolver.hasElement("decodebin"),
                 "decodebin must be available in any GStreamer installation",

@@ -33,7 +33,7 @@ import kotlin.reflect.full.memberFunctions
  *
  * All media processing operations flow through this service.
  * Plugin and format information is derived **dynamically** from the
- * Transmute instance's codec registries — nothing is hardcoded.
+ * Transmute instance's codec registries - nothing is hardcoded.
  */
 class TransmuteService(
     private val tempDir: File = File(System.getProperty("java.io.tmpdir"), "transmute-playground"),
@@ -175,7 +175,7 @@ class TransmuteService(
 
     // -- Reflection-driven transform catalog ---------------------------------
     //    Transform metadata is discovered at runtime from annotations on the
-    //    Transformers.kt factory objects — nothing is hardcoded here.
+    //    Transformers.kt factory objects - nothing is hardcoded here.
 
     fun allTransforms(): List<TransformInfo> =
         imageTransforms() + audioTransforms() + videoTransforms()
@@ -326,7 +326,7 @@ class TransmuteService(
         }
     }
 
-    // -- Transform execution ──────────────────────────────────────────────────
+    // -- Transform execution --------------------------------------------------
 
     /**
      * Executes a [TransformRequest] against a previously uploaded file using
@@ -467,7 +467,7 @@ class TransmuteService(
         tempDir.deleteRecursively()
     }
 
-    // ── Format helpers ────────────────────────────────────────────────────────
+    // -- Format helpers --------------------------------------------------------
 
     companion object {
         /** Extension strings that map to the image domain. */

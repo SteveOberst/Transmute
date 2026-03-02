@@ -5,9 +5,9 @@
  *     apply(from = "gstreamer-sdk.gradle.kts")
  *
  * Environment variables control behaviour:
- *   - `GSTREAMER_ROOT_ANDROID` — If already set, the Android SDK download is skipped.
- *   - `GSTREAMER_ROOT_IOS`     — If already set, the iOS SDK download is skipped.
- *   - `GSTREAMER_VERSION`      — Defaults to "1.24.12".
+ *   - `GSTREAMER_ROOT_ANDROID` - If already set, the Android SDK download is skipped.
+ *   - `GSTREAMER_ROOT_IOS`     - If already set, the iOS SDK download is skipped.
+ *   - `GSTREAMER_VERSION`      - Defaults to "1.24.12".
  *
  * Downloaded SDKs are placed under `$rootDir/build/gstreamer-sdk/`.
  */

@@ -293,7 +293,7 @@ class AudioSpeedTransformTest {
     val inputFrames = audio.samples.data.size
     val outputFrames = result.samples.data.size
 
-    // Output should be roughly half the input length (±20%).
+    // Output should be roughly half the input length (20%).
     assertTrue(
       outputFrames in (inputFrames / 3)..(inputFrames * 3 / 4),
       "Expected ~half frames: input=$inputFrames, output=$outputFrames"
@@ -611,7 +611,7 @@ class AudioChannelMapTransformTest {
   fun channelCountChanges() = runTest {
     val audio = sineWave(durationMs = 200, sampleRate = 8000, channelCount = 1)
 
-    // 1→4: duplicate mono to all channels.
+    // 1->4: duplicate mono to all channels.
     val result = AudioChannelMapTransform(mapping = intArrayOf(0, 0, 0, 0)).apply(audio, context)
 
     assertEquals(4, result.channelCount)

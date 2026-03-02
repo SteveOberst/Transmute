@@ -28,7 +28,7 @@ import dev.transmute.codec.OutputFormat
 class AndroidAudioCodecTest {
 
   // Safety-net: JUnit rule at 120 s so tests that escape coroutine
-  // timeout still get killed (generous – coroutine timeout fires first).
+  // timeout still get killed (generous - coroutine timeout fires first).
   @get:Rule val timeout: Timeout = Timeout.seconds(120)
 
   /**
@@ -39,7 +39,7 @@ class AndroidAudioCodecTest {
    * code, so we launch on a separate scope and use [withTimeout] at the
    * `await()` suspension point to bail out cleanly.
    *
-   * Returns null on timeout/failure – callers exit with `?: return@runBlocking`.
+   * Returns null on timeout/failure - callers exit with `?: return@runBlocking`.
    */
   private suspend fun <T> codecOp(
     label: String,

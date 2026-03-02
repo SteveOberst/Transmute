@@ -17,7 +17,7 @@ data class RiffChunkRef(
     val children: List<RiffChunkRef> = emptyList(),
 )
 
-// --- Helpers — little-endian encoding ---
+// --- Helpers - little-endian encoding ---
 
 private fun UInt.toLittleEndianBytes(): ByteArray = byteArrayOf(
     this.toByte(),
@@ -32,7 +32,7 @@ private fun UInt.toLittleEndianBytes(): ByteArray = byteArrayOf(
  * A single RIFF chunk with its full payload data.
  *
  * ```
- * | id (4 B ASCII) | size (4 B LE) | payload … | pad? |
+ * | id (4 B ASCII) | size (4 B LE) | payload ... | pad? |
  * ```
  *
  * For container chunks (`RIFF` / `LIST`), [formType] holds the 4-byte

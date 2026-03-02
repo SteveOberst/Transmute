@@ -40,7 +40,7 @@ class ImageGrayscaleTransformTest {
 
   @Test
   fun pureRedBecomesLumaGrey() = runTest {
-    // BT.709: luma = 0.2126*R → 0.2126*255 ≈ 54
+    // BT.709: luma = 0.2126*R -> 0.2126*255  54
     val input = solidColor(10, 10, r = 255, g = 0, b = 0)
     val result = transform.apply(input, context)
 
@@ -52,7 +52,7 @@ class ImageGrayscaleTransformTest {
 
   @Test
   fun pureGreenBecomesLumaGrey() = runTest {
-    // BT.709: luma = 0.7152*255 ≈ 182
+    // BT.709: luma = 0.7152*255  182
     val input = solidColor(10, 10, r = 0, g = 255, b = 0)
     val result = transform.apply(input, context)
 

@@ -210,7 +210,7 @@ internal class GstOggVorbisEncoder : AudioEncoder {
 private val _aacEncoder: String by lazy {
     listOf("fdkaacenc", "voaacenc", "avenc_aac", "faac")
         .firstOrNull { GStreamerResolver.hasElement(it) }
-        ?: "voaacenc" // fallback — will fail at runtime if none available
+        ?: "voaacenc" // fallback - will fail at runtime if none available
 }
 
 /** Returns the best available GStreamer AAC encoder element. */

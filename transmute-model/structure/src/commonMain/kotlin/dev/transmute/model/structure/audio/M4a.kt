@@ -11,7 +11,7 @@ import dev.transmute.model.structure.common.parseFtyp
 import dev.transmute.model.core.RawMediaStructure
 import kotlinx.serialization.Serializable
 
-// --- M4A file — complete on-disk representation ---
+// --- M4A file - complete on-disk representation ---
 
 /**
  * Canonical representation of an M4A (audio-only ISO BMFF) file as
@@ -21,7 +21,7 @@ import kotlinx.serialization.Serializable
  * restricted to audio-only content.  The file is a sequence of
  * top-level boxes:
  * ```
- * | ftyp | moov | mdat | … |
+ * | ftyp | moov | mdat | ... |
  * ```
  */
 @Serializable

@@ -15,11 +15,11 @@ class WebmStructureReaderTest {
      *
      * EBML header element (id=0x1A45DFA3):
      * ```
-     * 1A 45 DF A3       — EBML header element ID
-     * 80 | size (VINT)   — element size (in 1-byte VINT form)
-     *   42 82            — DocType element ID
-     *   80 | size         — DocType string length (VINT)
-     *   ...doctype...     — ASCII string
+     * 1A 45 DF A3       - EBML header element ID
+     * 80 | size (VINT)   - element size (in 1-byte VINT form)
+     *   42 82            - DocType element ID
+     *   80 | size         - DocType string length (VINT)
+     *   ...doctype...     - ASCII string
      * ```
      */
     private fun ebmlFile(docType: String): ByteArray {

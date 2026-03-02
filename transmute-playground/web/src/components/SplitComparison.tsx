@@ -84,7 +84,7 @@ export default function SplitComparison({
       onMouseDown={onMouseDown}
       onTouchStart={onTouchStart}
     >
-      {/* ── Result (bottom layer, full width) ────────────────────────── */}
+      {/* -- Result (bottom layer, full width) -------------------------- */}
       <div className="absolute inset-0 flex items-center justify-center">
         {resultSrc && !processing ? (
           type === 'image' ? (
@@ -113,7 +113,7 @@ export default function SplitComparison({
         </div>
       )}
 
-      {/* ── Original (top layer, clipped to left side) ────────────────── */}
+      {/* -- Original (top layer, clipped to left side) ------------------ */}
       <div
         className="absolute inset-0 flex items-center justify-center"
         style={{ clipPath: `inset(0 ${100 - position}% 0 0)` }}
@@ -129,7 +129,7 @@ export default function SplitComparison({
         </div>
       </div>
 
-      {/* ── Drag handle ──────────────────────────────────────────────── */}
+      {/* -- Drag handle ------------------------------------------------ */}
       <div
         className="absolute top-0 bottom-0 z-20 flex items-center justify-center"
         style={{ left: `${position}%`, transform: 'translateX(-50%)' }}

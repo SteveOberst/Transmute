@@ -16,8 +16,8 @@ import kotlin.test.assertTrue
 /**
  * End-to-end integration tests for GStreamer iOS image codecs.
  *
- * Tests exercise HEIF/HEIC/AVIF decode (GStreamer → PNG → CoreGraphics)
- * and encode (CoreGraphics → PNG → GStreamer → target) pipelines.
+ * Tests exercise HEIF/HEIC/AVIF decode (GStreamer -> PNG -> CoreGraphics)
+ * and encode (CoreGraphics -> PNG -> GStreamer -> target) pipelines.
  *
  * Encode tests require specific GStreamer elements:
  * - `x265enc` for HEIF/HEIC
@@ -108,7 +108,7 @@ class GStreamerIosImageCodecTest {
         assertNull(decoder.sniff(Bytes(byteArrayOf(0x00, 0x00, 0x00))))
     }
 
-    // -- HEIF encode → decode roundtrip -------------------------------------
+    // -- HEIF encode -> decode roundtrip -------------------------------------
 
     @Test
     fun heif_encodeAndDecode_roundTrip() = runTest {
@@ -124,7 +124,7 @@ class GStreamerIosImageCodecTest {
         }
     }
 
-    // -- HEIC encode → decode roundtrip -------------------------------------
+    // -- HEIC encode -> decode roundtrip -------------------------------------
 
     @Test
     fun heic_encodeAndDecode_roundTrip() = runTest {
@@ -143,7 +143,7 @@ class GStreamerIosImageCodecTest {
         }
     }
 
-    // -- AVIF encode → decode roundtrip -------------------------------------
+    // -- AVIF encode -> decode roundtrip -------------------------------------
 
     @Test
     fun avif_encodeAndDecode_roundTrip() = runTest {

@@ -54,7 +54,7 @@ class ImageOpacityTransformTest {
     val result = ImageOpacityTransform(opacity = 0.3f).apply(input, context)
 
     val p = pixelAt(result, 5, 5)
-    // 255 * 0.3 ≈ 76
+    // 255 * 0.3  76
     assertEquals(76, p[3], "Should be ~76, got ${p[3]}")
     assertEquals(PixelFormat.RGBA_8888, result.pixelFormat)
   }

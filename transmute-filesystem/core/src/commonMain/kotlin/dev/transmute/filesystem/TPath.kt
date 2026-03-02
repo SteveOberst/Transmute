@@ -6,7 +6,7 @@ package dev.transmute.filesystem
  * Cross-platform path representation.
  *
  * A [TPath] is a sequence of [segments] with an optional [root] prefix
- * (e.g. `"/"` on Unix, `"C:\\"` on Windows). Paths are manipulation-only —
+ * (e.g. `"/"` on Unix, `"C:\\"` on Windows). Paths are manipulation-only -
  * they carry no reference to any specific filesystem.
  *
  * ```kotlin

@@ -16,9 +16,9 @@ import java.io.File
 /**
  * Audio engine using GStreamer subprocess (`gst-launch-1.0`).
  *
- * **Decode**: source → temp file → gst-launch-1.0 (→ WAV) → temp → WavDecoder → AudioIR
+ * **Decode**: source -> temp file -> gst-launch-1.0 (-> WAV) -> temp -> WavDecoder -> AudioIR
  *
- * **Encode**: AudioIR → WavEncoder (→ WAV) → temp → gst-launch-1.0 → temp → bytes
+ * **Encode**: AudioIR -> WavEncoder (-> WAV) -> temp -> gst-launch-1.0 -> temp -> bytes
  */
 internal object GStreamerAudioEngine {
 

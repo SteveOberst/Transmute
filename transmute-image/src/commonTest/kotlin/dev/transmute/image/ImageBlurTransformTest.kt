@@ -115,7 +115,7 @@ class ImageBlurTransformTest {
     val smallCenter = pixelAt(smallBlur, cx, cy)[0]
     val largeCenter = pixelAt(largeBlur, cx, cy)[0]
 
-    // Larger radius spreads the energy more → lower center value.
+    // Larger radius spreads the energy more -> lower center value.
     assertTrue(
       largeCenter < smallCenter,
       "Larger radius should spread energy more: small=$smallCenter, large=$largeCenter"

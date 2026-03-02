@@ -77,11 +77,11 @@ enum class TransferFunction { SRGB, LINEAR, PQ, HLG }
 enum class Orientation {
   /** No rotation needed - pixels are stored top-left first. */
   NORMAL,
-  /** 90° clockwise (EXIF 6 - common for portrait photos on iOS). */
+  /** 90 deg clockwise (EXIF 6 - common for portrait photos on iOS). */
   ROTATE_90,
-  /** 180° (EXIF 3 - upside-down). */
+  /** 180 deg (EXIF 3 - upside-down). */
   ROTATE_180,
-  /** 270° clockwise / 90° counter-clockwise (EXIF 8). */
+  /** 270 deg clockwise / 90 deg counter-clockwise (EXIF 8). */
   ROTATE_270,
 }
 

@@ -22,7 +22,7 @@ object ProgressHub {
         try {
             // Keep the session alive until the client disconnects
             for (frame in session.incoming) {
-                // Client messages are ignored – this is a server→client channel
+                // Client messages are ignored - this is a server->client channel
             }
         } catch (_: ClosedReceiveChannelException) {
             // Normal disconnect

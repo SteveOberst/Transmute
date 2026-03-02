@@ -14,7 +14,7 @@ import java.io.InputStream
  *
  * On the first call to [nextFrame] a `gst-launch-1.0` process is spawned that
  * decodes the video to raw RGBA and pipes frames to stdout via `fdsink`.
- * Each frame is exactly `width × height × 4` bytes.
+ * Each frame is exactly `width x height x 4` bytes.
  *
  * The [inputFile] is owned by this stream and deleted when frames are exhausted
  * or when cleanup is triggered.

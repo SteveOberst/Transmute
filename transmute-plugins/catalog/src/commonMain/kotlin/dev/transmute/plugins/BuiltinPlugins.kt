@@ -20,7 +20,7 @@ import dev.transmute.plugin.TransmutePlugin
  * }
  * ```
  *
- * The catalog itself does not configure plugins — it merely provides
+ * The catalog itself does not configure plugins - it merely provides
  * a named reference to each [TransmutePlugin] object. All configuration
  * is done via the install DSL as usual.
  */

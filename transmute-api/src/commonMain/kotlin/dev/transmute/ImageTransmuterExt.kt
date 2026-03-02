@@ -12,12 +12,12 @@ import dev.transmute.image.transform.ImageRotateTransform
 import dev.transmute.image.transform.ImageScaleTransform
 import dev.transmute.image.transform.kernel.ResampleFilter
 
-/** Scale to fit within [maxWidth]×[maxHeight], preserving aspect ratio. No upscaling. */
+/** Scale to fit within [maxWidth]x[maxHeight], preserving aspect ratio. No upscaling. */
 fun <IN, OUT> DynamicImageTransmuterBuilder<IN, OUT>.scale(maxWidth: Int, maxHeight: Int): DynamicImageTransmuterBuilder<IN, OUT> = apply {
   transform { add(ImageScaleTransform(maxWidth, maxHeight)) }
 }
 
-/** Scale to fit within [maxWidth]×[maxHeight], preserving aspect ratio. No upscaling. */
+/** Scale to fit within [maxWidth]x[maxHeight], preserving aspect ratio. No upscaling. */
 fun <IN, OUT : ImageFormat> ImageTransmuterBuilder<IN, OUT>.scale(maxWidth: Int, maxHeight: Int): ImageTransmuterBuilder<IN, OUT> = apply {
   transform { add(ImageScaleTransform(maxWidth, maxHeight)) }
 }
@@ -55,12 +55,12 @@ fun <IN, OUT : ImageFormat> ImageTransmuterBuilder<IN, OUT>.crop(
   transform { add(ImageCropTransform(x, y, width, height)) }
 }
 
-/** Rotate clockwise by [degrees] (90, 180, or 270). Defaults to 90°. */
+/** Rotate clockwise by [degrees] (90, 180, or 270). Defaults to 90 deg. */
 fun <IN, OUT> DynamicImageTransmuterBuilder<IN, OUT>.rotate(degrees: Int = 90): DynamicImageTransmuterBuilder<IN, OUT> = apply {
   transform { add(ImageRotateTransform(degrees)) }
 }
 
-/** Rotate clockwise by [degrees] (90, 180, or 270). Defaults to 90°. */
+/** Rotate clockwise by [degrees] (90, 180, or 270). Defaults to 90 deg. */
 fun <IN, OUT : ImageFormat> ImageTransmuterBuilder<IN, OUT>.rotate(degrees: Int = 90): ImageTransmuterBuilder<IN, OUT> = apply {
   transform { add(ImageRotateTransform(degrees)) }
 }
@@ -88,12 +88,12 @@ fun <IN, OUT : ImageFormat> ImageTransmuterBuilder<IN, OUT>.flip(
   transform { add(ImageFlipTransform(horizontal, vertical)) }
 }
 
-/** Adjust brightness (−255..+255) and/or contrast (0..3). */
+/** Adjust brightness (255..+255) and/or contrast (0..3). */
 fun <IN, OUT> DynamicImageTransmuterBuilder<IN, OUT>.brightnessContrast(brightness: Float = 0f, contrast: Float = 1f): DynamicImageTransmuterBuilder<IN, OUT> = apply {
   transform { add(ImageBrightnessContrastTransform(brightness, contrast)) }
 }
 
-/** Adjust brightness (−255..+255) and/or contrast (0..3). */
+/** Adjust brightness (255..+255) and/or contrast (0..3). */
 fun <IN, OUT : ImageFormat> ImageTransmuterBuilder<IN, OUT>.brightnessContrast(
   brightness: Float = 0f,
   contrast: Float = 1f,

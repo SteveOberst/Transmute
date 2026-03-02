@@ -98,7 +98,7 @@ class AndroidImageCodecTest {
     assertEquals(32, decoded.height)
   }
 
-  // BMP roundtrip (common encoder → Android decoder)
+  // BMP roundtrip (common encoder -> Android decoder)
 
   @Test
   fun bmpDecodeProducesCorrectDimensions() = runTest {
@@ -117,16 +117,16 @@ class AndroidImageCodecTest {
 
   @Test
   fun gifDecodeProducesCorrectDimensions() = runTest {
-    // Minimal valid 1×1 GIF89a with a single red pixel
+    // Minimal valid 1x1 GIF89a with a single red pixel
     val gif = byteArrayOf(
       0x47, 0x49, 0x46, 0x38, 0x39, 0x61,       // GIF89a
-      0x01, 0x00, 0x01, 0x00,                     // 1×1
+      0x01, 0x00, 0x01, 0x00,                     // 1x1
       0x80.toByte(), 0x00, 0x00,                  // GCT flag, bg=0, aspect=0
       0xFF.toByte(), 0x00, 0x00,                  // palette[0] = red
       0x00, 0x00, 0x00,                           // palette[1] = black
       0x2C,                                       // image descriptor
       0x00, 0x00, 0x00, 0x00,                     // left=0, top=0
-      0x01, 0x00, 0x01, 0x00,                     // 1×1
+      0x01, 0x00, 0x01, 0x00,                     // 1x1
       0x00,                                       // no local color table
       0x02,                                       // LZW minimum code size
       0x02, 0x44, 0x01,                           // 2 bytes of LZW data

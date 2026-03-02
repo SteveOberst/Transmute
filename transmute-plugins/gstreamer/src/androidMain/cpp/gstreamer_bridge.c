@@ -1,5 +1,5 @@
 /*
- * gstreamer_bridge.c — JNI bridge for GStreamer on Android.
+ * gstreamer_bridge.c - JNI bridge for GStreamer on Android.
  *
  * Provides thin JNI wrappers around the GStreamer C API so that the
  * Kotlin layer can:
@@ -8,7 +8,7 @@
  *   3. Execute a file-based GStreamer pipeline to completion (blocking).
  *
  * The Kotlin engine classes build the pipeline description string the
- * same way the Desktop target does (filesrc ! … ! filesink) and call
+ * same way the Desktop target does (filesrc ! ... ! filesink) and call
  * nativeRunPipeline().
  */
 
@@ -25,7 +25,7 @@
 static int gst_initialised = 0;
 
 /* ------------------------------------------------------------------ */
-/* nativeInit — call once from Kotlin before any pipeline work.       */
+/* nativeInit - call once from Kotlin before any pipeline work.       */
 /* Returns JNI_TRUE on success.                                       */
 /* ------------------------------------------------------------------ */
 
@@ -47,7 +47,7 @@ Java_dev_transmute_gstreamer_GStreamerJni_nativeInit(JNIEnv *env, jclass clazz) 
 }
 
 /* ------------------------------------------------------------------ */
-/* nativeIsAvailable — quick liveness check.                          */
+/* nativeIsAvailable - quick liveness check.                          */
 /* ------------------------------------------------------------------ */
 
 JNIEXPORT jboolean JNICALL
@@ -56,7 +56,7 @@ Java_dev_transmute_gstreamer_GStreamerJni_nativeIsAvailable(JNIEnv *env, jclass 
 }
 
 /* ------------------------------------------------------------------ */
-/* nativeHasElement — check registry for a named element factory.     */
+/* nativeHasElement - check registry for a named element factory.     */
 /* ------------------------------------------------------------------ */
 
 JNIEXPORT jboolean JNICALL
@@ -76,7 +76,7 @@ Java_dev_transmute_gstreamer_GStreamerJni_nativeHasElement(
 }
 
 /* ------------------------------------------------------------------ */
-/* nativeRunPipeline — parse & run a pipeline to EOS.                 */
+/* nativeRunPipeline - parse & run a pipeline to EOS.                 */
 /*                                                                    */
 /* @param pipeline_desc  gst-launch style descriptor, e.g.           */
 /*   "filesrc location=/tmp/in.wav ! wavparse ! ... ! filesink ..."  */
@@ -156,7 +156,7 @@ Java_dev_transmute_gstreamer_GStreamerJni_nativeRunPipeline(
 }
 
 /* ------------------------------------------------------------------ */
-/* nativeGetVersion — return the GStreamer version string.             */
+/* nativeGetVersion - return the GStreamer version string.             */
 /* ------------------------------------------------------------------ */
 
 JNIEXPORT jstring JNICALL

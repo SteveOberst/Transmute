@@ -93,7 +93,7 @@ val mp4Reader  = DefaultStructureReaders.mp4    // Mp4StructureReader
 
 // Full list available via the `all` property (image + audio + video, sniff order):
 DefaultStructureReaders.all.forEach { reader ->
-    val bytes: Bytes = /* … */
+    val bytes: Bytes = /* ... */
     if (reader.canRead(bytes)) println("Matched: $reader")
 }
 ```
@@ -108,12 +108,12 @@ to subclass `Decoder` manually:
 import dev.transmute.structure.DefaultStructureDecoders
 
 // Individual decoders
-val png    = DefaultStructureDecoders.png       // Decoder<ImageFormat, PngStructure, …>
-val pngRaw = DefaultStructureDecoders.pngRaw   // Decoder<ImageFormat, PngRaw, …>
-val wav    = DefaultStructureDecoders.wav       // Decoder<AudioFormat, WavStructure, …>
+val png    = DefaultStructureDecoders.png       // Decoder<ImageFormat, PngStructure, ...>
+val pngRaw = DefaultStructureDecoders.pngRaw   // Decoder<ImageFormat, PngRaw, ...>
+val wav    = DefaultStructureDecoders.wav       // Decoder<AudioFormat, WavStructure, ...>
 
 // Domain lists (recommended sniff order):
-DefaultStructureDecoders.allImageDecoders      // List<Decoder<ImageFormat, …>>
+DefaultStructureDecoders.allImageDecoders      // List<Decoder<ImageFormat, ...>>
 DefaultStructureDecoders.allAudioDecoders
 DefaultStructureDecoders.allVideoDecoders
 DefaultStructureDecoders.allImageRawDecoders

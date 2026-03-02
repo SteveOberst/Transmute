@@ -127,7 +127,7 @@ class GStreamerPluginConfig : HasPluginConfigure {
 
 /**
  * [TransmutePlugin] that registers GStreamer-backed codecs into a
- * [Transmute][dev.transmute.transmute] instance’s per-instance registries.
+ * [Transmute][dev.transmute.transmute] instance's per-instance registries.
  *
  * All features ([GStreamerFeature.AudioCodecs], [GStreamerFeature.VideoCodecs],
  * [GStreamerFeature.ImageCodecs], etc.) are **enabled by default**. Disable

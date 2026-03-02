@@ -17,10 +17,10 @@ class AacStructureReaderTest {
     private fun minimalAac(): ByteArray {
         // Byte 0: 0xFF
         // Byte 1: 0xF1 = sync(4 bits) + ID=0(MPEG-4) + layer=00 + protection_absent=1
-        // Byte 2: profile(2)=01(AAC-LC) + sampling_freq_index(4)=0100(44100) + private(1)=0 + channel_config_hi(1)=0 → 0x50
-        // Byte 3: channel_config_lo(2)=10 + original(1)=0 + home(1)=0 + copyright_id(1)=0 + copyright_start(1)=0 + frame_length_hi(2)=0 → 0x80
+        // Byte 2: profile(2)=01(AAC-LC) + sampling_freq_index(4)=0100(44100) + private(1)=0 + channel_config_hi(1)=0 -> 0x50
+        // Byte 3: channel_config_lo(2)=10 + original(1)=0 + home(1)=0 + copyright_id(1)=0 + copyright_start(1)=0 + frame_length_hi(2)=0 -> 0x80
         // Byte 4-5: frame_length (13 bits total, value=7 for header-only), buffer_fullness (11 bits)
-        // Let frame_length = 7 → split across bytes 3..5
+        // Let frame_length = 7 -> split across bytes 3..5
         //   byte3 bits [1:0] = 0, byte4 = frame_len[10:3] = 0, byte5_hi = frame_len[2:0]<<5 | buffulness[10:6]
         // For simplicity, just construct a valid sync word prefix
         return byteArrayOf(

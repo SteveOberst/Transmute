@@ -15,11 +15,11 @@ import kotlin.math.roundToInt
  * Changes video playback speed.
  *
  * Adjusts both frame timestamps and audio speed to keep them in sync.
- * Audio samples are resampled proportionally - at 2× speed, each second
+ * Audio samples are resampled proportionally - at 2x speed, each second
  * of output contains 2 seconds of source audio played twice as fast.
  *
- * - [speed] > 1.0 → faster playback (shorter duration)
- * - [speed] < 1.0 → slow-motion (longer duration)
+ * - [speed] > 1.0 -> faster playback (shorter duration)
+ * - [speed] < 1.0 -> slow-motion (longer duration)
  *
  * Unlike [AudioSpeedTransform][dev.transmute.audio.transform.AudioSpeedTransform],
  * this does *not* preserve pitch - the audio is simply resampled.

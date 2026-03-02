@@ -27,7 +27,7 @@ data class AviMainHeader(
     val totalFrames: UInt,
     /** Initial frame count for interleaved files. */
     val initialFrames: UInt,
-    /** Number of streams (video + audio + …). */
+    /** Number of streams (video + audio + ...). */
     val streams: UInt,
     /** Suggested playback buffer size. */
     val suggestedBufferSize: UInt,
@@ -37,7 +37,7 @@ data class AviMainHeader(
     val height: UInt,
 )
 
-// --- AVI file — complete on-disk representation ---
+// --- AVI file - complete on-disk representation ---
 
 /**
  * Canonical representation of an AVI file as written to disk.
@@ -52,7 +52,7 @@ data class AviMainHeader(
  *       strh (stream header)
  *       strf (stream format)
  *   LIST 'movi'
- *     00dc / 01wb … (interleaved data chunks)
+ *     00dc / 01wb ... (interleaved data chunks)
  *   idx1 (optional index)
  * ```
  */

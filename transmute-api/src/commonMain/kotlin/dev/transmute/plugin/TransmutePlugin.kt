@@ -35,7 +35,7 @@ interface TransmutePlugin<C : Any> {
   /**
    * Plugin ids this plugin should be installed **after**.
    *
-   * Unlike [dependsOn], these are soft ordering hints — the referenced
+   * Unlike [dependsOn], these are soft ordering hints - the referenced
    * plugins are not required to be present.
    */
   val installAfter: Set<PluginId> get() = emptySet()
@@ -43,7 +43,7 @@ interface TransmutePlugin<C : Any> {
   /**
    * Plugin ids this plugin should be installed **before**.
    *
-   * Soft ordering hint — the referenced plugins are not required to be present.
+   * Soft ordering hint - the referenced plugins are not required to be present.
    */
   val installBefore: Set<PluginId> get() = emptySet()
 

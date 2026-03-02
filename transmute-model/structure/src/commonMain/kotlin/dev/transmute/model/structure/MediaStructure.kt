@@ -6,7 +6,7 @@ import dev.transmute.model.core.RawMediaStructure
 
 // The old MediaStructure interface has been superseded by RawMediaStructure
 // (dev.transmute.model.core.RawMediaStructure) in the core module.
-// All format-specific raw models (PngRaw, WavRaw, Mp4Raw, …) now extend
+// All format-specific raw models (PngRaw, WavRaw, Mp4Raw, ...) now extend
 // RawMediaStructure directly.
 //
 // The new MediaStructure (dev.transmute.model.core.MediaStructure) is the

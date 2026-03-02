@@ -79,7 +79,7 @@ internal object GStreamerSniff {
      * Detect MP4 (H.264 / H.265 / MPEG-4 container).
      *
      * Matches ISO BMFF `ftyp` box with common MP4 brands:
-     * `isom`, `mp41`, `mp42`, `avc1`, `M4V `, `iso2`–`iso6`, `mmp4`, `3gp*`, `3g2*`.
+     * `isom`, `mp41`, `mp42`, `avc1`, `M4V `, `iso2`-`iso6`, `mmp4`, `3gp*`, `3g2*`.
      */
     fun sniffMp4(data: Bytes): VideoFormat? {
         val bytes = data.data
@@ -178,22 +178,22 @@ internal object GStreamerSniff {
 
     // -- Helpers --------------------------------------------------------------
 
-    /** `true` when bytes 4–7 are `"ftyp"`. */
+    /** `true` when bytes 4-7 are `"ftyp"`. */
     private fun isFtyp(bytes: ByteArray): Boolean =
         bytes[4] == 0x66.toByte() && bytes[5] == 0x74.toByte() &&
             bytes[6] == 0x79.toByte() && bytes[7] == 0x70.toByte()
 
-    /** `true` when bytes 0–3 are OGG magic `"OggS"`. */
+    /** `true` when bytes 0-3 are OGG magic `"OggS"`. */
     private fun isOggS(bytes: ByteArray): Boolean =
         bytes[0] == 0x4F.toByte() && bytes[1] == 0x67.toByte() &&
             bytes[2] == 0x67.toByte() && bytes[3] == 0x53.toByte()
 
-    /** `true` when bytes 0–3 are EBML magic `0x1A45DFA3`. */
+    /** `true` when bytes 0-3 are EBML magic `0x1A45DFA3`. */
     private fun isEbml(bytes: ByteArray): Boolean =
         bytes[0] == 0x1A.toByte() && bytes[1] == 0x45.toByte() &&
             bytes[2] == 0xDF.toByte() && bytes[3] == 0xA3.toByte()
 
-    /** `true` when bytes 0–3 are `"RIFF"`. */
+    /** `true` when bytes 0-3 are `"RIFF"`. */
     private fun isRiff(bytes: ByteArray): Boolean =
         bytes[0] == 'R'.code.toByte() && bytes[1] == 'I'.code.toByte() &&
             bytes[2] == 'F'.code.toByte() && bytes[3] == 'F'.code.toByte()

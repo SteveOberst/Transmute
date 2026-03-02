@@ -5,7 +5,7 @@ package dev.transmute.image
  *
  * Used with [dev.transmute.ImageTransmuter.wouldTransmute] to determine whether a configured
  * transmuter would produce any change on an image without decoding it.
- * All properties are nullable — `null` means the value is unknown, and the
+ * All properties are nullable - `null` means the value is unknown, and the
  * transmuter will conservatively assume the transform *might* apply.
  *
  * ```kotlin

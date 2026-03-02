@@ -13,13 +13,13 @@ import dev.transmute.codec.pipeline.TransformId
  *
  * Both adjustments are applied in a single pass to minimise rounding error:
  *
- *     output = clamp((input - 128) × contrast + 128 + brightness, 0, 255)
+ *     output = clamp((input - 128) x contrast + 128 + brightness, 0, 255)
  *
  * This formula centres contrast scaling around mid-grey (128) so that
  * contrast increases expand away from middle tones rather than zero,
  * which matches what users expect from photo editors.
  *
- * @param brightness Offset added to each channel (−255 .. +255). 0 = no change.
+ * @param brightness Offset added to each channel (255 .. +255). 0 = no change.
  * @param contrast   Multiplier applied around mid-grey (0.0 .. 3.0). 1.0 = no change.
  */
 class ImageBrightnessContrastTransform(

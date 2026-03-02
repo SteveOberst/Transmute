@@ -27,7 +27,7 @@ import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
 // ---------------------------------------------------------------------------
-// Shared decode logic - AVAssetReader → float32 PCM.
+// Shared decode logic - AVAssetReader -> float32 PCM.
 // ---------------------------------------------------------------------------
 
 private fun writeTempFile(data: ByteArray, ext: String): NSURL {
@@ -144,7 +144,7 @@ private suspend fun decodeWithAssetReader(
 }
 
 // ---------------------------------------------------------------------------
-// Shared encode logic - AudioIR → WAV → AVAssetExportSession → M4A.
+// Shared encode logic - AudioIR -> WAV -> AVAssetExportSession -> M4A.
 // ---------------------------------------------------------------------------
 
 private suspend fun encodeToM4aWithExportSession(ir: AudioIR, context: PipelineContext): ByteArray {
@@ -214,7 +214,7 @@ internal class IosMp3Decoder : AudioDecoder {
 }
 
 // ---------------------------------------------------------------------------
-// “Full” codec shapes (decode + encode), but iOS only encodes M4A reliably.
+// "Full" codec shapes (decode + encode), but iOS only encodes M4A reliably.
 // ---------------------------------------------------------------------------
 
 internal class IosFlacCodec : AudioCodec {

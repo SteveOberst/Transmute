@@ -76,7 +76,7 @@ class IosImageCodecTest {
     val encoded = try {
       encoder.encode(original, ImageFormat.WEBP, WebPEncodeOptions(), ctx)
     } catch (_: IllegalStateException) {
-      // WebP encoding not supported on this simulator — skip.
+      // WebP encoding not supported on this simulator - skip.
       println("SKIP: WebP encoding not available on this simulator")
       return@runTest
     }
@@ -96,7 +96,7 @@ class IosImageCodecTest {
     val encoded = try {
       encoder.encode(original, ImageFormat.HEIF, HeifEncodeOptions(format = ImageFormat.HEIF), ctx)
     } catch (_: IllegalStateException) {
-      // HEIF encoding not supported on this simulator — skip.
+      // HEIF encoding not supported on this simulator - skip.
       println("SKIP: HEIF encoding not available on this simulator")
       return@runTest
     }

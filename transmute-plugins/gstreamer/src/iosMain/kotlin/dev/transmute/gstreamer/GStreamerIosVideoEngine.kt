@@ -145,7 +145,7 @@ internal object GStreamerIosVideoEngine {
             null
         }
 
-        // Default video info (simplified — full discoverer integration TBD)
+        // Default video info (simplified - full discoverer integration TBD)
         val width = 160
         val height = 120
         val frameRate = 10.0

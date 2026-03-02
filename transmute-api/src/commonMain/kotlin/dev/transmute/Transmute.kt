@@ -338,7 +338,7 @@ class DynamicImageTransmuterBuilder<IN, OUT> internal constructor(
   }
 
   /**
-   * Configure the decode pipeline (IN → decode → ImageIR).
+   * Configure the decode pipeline (IN -> decode -> ImageIR).
    *
    * The decode stage is explicit and must end in `Decoded<ImageFormat, ImageIR>`.
    */
@@ -346,7 +346,7 @@ class DynamicImageTransmuterBuilder<IN, OUT> internal constructor(
     apply { decodeStage.block() }
 
   /**
-   * Configure the encode pipeline (ImageIR → encode → EncodedBytes).
+   * Configure the encode pipeline (ImageIR -> encode -> EncodedBytes).
    */
   fun encode(block: EncodeStage<Decoded<ImageFormat, ImageIR>, OUT, ImageEncodeOptions>.() -> Unit): DynamicImageTransmuterBuilder<IN, OUT> =
     apply { encodeStage.block() }
@@ -462,7 +462,7 @@ class ImageTransmuter<IN, OUT> internal constructor(
   }
 }
 
-// -- Audio ------------------------------------------------------------------─
+// -- Audio -------------------------------------------------------------------
 
 class DynamicAudioTransmuterBuilder<IN, OUT> internal constructor(
   private val defaultDecodePipeline: (() -> DecodePipeline<IN, Decoded<AudioFormat, AudioIR>>)? = null,
@@ -595,7 +595,7 @@ class AudioTransmuter<IN, OUT> internal constructor(
   }
 }
 
-// -- Video ------------------------------------------------------------------─
+// -- Video -------------------------------------------------------------------
 
 class DynamicVideoTransmuterBuilder<IN, OUT> internal constructor(
   private val defaultDecodePipeline: (() -> DecodePipeline<IN, Decoded<VideoFormat, VideoIR>>)? = null,

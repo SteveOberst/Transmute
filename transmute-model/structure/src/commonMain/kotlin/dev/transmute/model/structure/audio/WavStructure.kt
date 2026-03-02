@@ -14,7 +14,7 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class WavStructure(
-    /** Audio format code (1 = PCM, 3 = IEEE float, 0xFFFE = Extensible, …). */
+    /** Audio format code (1 = PCM, 3 = IEEE float, 0xFFFE = Extensible, ...). */
     val audioFormat: UShort?,
     /** Number of audio channels. */
     val channels: UShort?,

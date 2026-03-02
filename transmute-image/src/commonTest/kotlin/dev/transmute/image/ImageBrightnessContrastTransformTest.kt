@@ -59,9 +59,9 @@ class ImageBrightnessContrastTransformTest {
     val result = ImageBrightnessContrastTransform(contrast = 2.0f).apply(input, context)
 
     val p = pixelAt(result, 5, 5)
-    // R: (200-128)*2 + 128 = 272 → clamped 255
+    // R: (200-128)*2 + 128 = 272 -> clamped 255
     assertEquals(255, p[0])
-    // G: (56-128)*2 + 128 = -16 → clamped 0
+    // G: (56-128)*2 + 128 = -16 -> clamped 0
     assertEquals(0, p[1])
     // B: (128-128)*2 + 128 = 128
     assertEquals(128, p[2])

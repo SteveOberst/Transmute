@@ -38,7 +38,7 @@ object GStreamerAndroidTestHelpers {
     /**
      * Run a codec operation on an independent IO scope with a coroutine
      * timeout. Native GStreamer operations can occasionally hang on
-     * emulators — this prevents test deadlocks.
+     * emulators - this prevents test deadlocks.
      *
      * Returns `null` on timeout/failure.
      */

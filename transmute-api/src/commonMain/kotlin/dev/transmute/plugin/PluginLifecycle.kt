@@ -13,7 +13,7 @@ package dev.transmute.plugin
  *     override fun createConfig() = MyConfig()
  *
  *     override fun install(scope: TransmuteScope, config: MyConfig) {
- *         // Normal plugin installation…
+ *         // Normal plugin installation...
  *     }
  *
  *     override fun onInstalled(scope: TransmuteScope) {

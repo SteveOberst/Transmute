@@ -17,7 +17,7 @@ class ImageFlipTransformTest {
 
   @Test
   fun horizontalFlipReversesColumns() = runTest {
-    // 4×1 image: pixels [Red, Green, Blue, White]
+    // 4x1 image: pixels [Red, Green, Blue, White]
     val w = 4; val h = 1; val bpp = 4
     val data = byteArrayOf(
       255.toByte(), 0, 0, -1, // Red
@@ -43,7 +43,7 @@ class ImageFlipTransformTest {
 
   @Test
   fun verticalFlipReversesRows() = runTest {
-    // 1×3 image: rows [Red, Green, Blue]
+    // 1x3 image: rows [Red, Green, Blue]
     val w = 1; val h = 3; val bpp = 4
     val data = byteArrayOf(
       255.toByte(), 0, 0, -1,

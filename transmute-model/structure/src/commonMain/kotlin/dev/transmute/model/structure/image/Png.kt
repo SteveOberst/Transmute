@@ -9,7 +9,7 @@ import dev.transmute.model.identify.FourCC
 import dev.transmute.model.core.RawMediaStructure
 import kotlinx.serialization.Serializable
 
-// --- Helpers — big-endian encoding ---
+// --- Helpers - big-endian encoding ---
 
 private fun UInt.toBigEndianBytes(): ByteArray = byteArrayOf(
     (this shr 24).toByte(),
@@ -26,7 +26,7 @@ private fun UShort.toBigEndianBytes(): ByteArray = byteArrayOf(
 private fun FourCC.toByteArray(): ByteArray =
     value.encodeToByteArray()   // always 4 ASCII bytes
 
-// --- PNG chunk — the fundamental structural unit ---
+// --- PNG chunk - the fundamental structural unit ---
 
 /**
  * A single PNG chunk as it appears on disk.
@@ -44,7 +44,7 @@ data class PngChunk(
     val length: UInt,
     /** 4-byte ASCII chunk type code (e.g. `IHDR`, `IDAT`, `IEND`). */
     val type: FourCC,
-    /** Raw chunk data — exactly [length] bytes. */
+    /** Raw chunk data - exactly [length] bytes. */
     val data: Bytes,
     /** CRC-32 over [type] + [data]. */
     val crc: UInt,
@@ -77,26 +77,26 @@ enum class PngChunkType(val tag: String) {
     IDAT("IDAT"),
     IEND("IEND"),
 
-    // Ancillary – color space
+    // Ancillary - color space
     cHRM("cHRM"),
     gAMA("gAMA"),
     iCCP("iCCP"),
     sBIT("sBIT"),
     sRGB("sRGB"),
 
-    // Ancillary – transparency & background
+    // Ancillary - transparency & background
     bKGD("bKGD"),
     hIST("hIST"),
     tRNS("tRNS"),
 
-    // Ancillary – layout
+    // Ancillary - layout
     pHYs("pHYs"),
     sPLT("sPLT"),
 
-    // Ancillary – time
+    // Ancillary - time
     tIME("tIME"),
 
-    // Ancillary – text
+    // Ancillary - text
     iTXt("iTXt"),
     tEXt("tEXt"),
     zTXt("zTXt"),
@@ -119,7 +119,7 @@ enum class PngChunkType(val tag: String) {
     }
 }
 
-// --- IHDR — Image Header (13 bytes) ---
+// --- IHDR - Image Header (13 bytes) ---
 
 /**
  * PNG color type (1 byte in the IHDR chunk).
@@ -163,7 +163,7 @@ enum class PngInterlaceMethod(val code: Int) {
 }
 
 /**
- * Parsed IHDR chunk data — always the first chunk, always 13 bytes.
+ * Parsed IHDR chunk data - always the first chunk, always 13 bytes.
  *
  * ```
  * | width (4 B) | height (4 B) | bitDepth (1 B) | colorType (1 B) |
@@ -188,7 +188,7 @@ data class PngIhdr(
     val interlaceMethod: PngInterlaceMethod,
 ) : BinarySerializable {
 
-    /** Bits per pixel = bitDepth × channels. */
+    /** Bits per pixel = bitDepth x channels. */
     val bitsPerPixel: Int get() = bitDepth.toInt() * colorType.channelCount
 
     /**
@@ -207,7 +207,7 @@ data class PngIhdr(
     }
 }
 
-// --- PLTE — Palette (3 × N bytes, N ≤ 256) ---
+// --- PLTE - Palette (3 x N bytes, N <= 256) ---
 
 /**
  * A single palette entry: 3 bytes (R, G, B).
@@ -239,10 +239,10 @@ data class PngPlte(
     }
 }
 
-// --- IDAT — Image Data ---
+// --- IDAT - Image Data ---
 
 /**
- * Parsed IDAT chunk data — compressed (deflate) image data.
+ * Parsed IDAT chunk data - compressed (deflate) image data.
  *
  * A PNG file may contain multiple IDAT chunks whose data must be
  * concatenated to form the complete compressed datastream. Each
@@ -256,7 +256,7 @@ data class PngIdat(
     override fun toBytes(): Bytes = Bytes(compressedData.data.copyOf())
 }
 
-// --- IEND — Image Trailer ---
+// --- IEND - Image Trailer ---
 
 /**
  * The IEND chunk marks the end of the PNG datastream.
@@ -267,7 +267,7 @@ object PngIend : BinarySerializable {
     override fun toBytes(): Bytes = Bytes(ByteArray(0))
 }
 
-// --- tRNS — Transparency ---
+// --- tRNS - Transparency ---
 
 /**
  * Parsed tRNS chunk data.
@@ -299,7 +299,7 @@ data class PngTrns(
     }.asBytes()
 }
 
-// --- gAMA — Image Gamma (4 bytes) ---
+// --- gAMA - Image Gamma (4 bytes) ---
 
 /**
  * Parsed gAMA chunk data.
@@ -308,11 +308,11 @@ data class PngTrns(
  * | gamma (4 B, UInt32) |
  * ```
  *
- * The value is the gamma times 100 000 (e.g. 45 455 → gamma ≈ 1/2.2).
+ * The value is the gamma times 100 000 (e.g. 45 455 -> gamma  1/2.2).
  */
 @Serializable
 data class PngGama(
-    /** Gamma × 100 000 as stored on disk. */
+    /** Gamma x 100 000 as stored on disk. */
     val gamma: UInt,
 ) : BinarySerializable {
     /** Decoded gamma value as a floating-point number. */
@@ -321,10 +321,10 @@ data class PngGama(
     override fun toBytes(): Bytes = gamma.toBigEndianBytes().asBytes()
 }
 
-// --- cHRM — Primary Chromaticities and White Point (32 bytes) ---
+// --- cHRM - Primary Chromaticities and White Point (32 bytes) ---
 
 /**
- * Parsed cHRM chunk data — eight UInt32 values, each × 100 000.
+ * Parsed cHRM chunk data - eight UInt32 values, each x 100 000.
  *
  * ```
  * | whitePointX (4 B) | whitePointY (4 B) |
@@ -354,7 +354,7 @@ data class PngChrm(
     }
 }
 
-// --- sRGB — Standard RGB Colour Space (1 byte) ---
+// --- sRGB - Standard RGB Colour Space (1 byte) ---
 
 /**
  * sRGB rendering intent.
@@ -385,13 +385,13 @@ data class PngSrgb(
     override fun toBytes(): Bytes = byteArrayOf(renderingIntent.code.toByte()).asBytes()
 }
 
-// --- iCCP — Embedded ICC Profile ---
+// --- iCCP - Embedded ICC Profile ---
 
 /**
  * Parsed iCCP chunk data.
  *
  * ```
- * | profileName (1–79 B, Latin-1) | null (1 B) | compressionMethod (1 B) | compressedProfile (rest) |
+ * | profileName (1-79 B, Latin-1) | null (1 B) | compressionMethod (1 B) | compressedProfile (rest) |
  * ```
  */
 @Serializable
@@ -411,7 +411,7 @@ data class PngIccp(
     }
 }
 
-// --- pHYs — Physical Pixel Dimensions (9 bytes) ---
+// --- pHYs - Physical Pixel Dimensions (9 bytes) ---
 
 /**
  * Parsed pHYs chunk data.
@@ -438,7 +438,7 @@ data class PngPhys(
     }
 }
 
-// --- tIME — Image Last-Modification Time (7 bytes) ---
+// --- tIME - Image Last-Modification Time (7 bytes) ---
 
 /**
  * Parsed tIME chunk data.
@@ -468,13 +468,13 @@ data class PngTime(
     }
 }
 
-// --- tEXt — Textual Data ---
+// --- tEXt - Textual Data ---
 
 /**
  * Parsed tEXt chunk data.
  *
  * ```
- * | keyword (1–79 B, Latin-1) | null (1 B) | text (rest, Latin-1) |
+ * | keyword (1-79 B, Latin-1) | null (1 B) | text (rest, Latin-1) |
  * ```
  */
 @Serializable
@@ -493,13 +493,13 @@ data class PngTextChunk(
     }
 }
 
-// --- zTXt — Compressed Textual Data ---
+// --- zTXt - Compressed Textual Data ---
 
 /**
  * Parsed zTXt chunk data.
  *
  * ```
- * | keyword (1–79 B, Latin-1) | null (1 B) | compressionMethod (1 B) | compressedText (rest) |
+ * | keyword (1-79 B, Latin-1) | null (1 B) | compressionMethod (1 B) | compressedText (rest) |
  * ```
  */
 @Serializable
@@ -519,13 +519,13 @@ data class PngZtxt(
     }
 }
 
-// --- iTXt — International Textual Data ---
+// --- iTXt - International Textual Data ---
 
 /**
  * Parsed iTXt chunk data.
  *
  * ```
- * | keyword (1–79 B) | null | compressionFlag (1 B) | compressionMethod (1 B) |
+ * | keyword (1-79 B) | null | compressionFlag (1 B) | compressionMethod (1 B) |
  * | languageTag (ASCII) | null | translatedKeyword (UTF-8) | null | text (UTF-8) |
  * ```
  */
@@ -559,7 +559,7 @@ data class PngItxt(
     }
 }
 
-// --- sBIT — Significant Bits ---
+// --- sBIT - Significant Bits ---
 
 /**
  * Parsed sBIT chunk data.
@@ -577,7 +577,7 @@ data class PngSbit(
     override fun toBytes(): Bytes = ByteArray(significantBits.size) { significantBits[it].toByte() }.asBytes()
 }
 
-// --- bKGD — Background Colour ---
+// --- bKGD - Background Colour ---
 
 /**
  * Parsed bKGD chunk data.
@@ -609,10 +609,10 @@ data class PngBkgd(
     }.asBytes()
 }
 
-// --- hIST — Palette Histogram ---
+// --- hIST - Palette Histogram ---
 
 /**
- * Parsed hIST chunk data — one UShort frequency per palette entry.
+ * Parsed hIST chunk data - one UShort frequency per palette entry.
  */
 @Serializable
 data class PngHist(
@@ -627,7 +627,7 @@ data class PngHist(
     }
 }
 
-// --- sPLT — Suggested Palette ---
+// --- sPLT - Suggested Palette ---
 
 /**
  * A single entry in a suggested palette.
@@ -645,7 +645,7 @@ data class PngSpltEntry(
  * Parsed sPLT chunk data.
  *
  * ```
- * | paletteName (Latin-1) | null (1 B) | sampleDepth (1 B) | entries… |
+ * | paletteName (Latin-1) | null (1 B) | sampleDepth (1 B) | entries... |
  * ```
  */
 @Serializable
@@ -680,7 +680,7 @@ data class PngSplt(
     }
 }
 
-// --- APNG — acTL: Animation Control (8 bytes) ---
+// --- APNG - acTL: Animation Control (8 bytes) ---
 
 /**
  * Parsed acTL (Animation Control) chunk data.
@@ -704,7 +704,7 @@ data class PngActl(
     }
 }
 
-// --- APNG — fcTL: Frame Control (26 bytes) ---
+// --- APNG - fcTL: Frame Control (26 bytes) ---
 
 /**
  * APNG dispose operation.
@@ -771,14 +771,14 @@ data class PngFctl(
     }
 }
 
-// --- Png — canonical 1:1 representation of a PNG file on disk ---
+// --- Png - canonical 1:1 representation of a PNG file on disk ---
 
 /**
  * Canonical representation of a PNG file as it exists on disk.
  *
  * A PNG file is laid out as:
  * ```
- * | signature (8 B) | chunk₁ | chunk₂ | … | chunkₙ (IEND) |
+ * | signature (8 B) | chunk1 | chunk2 | ... | chunkn (IEND) |
  * ```
  *
  * The [chunks] list preserves the exact order from the file.
@@ -799,7 +799,7 @@ data class PngRaw(
 
     /**
      * Produces the exact bytes of a valid PNG file:
-     * signature || chunk(1) || chunk(2) || … || chunk(n)
+     * signature || chunk(1) || chunk(2) || ... || chunk(n)
      */
     override fun toBytes(): Bytes {
         val totalSize = signature.size + chunks.sumOf { 4 + 4 + it.data.size + 4 }

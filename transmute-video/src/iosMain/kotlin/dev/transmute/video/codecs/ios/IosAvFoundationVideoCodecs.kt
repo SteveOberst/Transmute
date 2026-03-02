@@ -53,7 +53,7 @@ private fun writeTempFile(data: ByteArray, ext: String): NSURL {
 }
 
 /**
- * Decode a video file using AVAssetReader → BGRA pixel buffers.
+ * Decode a video file using AVAssetReader -> BGRA pixel buffers.
  */
 private fun decodeVideoFrames(fileUrl: NSURL, timeRangeMs: TimeRangeMs?): List<VideoFrame> {
   val asset = AVURLAsset(uRL = fileUrl, options = null)
@@ -95,7 +95,7 @@ private fun decodeVideoFrames(fileUrl: NSURL, timeRangeMs: TimeRangeMs?): List<V
         ?.reinterpret<ByteVar>()
         ?: error("Null pixel buffer base address")
 
-      // Convert BGRA → RGBA
+      // Convert BGRA -> RGBA
       val rgba = ByteArray(width * height * 4)
       for (y in 0 until height) {
         for (x in 0 until width) {
@@ -106,9 +106,9 @@ private fun decodeVideoFrames(fileUrl: NSURL, timeRangeMs: TimeRangeMs?): List<V
             pixel.usePinned { pin ->
               memcpy(pin.addressOf(0), baseAddress + srcIdx, 4u)
             }
-            rgba[dstIdx] = pixel[2]     // R ← B
+            rgba[dstIdx] = pixel[2]     // R <- B
             rgba[dstIdx + 1] = pixel[1] // G
-            rgba[dstIdx + 2] = pixel[0] // B ← R
+            rgba[dstIdx + 2] = pixel[0] // B <- R
             rgba[dstIdx + 3] = pixel[3] // A
           }
         }
@@ -131,7 +131,7 @@ private fun decodeVideoFrames(fileUrl: NSURL, timeRangeMs: TimeRangeMs?): List<V
 }
 
 /**
- * Decode audio from a video file using AVAssetReader → PCM float32.
+ * Decode audio from a video file using AVAssetReader -> PCM float32.
  */
 private fun decodeAudioSamples(fileUrl: NSURL, timeRangeMs: TimeRangeMs?): AudioSamples? {
   val asset = AVURLAsset(uRL = fileUrl, options = null)
@@ -293,7 +293,7 @@ private suspend fun encodeWithAvFoundation(
 
       val rgbaData = (frame.buffer as ByteArrayPixelBuffer).data
 
-      // Convert RGBA → BGRA and copy row-by-row
+      // Convert RGBA -> BGRA and copy row-by-row
       for (y in 0 until height) {
         for (x in 0 until width) {
           val srcIdx = (y * width + x) * 4

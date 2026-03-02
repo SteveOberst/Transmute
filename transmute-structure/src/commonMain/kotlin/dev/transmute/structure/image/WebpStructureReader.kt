@@ -16,7 +16,7 @@ import dev.transmute.structure.common.readU32LE
  *
  * WebP layout:
  * ```
- * | "RIFF" (4 B) | fileSize (4 B LE) | "WEBP" (4 B) | sub-chunks… |
+ * | "RIFF" (4 B) | fileSize (4 B LE) | "WEBP" (4 B) | sub-chunks... |
  * ```
  */
 class WebpStructureReader : StructureReader<WebpRaw> {

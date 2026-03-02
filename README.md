@@ -69,7 +69,7 @@ suspend fun quickStart(
 ### Structure Lambda Sugar & Suspending I/O
 
 ```kotlin
-// Lambda sugar — parsed structure is the receiver
+// Lambda sugar - parsed structure is the receiver
 val width: Int = transmute.structure.read<Png>(pngBytes.asBytes(), ImageFormat.Png) {
     ihdr.width.toInt()
 }
@@ -134,7 +134,7 @@ instance-based API where each `Transmute` instance carries its own codec registr
 ### Creating Instances
 
 ```kotlin
-// Default instance — same as static Transmute.image / Transmute.audio / etc.
+// Default instance - same as static Transmute.image / Transmute.audio / etc.
 val default = Transmute()
 
 // Instance with GStreamer plugin for desktop HEIF/AVIF/video support

@@ -34,7 +34,7 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            // Pure interface module — no external dependencies
+            // Pure interface module - no external dependencies
         }
 
         commonTest.dependencies {

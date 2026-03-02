@@ -5,7 +5,7 @@ package dev.transmute.video
  *
  * Used with [dev.transmute.VideoTransmuter.wouldTransmute] to determine whether a configured
  * transmuter would produce any change on a video file without decoding it.
- * All properties are nullable — `null` means the value is unknown, and the
+ * All properties are nullable - `null` means the value is unknown, and the
  * transmuter will conservatively assume the transform *might* apply.
  *
  * ```kotlin

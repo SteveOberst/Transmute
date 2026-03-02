@@ -3,7 +3,7 @@ package dev.transmute.image.transform.kernel.impl
 import dev.transmute.image.transform.kernel.ResampleKernel
 
 /**
- * Mitchell–Netravali bicubic filter (B = 1/3, C = 1/3).
+ * Mitchell-Netravali bicubic filter (B = 1/3, C = 1/3).
  *
  * A good general-purpose cubic filter that balances sharpness, ringing,
  * and anisotropy. Recommended as the default for photographic content.

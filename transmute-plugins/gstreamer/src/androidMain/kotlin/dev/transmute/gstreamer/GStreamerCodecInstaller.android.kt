@@ -21,7 +21,7 @@ import dev.transmute.video.MutableVideoEncoderRegistry
  * 1. Download the GStreamer Android SDK from
  *    `https://gstreamer.freedesktop.org/data/pkg/android/`.
  * 2. Set `GSTREAMER_ROOT_ANDROID` to the extracted SDK root.
- * 3. Build the project — the CMake script in `src/androidMain/cpp/`
+ * 3. Build the project - the CMake script in `src/androidMain/cpp/`
  *    will compile `libgstreamer_bridge.so` for each ABI.
  */
 
@@ -101,7 +101,7 @@ internal actual fun installGstVideoCodecs(
 internal actual fun configureResolver(
     installation: GStreamerInstallation,
 ) {
-    // No-op on Android — GStreamer is bundled via JNI (libgstreamer_bridge.so)
+    // No-op on Android - GStreamer is bundled via JNI (libgstreamer_bridge.so)
 }
 
 internal actual fun resolverDiagnostics(): String = ""

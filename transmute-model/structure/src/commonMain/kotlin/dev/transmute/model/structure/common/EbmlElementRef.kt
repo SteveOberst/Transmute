@@ -22,8 +22,8 @@ data class EbmlElementRef(
 /**
  * Encode a non-negative [Long] as an EBML variable-length integer (VINT).
  *
- * The VINT uses 1–8 bytes.  The leading bits of the first byte indicate
- * the total byte count (1xxxxxxx = 1 byte, 01xxxxxx = 2 bytes, …).
+ * The VINT uses 1-8 bytes.  The leading bits of the first byte indicate
+ * the total byte count (1xxxxxxx = 1 byte, 01xxxxxx = 2 bytes, ...).
  */
 private fun Long.toEbmlVint(): ByteArray {
     val v = this
@@ -41,7 +41,7 @@ private fun Long.toEbmlVint(): ByteArray {
 
 /**
  * Encode an [EbmlId] as its raw VINT representation without the
- * size-marker bits stripped — i.e. the on-disk bytes.
+ * size-marker bits stripped - i.e. the on-disk bytes.
  */
 private fun EbmlId.toBytes(): ByteArray {
     val v = value
@@ -59,7 +59,7 @@ private fun EbmlId.toBytes(): ByteArray {
  * A single EBML element with its full payload data.
  *
  * ```
- * | id (VINT) | size (VINT) | payload … |
+ * | id (VINT) | size (VINT) | payload ... |
  * ```
  *
  * For master elements, [children] holds the parsed sub-elements and

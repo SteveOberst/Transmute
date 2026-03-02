@@ -16,8 +16,8 @@ import kotlin.test.assertTrue
 /**
  * End-to-end integration tests for GStreamer iOS video codecs.
  *
- * Tests exercise the full encode (VideoIR → GStreamer cinterop → bytes)
- * and decode (bytes → GStreamer cinterop → VideoIR) pipelines for each
+ * Tests exercise the full encode (VideoIR -> GStreamer cinterop -> bytes)
+ * and decode (bytes -> GStreamer cinterop -> VideoIR) pipelines for each
  * supported video format: MP4, MOV, WebM, AVI, MKV.
  *
  * Soft-skipped when GStreamer.framework is not linked.

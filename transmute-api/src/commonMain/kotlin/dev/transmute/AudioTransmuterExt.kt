@@ -47,7 +47,7 @@ fun <IN, OUT : AudioFormat> AudioTransmuterBuilder<IN, OUT>.fade(
   transform { add(AudioFadeTransform(fadeInMs, fadeOutMs)) }
 }
 
-/** Trim to time range (milliseconds). [endMs] = null → end of audio. */
+/** Trim to time range (milliseconds). [endMs] = null -> end of audio. */
 fun <IN, OUT> DynamicAudioTransmuterBuilder<IN, OUT>.trim(startMs: Long, endMs: Long? = null): DynamicAudioTransmuterBuilder<IN, OUT> = apply {
   transform { add(AudioTrimTransform(startMs, endMs)) }
 }
@@ -59,7 +59,7 @@ fun <IN, OUT : AudioFormat> AudioTransmuterBuilder<IN, OUT>.trim(
   transform { add(AudioTrimTransform(startMs, endMs)) }
 }
 
-/** Apply volume gain in decibels (+dB louder, −dB quieter). */
+/** Apply volume gain in decibels (+dB louder, dB quieter). */
 fun <IN, OUT> DynamicAudioTransmuterBuilder<IN, OUT>.gain(db: Float): DynamicAudioTransmuterBuilder<IN, OUT> = apply {
   transform { add(AudioGainTransform(db)) }
 }
@@ -68,7 +68,7 @@ fun <IN, OUT : AudioFormat> AudioTransmuterBuilder<IN, OUT>.gain(db: Float): Aud
   transform { add(AudioGainTransform(db)) }
 }
 
-/** Convert stereo → mono by averaging channels. */
+/** Convert stereo -> mono by averaging channels. */
 fun <IN, OUT> DynamicAudioTransmuterBuilder<IN, OUT>.mono(): DynamicAudioTransmuterBuilder<IN, OUT> = apply {
   transform { add(AudioMonoTransform()) }
 }
@@ -135,7 +135,7 @@ fun <IN, OUT : AudioFormat> AudioTransmuterBuilder<IN, OUT>.compressor(
   transform { add(AudioCompressorTransform(thresholdDb, ratio, attackMs, releaseMs, makeupGainDb)) }
 }
 
-/** Remap audio channels. [mapping] defines output→source channel indices. */
+/** Remap audio channels. [mapping] defines output->source channel indices. */
 fun <IN, OUT> DynamicAudioTransmuterBuilder<IN, OUT>.channelMap(mapping: IntArray): DynamicAudioTransmuterBuilder<IN, OUT> = apply {
   transform { add(AudioChannelMapTransform(mapping)) }
 }

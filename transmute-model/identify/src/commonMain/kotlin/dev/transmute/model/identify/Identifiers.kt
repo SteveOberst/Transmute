@@ -5,7 +5,7 @@ package dev.transmute.model.identify
 /**
  * ISO base media file format four-character code.
  * Each character must be in the 0x00..0xFF range to accommodate
- * legacy atoms like `©nam`.
+ * legacy atoms like `nam`.
  */
 import dev.transmute.model.core.InvalidIdentifierException
 import kotlinx.serialization.Serializable

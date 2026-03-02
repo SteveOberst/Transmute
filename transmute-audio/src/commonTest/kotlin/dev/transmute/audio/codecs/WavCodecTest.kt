@@ -41,7 +41,7 @@ class WavCodecTest {
     assertEquals(original.channelCount, decoded.channelCount)
     assertEquals(original.samples.data.size, decoded.samples.data.size)
 
-    // Check samples are within quantization error (16-bit = 1/32768 ≈ 0.00003)
+    // Check samples are within quantization error (16-bit = 1/32768  0.00003)
     for (i in original.samples.data.indices) {
       val diff = abs(original.samples.data[i] - decoded.samples.data[i])
       assertTrue(diff < 0.001f, "Sample $i differs by $diff")

@@ -3,7 +3,7 @@
 import type { FormatInfo, MediaDomain } from '@/lib/types'
 import { motion, AnimatePresence } from 'framer-motion'
 
-/* ── Domain metadata ───────────────────────────────────────────────── */
+/* -- Domain metadata ------------------------------------------------- */
 const DOMAINS: MediaDomain[] = ['IMAGE', 'AUDIO', 'VIDEO']
 
 const domainMeta: Record<MediaDomain, {
@@ -56,7 +56,7 @@ const domainMeta: Record<MediaDomain, {
   },
 }
 
-/* ── Capability pill ───────────────────────────────────────────────── */
+/* -- Capability pill ------------------------------------------------- */
 function CapPill({
   active,
   label,
@@ -78,7 +78,7 @@ function CapPill({
   )
 }
 
-/* ── Single format card ───────────────────────────────────────────── */
+/* -- Single format card --------------------------------------------- */
 function FormatCard({ fmt, index }: { fmt: FormatInfo; index: number }) {
   const meta = domainMeta[fmt.domain]
   return (
@@ -136,7 +136,7 @@ function FormatCard({ fmt, index }: { fmt: FormatInfo; index: number }) {
   )
 }
 
-/* ── Category section header (used in All view) ───────────────────── */
+/* -- Category section header (used in All view) --------------------- */
 function CategoryHeader({ domain, count }: { domain: MediaDomain; count: number }) {
   const meta = domainMeta[domain]
   return (
@@ -156,7 +156,7 @@ function CategoryHeader({ domain, count }: { domain: MediaDomain; count: number 
   )
 }
 
-/* ── Provider section header ──────────────────────────────────────── */
+/* -- Provider section header ---------------------------------------- */
 function ProviderHeader({ provider, count }: { provider: string | null; count: number }) {
   const isBuiltIn = !provider
   return (
@@ -176,13 +176,13 @@ function ProviderHeader({ provider, count }: { provider: string | null; count: n
   )
 }
 
-/* ── Render formats grouped by provider ───────────────────────────── */
+/* -- Render formats grouped by provider ----------------------------- */
 function FormatsWithProviders({ formats, indexOffset = 0 }: { formats: FormatInfo[]; indexOffset?: number }) {
   const providers = Array.from(new Set(formats.map((f) => f.providedBy ?? null)))
     .sort((a, b) => (a === null ? -1 : b === null ? 1 : a.localeCompare(b)))
 
   if (providers.length <= 1 && !providers[0]) {
-    // All built-in — skip provider header
+    // All built-in - skip provider header
     return (
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2.5">
         {formats.map((fmt, i) => <FormatCard key={fmt.name} fmt={fmt} index={indexOffset + i} />)}
@@ -210,7 +210,7 @@ function FormatsWithProviders({ formats, indexOffset = 0 }: { formats: FormatInf
   )
 }
 
-/* ── Main export ──────────────────────────────────────────────────── */
+/* -- Main export ---------------------------------------------------- */
 interface Props {
   formats: FormatInfo[]
   selectedDomain?: MediaDomain | null
@@ -220,7 +220,7 @@ interface Props {
 export default function FormatGrid({ formats, selectedDomain, onDomainChange }: Props) {
   const all = selectedDomain === null || selectedDomain === undefined
 
-  /* ── Tabs ── */
+  /* -- Tabs -- */
   return (
     <div>
       {/* Filter tabs */}

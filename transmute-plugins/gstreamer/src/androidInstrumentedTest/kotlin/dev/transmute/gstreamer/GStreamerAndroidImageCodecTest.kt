@@ -115,7 +115,7 @@ class GStreamerAndroidImageCodecTest {
         assertNull(decoder.sniff(Bytes(byteArrayOf(0x00, 0x00, 0x00))))
     }
 
-    // -- HEIF encode → decode roundtrip -------------------------------------
+    // -- HEIF encode -> decode roundtrip -------------------------------------
 
     @Test
     fun heif_encodeAndDecode_roundTrip() = runBlocking {
@@ -141,7 +141,7 @@ class GStreamerAndroidImageCodecTest {
         assertEquals(64, decoded.height)
     }
 
-    // -- HEIC encode → decode roundtrip -------------------------------------
+    // -- HEIC encode -> decode roundtrip -------------------------------------
 
     @Test
     fun heic_encodeAndDecode_roundTrip() = runBlocking {
@@ -167,7 +167,7 @@ class GStreamerAndroidImageCodecTest {
         assertEquals(64, decoded.height)
     }
 
-    // -- AVIF encode → decode roundtrip -------------------------------------
+    // -- AVIF encode -> decode roundtrip -------------------------------------
 
     @Test
     fun avif_encodeAndDecode_roundTrip() = runBlocking {

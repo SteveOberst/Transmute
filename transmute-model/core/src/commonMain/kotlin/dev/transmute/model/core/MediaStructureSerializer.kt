@@ -34,7 +34,7 @@ import kotlinx.serialization.json.put
  * serializer is used. Built-in types are registered automatically when a
  * [dev.transmute.Transmute] instance is built.
  *
- * **JSON only** — this serializer requires a [JsonEncoder]/[JsonDecoder] and
+ * **JSON only** - this serializer requires a [JsonEncoder]/[JsonDecoder] and
  * will throw [SerializationException] if used with another format.
  */
 object MediaStructureSerializer : KSerializer<MediaStructure> {

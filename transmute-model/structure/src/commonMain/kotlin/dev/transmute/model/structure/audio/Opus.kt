@@ -20,7 +20,7 @@ import kotlinx.serialization.Serializable
  * Layout (19 bytes minimum):
  * ```
  * | "OpusHead" (8 B) | version (1 B) | channels (1 B) | preSkip (2 B LE) |
- * | sampleRate (4 B LE) | outputGain (2 B LE) | channelMapping (1 B) | … |
+ * | sampleRate (4 B LE) | outputGain (2 B LE) | channelMapping (1 B) | ... |
  * ```
  */
 @Serializable
@@ -33,7 +33,7 @@ data class OpusIdentification(
     val channelMappingFamily: UByte,
 )
 
-// --- Opus file — complete on-disk representation ---
+// --- Opus file - complete on-disk representation ---
 
 /**
  * Canonical representation of an Opus file as written to disk.

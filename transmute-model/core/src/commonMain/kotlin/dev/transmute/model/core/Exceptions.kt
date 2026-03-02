@@ -40,7 +40,7 @@ class InvalidByteRangeException(
 
 /**
  * Thrown when a container-level identifier value is out of its allowed
- * range (e.g. [FourCC] byte outside 0x00–0xFF).
+ * range (e.g. [FourCC] byte outside 0x00-0xFF).
  */
 class InvalidIdentifierException(
     message: String,

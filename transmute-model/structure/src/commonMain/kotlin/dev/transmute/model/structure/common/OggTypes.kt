@@ -44,7 +44,7 @@ data class OggStreamRef(
     val pages: List<OggPageRef> = emptyList(),
 )
 
-// --- Helpers — little-endian encoding ---
+// --- Helpers - little-endian encoding ---
 
 private fun UInt.toLittleEndianBytes(): ByteArray = byteArrayOf(
     this.toByte(),
@@ -74,13 +74,13 @@ private fun Int.toLittleEndianBytes(): ByteArray = toUInt().toLittleEndianBytes(
  * ```
  * | "OggS" (4 B) | version (1 B) | headerType (1 B) | granulePosition (8 B LE) |
  * | serialNumber (4 B LE) | pageSequence (4 B LE) | crc (4 B LE) |
- * | segmentCount (1 B) | segmentTable (segmentCount B) | pageData … |
+ * | segmentCount (1 B) | segmentTable (segmentCount B) | pageData ... |
  * ```
  *
  * Header-type flags:
- * - `0x01` — continuation of previous packet
- * - `0x02` — beginning of stream (BOS)
- * - `0x04` — end of stream (EOS)
+ * - `0x01` - continuation of previous packet
+ * - `0x02` - beginning of stream (BOS)
+ * - `0x04` - end of stream (EOS)
  */
 @Serializable
 data class OggPage(

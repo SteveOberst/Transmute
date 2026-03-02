@@ -12,7 +12,7 @@ import dev.transmute.codec.pipeline.TransformId
  * Rotates an [ImageIR] by an explicit number of degrees clockwise.
  *
  * Supported angles: 90, 180, 270.
- * The rotation is a pure pixel shuffle — no interpolation, no quality loss.
+ * The rotation is a pure pixel shuffle - no interpolation, no quality loss.
  * The [Orientation] field of the resulting IR is always reset to [Orientation.NORMAL].
  *
  * @param degrees Clockwise rotation angle; must be 90, 180, or 270. Default: 90.
@@ -43,7 +43,7 @@ class ImageRotateTransform(val degrees: Int = 90) : ImageTransform {
 
     return when (degrees) {
       90 -> {
-        // 90° CW: (x,y) → (srcH-1-y, x). New dimensions: srcH × srcW.
+        // 90 deg CW: (x,y) -> (srcH-1-y, x). New dimensions: srcH x srcW.
         val dstW = srcH
         val dstH = srcW
         val dstStride = dstW * bpp
@@ -69,7 +69,7 @@ class ImageRotateTransform(val degrees: Int = 90) : ImageTransform {
       }
 
       180 -> {
-        // 180°: (x,y) → (srcW-1-x, srcH-1-y). Same dimensions.
+        // 180 deg: (x,y) -> (srcW-1-x, srcH-1-y). Same dimensions.
         val dstStride = srcW * bpp
         val dstData = ByteArray(srcH * dstStride)
 
@@ -93,7 +93,7 @@ class ImageRotateTransform(val degrees: Int = 90) : ImageTransform {
       }
 
       else -> { // 270
-        // 270° CW (= 90° CCW): (x,y) → (y, srcW-1-x). New dimensions: srcH × srcW.
+        // 270 deg CW (= 90 deg CCW): (x,y) -> (y, srcW-1-x). New dimensions: srcH x srcW.
         val dstW = srcH
         val dstH = srcW
         val dstStride = dstW * bpp

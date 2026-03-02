@@ -5,7 +5,7 @@ package dev.transmute.plugin
  *
  * Every [TransmutePlugin] exposes a unique [PluginId] via its [TransmutePlugin.key]
  * property. This replaces arbitrary string-based identification throughout the
- * framework — diagnostics, logging, dependency declarations, and user-facing queries
+ * framework - diagnostics, logging, dependency declarations, and user-facing queries
  * all use the same typed identifier.
  *
  * Plugin authors declare their identifier as a constant:

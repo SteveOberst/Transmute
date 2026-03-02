@@ -11,9 +11,9 @@ import dev.transmute.model.core.asBytes
 import dev.transmute.model.core.RawMediaStructure
 import kotlinx.serialization.Serializable
 
-// ════════════════════════════════════════════════════════════════
+// ================================================================
 //  MPEG enums
-// ════════════════════════════════════════════════════════════════
+// ================================================================
 
 /** MPEG audio version. */
 @Serializable
@@ -27,9 +27,9 @@ enum class MpegLayer { Layer1, Layer2, Layer3 }
 @Serializable
 enum class MpegChannelMode { Stereo, JointStereo, DualChannel, Mono }
 
-// ════════════════════════════════════════════════════════════════
+// ================================================================
 //  Typed models
-// ════════════════════════════════════════════════════════════════
+// ================================================================
 
 /**
  * Parsed MPEG audio frame header (4 bytes).
@@ -75,9 +75,9 @@ data class Mp3Id3v1Tag(
     val genre: Int,
 )
 
-// ════════════════════════════════════════════════════════════════
-//  MP3 file — complete on-disk representation
-// ════════════════════════════════════════════════════════════════
+// ================================================================
+//  MP3 file - complete on-disk representation
+// ================================================================
 
 /**
  * Canonical representation of an MP3 file as written to disk.
@@ -85,7 +85,7 @@ data class Mp3Id3v1Tag(
  * An MP3 file is a stream of MPEG audio frames optionally
  * preceded by an ID3v2 tag and/or followed by an ID3v1 tag:
  * ```
- * | [ID3v2 tag] | Frame 1 | Frame 2 | … | [ID3v1 tag (128 B)] |
+ * | [ID3v2 tag] | Frame 1 | Frame 2 | ... | [ID3v1 tag (128 B)] |
  * ```
  *
  * Storing every individual frame is impractical (thousands per file),

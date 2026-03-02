@@ -38,7 +38,7 @@ class ImageResizeTransformTest {
     val transform = ImageResizeTransform(50, 50)
 
     val result = transform.apply(src, ctx)
-    // Solid color → should remain solid after resize; peak diff ≤ 1 for rounding
+    // Solid color -> should remain solid after resize; peak diff <= 1 for rounding
     val diff = ImageTestHelpers.peakDifference(
       ImageTestHelpers.solidColor(50, 50, r = 200, g = 100, b = 50),
       result,

@@ -21,7 +21,7 @@ sealed interface VideoDecodeOptions : DecodeOptions {
 }
 
 /**
- * Default decode options — no special configuration.
+ * Default decode options - no special configuration.
  */
 data class CanonicalVideoDecodeOptions(
   override val acceptedInputFormats: Set<VideoFormat> = emptySet(),

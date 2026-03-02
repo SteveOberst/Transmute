@@ -16,7 +16,7 @@ class FlacStructureReaderTest {
      */
     private fun minimalFlac(): ByteArray {
         val marker = "fLaC".encodeToByteArray() // 4 bytes
-        val streamInfoBody = ByteArray(34) // all zeroes — valid structurally
+        val streamInfoBody = ByteArray(34) // all zeroes - valid structurally
         val blockHeader = byteArrayOf(
             (0x80 or 0x00).toByte(), // isLast=true, type=0 (STREAMINFO)
             0x00, 0x00, 0x22,       // length = 34 (Big-Endian 24-bit)

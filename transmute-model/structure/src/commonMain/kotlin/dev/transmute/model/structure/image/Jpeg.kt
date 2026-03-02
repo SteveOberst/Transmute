@@ -9,7 +9,7 @@ import dev.transmute.model.core.asBytes
 import dev.transmute.model.core.RawMediaStructure
 import kotlinx.serialization.Serializable
 
-// --- Helpers — big-endian encoding ---
+// --- Helpers - big-endian encoding ---
 
 private fun UShort.toBigEndianBytes(): ByteArray = byteArrayOf(
     (this.toInt() shr 8).toByte(),
@@ -56,17 +56,17 @@ enum class JpegMarkerType(val code: UByte) {
     }
 }
 
-// --- JPEG segment — the fundamental structural unit ---
+// --- JPEG segment - the fundamental structural unit ---
 
 /**
  * A single JPEG segment (marker + payload) as it appears on disk.
  *
  * **Payload segments** (most markers):
  * ```
- * | 0xFF | marker (1 B) | length (2 B BE, includes itself) | data (length − 2 B) |
+ * | 0xFF | marker (1 B) | length (2 B BE, includes itself) | data (length  2 B) |
  * ```
  *
- * **Standalone markers** (SOI, EOI, RST0–RST7): no length or data.
+ * **Standalone markers** (SOI, EOI, RST0-RST7): no length or data.
  *
  * For SOS segments, [entropy] holds the entropy-coded scan data that
  * follows the SOS header up to the next marker.
@@ -119,7 +119,7 @@ data class JpegComponent(
 )
 
 /**
- * Parsed Start-of-Frame data (SOF0 / SOF2 / …).
+ * Parsed Start-of-Frame data (SOF0 / SOF2 / ...).
  */
 @Serializable
 data class JpegSofData(
@@ -147,7 +147,7 @@ data class JpegJfifHeader(
     val thumbnailHeight: Int,
 )
 
-// --- JPEG file — complete on-disk representation ---
+// --- JPEG file - complete on-disk representation ---
 
 /**
  * Canonical representation of a JPEG file as written to disk.

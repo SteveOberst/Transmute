@@ -14,7 +14,7 @@ import dev.transmute.structure.common.parseIsoBmffBoxes
  * HeifRaw uses ISO BMFF with major brands `heic`, `heix`, `mif1`, or `heis`.
  *
  * ```
- * | ftyp box | meta box | mdat box | … |
+ * | ftyp box | meta box | mdat box | ... |
  * ```
  */
 class HeifStructureReader : StructureReader<HeifRaw> {

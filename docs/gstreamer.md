@@ -66,7 +66,7 @@ By default, the bundled GStreamer is used. You can override this behavior:
 
 ```kotlin
 install(GStreamer) {
-    // Default — uses the bundled GStreamer runtime (no action needed)
+    // Default - uses the bundled GStreamer runtime (no action needed)
 
     // Use a custom GStreamer installation at a specific path:
     // installFrom(TPath.of("/opt/gstreamer"))

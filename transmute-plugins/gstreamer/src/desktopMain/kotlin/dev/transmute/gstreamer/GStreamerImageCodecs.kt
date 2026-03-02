@@ -16,18 +16,18 @@ import javax.imageio.ImageIO
  * GStreamer-based image codecs for formats not supported by Java ImageIO.
  *
  * Handles HEIF, HEIC, and AVIF via GStreamer subprocess:
- * - **Decode**: GStreamer converts to PNG temp file → ImageIO reads PNG
- * - **Encode**: ImageIO writes input to PNG temp file → GStreamer converts to target format
+ * - **Decode**: GStreamer converts to PNG temp file -> ImageIO reads PNG
+ * - **Encode**: ImageIO writes input to PNG temp file -> GStreamer converts to target format
  */
 
 // ---------------------------------------------------------------------------
-// GStreamer Image Decoder – HEIF, HEIC, AVIF
+// GStreamer Image Decoder - HEIF, HEIC, AVIF
 // ---------------------------------------------------------------------------
 
 /**
  * Decodes HEIF, HEIC, and AVIF images using GStreamer on the desktop.
  *
- * Flow: ByteArray → temp file → gst-launch-1.0 (→ PNG) → temp → ImageIO → ImageIR
+ * Flow: ByteArray -> temp file -> gst-launch-1.0 (-> PNG) -> temp -> ImageIO -> ImageIR
  */
 internal class GstImageDecoder : ImageDecoder {
     override val supportedFormats: Set<ImageFormat> = setOf(
@@ -116,7 +116,7 @@ internal class GstImageDecoder : ImageDecoder {
 }
 
 // ---------------------------------------------------------------------------
-// GStreamer Image Encoder – HEIF, AVIF
+// GStreamer Image Encoder - HEIF, AVIF
 // ---------------------------------------------------------------------------
 
 /**
@@ -124,7 +124,7 @@ internal class GstImageDecoder : ImageDecoder {
  *
  * HEIC is treated as a synonym for HEIF (same container, both use HEVC).
  *
- * Flow: ImageIR → PNG temp file (via ImageIO) → gst-launch-1.0 → target → ByteArray
+ * Flow: ImageIR -> PNG temp file (via ImageIO) -> gst-launch-1.0 -> target -> ByteArray
  *
  * Requires GStreamer plugins: `x265enc` for HEIF/HEIC, `av1enc` for AVIF.
  */

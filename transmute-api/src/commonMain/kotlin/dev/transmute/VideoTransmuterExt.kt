@@ -9,7 +9,7 @@ import dev.transmute.video.transform.VideoRotateTransform
 import dev.transmute.video.transform.VideoSpeedTransform
 import dev.transmute.video.transform.VideoTrimTransform
 
-/** Trim to time range (milliseconds). [endMs] = null → end of video. */
+/** Trim to time range (milliseconds). [endMs] = null -> end of video. */
 fun <IN, OUT> DynamicVideoTransmuterBuilder<IN, OUT>.trim(startMs: Long, endMs: Long? = null): DynamicVideoTransmuterBuilder<IN, OUT> = apply {
   transform { add(VideoTrimTransform(startMs, endMs)) }
 }
@@ -21,7 +21,7 @@ fun <IN, OUT : VideoFormat> VideoTransmuterBuilder<IN, OUT>.trim(
   transform { add(VideoTrimTransform(startMs, endMs)) }
 }
 
-/** Resize frames to fit within [maxWidth]×[maxHeight], preserving aspect ratio. No upscaling. */
+/** Resize frames to fit within [maxWidth]x[maxHeight], preserving aspect ratio. No upscaling. */
 fun <IN, OUT> DynamicVideoTransmuterBuilder<IN, OUT>.resize(maxWidth: Int, maxHeight: Int): DynamicVideoTransmuterBuilder<IN, OUT> = apply {
   transform { add(VideoResizeTransform(maxWidth, maxHeight)) }
 }
@@ -74,7 +74,7 @@ fun <IN, OUT : VideoFormat> VideoTransmuterBuilder<IN, OUT>.speed(speed: Float):
   transform { add(VideoSpeedTransform(speed)) }
 }
 
-/** Rotate frames by 90°, 180°, or 270° clockwise. */
+/** Rotate frames by 90 deg, 180 deg, or 270 deg clockwise. */
 fun <IN, OUT> DynamicVideoTransmuterBuilder<IN, OUT>.rotate(degrees: Int): DynamicVideoTransmuterBuilder<IN, OUT> = apply {
   transform { add(VideoRotateTransform(degrees)) }
 }

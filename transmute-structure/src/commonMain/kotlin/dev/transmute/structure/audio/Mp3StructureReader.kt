@@ -13,7 +13,7 @@ import dev.transmute.model.structure.audio.Mp3Raw
  *
  * Mp3Raw layout:
  * ```
- * | [ID3v2 tag] | MPEG frame₁ | MPEG frame₂ | … | [ID3v1 tag (128 B)] |
+ * | [ID3v2 tag] | MPEG frame1 | MPEG frame2 | ... | [ID3v1 tag (128 B)] |
  * ```
  *
  * The reader extracts the optional ID3v2 header, the raw audio frames

@@ -17,12 +17,12 @@ val transmute = Transmute {
 }
 
 // Domain access
-transmute.image   // → image transcoding
-transmute.audio   // → audio transcoding
-transmute.video   // → video transcoding
-transmute.codec   // → low-level decode / encode / detect
-transmute.inspect // → format detection & lightweight probing
-transmute.structure // → structure read / write / transform
+transmute.image   // -> image transcoding
+transmute.audio   // -> audio transcoding
+transmute.video   // -> video transcoding
+transmute.codec   // -> low-level decode / encode / detect
+transmute.inspect // -> format detection & lightweight probing
+transmute.structure // -> structure read / write / transform
 ```
 
 ## Key Types

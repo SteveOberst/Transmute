@@ -23,15 +23,15 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 /**
- * Phase 2 — Content fidelity integration tests.
+ * Phase 2 - Content fidelity integration tests.
  *
  * These tests go beyond "encode produces bytes / decode produces IR" (Phase 1)
- * and verify that the *content* survives the encode → decode roundtrip:
+ * and verify that the *content* survives the encode -> decode roundtrip:
  *
  * - Audio waveform preservation (RMS within tolerance)
- * - Audio duration accuracy (±50 ms)
+ * - Audio duration accuracy (50 ms)
  * - Video dimension roundtrip (exact match)
- * - Video frame count (within ±1 of expected)
+ * - Video frame count (within 1 of expected)
  * - Image pixel fidelity (mean absolute error < threshold)
  *
  * All tests are **soft-skipped** when GStreamer is not installed locally.
@@ -40,13 +40,13 @@ class ContentFidelityTest {
 
     private val ctx = testContext()
 
-    // ───────────────────────────────────────────────────────────────────────
+    // -----------------------------------------------------------------------
     // Audio waveform preservation
-    // ───────────────────────────────────────────────────────────────────────
+    // -----------------------------------------------------------------------
 
     /**
      * Encode a 440 Hz sine, decode it back, and verify the RMS of the decoded
-     * signal is within ±5 dB of the original. Lossy codecs (AAC, Opus) will
+     * signal is within 5 dB of the original. Lossy codecs (AAC, Opus) will
      * attenuate somewhat but should not destroy the signal entirely.
      */
     @Test
@@ -109,9 +109,9 @@ class ContentFidelityTest {
         }
     }
 
-    // ───────────────────────────────────────────────────────────────────────
+    // -----------------------------------------------------------------------
     // Audio duration accuracy
-    // ───────────────────────────────────────────────────────────────────────
+    // -----------------------------------------------------------------------
 
     @Test
     fun aac_durationAccuracy_1s() = runTest {
@@ -148,9 +148,9 @@ class ContentFidelityTest {
         }
     }
 
-    // ───────────────────────────────────────────────────────────────────────
+    // -----------------------------------------------------------------------
     // Video dimension roundtrip
-    // ───────────────────────────────────────────────────────────────────────
+    // -----------------------------------------------------------------------
 
     @Test
     fun mp4_dimensionRoundtrip_320x240() = runTest {
@@ -187,9 +187,9 @@ class ContentFidelityTest {
         }
     }
 
-    // ───────────────────────────────────────────────────────────────────────
+    // -----------------------------------------------------------------------
     // Video frame count
-    // ───────────────────────────────────────────────────────────────────────
+    // -----------------------------------------------------------------------
 
     @Test
     fun mp4_frameCount_10fps1s() = runTest {
@@ -212,9 +212,9 @@ class ContentFidelityTest {
         }
     }
 
-    // ───────────────────────────────────────────────────────────────────────
+    // -----------------------------------------------------------------------
     // Image pixel fidelity
-    // ───────────────────────────────────────────────────────────────────────
+    // -----------------------------------------------------------------------
 
     @Test
     fun heif_pixelFidelity_solidRed() = runTest {
@@ -253,9 +253,9 @@ class ContentFidelityTest {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
+    // =======================================================================
     // Helpers
-    // ═══════════════════════════════════════════════════════════════════════
+    // =======================================================================
 
     /** Compute RMS amplitude in dB (relative to 1.0 full scale). */
     private fun rmsDb(samples: FloatArray): Double {
@@ -266,7 +266,7 @@ class ContentFidelityTest {
         return if (rms < 1e-10) -100.0 else 20.0 * ln(rms) / ln(10.0)
     }
 
-    /** Assert that encode→decode preserves duration within tolerance. */
+    /** Assert that encode->decode preserves duration within tolerance. */
     private suspend fun assertDurationWithin(
         codec: dev.transmute.audio.AudioCodec,
         format: AudioFormat,
@@ -284,7 +284,7 @@ class ContentFidelityTest {
         )
     }
 
-    /** Assert that encode→decode preserves video dimensions exactly. */
+    /** Assert that encode->decode preserves video dimensions exactly. */
     private suspend fun assertVideoDimensions(
         codec: dev.transmute.video.VideoCodec,
         format: VideoFormat,
@@ -302,7 +302,7 @@ class ContentFidelityTest {
         assertEquals(height, decoded.videoTrack.height, "$format height must survive roundtrip")
     }
 
-    /** Assert that encode→decode yields a frame count within expected range. */
+    /** Assert that encode->decode yields a frame count within expected range. */
     private suspend fun assertFrameCount(
         codec: dev.transmute.video.VideoCodec,
         format: VideoFormat,

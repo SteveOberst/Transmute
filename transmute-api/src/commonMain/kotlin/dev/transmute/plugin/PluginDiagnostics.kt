@@ -60,7 +60,7 @@ class PluginDiagnostics internal constructor(
  * Aggregated diagnostics from all installed plugins.
  *
  * Available after the `Transmute` instance is built. Access via
- * `transmute.diagnostics` (future — once exposed on the Transmute class).
+ * `transmute.diagnostics` (future - once exposed on the Transmute class).
  */
 class AggregateDiagnostics internal constructor() {
     private val _plugins = mutableMapOf<PluginId, PluginDiagnostics>()

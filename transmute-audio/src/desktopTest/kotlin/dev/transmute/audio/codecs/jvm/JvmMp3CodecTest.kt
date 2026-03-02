@@ -81,7 +81,7 @@ class JvmMp3CodecTest {
         assertEquals(original.channelCount, decoded.channelCount, "Channel count should be preserved")
         assertTrue(decoded.samples.data.isNotEmpty(), "Decoded samples should not be empty")
 
-        // MP3 is lossy - check approximate duration match (within ±50ms due to frame padding)
+        // MP3 is lossy - check approximate duration match (within 50ms due to frame padding)
         val durationDiff = abs(original.durationMs - decoded.durationMs)
         assertTrue(durationDiff < 100, "Duration diff should be <100ms, was $durationDiff")
     }

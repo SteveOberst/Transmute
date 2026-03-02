@@ -131,7 +131,7 @@ val wav: Wav = Transmute.structure.read(wavBytes.asBytes(), AudioFormat.Wav)
 val original = fileBytes
 val structure = Transmute.structure.read(original.asBytes())
 val roundTripped = Transmute.structure.write(structure)
-// roundTripped.data contentEquals original  →  true
+// roundTripped.data contentEquals original  ->  true
 ```
 
 ## Structure: lambda sugar
@@ -186,7 +186,7 @@ Read, modify, and write back through a single channel:
 ```kotlin
 suspend fun stampPng(channel: TChannel) {
     Transmute.structure.transform<Png>(channel, ImageFormat.Png) {
-        // 'this' is Png — return a modified copy
+        // 'this' is Png - return a modified copy
         copy(textChunks = textChunks + TextChunk("Comment", "Processed"))
     }
 }

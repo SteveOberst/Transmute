@@ -11,7 +11,7 @@ import dev.transmute.model.core.RawMediaStructure
  * Each format has its own reader implementation that knows how to
  * parse the binary layout of that format into a typed structure.
  *
- * Readers are pure functions over bytes — they do **not** decode
+ * Readers are pure functions over bytes - they do **not** decode
  * pixel/sample data. They only parse the structural envelope
  * (headers, chunks, atoms, etc.) so the result mirrors the on-disk
  * layout as a Kotlin data class.
@@ -25,7 +25,7 @@ import dev.transmute.model.core.RawMediaStructure
 interface StructureReader<out S : RawMediaStructure> {
 
     /**
-     * Quick check — can this reader likely parse [source]?
+     * Quick check - can this reader likely parse [source]?
      *
      * Implementations should check magic bytes / signatures without
      * fully parsing the file. Returns `false` when the bytes clearly

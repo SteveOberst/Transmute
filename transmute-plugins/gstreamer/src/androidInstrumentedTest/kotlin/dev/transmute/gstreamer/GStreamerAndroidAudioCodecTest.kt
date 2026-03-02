@@ -20,8 +20,8 @@ import kotlin.test.assertTrue
 /**
  * Android instrumented tests for GStreamer audio codecs.
  *
- * Tests exercise the full encode (AudioIR → GStreamer JNI → bytes)
- * and decode (bytes → GStreamer JNI → AudioIR) pipelines for each
+ * Tests exercise the full encode (AudioIR -> GStreamer JNI -> bytes)
+ * and decode (bytes -> GStreamer JNI -> AudioIR) pipelines for each
  * supported audio format: AAC, M4A, Opus, FLAC (encode only),
  * OGG/Vorbis (encode only).
  *

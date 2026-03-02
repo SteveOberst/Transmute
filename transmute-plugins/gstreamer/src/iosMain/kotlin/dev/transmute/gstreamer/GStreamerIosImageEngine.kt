@@ -54,9 +54,9 @@ import platform.ImageIO.CGImageSourceCreateWithData
  * Image encode / decode engine for iOS via GStreamer cinterop bridge.
  *
  * Uses CoreGraphics for the PNG intermediate step:
- * - **Decode**: GStreamer → PNG file → [CGImageSourceCreateWithData] → RGBA_8888 → [ImageIR]
- * - **Encode**: [ImageIR] → RGBA → PNG via [CGImageDestinationCreateWithData] →
- *   GStreamer pipeline → target format
+ * - **Decode**: GStreamer -> PNG file -> [CGImageSourceCreateWithData] -> RGBA_8888 -> [ImageIR]
+ * - **Encode**: [ImageIR] -> RGBA -> PNG via [CGImageDestinationCreateWithData] ->
+ *   GStreamer pipeline -> target format
  */
 internal object GStreamerIosImageEngine {
 
@@ -149,7 +149,7 @@ internal object GStreamerIosImageEngine {
 }
 
 // ---------------------------------------------------------------------------
-// CoreGraphics PNG ↔ ImageIR helpers
+// CoreGraphics PNG  ImageIR helpers
 // ---------------------------------------------------------------------------
 
 /**

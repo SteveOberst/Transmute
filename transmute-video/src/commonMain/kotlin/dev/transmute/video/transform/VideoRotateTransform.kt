@@ -10,13 +10,13 @@ import dev.transmute.video.VideoIR
 import dev.transmute.video.VideoTransform
 
 /**
- * Rotates video frames by 90°, 180°, or 270° clockwise.
+ * Rotates video frames by 90 deg, 180 deg, or 270 deg clockwise.
  *
  * Uses the same pure pixel-shuffle approach as
  * [ImageRotateTransform][dev.transmute.image.transform.ImageRotateTransform].
  * No interpolation - every source pixel maps exactly to one destination pixel.
  *
- * For 90° and 270° rotations, frame width and height are swapped
+ * For 90 deg and 270 deg rotations, frame width and height are swapped
  * and the video track dimensions are updated accordingly.
  *
  * @param degrees Rotation angle. Must be 90, 180, or 270.
@@ -72,7 +72,7 @@ private class RotatedFrameStream(
 
     return when (degrees) {
       90 -> {
-        // 90° CW: (x,y) → (srcH-1-y, x)
+        // 90 deg CW: (x,y) -> (srcH-1-y, x)
         val dstW = srcH
         val dstH = srcW
         val dstData = ByteArray(dstW * dstH * bpp)
@@ -95,7 +95,7 @@ private class RotatedFrameStream(
       }
 
       180 -> {
-        // 180°: (x,y) → (srcW-1-x, srcH-1-y)
+        // 180 deg: (x,y) -> (srcW-1-x, srcH-1-y)
         val dstData = ByteArray(srcW * srcH * bpp)
 
         for (y in 0 until srcH) {
@@ -112,7 +112,7 @@ private class RotatedFrameStream(
       }
 
       270 -> {
-        // 270° CW (= 90° CCW): (x,y) → (y, srcW-1-x)
+        // 270 deg CW (= 90 deg CCW): (x,y) -> (y, srcW-1-x)
         val dstW = srcH
         val dstH = srcW
         val dstData = ByteArray(dstW * dstH * bpp)

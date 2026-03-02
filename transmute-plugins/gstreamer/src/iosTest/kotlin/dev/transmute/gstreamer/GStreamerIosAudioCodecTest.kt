@@ -16,8 +16,8 @@ import kotlin.test.assertTrue
 /**
  * End-to-end integration tests for GStreamer iOS audio codecs.
  *
- * Tests exercise the full encode (AudioIR → GStreamer cinterop → bytes)
- * and decode (bytes → GStreamer cinterop → AudioIR) pipelines for each
+ * Tests exercise the full encode (AudioIR -> GStreamer cinterop -> bytes)
+ * and decode (bytes -> GStreamer cinterop -> AudioIR) pipelines for each
  * supported audio format: AAC, M4A, Opus, FLAC (encode only),
  * OGG/Vorbis (encode only).
  *

@@ -29,13 +29,13 @@ data class PngUnknownChunkSummary(
 )
 
 // ---------------------------------------------------------------------------
-// PngStructure — the serialisable, JSON-friendly view of a PNG file
+// PngStructure - the serialisable, JSON-friendly view of a PNG file
 // ---------------------------------------------------------------------------
 
 /**
  * A structured, JSON-serialisable representation of a PNG file.
  *
- * Unlike [PngRaw] — which mirrors the binary on-disk layout — this
+ * Unlike [PngRaw] - which mirrors the binary on-disk layout - this
  * class exposes all well-known chunks as typed, named fields.  Blob-heavy
  * data (IDAT compressed image data) is replaced by summary statistics
  * ([idatCount], [idatTotalBytes]).
@@ -108,7 +108,7 @@ data class PngStructure(
 ) : MediaStructure {
 
     // -----------------------------------------------------------------------
-    // Editor — mutable surface for chunk-level modifications
+    // Editor - mutable surface for chunk-level modifications
     // -----------------------------------------------------------------------
 
     /**
@@ -153,21 +153,21 @@ data class PngStructure(
          * chunk order and recomputed CRCs.
          *
          * Chunk ordering follows the PNG specification:
-         * IHDR → colour-management → PLTE → tRNS/hIST/bKGD/sBIT → pHYs →
-         * sPLT → text → acTL → fcTL/IDAT → tIME → unknown → IEND.
+         * IHDR -> colour-management -> PLTE -> tRNS/hIST/bKGD/sBIT -> pHYs ->
+         * sPLT -> text -> acTL -> fcTL/IDAT -> tIME -> unknown -> IEND.
          *
          * Unknown chunks from the original file are preserved in place.
          *
          * > **Note**: IDAT bytes come from the original [PngRaw] passed to
          * > [PngRaw.toStructure].  If this [PngStructure] was deserialised
          * > from JSON (i.e. [PngStructure.rawChunks] is empty), [build] will
-         * > produce a PNG with no image data — useful for metadata-only
+         * > produce a PNG with no image data - useful for metadata-only
          * > workflows but not for rendering.
          */
         fun build(): PngRaw {
             val chunks = mutableListOf<PngChunk>()
 
-            // IHDR — always first
+            // IHDR - always first
             chunks += buildPngChunk("IHDR", ihdr.toBytes().data)
 
             // Colour-management (before PLTE)
@@ -219,7 +219,7 @@ data class PngStructure(
                 }
             }
 
-            // IEND — always last
+            // IEND - always last
             chunks += buildPngChunk("IEND", ByteArray(0))
 
             return PngRaw(
@@ -246,7 +246,7 @@ data class PngStructure(
 }
 
 // ---------------------------------------------------------------------------
-// CRC-32 (ISO 3309 / PNG spec) — file-private
+// CRC-32 (ISO 3309 / PNG spec) - file-private
 // ---------------------------------------------------------------------------
 
 private val pngCrcTable: IntArray = IntArray(256) { n ->

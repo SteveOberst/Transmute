@@ -9,7 +9,7 @@ import dev.transmute.model.core.StreamId
  * Severity of an inspection issue.
  */
 enum class IssueSeverity {
-    /** Informational note — not a problem. */
+    /** Informational note - not a problem. */
     Info,
 
     /** Possible problem that may or may not affect playback. */

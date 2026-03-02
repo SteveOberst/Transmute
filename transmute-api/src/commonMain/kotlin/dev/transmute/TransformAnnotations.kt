@@ -5,7 +5,7 @@ package dev.transmute
  *
  * Placed on functions in [ImageTransforms], [AudioTransforms], and
  * [VideoTransforms] objects. The server uses Kotlin reflection to scan
- * these at startup and build the `/api/transforms` catalog dynamically —
+ * these at startup and build the `/api/transforms` catalog dynamically -
  * no hardcoded lists anywhere.
  *
  * ```kotlin

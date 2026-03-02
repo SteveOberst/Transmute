@@ -32,7 +32,7 @@ object GStreamerIosTestHelpers {
 
     /**
      * Soft-skip guard. If GStreamer is not available the test passes
-     * silently — on CI with GStreamer the block always executes.
+     * silently - on CI with GStreamer the block always executes.
      */
     inline fun requireGStreamer(block: () -> Unit) {
         if (!gstreamerAvailable) {

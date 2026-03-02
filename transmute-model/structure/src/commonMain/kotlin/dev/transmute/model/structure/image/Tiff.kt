@@ -10,7 +10,7 @@ import dev.transmute.model.identify.Endianness
 import dev.transmute.model.core.RawMediaStructure
 import kotlinx.serialization.Serializable
 
-// --- Helpers — byte-order–aware encoding ---
+// --- Helpers - byte-order-aware encoding ---
 
 private fun UShort.toBytes(order: Endianness): ByteArray = when (order) {
     Endianness.Little -> byteArrayOf(this.toByte(), (this.toInt() shr 8).toByte())
@@ -88,7 +88,7 @@ enum class TiffTag(val code: UShort) {
  * | tag (2 B) | type (2 B) | count (4 B) | valueOrOffset (4 B) |
  * ```
  *
- * When the total value size (count × type size) exceeds 4 bytes, the
+ * When the total value size (count x type size) exceeds 4 bytes, the
  * last 4 bytes are an offset to elsewhere in the file.  In this model
  * the actual value bytes are always resolved into [data].
  */
@@ -136,7 +136,7 @@ data class TiffIfdEntry(
  * A single Image File Directory (IFD).
  *
  * ```
- * | entryCount (2 B) | entry₁ (12 B) | … | entryₙ (12 B) | nextIfdOffset (4 B) |
+ * | entryCount (2 B) | entry1 (12 B) | ... | entryn (12 B) | nextIfdOffset (4 B) |
  * ```
  */
 @Serializable
@@ -145,13 +145,13 @@ data class TiffIfd(
     val nextIfdOffset: UInt = 0u,
 )
 
-// --- TIFF file — complete on-disk representation ---
+// --- TIFF file - complete on-disk representation ---
 
 /**
  * Canonical representation of a TIFF file as written to disk.
  *
  * ```
- * | byteOrder (2 B) | magic 42 (2 B) | firstIfdOffset (4 B) | IFDs & data … |
+ * | byteOrder (2 B) | magic 42 (2 B) | firstIfdOffset (4 B) | IFDs & data ... |
  * ```
  *
  * Image strip and tile data is stored in [imageData].  Any remaining
@@ -164,7 +164,7 @@ data class TiffRaw(
     val byteOrder: Endianness,
     /** Offset of the first IFD (from start of file). */
     val firstIfdOffset: UInt,
-    /** All IFDs in the file (IFD 0, IFD 1, Exif IFD, GPS IFD, …). */
+    /** All IFDs in the file (IFD 0, IFD 1, Exif IFD, GPS IFD, ...). */
     val ifds: List<TiffIfd> = emptyList(),
     /** Concatenated image strip / tile data. */
     val imageData: Bytes = Bytes(ByteArray(0)),

@@ -16,7 +16,7 @@ import dev.transmute.video.VideoFormat
 /**
  * Pre-built raw and structure decoder instances for all formats shipped by this module.
  *
- * Decoders are created via [rawDecoderFor] and [structureDecoderFor] — no named subclasses needed.
+ * Decoders are created via [rawDecoderFor] and [structureDecoderFor] - no named subclasses needed.
  *
  * Register individual decoders:
  * ```kotlin
@@ -35,7 +35,7 @@ import dev.transmute.video.VideoFormat
  */
 object DefaultStructureDecoders {
 
-    // ── Image raw decoders (bytes → *Raw) ────────────────────────────────────
+    // -- Image raw decoders (bytes -> *Raw) ------------------------------------
 
     val pngRaw  = rawDecoderFor(ImageFormat.Png,  DefaultStructureReaders.png)
     val jpegRaw = rawDecoderFor(ImageFormat.Jpeg, DefaultStructureReaders.jpeg)
@@ -46,7 +46,7 @@ object DefaultStructureDecoders {
     val heifRaw = rawDecoderFor(ImageFormat.Heif, DefaultStructureReaders.heif)
     val avifRaw = rawDecoderFor(ImageFormat.Avif, DefaultStructureReaders.avif)
 
-    // ── Image structure decoders (bytes → *Structure) ────────────────────────
+    // -- Image structure decoders (bytes -> *Structure) ------------------------
 
     val png  = structureDecoderFor(ImageFormat.Png,  DefaultStructureReaders.png)  { toImageStructure() }
     val jpeg = structureDecoderFor(ImageFormat.Jpeg, DefaultStructureReaders.jpeg) { toImageStructure() }
@@ -57,7 +57,7 @@ object DefaultStructureDecoders {
     val heif = structureDecoderFor(ImageFormat.Heif, DefaultStructureReaders.heif) { toImageStructure() }
     val avif = structureDecoderFor(ImageFormat.Avif, DefaultStructureReaders.avif) { toImageStructure() }
 
-    // ── Audio raw decoders (bytes → *Raw) ────────────────────────────────────
+    // -- Audio raw decoders (bytes -> *Raw) ------------------------------------
 
     val wavRaw      = rawDecoderFor(AudioFormat.Wav,  DefaultStructureReaders.wav)
     val mp3Raw      = rawDecoderFor(AudioFormat.Mp3,  DefaultStructureReaders.mp3)
@@ -67,7 +67,7 @@ object DefaultStructureDecoders {
     val oggAudioRaw = rawDecoderFor(AudioFormat.Ogg,  DefaultStructureReaders.oggAudio)
     val opusRaw     = rawDecoderFor(AudioFormat.Opus, DefaultStructureReaders.opus)
 
-    // ── Audio structure decoders (bytes → *Structure) ────────────────────────
+    // -- Audio structure decoders (bytes -> *Structure) ------------------------
 
     val wav      = structureDecoderFor(AudioFormat.Wav,  DefaultStructureReaders.wav)      { toAudioStructure() }
     val mp3      = structureDecoderFor(AudioFormat.Mp3,  DefaultStructureReaders.mp3)      { toAudioStructure() }
@@ -77,7 +77,7 @@ object DefaultStructureDecoders {
     val oggAudio = structureDecoderFor(AudioFormat.Ogg,  DefaultStructureReaders.oggAudio) { toAudioStructure() }
     val opus     = structureDecoderFor(AudioFormat.Opus, DefaultStructureReaders.opus)     { toAudioStructure() }
 
-    // ── Video raw decoders (bytes → *Raw) ────────────────────────────────────
+    // -- Video raw decoders (bytes -> *Raw) ------------------------------------
 
     val mp4Raw  = rawDecoderFor(VideoFormat.Mp4,  DefaultStructureReaders.mp4)
     val movRaw  = rawDecoderFor(VideoFormat.Mov,  DefaultStructureReaders.mov)
@@ -85,7 +85,7 @@ object DefaultStructureDecoders {
     val mkvRaw  = rawDecoderFor(VideoFormat.Mkv,  DefaultStructureReaders.mkv)
     val aviRaw  = rawDecoderFor(VideoFormat.Avi,  DefaultStructureReaders.avi)
 
-    // ── Video structure decoders (bytes → *Structure) ────────────────────────
+    // -- Video structure decoders (bytes -> *Structure) ------------------------
 
     val mp4  = structureDecoderFor(VideoFormat.Mp4,  DefaultStructureReaders.mp4)  { toVideoStructure() }
     val mov  = structureDecoderFor(VideoFormat.Mov,  DefaultStructureReaders.mov)  { toVideoStructure() }
@@ -93,7 +93,7 @@ object DefaultStructureDecoders {
     val mkv  = structureDecoderFor(VideoFormat.Mkv,  DefaultStructureReaders.mkv)  { toVideoStructure() }
     val avi  = structureDecoderFor(VideoFormat.Avi,  DefaultStructureReaders.avi)  { toVideoStructure() }
 
-    // ── Domain lists ─────────────────────────────────────────────────────────
+    // -- Domain lists ---------------------------------------------------------
 
     /** All image structure decoders, in recommended sniff order. */
     val allImageDecoders: List<Decoder<ImageFormat, out MediaStructure, NoDecodeOptions>> =

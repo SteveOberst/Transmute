@@ -24,7 +24,7 @@ enum class WavAudioFormat(val code: UShort) {
     IeeeFloat(3u),
     /** A-law companding. */
     ALaw(6u),
-    /** µ-law companding. */
+    /** u-law companding. */
     MuLaw(7u),
     /** Extensible format (WAVEFORMATEXTENSIBLE). */
     Extensible(0xFFFEu);
@@ -47,9 +47,9 @@ data class WavFmtChunk(
     val numChannels: UShort,
     /** Sample rate in Hz. */
     val sampleRate: UInt,
-    /** Average byte rate (sampleRate × blockAlign). */
+    /** Average byte rate (sampleRate x blockAlign). */
     val byteRate: UInt,
-    /** Block align (channels × bitsPerSample / 8). */
+    /** Block align (channels x bitsPerSample / 8). */
     val blockAlign: UShort,
     /** Bits per sample. */
     val bitsPerSample: UShort,
@@ -57,7 +57,7 @@ data class WavFmtChunk(
     val extraData: Bytes = Bytes(ByteArray(0)),
 )
 
-// --- WAV file — complete on-disk representation ---
+// --- WAV file - complete on-disk representation ---
 
 /**
  * Canonical representation of a WAV file as written to disk.
@@ -67,7 +67,7 @@ data class WavFmtChunk(
  * and optional chunks like `LIST`, `fact`, `smpl`, `cue `, etc.
  *
  * ```
- * | RIFF (4 B) | fileSize (4 B LE) | WAVE (4 B) | sub-chunks… |
+ * | RIFF (4 B) | fileSize (4 B LE) | WAVE (4 B) | sub-chunks... |
  * ```
  */
 @Serializable

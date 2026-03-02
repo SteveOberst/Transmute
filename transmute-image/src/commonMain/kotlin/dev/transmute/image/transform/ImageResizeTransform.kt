@@ -14,12 +14,12 @@ import kotlin.math.floor
 import kotlin.math.roundToInt
 
 /**
- * Resizes an [ImageIR] to exact [targetWidth]×[targetHeight] dimensions
+ * Resizes an [ImageIR] to exact [targetWidth]x[targetHeight] dimensions
  * using a configurable [ResampleFilter].
  *
  * The resize is performed as a two-pass **separable convolution** - first
- * horizontal, then vertical - which is both fast (O(n·k) per axis instead
- * of O(n·k²) for a 2-D kernel) and mathematically equivalent to the full
+ * horizontal, then vertical - which is both fast (O(n-k) per axis instead
+ * of O(n-k2) for a 2-D kernel) and mathematically equivalent to the full
  * 2-D filter for all symmetric kernels.
  *
  * When downscaling, the kernel window is automatically widened by the
@@ -31,7 +31,7 @@ import kotlin.math.roundToInt
  *
  * @param targetWidth   Desired output width in pixels.
  * @param targetHeight  Desired output height in pixels.
- * @param filter        Resampling filter to use (default: Mitchell–Netravali bicubic).
+ * @param filter        Resampling filter to use (default: Mitchell-Netravali bicubic).
  * @param allowUpscale  When `false`, images already smaller than the target are returned unchanged.
  */
 class ImageResizeTransform(
@@ -79,7 +79,7 @@ class ImageResizeTransform(
     val srcData = srcBuffer.data
     val srcStride = ir.stride
 
-    // --- Pass 1: horizontal (srcW → targetWidth, height stays srcH) ---
+    // --- Pass 1: horizontal (srcW -> targetWidth, height stays srcH) ---
     val tmpStride = targetWidth * bpp
     val tmpData = ByteArray(srcH * tmpStride)
     resample1D(
@@ -89,7 +89,7 @@ class ImageResizeTransform(
       bpp = bpp, horizontal = true, kernel = kernel,
     )
 
-    // --- Pass 2: vertical (srcH → targetHeight, width stays targetWidth) ---
+    // --- Pass 2: vertical (srcH -> targetHeight, width stays targetWidth) ---
     val dstStride = targetWidth * bpp
     val dstData = ByteArray(targetHeight * dstStride)
     resample1D(

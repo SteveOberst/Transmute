@@ -3,9 +3,9 @@ package dev.transmute.image.transform.kernel.impl
 import dev.transmute.image.transform.kernel.ResampleKernel
 
 /**
- * Catmull–Rom bicubic filter (B = 0, C = 0.5).
+ * Catmull-Rom bicubic filter (B = 0, C = 0.5).
  *
- * Sharper than Mitchell–Netravali with slightly more ringing.
+ * Sharper than Mitchell-Netravali with slightly more ringing.
  * Particularly good for upscaling where edge preservation matters.
  *
  * This is the same cubic used by CSS `image-rendering: smooth` and

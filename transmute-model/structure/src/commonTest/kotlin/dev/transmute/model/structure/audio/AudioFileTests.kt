@@ -22,7 +22,7 @@ import kotlin.test.assertTrue
  */
 class AudioFileTests {
 
-    // ── helpers ──
+    // -- helpers --
 
     private fun buildFtypData(major: String, minorVer: Int, compat: List<String>): Bytes {
         val out = ByteArray(8 + compat.size * 4)
@@ -53,7 +53,7 @@ class AudioFileTests {
         return out.asBytes()
     }
 
-    // ── Aac ──
+    // -- Aac --
 
     @Test
     fun aacFileConstruction() {
@@ -77,27 +77,27 @@ class AudioFileTests {
         // ...
         val d = ByteArray(9)
         d[0] = 0xFF.toByte()
-        // 1111 1001 → sync(4)+id(0=mpeg4)+layer(00)+protection(1=no CRC)
+        // 1111 1001 -> sync(4)+id(0=mpeg4)+layer(00)+protection(1=no CRC)
         d[1] = 0xF1.toByte()
-        // 01 01 0 010 → profile(01=LC) | srIdx(0101=3? No, let's use 0100=4=44100) => let me recalculate
+        // 01 01 0 010 -> profile(01=LC) | srIdx(0101=3? No, let's use 0100=4=44100) => let me recalculate
         // profile=01(AAC-LC=objType2-1=1), srIdx=0100(44100), private=0, chCfg high bit=0
         // byte2: PP SSSS P C = 01 0100 0 0 = 0x50
         d[2] = 0x50.toByte()
         // chCfg remaining 2 bits=10 (chCfg=2), ...frame length bits etc
-        // byte3: CC OOO O OO FF = 10 000 0 00 00 → but we need frameLength too
+        // byte3: CC OOO O OO FF = 10 000 0 00 00 -> but we need frameLength too
         // Let frameLength = 9 (just the header): bits 12-0
         // byte3: CC xx xxxx = channelCfg(10) + ... 
         // frame_length[12:11] in bits 2-3 of byte3
         // byte3 = chCfg(2 bits) | original_copy(1 bit) | home(1 bit) | copy_id(1 bit) | copy_start(1 bit) | frame_len[12:11](2 bits)
         // chCfg lower 2 = 10, original=0, home=0, copy_id=0, copy_start=0, frame_len[12:11]=00
         d[3] = 0x80.toByte()
-        // byte4 = frame_len[10:3] → 9 = 0b0000_01001 → bits[10:3] = 0000_0100 = 0x01
+        // byte4 = frame_len[10:3] -> 9 = 0b0000_01001 -> bits[10:3] = 0000_0100 = 0x01
         // Actually frame_length = 9, in 13 bits = 0_0000_0000_1001
         // bits [12:11] = 00 (in byte3), bits [10:3] = 00000001 (byte4), bits [2:0] + buffer fullness...
         d[4] = 0x01.toByte()
-        // byte5: frame_len[2:0] | buffer_fullness[10:6] → 001 + 11111 = 0x3F
+        // byte5: frame_len[2:0] | buffer_fullness[10:6] -> 001 + 11111 = 0x3F
         d[5] = 0x3F.toByte()
-        // byte6: buffer_fullness[5:0] | num_raw_data_blocks[1:0] → 111111 00 = 0xFC
+        // byte6: buffer_fullness[5:0] | num_raw_data_blocks[1:0] -> 111111 00 = 0xFC
         d[6] = 0xFC.toByte()
 
         val file = AacRaw(data = d.asBytes())
@@ -109,19 +109,19 @@ class AudioFileTests {
         assertTrue(hdr.isMpeg4)
     }
 
-    // ── Flac ──
+    // -- Flac --
 
     @Test
     fun flacFileConstruction() {
         val streamInfoData = ByteArray(34) // 34 bytes of STREAMINFO
-        // Set sample rate = 44100 in bits [80..99] → bytes [10..12] packed
+        // Set sample rate = 44100 in bits [80..99] -> bytes [10..12] packed
         // sampleRate is 20 bits at offset 80: bytes 10..12 high nibble
-        // 44100 = 0xAC44 → 20 bits = 0x0AC44
+        // 44100 = 0xAC44 -> 20 bits = 0x0AC44
         // byte10 = 0x0A, byte11 = 0xC4, byte12 high nibble = 0x4
         streamInfoData[10] = 0x0A.toByte()
         streamInfoData[11] = 0xC4.toByte()
-        // channels-1 (3 bits) = 1 (stereo) → 001
-        // bps-1 (5 bits) = 15 (16-bit) → 01111
+        // channels-1 (3 bits) = 1 (stereo) -> 001
+        // bps-1 (5 bits) = 15 (16-bit) -> 01111
         // byte12 = sampleRate[3:0] | channels-1[2:0] | bps-1[4]
         //        = 0100 | 001 | 0 = 0x42
         streamInfoData[12] = 0x42.toByte()
@@ -157,8 +157,8 @@ class AudioFileTests {
         val data = byteArrayOf(1, 2, 3, 4).asBytes()
         val block = FlacMetadataBlock(FlacMetadataBlockType.Padding, isLast = false, data = data)
         val bytes = block.toBytes()
-        // header: type=1, isLast=false → byte0 = 0x01
-        // length = 4 → bytes 1-3 = 0x000004
+        // header: type=1, isLast=false -> byte0 = 0x01
+        // length = 4 -> bytes 1-3 = 0x000004
         assertEquals(0x01, bytes.data[0].toInt())
         assertEquals(0x00, bytes.data[1].toInt())
         assertEquals(0x00, bytes.data[2].toInt())
@@ -167,7 +167,7 @@ class AudioFileTests {
         assertEquals(1, bytes.data[4].toInt())
     }
 
-    // ── Mp3 ──
+    // -- Mp3 --
 
     @Test
     fun mp3FileConstruction() {
@@ -196,11 +196,11 @@ class AudioFileTests {
     @Test
     fun mp3FrameHeaderParsing() {
         // Valid MPEG1 Layer3 frame header: sync=0xFFE0, v=11(MPEG1), layer=01(L3), prot=1(no CRC)
-        // → 0xFF 0xFB
+        // -> 0xFF 0xFB
         // bitrate=1001(320kbps for MPEG1 L3), sampleRate=00(44100), padding=0, private=0
-        // → 0x90
+        // -> 0x90
         // channelMode=01(JointStereo), modeExt=00, copyright=0, original=0, emphasis=00
-        // → 0x40
+        // -> 0x40
         val frameData = byteArrayOf(0xFF.toByte(), 0xFB.toByte(), 0x90.toByte(), 0x40.toByte())
         val file = Mp3Raw(null, (frameData + ByteArray(100)).asBytes(), null)
         val hdr = file.firstFrameHeader
@@ -226,7 +226,7 @@ class AudioFileTests {
         assertEquals(4, MpegChannelMode.entries.size)
     }
 
-    // ── M4a ──
+    // -- M4a --
 
     @Test
     fun m4aFileWithFtyp() {
@@ -238,7 +238,7 @@ class AudioFileTests {
         assertEquals(2, file.compatibleBrands.size)
     }
 
-    // ── OggAudio ──
+    // -- OggAudio --
 
     @Test
     fun oggAudioFileConstruction() {
@@ -258,7 +258,7 @@ class AudioFileTests {
         vorbisIdPacket[11] = 2
         // sampleRate = 44100 at offset 12 (4 bytes LE) = 0xAC44
         vorbisIdPacket[12] = 0x44; vorbisIdPacket[13] = 0xAC.toByte()
-        // blockSizes at offset 28: block0=8(1<<8=256), block1=11(1<<11=2048) → 0xB8
+        // blockSizes at offset 28: block0=8(1<<8=256), block1=11(1<<11=2048) -> 0xB8
         vorbisIdPacket[28] = 0xB8.toByte()
 
         val page = OggPage(
@@ -282,7 +282,7 @@ class AudioFileTests {
         assertEquals(2048, vorbisId.blockSize1)
     }
 
-    // ── Opus ──
+    // -- Opus --
 
     @Test
     fun opusFileConstruction() {
@@ -325,7 +325,7 @@ class AudioFileTests {
         assertEquals(1, id.version)
     }
 
-    // ── Wav ──
+    // -- Wav --
 
     @Test
     fun wavFileWithFmtChunk() {

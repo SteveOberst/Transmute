@@ -18,7 +18,7 @@ data class IsoBmffBoxRef(
     val children: List<IsoBmffBoxRef> = emptyList(),
 )
 
-// --- Helpers — big-endian encoding ---
+// --- Helpers - big-endian encoding ---
 
 private fun UInt.toBigEndianBytes(): ByteArray = byteArrayOf(
     (this shr 24).toByte(),
@@ -48,12 +48,12 @@ private fun FourCC.toByteArray(): ByteArray =
  *
  * Standard box layout:
  * ```
- * | size (4 B BE) | type (4 B) | payload (size − 8 bytes) |
+ * | size (4 B BE) | type (4 B) | payload (size  8 bytes) |
  * ```
  *
  * When [size] on disk is 1, an 8-byte [largeSize] field follows the type:
  * ```
- * | 00 00 00 01 | type (4 B) | largeSize (8 B BE) | payload … |
+ * | 00 00 00 01 | type (4 B) | largeSize (8 B BE) | payload ... |
  * ```
  *
  * For container boxes, [children] holds the parsed sub-boxes and [data]

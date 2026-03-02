@@ -6,17 +6,17 @@ import dev.transmute.model.identify.Brand
 import dev.transmute.model.identify.FourCC
 import kotlinx.serialization.Serializable
 
-// ════════════════════════════════════════════════════════════════
+// ================================================================
 //  Typed model: ISO BMFF `ftyp` box data
-// ════════════════════════════════════════════════════════════════
+// ================================================================
 
 /**
  * Parsed contents of an ISO BMFF `ftyp` (file type) box.
  *
  * The `ftyp` box appears at (or near) the start of every ISO
- * base media format file (MP4, MOV, M4A, HEIF, AVIF, …):
+ * base media format file (MP4, MOV, M4A, HEIF, AVIF, ...):
  * ```
- * | majorBrand (4 B) | minorVersion (4 B) | compatibleBrands (4 B each) … |
+ * | majorBrand (4 B) | minorVersion (4 B) | compatibleBrands (4 B each) ... |
  * ```
  */
 @Serializable
@@ -50,9 +50,9 @@ data class FtypData(
     }
 }
 
-// ════════════════════════════════════════════════════════════════
+// ================================================================
 //  Extension helpers for ISO BMFF box lists
-// ════════════════════════════════════════════════════════════════
+// ================================================================
 
 /** Find the first box with the given type code. */
 fun List<IsoBmffBox>.findBox(type: String): IsoBmffBox? =

@@ -14,8 +14,8 @@ import dev.transmute.codec.pipeline.TransformId
  * This preserves the original pitch by keeping sample rate constant
  * while expanding or compressing the waveform in the time domain.
  *
- * - [speed] > 1.0 → faster (shorter duration)
- * - [speed] < 1.0 → slower (longer duration)
+ * - [speed] > 1.0 -> faster (shorter duration)
+ * - [speed] < 1.0 -> slower (longer duration)
  *
  * SOLA uses fixed-size analysis windows and overlaps them at intervals
  * determined by the speed ratio. This avoids the "chipmunk" effect of

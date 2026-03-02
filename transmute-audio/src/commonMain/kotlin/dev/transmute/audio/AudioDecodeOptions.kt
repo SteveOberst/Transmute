@@ -21,7 +21,7 @@ sealed interface AudioDecodeOptions : DecodeOptions {
 }
 
 /**
- * Default decode options — no special configuration.
+ * Default decode options - no special configuration.
  */
 data class CanonicalAudioDecodeOptions(
   override val acceptedInputFormats: Set<AudioFormat> = emptySet(),

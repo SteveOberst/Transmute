@@ -42,7 +42,7 @@ internal object GStreamerJni {
      * Parse and run a GStreamer pipeline to EOS.
      *
      * @param pipelineDesc gst-launch-1.0 compatible descriptor, e.g.
-     *   `"filesrc location=/tmp/in.wav ! wavparse ! … ! filesink location=/tmp/out.aac"`
+     *   `"filesrc location=/tmp/in.wav ! wavparse ! ... ! filesink location=/tmp/out.aac"`
      * @return `true` on successful completion, `false` on error.
      */
     @JvmStatic

@@ -36,7 +36,7 @@ interface PluginRegistryPriority {
 /**
  * Describes where a plugin's codecs sit in the registry priority order.
  *
- * Resolution order (highest first): [PREFERRED] → [DEFAULT] → [FALLBACK].
+ * Resolution order (highest first): [PREFERRED] -> [DEFAULT] -> [FALLBACK].
  */
 enum class RegistryPriority {
 
@@ -49,7 +49,7 @@ enum class RegistryPriority {
     PREFERRED,
 
     /**
-     * Standard priority — the codec is registered at the position determined
+     * Standard priority - the codec is registered at the position determined
      * by installation order within the same tier.
      *
      * This is the default for all plugins that do not implement [PluginRegistryPriority].

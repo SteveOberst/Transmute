@@ -5,7 +5,7 @@ package dev.transmute.common
  *
  * Every property has a sensible default so the library works out of the box
  * without any configuration.  Override properties **before** performing any
- * conversions – typically during application initialisation.
+ * conversions - typically during application initialisation.
  *
  * ---
  *

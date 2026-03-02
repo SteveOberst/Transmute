@@ -21,7 +21,7 @@ class ImageScaleTransformTest {
   @Test
   fun fitDimensionsScalesDownToMaxWidth() {
     val (w, h) = ImageScaleTransform.fitDimensions(4000, 3000, 1920, 1080)
-    // 4000×3000 → scale by min(1920/4000, 1080/3000) = min(0.48, 0.36) = 0.36
+    // 4000x3000 -> scale by min(1920/4000, 1080/3000) = min(0.48, 0.36) = 0.36
     assertEquals(1440, w)
     assertEquals(1080, h)
   }
@@ -93,7 +93,7 @@ class ImageScaleTransformTest {
 
   @Test
   fun gradientDownscaleProducesSmootherGradient() = runTest {
-    // 800×600 → maxWidth=200, maxHeight=150 → scale=0.25 → 200×150
+    // 800x600 -> maxWidth=200, maxHeight=150 -> scale=0.25 -> 200x150
     val input = horizontalGradient(800, 600, startR = 0, endR = 255)
     val transform = ImageScaleTransform(maxWidth = 200, maxHeight = 150)
     val result = transform.apply(input, testContext())
@@ -154,7 +154,7 @@ class ImageScaleTransformTest {
 
   @Test
   fun wideLandscapeConstrainedByWidth() = runTest {
-    // 3000×500 → maxWidth constrains: scale = 1000/3000 = 0.333
+    // 3000x500 -> maxWidth constrains: scale = 1000/3000 = 0.333
     val input = solidColor(3000, 500, r = 100, g = 200, b = 50)
     val transform = ImageScaleTransform(maxWidth = 1000, maxHeight = 1000)
     val result = transform.apply(input, testContext())
@@ -174,11 +174,11 @@ class ImageScaleTransformTest {
     assertEquals(320 * 4, result.stride, "Stride should be width × bytesPerPixel")
   }
 
-  // --- 2× downscale pixel accuracy ---
+  // --- 2x downscale pixel accuracy ---
 
   @Test
   fun halfSizeDownscalePixelAccuracy() = runTest {
-    // Create a 4×4 image with known pixels:
+    // Create a 4x4 image with known pixels:
     //   Row 0: (255,0,0) (255,0,0) (0,255,0) (0,255,0)
     //   Row 1: (255,0,0) (255,0,0) (0,255,0) (0,255,0)
     //   Row 2: (0,0,255) (0,0,255) (255,255,0) (255,255,0)
@@ -207,7 +207,7 @@ class ImageScaleTransformTest {
       colorInfo = ColorInfo(),
     )
 
-    // Scale to 2×2 - each output pixel covers a 2×2 block of identical source pixels.
+    // Scale to 2x2 - each output pixel covers a 2x2 block of identical source pixels.
     // With bilinear interpolation sampling at (0,0), (3,0), (0,3), (3,3) in source:
     val transform = ImageScaleTransform(maxWidth = 2, maxHeight = 2)
     val result = transform.apply(input, testContext())
@@ -215,11 +215,11 @@ class ImageScaleTransformTest {
     assertEquals(2, result.width)
     assertEquals(2, result.height)
 
-    // For a 4→2 downscale with bilinear, source coords map:
-    // dst(0,0) → src(0,0) = red (255,0,0)
-    // dst(1,0) → src(3,0) = green (0,255,0)
-    // dst(0,1) → src(0,3) = blue (0,0,255)
-    // dst(1,1) → src(3,3) = yellow (255,255,0)
+    // For a 4->2 downscale with bilinear, source coords map:
+    // dst(0,0) -> src(0,0) = red (255,0,0)
+    // dst(1,0) -> src(3,0) = green (0,255,0)
+    // dst(0,1) -> src(0,3) = blue (0,0,255)
+    // dst(1,1) -> src(3,3) = yellow (255,255,0)
     val topLeft = pixelAt(result, 0, 0)
     val topRight = pixelAt(result, 1, 0)
     val botLeft = pixelAt(result, 0, 1)

@@ -11,7 +11,7 @@ import dev.transmute.model.structure.common.parseFtyp
 import dev.transmute.model.core.RawMediaStructure
 import kotlinx.serialization.Serializable
 
-// --- HEIF / HEIC file — complete on-disk representation ---
+// --- HEIF / HEIC file - complete on-disk representation ---
 
 /**
  * Canonical representation of a HEIF/HEIC file as written to disk.
@@ -22,7 +22,7 @@ import kotlinx.serialization.Serializable
  *
  * The file is a sequence of top-level boxes:
  * ```
- * | ftyp | meta | mdat | … |
+ * | ftyp | meta | mdat | ... |
  * ```
  */
 @Serializable

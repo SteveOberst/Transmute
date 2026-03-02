@@ -16,7 +16,7 @@ import dev.transmute.structure.common.parseIsoBmffBoxes
  * (no `ftyp`).
  *
  * ```
- * | ftyp box | moov box | mdat box | … |
+ * | ftyp box | moov box | mdat box | ... |
  * ```
  */
 class MovStructureReader : StructureReader<MovRaw> {

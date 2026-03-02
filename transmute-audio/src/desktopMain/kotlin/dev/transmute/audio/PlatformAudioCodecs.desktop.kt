@@ -8,12 +8,12 @@ actual fun installPlatformAudioCodecs(
   decoders: MutableAudioDecoderRegistry,
   encoders: MutableAudioEncoderRegistry,
 ) {
-  // Full codec – decode via JLayer, encode via Jump3r (LAME).
+  // Full codec - decode via JLayer, encode via Jump3r (LAME).
   val mp3Codec = JvmMp3Codec()
   decoders.register(mp3Codec)
   encoders.register(mp3Codec)
 
-  // Decode-only codecs – encoding requires the transmute-gstreamer plugin.
+  // Decode-only codecs - encoding requires the transmute-gstreamer plugin.
   val flacCodec = JvmFlacCodec()
   decoders.register(flacCodec)
 

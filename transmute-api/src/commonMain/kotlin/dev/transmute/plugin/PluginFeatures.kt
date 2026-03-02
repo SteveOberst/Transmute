@@ -7,7 +7,7 @@ package dev.transmute.plugin
  * disable. This provides a standardized way to toggle plugin capabilities
  * without requiring per-feature config properties.
  *
- * **Prefer the typed [PluginFeature] overloads** — they provide compile-time
+ * **Prefer the typed [PluginFeature] overloads** - they provide compile-time
  * safety, self-documenting feature catalogs, and correct default values.
  *
  * Features are configured via the `configure { features { } }` DSL:
@@ -36,7 +36,7 @@ package dev.transmute.plugin
 class PluginFeaturesConfig constructor() {
     private val _overrides = mutableMapOf<String, Boolean>()
 
-    /** All user-specified feature overrides (feature-id → enabled). */
+    /** All user-specified feature overrides (feature-id -> enabled). */
     val overrides: Map<String, Boolean> get() = _overrides.toMap()
 
     // -- Typed PluginFeature API (preferred) --------------------------------

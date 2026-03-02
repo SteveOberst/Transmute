@@ -34,7 +34,7 @@ import dev.transmute.video.CanonicalVideoEncodeOptions
 class AndroidVideoCodecTest {
 
   // Safety-net: JUnit rule at 180 s so tests that escape coroutine
-  // timeout still get killed (generous – coroutine timeout fires first).
+  // timeout still get killed (generous - coroutine timeout fires first).
   @get:Rule val timeout: Timeout = Timeout.seconds(180)
 
   /**
@@ -45,7 +45,7 @@ class AndroidVideoCodecTest {
    * code, so we launch on a separate scope and use [withTimeout] at the
    * `await()` suspension point to bail out cleanly.
    *
-   * Returns null on timeout/failure – callers exit with `?: return@runBlocking`.
+   * Returns null on timeout/failure - callers exit with `?: return@runBlocking`.
    */
   private suspend fun <T> codecOp(
     label: String,

@@ -66,7 +66,7 @@ data class JpegEncodeOptions(
  *
  * PNG is lossless; the main knob is compression effort.
  *
- * @property compressionLevel zlib compression level 0–9 (0 = none, 9 = max).
+ * @property compressionLevel zlib compression level 0-9 (0 = none, 9 = max).
  */
 data class PngEncodeOptions(
   val compressionLevel: Int = 6,

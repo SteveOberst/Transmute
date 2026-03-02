@@ -3,7 +3,7 @@
 package dev.transmute.model.stream
 
 /**
- * Type of media stream. Open for extension — downstream code can
+ * Type of media stream. Open for extension - downstream code can
  * define additional stream types.
  */
 interface StreamType {

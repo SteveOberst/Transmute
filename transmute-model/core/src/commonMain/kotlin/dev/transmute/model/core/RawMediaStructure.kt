@@ -4,7 +4,7 @@ package dev.transmute.model.core
  * Canonical on-disk model for a media file.
  *
  * Every format-specific raw model (e.g. `PngRaw`, `Mp4Raw`) implements
- * this interface. The model mirrors the actual binary layout of the format —
+ * this interface. The model mirrors the actual binary layout of the format -
  * like a C struct overlaid on memory-mapped file bytes.
  *
  * Because [RawMediaStructure] is [BinarySerializable], calling [toBytes]

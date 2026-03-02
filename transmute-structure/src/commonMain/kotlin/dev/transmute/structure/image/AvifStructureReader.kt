@@ -14,7 +14,7 @@ import dev.transmute.structure.common.parseIsoBmffBoxes
  * AvifRaw uses ISO BMFF with major brands `avif` or `avis`.
  *
  * ```
- * | ftyp box | meta box | mdat box | … |
+ * | ftyp box | meta box | mdat box | ... |
  * ```
  */
 class AvifStructureReader : StructureReader<AvifRaw> {

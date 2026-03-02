@@ -16,10 +16,10 @@ import dev.transmute.structure.common.readU16BE
  *
  * JpegRaw layout:
  * ```
- * | 0xFF D8 (SOI) | segment₁ | segment₂ | … | 0xFF D9 (EOI) |
+ * | 0xFF D8 (SOI) | segment1 | segment2 | ... | 0xFF D9 (EOI) |
  * ```
  *
- * Each segment is either **standalone** (SOI, EOI, RST0–RST7) with no
+ * Each segment is either **standalone** (SOI, EOI, RST0-RST7) with no
  * payload, or **payload** with `| 0xFF | marker | length (2 B BE) | data |`.
  * SOS segments additionally carry entropy-coded scan data until the next
  * non-stuffed `0xFF` marker.
@@ -52,12 +52,12 @@ class JpegStructureReader : StructureReader<JpegRaw> {
             val marker = d[pos + 1].toUByte()
             pos += 2
 
-            // 0xFF 0x00 is a stuffed byte inside entropy data — shouldn't be here at top level
+            // 0xFF 0x00 is a stuffed byte inside entropy data - shouldn't be here at top level
             if (marker == 0x00.toUByte()) continue
 
             if (JpegMarkerType.isStandalone(marker)) {
                 segments += JpegSegment(marker = marker)
-                if (marker == 0xD9.toUByte()) break // EOI — done
+                if (marker == 0xD9.toUByte()) break // EOI - done
                 continue
             }
 
@@ -108,7 +108,7 @@ class JpegStructureReader : StructureReader<JpegRaw> {
                 if (pos + 1 >= data.size) break
                 val next = data[pos + 1].toInt() and 0xFF
                 if (next != 0 && next !in 0xD0..0xD7) {
-                    // Found a real marker — entropy data ends here
+                    // Found a real marker - entropy data ends here
                     return data.copyOfRange(start, pos)
                 }
                 pos += 2 // skip stuffed byte or RST marker

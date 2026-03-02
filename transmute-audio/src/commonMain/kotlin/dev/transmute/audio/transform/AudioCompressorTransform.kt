@@ -23,8 +23,8 @@ import kotlin.math.pow
  *
  * Optional [makeupGainDb] can restore overall loudness after compression.
  *
- * @param thresholdDb Level above which compression kicks in (dBFS). Default −20 dB.
- * @param ratio       Compression ratio. 1.0 = no compression, ∞ = limiter. Default 4.0.
+ * @param thresholdDb Level above which compression kicks in (dBFS). Default 20 dB.
+ * @param ratio       Compression ratio. 1.0 = no compression,  = limiter. Default 4.0.
  * @param attackMs    How quickly the compressor responds to loud signals (ms). Default 10.
  * @param releaseMs   How quickly gain recovers after the signal drops (ms). Default 100.
  * @param makeupGainDb Extra gain applied after compression to restore loudness. Default 0.
@@ -61,7 +61,7 @@ class AudioCompressorTransform(
     val makeupLin = 10.0.pow(makeupGainDb / 20.0).toFloat()
 
     // Smoothing coefficients - derived from the time constants.
-    // α = 1 − e^(−1/(SR×T)) where T is in seconds.
+    //  = 1  e^(1/(SRxT)) where T is in seconds.
     val attackCoeff = 1f - kotlin.math.exp(-1.0 / (sampleRate * attackMs / 1000.0)).toFloat()
     val releaseCoeff = 1f - kotlin.math.exp(-1.0 / (sampleRate * releaseMs / 1000.0)).toFloat()
 

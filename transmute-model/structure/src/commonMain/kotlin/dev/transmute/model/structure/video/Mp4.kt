@@ -11,14 +11,14 @@ import dev.transmute.model.structure.common.parseFtyp
 import dev.transmute.model.core.RawMediaStructure
 import kotlinx.serialization.Serializable
 
-// --- MP4 file — complete on-disk representation ---
+// --- MP4 file - complete on-disk representation ---
 
 /**
  * Canonical representation of an MP4 (ISO BMFF) file as written to disk.
  *
  * The file is a sequence of top-level boxes:
  * ```
- * | ftyp | moov | mdat | … |
+ * | ftyp | moov | mdat | ... |
  * ```
  */
 @Serializable

@@ -6,7 +6,7 @@ import kotlinx.coroutines.sync.withLock
 /**
  * A suspending, sequential **write-only** byte sink.
  *
- * `TSink` is the Transmute abstraction for streaming output — files,
+ * `TSink` is the Transmute abstraction for streaming output - files,
  * network uploads, in-memory buffers, etc. All writes are suspending
  * to support non-blocking I/O on every platform.
  *

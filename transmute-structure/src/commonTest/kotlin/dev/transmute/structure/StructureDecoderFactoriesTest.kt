@@ -20,7 +20,7 @@ import kotlin.test.assertNull
  */
 class StructureDecoderFactoriesTest {
 
-    // ── Minimal binary fixtures ───────────────────────────────────────────────
+    // -- Minimal binary fixtures -----------------------------------------------
 
     private fun minimalWav(): ByteArray {
         val fmtData = byteArrayOf(
@@ -74,7 +74,7 @@ class StructureDecoderFactoriesTest {
         buf[offset + 3] = ((value shr 24) and 0xFF).toByte()
     }
 
-    // ── rawDecoderFor ─────────────────────────────────────────────────────────
+    // -- rawDecoderFor ---------------------------------------------------------
 
     @Test
     fun rawDecoderForReportsCorrectDecodableFormats() {
@@ -100,7 +100,7 @@ class StructureDecoderFactoriesTest {
         assertNull(decoder.sniff(minimalPng().asBytes()))
     }
 
-    // ── structureDecoderFor ───────────────────────────────────────────────────
+    // -- structureDecoderFor ---------------------------------------------------
 
     @Test
     fun structureDecoderForReportsCorrectDecodableFormats() {
@@ -126,7 +126,7 @@ class StructureDecoderFactoriesTest {
         assertNull(decoder.sniff(minimalWav().asBytes()))
     }
 
-    // ── DefaultStructureDecoders sanity checks ────────────────────────────────
+    // -- DefaultStructureDecoders sanity checks --------------------------------
 
     @Test
     fun defaultWavRawDecoderSniffsWav() {

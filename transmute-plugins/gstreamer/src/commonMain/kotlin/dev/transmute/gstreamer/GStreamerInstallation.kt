@@ -11,7 +11,7 @@ import dev.transmute.filesystem.TPath
  *
  * ```kotlin
  * gstreamer {
- *     // Default — uses the bundled GStreamer runtime (no install required):
+ *     // Default - uses the bundled GStreamer runtime (no install required):
  *     // installation is Bundled by default
  *
  *     // Use a specific GStreamer installation on disk:
@@ -31,7 +31,7 @@ sealed interface GStreamerInstallation {
      * to a cache directory on first use. On Android and iOS the native
      * GStreamer framework is linked at build time.
      *
-     * This is the default — users do not need to install GStreamer separately.
+     * This is the default - users do not need to install GStreamer separately.
      */
     data object Bundled : GStreamerInstallation
 

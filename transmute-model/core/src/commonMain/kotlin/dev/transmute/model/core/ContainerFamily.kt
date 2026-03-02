@@ -4,7 +4,7 @@ package dev.transmute.model.core
 
 /**
  * High-level container family grouping related container formats.
- * This interface is open for extension — downstream code can define
+ * This interface is open for extension - downstream code can define
  * additional container families.
  */
 interface ContainerFamily {

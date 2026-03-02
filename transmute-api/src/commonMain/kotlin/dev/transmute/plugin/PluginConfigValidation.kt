@@ -18,13 +18,13 @@ package dev.transmute.plugin
  *             add(ConfigProblem("executablePath", "Path to native binary must not be blank"))
  *         }
  *         if (config.maxThreads < 1) {
- *             add(ConfigProblem("maxThreads", "Must be ≥ 1", ConfigProblem.Severity.WARNING))
+ *             add(ConfigProblem("maxThreads", "Must be >= 1", ConfigProblem.Severity.WARNING))
  *         }
  *     }
  * }
  * ```
  *
- * @param C Plugin configuration type — the same `C` used in [TransmutePlugin].
+ * @param C Plugin configuration type - the same `C` used in [TransmutePlugin].
  */
 interface PluginConfigValidation<C : Any> {
 

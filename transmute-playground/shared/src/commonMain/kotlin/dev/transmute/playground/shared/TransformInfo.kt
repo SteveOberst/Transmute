@@ -16,7 +16,7 @@ data class TransformInfo(
 )
 
 /**
- * Schema for a single parameter — drives dynamic UI rendering.
+ * Schema for a single parameter - drives dynamic UI rendering.
  */
 @Serializable
 data class ParameterSchema(

@@ -20,8 +20,8 @@ import kotlin.test.assertTrue
 /**
  * Android instrumented tests for GStreamer video codecs.
  *
- * Tests exercise the full encode (VideoIR → GStreamer JNI → bytes)
- * and decode (bytes → GStreamer JNI → VideoIR) pipelines for each
+ * Tests exercise the full encode (VideoIR -> GStreamer JNI -> bytes)
+ * and decode (bytes -> GStreamer JNI -> VideoIR) pipelines for each
  * supported video format: MP4, MOV, WebM, AVI, MKV.
  *
  * Soft-skipped when `libgstreamer_bridge.so` is not bundled.

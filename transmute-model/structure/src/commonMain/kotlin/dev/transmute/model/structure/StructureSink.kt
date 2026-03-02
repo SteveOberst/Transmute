@@ -18,7 +18,7 @@ import dev.transmute.model.core.RawMediaStructure
  * val raw: Bytes = sink.collect()
  * ```
  *
- * Implementations that target I/O should be `suspend` — the interface
+ * Implementations that target I/O should be `suspend` - the interface
  * uses a suspending [write] to accommodate both blocking and non-blocking
  * backends.
  */

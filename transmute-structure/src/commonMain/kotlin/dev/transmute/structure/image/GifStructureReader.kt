@@ -107,7 +107,7 @@ class GifStructureReader : StructureReader<GifRaw> {
                 }
 
                 else -> {
-                    // Unknown block — store single byte
+                    // Unknown block - store single byte
                     blocks += GifBlock(introducer = introducer)
                 }
             }
