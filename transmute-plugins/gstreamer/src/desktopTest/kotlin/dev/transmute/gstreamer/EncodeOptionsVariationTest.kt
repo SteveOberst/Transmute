@@ -17,7 +17,7 @@ import kotlin.test.assertTrue
  * different quality levels and verifies that the output size changes.
  * This confirms that the options are wired through to the encoder.
  */
-class EncodeOptionsVariationTest {
+class EncodeOptionsVariationTest : GStreamerTestBase() {
 
     private val ctx = testContext()
 

@@ -18,7 +18,7 @@ import kotlin.test.assertTrue
  *
  * Soft-skipped when GStreamer is not installed locally.
  */
-class GStreamerVideoCodecTest {
+class GStreamerVideoCodecTest : GStreamerTestBase() {
 
     private val ctx = testContext()
 

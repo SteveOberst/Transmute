@@ -26,7 +26,7 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Install GStreamer
+      - name: Install GStreamer and libheif
         run: >
           sudo apt-get update &&
           sudo apt-get install -y
@@ -34,14 +34,17 @@ jobs:
           gstreamer1.0-plugins-good
           gstreamer1.0-plugins-bad
           gstreamer1.0-plugins-ugly
+          libheif-tools
 
       - name: Run desktop integration tests
         run: >
           ./gradlew --no-daemon
+          :transmute-api:desktopTest
           :transmute-audio:desktopTest
           :transmute-image:desktopTest
           :transmute-video:desktopTest
-          :transmute-gstreamer:desktopTest
+          :transmute-plugins:gstreamer:desktopTest
+          :transmute-plugins:libheif:desktopTest
           -Pkotlin.native.enabled=false
 
       - name: Upload test reports

@@ -21,7 +21,7 @@ import kotlin.test.assertTrue
  * These tests are **soft-skipped** when GStreamer is not installed locally.
  * On CI the integration runner installs GStreamer so every test will execute.
  */
-class GStreamerAudioCodecTest {
+class GStreamerAudioCodecTest : GStreamerTestBase() {
 
     private val ctx = testContext()
 

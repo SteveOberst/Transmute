@@ -74,6 +74,32 @@ fun Route.inspectRoutes(service: TransmuteService) {
         call.respondBytes(bytes, ContentType.Application.OctetStream)
     }
 
+    /**
+     * Returns browser-renderable bytes for any image format.
+     *
+     * HEIC / HEIF / AVIF are transcoded to JPEG on the fly so the browser
+     * can display them. Other image formats are returned as-is with the
+     * appropriate Content-Type header.
+     *
+     * Returns 404 when the handle is unknown or the file is not an image.
+     */
+    get("/api/preview/{handle}") {
+        val handle = call.parameters["handle"]
+        if (handle == null) {
+            call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Missing handle"))
+            return@get
+        }
+
+        val result = service.previewImage(handle)
+        if (result == null) {
+            call.respond(HttpStatusCode.NotFound, mapOf("error" to "File not found or not an image"))
+            return@get
+        }
+
+        val (bytes, contentType) = result
+        call.respondBytes(bytes, ContentType.parse(contentType))
+    }
+
     get("/api/files") {
         val files = service.listFiles().map { uploaded ->
             mapOf(

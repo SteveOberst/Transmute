@@ -124,9 +124,18 @@ internal fun parseTailElements(tail: String): List<String> {
 /** Run `gst-launch-1.0` with the given args and check for errors. */
 internal fun runGstLaunch(args: List<String>) {
     val process = ProcessBuilder(args).redirectErrorStream(true).start()
-    val output = process.inputStream.bufferedReader().readText()
-    check(process.waitFor() == 0) {
-        "GStreamer pipeline failed (exit ${process.exitValue()}): ${output.takeLast(500)}"
+    // Register a JVM shutdown hook so the child process is force-killed if the
+    // JVM exits before waitFor() returns (e.g. test timeout, Ctrl-C).
+    val hook = Thread({ process.destroyForcibly() }, "gst-launch-cleanup")
+    Runtime.getRuntime().addShutdownHook(hook)
+    try {
+        val output = process.inputStream.bufferedReader().readText()
+        check(process.waitFor() == 0) {
+            "GStreamer pipeline failed (exit ${process.exitValue()}): ${output.takeLast(500)}"
+        }
+    } finally {
+        runCatching { Runtime.getRuntime().removeShutdownHook(hook) }
+        process.destroyForcibly()
     }
 }
 

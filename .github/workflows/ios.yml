@@ -32,7 +32,7 @@ jobs:
       - name: Download GStreamer iOS SDK
         run: >
           ./gradlew --no-daemon
-          :transmute-gstreamer:downloadGStreamerIos
+          :transmute-plugins:gstreamer:downloadGStreamerIos
         continue-on-error: true
 
       - name: Run iOS simulator tests
@@ -41,7 +41,7 @@ jobs:
           :transmute-audio:iosSimulatorArm64Test
           :transmute-image:iosSimulatorArm64Test
           :transmute-video:iosSimulatorArm64Test
-          :transmute-gstreamer:iosSimulatorArm64Test
+          :transmute-plugins:gstreamer:iosSimulatorArm64Test
 
       - name: Upload test reports
         if: always()

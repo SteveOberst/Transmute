@@ -11,7 +11,7 @@ import kotlin.test.assertTrue
  * Validates that features can be enabled/disabled individually and that
  * the plugin installs correctly through the [transmute] builder.
  */
-class GStreamerContextIntegrationTest {
+class GStreamerContextIntegrationTest : GStreamerTestBase() {
 
     @Test
     fun allFeaturesEnabledByDefault_pluginAvailable() {

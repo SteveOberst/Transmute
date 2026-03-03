@@ -6,7 +6,7 @@ import Navbar from '@/components/Navbar'
 import FileDropZone from '@/components/FileDropZone'
 import MediaPreview from '@/components/MediaPreview'
 import InspectPanel from '@/components/InspectPanel'
-import { uploadFile, inspectFile } from '@/lib/api'
+import { uploadFile, inspectFile, previewUrl } from '@/lib/api'
 import { formatBytes } from '@/lib/utils'
 import { useToast } from '@/components/Toast'
 import type { InspectResult, MediaDomain } from '@/lib/types'
@@ -14,6 +14,9 @@ import type { InspectResult, MediaDomain } from '@/lib/types'
 export default function InspectPage() {
   const [file, setFile] = useState<File | null>(null)
   const [localUrl, setLocalUrl] = useState<string | null>(null)
+  // After upload succeeds we switch to the server-side preview URL so that
+  // HEIC / HEIF / AVIF are transcoded to JPEG before the browser displays them.
+  const [serverHandle, setServerHandle] = useState<string | null>(null)
   const [result, setResult] = useState<InspectResult | null>(null)
   const [loading, setLoading] = useState(false)
   const toast = useToast()
@@ -25,6 +28,7 @@ export default function InspectPage() {
 
   const handleFile = useCallback(async (dropped: File) => {
     setResult(null)
+    setServerHandle(null)
 
     if (localUrlRef.current) URL.revokeObjectURL(localUrlRef.current)
     const blobUrl = URL.createObjectURL(dropped)
@@ -35,6 +39,7 @@ export default function InspectPage() {
     setLoading(true)
     try {
       const h = await uploadFile(dropped)
+      setServerHandle(h.handle)
       const insp = await inspectFile(h.handle)
       setResult(insp)
     } catch (e: unknown) {
@@ -47,6 +52,7 @@ export default function InspectPage() {
   const reset = useCallback(() => {
     setFile(null)
     setResult(null)
+    setServerHandle(null)
     if (localUrlRef.current) {
       URL.revokeObjectURL(localUrlRef.current)
       localUrlRef.current = null
@@ -55,6 +61,13 @@ export default function InspectPage() {
   }, [])
 
   const domain: MediaDomain = result?.domain ?? 'IMAGE'
+
+  // Use the server-side preview URL for images so that HEIC / HEIF / AVIF
+  // are transcoded to JPEG before the browser attempts to render them.
+  // Fall back to the local blob URL while the upload is in progress.
+  const displayUrl = (domain === 'IMAGE' && serverHandle)
+    ? previewUrl(serverHandle)
+    : localUrl
 
   return (
     <div className="h-dvh flex flex-col overflow-hidden">
@@ -130,7 +143,7 @@ export default function InspectPage() {
                 {/* Left: media preview */}
                 <div className="w-2/5 flex-shrink-0 flex items-center justify-center p-4 border-r border-[var(--surface-3)]/40 bg-[var(--surface-1)]/30">
                   <MediaPreview
-                    src={localUrl}
+                    src={displayUrl ?? ''}
                     domain={domain}
                     className="max-h-full max-w-full rounded-xl"
                   />

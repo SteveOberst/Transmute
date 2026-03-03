@@ -24,9 +24,10 @@ import kotlin.math.sin
  * the integration test suite. Self-contained -- does not depend on
  * test helpers from other modules (which aren't on the test classpath).
  *
- * GStreamer availability is gated at the Gradle level: the `desktopTest`
- * task is configured with `onlyIf` so it only runs when a working
- * GStreamer installation is detected.
+ * GStreamer availability is checked at test runtime via [GStreamerTestBase]:
+ * each test class that requires GStreamer extends that base, which calls
+ * [org.junit.jupiter.api.Assumptions.assumeTrue] before every test so that
+ * tests are skipped (not failed) when GStreamer is not installed.
  */
 object GStreamerTestHelpers {
 

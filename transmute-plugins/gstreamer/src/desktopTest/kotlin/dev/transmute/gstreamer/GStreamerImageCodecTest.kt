@@ -20,7 +20,7 @@ import kotlin.test.assertTrue
  * - `x265enc` for HEIF/HEIC
  * - `av1enc` for AVIF
  */
-class GStreamerImageCodecTest {
+class GStreamerImageCodecTest : GStreamerTestBase() {
 
     private val ctx = testContext()
     private val decoder = GstImageDecoder()

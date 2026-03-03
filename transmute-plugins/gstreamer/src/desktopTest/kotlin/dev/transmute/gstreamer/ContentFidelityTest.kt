@@ -29,7 +29,7 @@ import kotlin.test.assertTrue
  * The `desktopTest` task is disabled at the Gradle level when GStreamer
  * is not installed, so these tests always run against real GStreamer.
  */
-class ContentFidelityTest {
+class ContentFidelityTest : GStreamerTestBase() {
 
     private val ctx = testContext()
 

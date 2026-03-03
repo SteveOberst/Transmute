@@ -31,7 +31,7 @@ import kotlin.test.assertTrue
  *
  * All tests are **soft-skipped** when GStreamer is not installed locally.
  */
-class CrossFormatPipelineTest {
+class CrossFormatPipelineTest : GStreamerTestBase() {
 
     private val ctx = testContext()
 

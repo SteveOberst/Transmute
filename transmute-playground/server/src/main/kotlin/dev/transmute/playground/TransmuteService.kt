@@ -156,6 +156,51 @@ class TransmuteService(
         }
     }
 
+    // -- Preview ----------------------------------------------------------------
+
+    /**
+     * Returns browser-renderable image bytes for any image format.
+     *
+     * For formats browsers can display natively (JPEG, PNG, GIF, WebP, BMP)
+     * the original bytes are returned unchanged.  HEIC, HEIF, and AVIF are
+     * transparently transcoded to JPEG so that every browser can preview them
+     * without requiring native codec support.
+     *
+     * Returns a pair of (bytes, contentType) or `null` if the handle is unknown
+     * or the file is not an image.
+     */
+    suspend fun previewImage(handle: String): Pair<ByteArray, String>? {
+        val uploaded = files[handle] ?: return null
+        val bytes = uploaded.file.readBytes()
+
+        val format = try {
+            transmute.inspect.detectFormat(bytes) as? ImageFormat ?: return null
+        } catch (_: Exception) { return null }
+
+        // Formats natively supported in all major browsers.
+        val nativeFormats = setOf(ImageFormat.Jpeg, ImageFormat.Png, ImageFormat.Gif, ImageFormat.Webp, ImageFormat.Bmp)
+        if (format in nativeFormats) {
+            val contentType = when (format) {
+                ImageFormat.Jpeg -> "image/jpeg"
+                ImageFormat.Png  -> "image/png"
+                ImageFormat.Gif  -> "image/gif"
+                ImageFormat.Webp -> "image/webp"
+                ImageFormat.Bmp  -> "image/bmp"
+                else             -> "image/jpeg"
+            }
+            return bytes to contentType
+        }
+
+        // HEIC / HEIF / AVIF and anything else needs transcoding.
+        return try {
+            val jpegBytes = transmute.image.to(ImageFormat.Jpeg) { }.transmute(bytes.asBytes()).bytes.data
+            jpegBytes to "image/jpeg"
+        } catch (e: Exception) {
+            log.warn("Preview transcode failed for handle='$handle' format='${format.label}': ${e.message}")
+            null
+        }
+    }
+
     // -- Dynamic format catalog ------------------------------------------------
 
     fun allFormats(): List<FormatInfo> = imageFormats() + audioFormats() + videoFormats()

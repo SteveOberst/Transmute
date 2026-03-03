@@ -34,3 +34,28 @@ subprojects {
         }
     }
 }
+
+// ---------------------------------------------------------------------------
+// Convenience tasks for building/testing without the transmute-plugins subproject.
+//
+// Useful on machines where GStreamer or libheif are not installed.
+//
+//   ./gradlew coreBuild   -- compiles + assembles every non-plugin module
+//   ./gradlew coreTests   -- runs desktopTest for every non-plugin module
+// ---------------------------------------------------------------------------
+
+val coreSubprojects: List<Project> by lazy {
+    subprojects.filter { !it.path.startsWith(":transmute-plugins") }
+}
+
+tasks.register("coreBuild") {
+    group = "build"
+    description = "Builds all modules except transmute-plugins (no GStreamer/libheif required)."
+    dependsOn(coreSubprojects.map { "${it.path}:assemble" })
+}
+
+tasks.register("coreTests") {
+    group = "verification"
+    description = "Runs desktopTest for all modules except transmute-plugins (no GStreamer/libheif required)."
+    dependsOn(coreSubprojects.map { "${it.path}:desktopTest" })
+}

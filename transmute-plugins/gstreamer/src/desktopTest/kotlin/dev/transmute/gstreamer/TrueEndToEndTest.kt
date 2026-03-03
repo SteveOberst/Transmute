@@ -1,21 +1,13 @@
 package dev.transmute.gstreamer
 
 import dev.transmute.transmute
-import dev.transmute.model.core.asBytes
 import dev.transmute.audio.AudioFormat
-import dev.transmute.audio.CanonicalAudioDecodeOptions
 import dev.transmute.audio.CanonicalAudioEncodeOptions
 import dev.transmute.codec.OutputFormat
 import dev.transmute.gstreamer.GStreamerTestHelpers.testContext
 import dev.transmute.image.CanonicalImageDecodeOptions
-import dev.transmute.image.CanonicalImageEncodeOptions
 import dev.transmute.image.HeifEncodeOptions
 import dev.transmute.image.ImageFormat
-import dev.transmute.image.JpegEncodeOptions
-import dev.transmute.image.PngEncodeOptions
-import dev.transmute.image.WebPEncodeOptions
-import dev.transmute.model.structure.image.types.segments
-import dev.transmute.audio.codecs.jvm.JvmMp3Codec
 import dev.transmute.structure.audio.*
 import dev.transmute.structure.image.*
 import dev.transmute.structure.video.*
@@ -29,20 +21,21 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 /**
- * True End-to-End Integration Tests.
+ * GStreamer End-to-End Integration Tests.
  *
- * These tests generate **real media bytes** via codecs, then:
+ * Tests generate **real media bytes** via GStreamer codecs, then:
  * 1. Run the bytes through the corresponding **StructureReader** to verify
  *    the format is structurally valid and parseable.
  * 2. **Decode** the bytes back to IR to verify round-trip integrity.
- * 3. Some tests also exercise the **full `Transmute { }` API** including
- *    transform pipelines.
+ * 3. Exercise the **full `Transmute { }` API** including transform pipelines.
  *
- * This validates the entire chain: encode -> structure parse -> decode.
+ * Platform-agnostic codec tests (WAV, MP3, JPEG, PNG, GIF, TIFF, BMP, WebP)
+ * live in [dev.transmute.CoreEndToEndTest] in the `transmute-api` module.
  *
- * Soft-skipped when GStreamer is not available locally.
+ * Tests are skipped automatically (via [GStreamerTestBase]) when GStreamer
+ * is not installed on the current machine.
  */
-class TrueEndToEndTest {
+class TrueEndToEndTest : GStreamerTestBase() {
 
     private val ctx = testContext()
 
@@ -111,38 +104,6 @@ class TrueEndToEndTest {
         val structure = reader.read(oggBytes)
         assertNotNull(structure, "OggAudioStructure must not be null")
         assertTrue(structure.pages.isNotEmpty(), "OGG must have pages")
-    }
-
-    @Test
-    fun wav_realMedia_structureReaderAccepts() = runTest {
-        val audioIR = GStreamerTestHelpers.sineWave(durationMs = 200, sampleRate = 44100)
-        val encoder = dev.transmute.audio.codecs.WavEncoder()
-        val wavBytes = encoder.encode(audioIR, AudioFormat.Wav, CanonicalAudioEncodeOptions(), testContext())
-
-        val reader = WavStructureReader()
-        reader.read(wavBytes)  // validates the output is parseable
-
-        val structure = reader.read(wavBytes)
-        assertNotNull(structure, "WavStructure must not be null")
-        assertTrue(structure.riff.children.isNotEmpty(), "WAV must have RIFF children")
-    }
-
-    @Test
-    fun mp3_realMedia_structureReaderAccepts() = runTest {
-        // MP3 encoding via Jump3r (pure-Java LAME) - no GStreamer needed
-        val audioIR = GStreamerTestHelpers.sineWave(durationMs = 500, sampleRate = 44100)
-        val mp3Bytes = JvmMp3Codec().encode(audioIR, AudioFormat.Mp3, CanonicalAudioEncodeOptions(), testContext())
-
-        val reader = Mp3StructureReader()
-        reader.read(mp3Bytes)  // validates the output is parseable
-
-        val structure = reader.read(mp3Bytes)
-        assertNotNull(structure, "Mp3Structure must not be null")
-        assertTrue(structure.audioData.isNotEmpty(), "MP3 must have audio data")
-
-        // Verify decode roundtrip
-        val decoded = JvmMp3Codec().decode(mp3Bytes, dev.transmute.audio.CanonicalAudioDecodeOptions(), testContext())
-        assertTrue(decoded.durationMs > 0, "MP3 must decode with positive duration")
     }
 
     // =======================================================================
@@ -261,101 +222,6 @@ class TrueEndToEndTest {
         val structure = reader.read(avifBytes)
         assertNotNull(structure, "AvifStructure must not be null")
         assertTrue(structure.boxes.isNotEmpty(), "AVIF must have ISO BMFF boxes")
-    }
-
-    // =======================================================================
-    // IMAGE (JvmImageIo): Generate real media -> Structure Reader -> Decode
-    // =======================================================================
-
-    @Test
-    fun jpeg_realMedia_structureReaderAccepts() = runTest {
-        val imageIR = GStreamerTestHelpers.solidColor(64, 64, r = 180, g = 90, b = 45)
-        val encoder = dev.transmute.image.codecs.jvm.JvmImageIoEncoder()
-        val jpegBytes = encoder.encode(imageIR, ImageFormat.Jpeg, JpegEncodeOptions(), testContext())
-
-        val reader = JpegStructureReader()
-        reader.read(jpegBytes)  // validates the output is parseable
-
-        val structure = reader.read(jpegBytes)
-        assertNotNull(structure, "JpegStructure must not be null")
-        assertTrue(structure.segments.isNotEmpty(), "JPEG must have segments")
-    }
-
-    @Test
-    fun png_realMedia_structureReaderAccepts() = runTest {
-        val imageIR = GStreamerTestHelpers.solidColor(64, 64, r = 100, g = 150, b = 200)
-        val encoder = dev.transmute.image.codecs.jvm.JvmImageIoEncoder()
-        val pngBytes = encoder.encode(imageIR, ImageFormat.Png, PngEncodeOptions(), testContext())
-
-        val reader = PngStructureReader()
-        reader.read(pngBytes)  // validates the output is parseable
-
-        val structure = reader.read(pngBytes)
-        assertNotNull(structure, "PngStructure must not be null")
-        assertTrue(structure.chunks.isNotEmpty(), "PNG must have chunks")
-    }
-
-    @Test
-    fun gif_realMedia_structureReaderAccepts() = runTest {
-        val imageIR = GStreamerTestHelpers.solidColor(64, 64, r = 50, g = 100, b = 150)
-        val encoder = dev.transmute.image.codecs.jvm.JvmImageIoEncoder()
-        val gifBytes = encoder.encode(imageIR, ImageFormat.Gif, CanonicalImageEncodeOptions(), testContext())
-
-        val reader = GifStructureReader()
-        reader.read(gifBytes)  // validates the output is parseable
-
-        val structure = reader.read(gifBytes)
-        assertNotNull(structure, "GifStructure must not be null")
-        // Note: GIF blocks may be empty for a solid-color image with no extensions
-    }
-
-    @Test
-    fun tiff_realMedia_structureReaderAccepts() = runTest {
-        val imageIR = GStreamerTestHelpers.solidColor(32, 32, r = 75, g = 125, b = 175)
-        val encoder = dev.transmute.image.codecs.jvm.JvmImageIoEncoder()
-        val tiffBytes = encoder.encode(imageIR, ImageFormat.Tiff, CanonicalImageEncodeOptions(), testContext())
-
-        val reader = TiffStructureReader()
-        reader.read(tiffBytes)  // validates the output is parseable
-
-        val structure = reader.read(tiffBytes)
-        assertNotNull(structure, "TiffStructure must not be null")
-        assertTrue(structure.ifds.isNotEmpty(), "TIFF must have IFDs")
-    }
-
-    @Test
-    fun bmp_realMedia_structureReaderAccepts() = runTest {
-        val imageIR = GStreamerTestHelpers.solidColor(32, 32, r = 100, g = 100, b = 100)
-        val encoder = dev.transmute.image.codecs.bmp.BmpImageEncoder()
-        val bmpBytes = encoder.encode(imageIR, ImageFormat.Bmp, CanonicalImageEncodeOptions(), testContext())
-
-        val reader = BmpStructureReader()
-        reader.read(bmpBytes)  // validates the output is parseable
-
-        val structure = reader.read(bmpBytes)
-        assertNotNull(structure, "BmpStructure must not be null")
-        // BMP structure has fileHeader, infoHeader
-    }
-
-    @Test
-    fun webp_realMedia_structureReaderAccepts() = runTest {
-        val canEncodeWebp = javax.imageio.ImageIO.getImageWritersByFormatName("webp")
-            .asSequence().firstOrNull() != null
-        if (!canEncodeWebp) {
-            println("SKIP: WebP writer not available on this JVM")
-            return@runTest
-        }
-
-        val imageIR = GStreamerTestHelpers.solidColor(64, 64, r = 200, g = 50, b = 100)
-        val encoder = dev.transmute.image.codecs.jvm.JvmImageIoEncoder()
-        val webpBytes = encoder.encode(imageIR, ImageFormat.Webp, WebPEncodeOptions(), testContext())
-
-        val reader = WebpStructureReader()
-        reader.read(webpBytes)  // validates the output is parseable
-
-        val structure = reader.read(webpBytes)
-        assertNotNull(structure, "WebpStructure must not be null")
-        assertTrue(structure.riff.children.isNotEmpty(), "WebP must have RIFF children")
     }
 
     // =======================================================================

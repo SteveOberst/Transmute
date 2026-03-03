@@ -29,7 +29,7 @@ import kotlin.test.assertTrue
  *
  * Covers the most common real-world conversion paths.
  */
-class CrossFormatImageTest {
+class CrossFormatImageTest : GStreamerTestBase() {
 
     private val ctx = testContext()
 

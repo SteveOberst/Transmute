@@ -136,51 +136,9 @@ tasks.matching { it.name == "processDesktopMainResources" }.configureEach {
     dependsOn("stageGStreamerDesktop")
 }
 
-// ---------------------------------------------------------------------------
-// Desktop integration tests require a working GStreamer installation.
-// Rather than soft-skipping individual tests at runtime, we disable the
-// desktopTest task entirely when GStreamer isn't usable on this machine.
-//
-// Override:
-//   TRANSMUTE_GSTREAMER_TESTS=on   -> always run
-//   TRANSMUTE_GSTREAMER_TESTS=off  -> always skip
-// ---------------------------------------------------------------------------
-val gstreamerTestsOverride: String? =
-    (findProperty("transmute.gstreamer.tests") as? String)
-        ?: System.getenv("TRANSMUTE_GSTREAMER_TESTS")
-
-val gstreamerDesktopUsable: Boolean by lazy {
-    when (gstreamerTestsOverride?.trim()?.lowercase()) {
-        "1", "true", "on", "force", "enable", "enabled" -> return@lazy true
-        "0", "false", "off", "disable", "disabled" -> return@lazy false
-        else -> Unit
-    }
-    // Probe for a working gst-launch-1.0.
-    try {
-        val proc = ProcessBuilder("gst-launch-1.0", "--version")
-            .redirectErrorStream(true)
-            .start()
-        proc.inputStream.bufferedReader().readText()
-        proc.waitFor() == 0
-    } catch (_: Exception) {
-        false
-    }
-}
-
+// Ensure GStreamer binaries are staged before the test JVM starts.
+// stageGStreamerDesktop is a no-op on Linux (where bundling is not supported)
+// and is skipped when the marker file already exists (i.e. already staged).
 tasks.matching { it.name == "desktopTest" }.configureEach {
-    onlyIf {
-        val usable = gstreamerDesktopUsable
-        if (!usable) {
-            logger.lifecycle("SKIP desktopTest: GStreamer not usable on this machine (set TRANSMUTE_GSTREAMER_TESTS=on to override)")
-        }
-        usable
-    }
-}
-
-// When desktopTest is skipped its binary results directory won't exist,
-// which causes the KMP `allTests` aggregate TestReport to fail.
-// Skip allTests entirely when GStreamer isn't usable -- the only desktop
-// tests in this module require GStreamer.
-tasks.matching { it.name == "allTests" }.configureEach {
-    onlyIf { gstreamerDesktopUsable }
+    dependsOn("stageGStreamerDesktop")
 }

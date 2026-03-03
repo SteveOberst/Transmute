@@ -47,6 +47,12 @@ kotlin {
 
         // JVM-only helpers for Java-friendly IO/Blocking APIs
         val desktopMain by getting
+        val desktopTest by getting {
+            dependencies {
+                implementation(libs.kotlin.test)
+                implementation(libs.kotlinx.coroutines.test)
+            }
+        }
         val androidMain by getting
         desktopMain.dependencies {
             implementation(libs.kotlinx.coroutines.core)

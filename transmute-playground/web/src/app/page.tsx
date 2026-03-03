@@ -13,6 +13,7 @@ import {
   fetchTransforms,
   executeTransform,
   fileUrl,
+  previewUrl,
 } from '@/lib/api'
 import { formatBytes } from '@/lib/utils'
 import { useToast } from '@/components/Toast'
@@ -359,33 +360,42 @@ export default function TransformPage() {
   const onCompareDragEnd = useCallback(() => { compareDragging.current = false }, [])
 
   // -- Source URLs -----------------------------------------------------------
+  // For IMAGE domain, use previewUrl() which transcodes HEIC/HEIF/AVIF to
+  // JPEG server-side so the browser can render them.  For audio/video, use
+  // the raw fileUrl().
+  const mediaUrl = (handle: string) =>
+    domain === 'IMAGE' ? previewUrl(handle) : fileUrl(handle)
+
   const singleSrc = previewHandle
-    ? fileUrl(previewHandle)
+    ? mediaUrl(previewHandle)
     : committedHandle
-      ? fileUrl(committedHandle)
+      ? mediaUrl(committedHandle)
       : localOriginalUrl
 
   const { beforeSrc, afterSrc } = useMemo(() => {
+    const mu = (h: string) => domain === 'IMAGE' ? previewUrl(h) : fileUrl(h)
+
     // Draft compare: committed -> preview
     if (previewHandle && committedHandle) {
       return {
-        beforeSrc: fileUrl(committedHandle),
-        afterSrc: fileUrl(previewHandle),
+        beforeSrc: mu(committedHandle),
+        afterSrc: mu(previewHandle),
       }
     }
 
     // Result compare: original -> committed
     if (originalHandle && committedHandle && originalHandle !== committedHandle) {
       return {
-        beforeSrc: fileUrl(originalHandle),
-        afterSrc: fileUrl(committedHandle),
+        beforeSrc: mu(originalHandle),
+        afterSrc: mu(committedHandle),
       }
     }
 
     // Fallback (no compare available)
-    const src = committedHandle ? fileUrl(committedHandle) : localOriginalUrl
+    const src = committedHandle ? mu(committedHandle) : localOriginalUrl
     return { beforeSrc: src, afterSrc: src }
-  }, [previewHandle, committedHandle, originalHandle, localOriginalUrl])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [previewHandle, committedHandle, originalHandle, localOriginalUrl, domain])
 
   const compareLabels = useMemo(() => {
     if (previewHandle) return { before: 'current', after: 'draft' }

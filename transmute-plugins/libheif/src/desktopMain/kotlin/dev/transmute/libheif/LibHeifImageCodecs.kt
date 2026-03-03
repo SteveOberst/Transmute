@@ -202,9 +202,18 @@ internal fun runLibHeifTool(args: List<String>) {
         LibHeifResolver.configureLibHeifProcess(pb, binary)
     }
     val process = pb.start()
-    val output = process.inputStream.bufferedReader().readText()
-    check(process.waitFor() == 0) {
-        "libheif tool failed (exit ${process.exitValue()}): ${output.takeLast(500)}"
+    // Register a JVM shutdown hook so the child process is force-killed if the
+    // JVM exits before waitFor() returns (e.g. test timeout, Ctrl-C).
+    val hook = Thread({ process.destroyForcibly() }, "libheif-cleanup")
+    Runtime.getRuntime().addShutdownHook(hook)
+    try {
+        val output = process.inputStream.bufferedReader().readText()
+        check(process.waitFor() == 0) {
+            "libheif tool failed (exit ${process.exitValue()}): ${output.takeLast(500)}"
+        }
+    } finally {
+        runCatching { Runtime.getRuntime().removeShutdownHook(hook) }
+        process.destroyForcibly()
     }
 }
 

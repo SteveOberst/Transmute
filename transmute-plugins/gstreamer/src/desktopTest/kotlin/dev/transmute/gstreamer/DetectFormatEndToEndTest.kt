@@ -33,7 +33,7 @@ import kotlin.test.assertNotEquals
  *
  * Soft-skipped when GStreamer is not available locally.
  */
-class DetectFormatEndToEndTest {
+class DetectFormatEndToEndTest : GStreamerTestBase() {
 
     private val ctx = testContext()
 
