@@ -35,7 +35,7 @@ class ImageScaleTransform(
   override suspend fun apply(ir: ImageIR, context: PipelineContext): ImageIR {
     // Don't upscale - only downscale.
     if (ir.width <= maxWidth && ir.height <= maxHeight) {
-      context.logger.debug("ImageScaleTransform: image ${ir.width}x${ir.height} already fits within $maxWidthx$maxHeight - skipping")
+      context.logger.debug("ImageScaleTransform: image ${ir.width}x${ir.height} already fits within ${maxWidth}x${maxHeight} - skipping")
       return ir
     }
 

@@ -91,8 +91,55 @@ tasks.withType<org.gradle.api.tasks.compile.JavaCompile>().configureEach {
     targetCompatibility = "17"
 }
 
-// Wire the MSYS2/Homebrew staging task so that desktop resource processing
+// Wire the vcpkg/Homebrew staging task so that desktop resource processing
 // automatically downloads and bundles libheif binaries into the JAR.
 tasks.matching { it.name == "desktopProcessResources" }.configureEach {
     dependsOn("stageLibHeifDesktop")
+}
+
+// ---------------------------------------------------------------------------
+// Desktop integration tests require a working libheif installation.
+// Rather than soft-skipping individual tests at runtime, we disable the
+// desktopTest task entirely when libheif isn't usable on this machine.
+//
+// Override:
+//   TRANSMUTE_LIBHEIF_TESTS=on   -> always run
+//   TRANSMUTE_LIBHEIF_TESTS=off  -> always skip
+// ---------------------------------------------------------------------------
+val libheifTestsOverride: String? =
+    (findProperty("transmute.libheif.tests") as? String)
+        ?: System.getenv("TRANSMUTE_LIBHEIF_TESTS")
+
+val libheifDesktopUsable: Boolean by lazy {
+    when (libheifTestsOverride?.trim()?.lowercase()) {
+        "1", "true", "on", "force", "enable", "enabled" -> return@lazy true
+        "0", "false", "off", "disable", "disabled" -> return@lazy false
+        else -> Unit
+    }
+    // Probe for a working heif-dec (or heif-convert) on PATH.
+    listOf("heif-dec", "heif-convert").any { bin ->
+        try {
+            val proc = ProcessBuilder(bin, "--version")
+                .redirectErrorStream(true)
+                .start()
+            proc.inputStream.bufferedReader().readText()
+            proc.waitFor() == 0
+        } catch (_: Exception) { false }
+    }
+}
+
+tasks.matching { it.name == "desktopTest" }.configureEach {
+    onlyIf {
+        val usable = libheifDesktopUsable
+        if (!usable) {
+            logger.lifecycle("SKIP desktopTest: libheif not usable on this machine (set TRANSMUTE_LIBHEIF_TESTS=on to override)")
+        }
+        usable
+    }
+}
+
+// When desktopTest is skipped its binary results directory won't exist,
+// which causes the KMP allTests aggregate TestReport to fail.
+tasks.matching { it.name == "allTests" }.configureEach {
+    onlyIf { libheifDesktopUsable }
 }
