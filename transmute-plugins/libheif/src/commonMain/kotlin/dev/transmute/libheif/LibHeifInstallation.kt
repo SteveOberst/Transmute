@@ -1,4 +1,4 @@
-package dev.transmute.libheif
+﻿package dev.transmute.libheif
 
 import dev.transmute.filesystem.TPath
 
@@ -11,7 +11,7 @@ import dev.transmute.filesystem.TPath
  *
  * ```kotlin
  * libheif {
- *     // Default — uses the bundled libheif tools (no install required):
+ *     // Default -- uses the bundled libheif tools (no install required):
  *     // installation is Bundled by default
  *
  *     // Use a specific libheif installation on disk:
@@ -31,7 +31,7 @@ sealed interface LibHeifInstallation {
      * to a cache directory on first use. On Android and iOS this mode is
      * a no-op because those platforms support HEIF/AVIF natively.
      *
-     * This is the default — users do not need to install libheif separately.
+     * This is the default -- users do not need to install libheif separately.
      */
     data object Bundled : LibHeifInstallation
 

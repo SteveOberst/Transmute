@@ -1,4 +1,4 @@
-package dev.transmute.gstreamer
+﻿package dev.transmute.gstreamer
 
 import android.util.Log
 
@@ -61,7 +61,7 @@ internal object GStreamerJni {
         else Log.w(TAG, "GStreamer native init returned false")
         ok
     } catch (e: UnsatisfiedLinkError) {
-        Log.d(TAG, "libgstreamer_bridge.so not found – GStreamer unavailable", e)
+        Log.d(TAG, "libgstreamer_bridge.so not found - GStreamer unavailable", e)
         false
     }
 

@@ -1,4 +1,4 @@
-package dev.transmute.video.transform
+﻿package dev.transmute.video.transform
 
 import dev.transmute.audio.AudioSamples
 import dev.transmute.common.PipelineContext
@@ -40,7 +40,7 @@ class VideoSpeedTransform(
     require(speed > 0f) { "Speed must be > 0, got $speed" }
     if (speed == 1f) return ir
 
-    context.logger.info("VideoSpeedTransform: ${speed}× speed")
+    context.logger.info("VideoSpeedTransform: ${speed}x speed")
 
     val newDuration = (ir.durationMs / speed).toLong()
 

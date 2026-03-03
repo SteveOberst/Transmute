@@ -1,4 +1,4 @@
-package dev.transmute.image.codecs.jvm
+﻿package dev.transmute.image.codecs.jvm
 
 import dev.transmute.common.PrintLogger
 import dev.transmute.image.ImageFormatDetector
@@ -168,8 +168,8 @@ class WebPCodecRoundtripTest {
         val original = solidColor(w, h, 100, 100, 100)
         val encoded = encodeWebp(original)
         val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
-        assertEquals(w, decoded.width, "WebP: width not preserved for ${w}×${h}")
-        assertEquals(h, decoded.height, "WebP: height not preserved for ${w}×${h}")
+        assertEquals(w, decoded.width, "WebP: width not preserved for ${w}x${h}")
+        assertEquals(h, decoded.height, "WebP: height not preserved for ${w}x${h}")
       }
     }
   }

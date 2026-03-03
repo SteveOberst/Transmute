@@ -1,4 +1,4 @@
-package dev.transmute.image.transform
+﻿package dev.transmute.image.transform
 
 import dev.transmute.common.PipelineContext
 import dev.transmute.image.ByteArrayPixelBuffer
@@ -35,12 +35,12 @@ class ImageScaleTransform(
   override suspend fun apply(ir: ImageIR, context: PipelineContext): ImageIR {
     // Don't upscale - only downscale.
     if (ir.width <= maxWidth && ir.height <= maxHeight) {
-      context.logger.debug("ImageScaleTransform: image ${ir.width}×${ir.height} already fits within $maxWidth×$maxHeight - skipping")
+      context.logger.debug("ImageScaleTransform: image ${ir.width}x${ir.height} already fits within $maxWidthx$maxHeight - skipping")
       return ir
     }
 
     val (targetW, targetH) = fitDimensions(ir.width, ir.height, maxWidth, maxHeight)
-    context.logger.info("ImageScaleTransform: ${ir.width}×${ir.height} -> ${targetW}×${targetH}")
+    context.logger.info("ImageScaleTransform: ${ir.width}x${ir.height} -> ${targetW}x${targetH}")
 
     val srcBuffer = ir.buffer as? ByteArrayPixelBuffer
       ?: error("ImageScaleTransform requires ByteArrayPixelBuffer, got ${ir.buffer::class.simpleName}")

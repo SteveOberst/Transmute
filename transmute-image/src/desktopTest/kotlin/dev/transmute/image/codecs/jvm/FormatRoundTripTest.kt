@@ -1,4 +1,4 @@
-package dev.transmute.image.codecs.jvm
+﻿package dev.transmute.image.codecs.jvm
 
 import dev.transmute.model.core.Bytes
 import dev.transmute.image.ImageFormatDetector
@@ -195,7 +195,7 @@ class FormatRoundTripTest {
     val leftAfterRotate = pixelAt(rotated, 0, 0)
     val rightAfterRotate = pixelAt(rotated, 99, 0)
     assertTrue(leftAfterRotate[0] > rightAfterRotate[0],
-      "After 180° rotation, gradient should be reversed")
+      "After 180 deg rotation, gradient should be reversed")
 
     // Encode to PNG -> decode -> verify dimensions
     val bytes = encodePng(rotated)

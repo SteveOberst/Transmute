@@ -1,4 +1,4 @@
-package dev.transmute.image
+﻿package dev.transmute.image
 
 import dev.transmute.common.PipelineContext
 import dev.transmute.common.PrintLogger
@@ -157,7 +157,7 @@ object ImageTestHelpers {
    */
   fun peakDifference(a: ImageIR, b: ImageIR): Int {
     require(a.width == b.width && a.height == b.height) {
-      "Dimension mismatch: ${a.width}×${a.height} vs ${b.width}×${b.height}"
+      "Dimension mismatch: ${a.width}x${a.height} vs ${b.width}x${b.height}"
     }
     require(a.pixelFormat == b.pixelFormat) {
       "Pixel format mismatch: ${a.pixelFormat} vs ${b.pixelFormat}"

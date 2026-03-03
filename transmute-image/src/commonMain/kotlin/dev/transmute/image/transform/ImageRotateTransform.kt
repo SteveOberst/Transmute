@@ -1,4 +1,4 @@
-package dev.transmute.image.transform
+﻿package dev.transmute.image.transform
 
 import dev.transmute.common.PipelineContext
 import dev.transmute.image.ByteArrayPixelBuffer
@@ -33,7 +33,7 @@ class ImageRotateTransform(val degrees: Int = 90) : ImageTransform {
     val srcBuffer = ir.buffer as? ByteArrayPixelBuffer
       ?: error("ImageRotateTransform requires ByteArrayPixelBuffer")
 
-    context.logger.info("ImageRotateTransform: rotating ${degrees}° CW")
+    context.logger.info("ImageRotateTransform: rotating ${degrees} deg CW")
 
     val bpp = ir.pixelFormat.bytesPerPixel
     val srcData = srcBuffer.data

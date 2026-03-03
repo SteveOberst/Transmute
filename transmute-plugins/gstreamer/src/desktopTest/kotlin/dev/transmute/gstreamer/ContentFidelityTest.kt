@@ -1,4 +1,4 @@
-package dev.transmute.gstreamer
+﻿package dev.transmute.gstreamer
 
 import dev.transmute.audio.AudioFormat
 import dev.transmute.audio.CanonicalAudioDecodeOptions
@@ -199,7 +199,7 @@ class ContentFidelityTest {
         val diff = abs(decoded.durationMs - inputMs)
         assertTrue(
             diff <= toleranceMs,
-            "Duration should be within ±${toleranceMs}ms of ${inputMs}ms. " +
+            "Duration should be within +/-${toleranceMs}ms of ${inputMs}ms. " +
                 "Got ${decoded.durationMs}ms (diff=${diff}ms)",
         )
     }

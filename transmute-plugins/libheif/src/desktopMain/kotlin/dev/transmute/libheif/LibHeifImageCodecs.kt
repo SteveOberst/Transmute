@@ -1,4 +1,4 @@
-package dev.transmute.libheif
+﻿package dev.transmute.libheif
 
 import dev.transmute.io.TSource
 import dev.transmute.common.PipelineContext
@@ -25,7 +25,7 @@ import javax.imageio.ImageIO
  */
 
 // ---------------------------------------------------------------------------
-// LibHeif Image Decoder — HEIF, HEIC, AVIF
+// LibHeif Image Decoder -- HEIF, HEIC, AVIF
 // ---------------------------------------------------------------------------
 
 /**
@@ -108,7 +108,7 @@ internal class LibHeifImageDecoder : ImageDecoder {
 }
 
 // ---------------------------------------------------------------------------
-// LibHeif Image Encoder — HEIF, HEIC, AVIF
+// LibHeif Image Encoder -- HEIF, HEIC, AVIF
 // ---------------------------------------------------------------------------
 
 /**

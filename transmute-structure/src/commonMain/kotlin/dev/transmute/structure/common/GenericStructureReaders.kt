@@ -1,4 +1,4 @@
-@file:Suppress("unused")
+﻿@file:Suppress("unused")
 
 package dev.transmute.structure.common
 
@@ -13,7 +13,7 @@ import dev.transmute.model.structure.common.OggPage
  * Generic [StructureReader] for ISO BMFF container formats
  * (MP4, MOV, HEIF, AVIF, M4A, etc.).
  *
- * All ISO BMFF formats share the same parsing step — only the
+ * All ISO BMFF formats share the same parsing step -- only the
  * resulting model type differs. Subclasses supply a [factory] that
  * wraps the parsed box list in the appropriate raw model.
  */
@@ -30,7 +30,7 @@ open class IsoBmffStructureReader<T : RawMediaStructure>(
 /**
  * Generic [StructureReader] for EBML container formats (MKV, WebM).
  *
- * All EBML formats share the same parsing step — only the resulting
+ * All EBML formats share the same parsing step -- only the resulting
  * model type differs.
  */
 open class EbmlStructureReader<T : RawMediaStructure>(
@@ -47,7 +47,7 @@ open class EbmlStructureReader<T : RawMediaStructure>(
  * Generic [StructureReader] for Ogg container formats
  * (Ogg Vorbis, Opus).
  *
- * All Ogg formats share the same parsing step — only the resulting
+ * All Ogg formats share the same parsing step -- only the resulting
  * model type differs.
  */
 open class OggStructureReader<T : RawMediaStructure>(

@@ -1,4 +1,4 @@
-package dev.transmute.image
+﻿package dev.transmute.image
 
 import dev.transmute.image.transform.ImageResizeTransform
 import dev.transmute.image.transform.kernel.ResampleFilter
@@ -43,7 +43,7 @@ class ImageResizeTransformTest {
       ImageTestHelpers.solidColor(50, 50, r = 200, g = 100, b = 50),
       result,
     )
-    assertTrue(diff <= 2, "Solid color resize peak diff $diff should be ≤ 2")
+    assertTrue(diff <= 2, "Solid color resize peak diff $diff should be <= 2")
   }
 
   // -- Upscale --

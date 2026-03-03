@@ -1,4 +1,4 @@
-package dev.transmute.gstreamer
+﻿package dev.transmute.gstreamer
 
 import dev.transmute.filesystem.TPath
 import java.io.File
@@ -103,7 +103,7 @@ internal object GStreamerResolver {
                 diag.appendLine("[GStreamer] Binary found at $_gstLaunchPath but --version check failed")
             }
             if (!_available) {
-                diag.appendLine("[GStreamer] UNAVAILABLE — GStreamer codecs will be disabled")
+                diag.appendLine("[GStreamer] UNAVAILABLE -- GStreamer codecs will be disabled")
             }
 
             diagnosticMessage = diag.toString().trimEnd()

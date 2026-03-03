@@ -1,4 +1,4 @@
-package dev.transmute.libheif
+﻿package dev.transmute.libheif
 
 import dev.transmute.plugin.PluginFeature
 
@@ -40,7 +40,7 @@ object LibHeifFeature {
     /**
      * HEIF/HEIC/AVIF encoding via libheif (`heif-enc`).
      *
-     * Disabling this feature still allows HEIF/AVIF *decoding* — only
+     * Disabling this feature still allows HEIF/AVIF *decoding* -- only
      * the encoder registration is skipped. Useful when only read access
      * to HEIF files is needed.
      */

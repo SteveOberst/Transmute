@@ -1,4 +1,4 @@
-package dev.transmute.image
+﻿package dev.transmute.image
 
 import dev.transmute.image.ImageTestHelpers.pixelAt
 import dev.transmute.image.ImageTestHelpers.solidColor
@@ -77,8 +77,8 @@ class ImageRotateTransformTest {
     // ImageRotateTransform always rotates by the given degrees - EXIF orientation is ignored
     val input = referenceImage(Orientation.NORMAL) // 4x3
     val result = ImageRotateTransform(90).apply(input, testContext())
-    assertEquals(3, result.width, "90° CW: width becomes srcH")
-    assertEquals(4, result.height, "90° CW: height becomes srcW")
+    assertEquals(3, result.width, "90 deg CW: width becomes srcH")
+    assertEquals(4, result.height, "90 deg CW: height becomes srcW")
     assertEquals(Orientation.NORMAL, result.orientation)
   }
 
@@ -215,11 +215,11 @@ class ImageRotateTransformTest {
 
       // All pixels should be the same colour regardless of rotation angle
       assertContentEquals(intArrayOf(42, 84, 168, 255), pixelAt(result, 0, 0),
-        "Top-left should remain same colour after ${deg}°")
+        "Top-left should remain same colour after ${deg} deg")
       val maxX = result.width - 1
       val maxY = result.height - 1
       assertContentEquals(intArrayOf(42, 84, 168, 255), pixelAt(result, maxX, maxY),
-        "Bottom-right should remain same colour after ${deg}°")
+        "Bottom-right should remain same colour after ${deg} deg")
     }
   }
 

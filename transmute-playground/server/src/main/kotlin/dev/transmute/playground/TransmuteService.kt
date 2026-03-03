@@ -1,4 +1,4 @@
-package dev.transmute.playground
+﻿package dev.transmute.playground
 
 import dev.transmute.Transmute
 import dev.transmute.transmute
@@ -63,8 +63,8 @@ class TransmuteService(
 
     /** Short description for known plugins. */
     private val pluginDescriptions: Map<String, String> = mapOf(
-        GStreamer.key.id to "GStreamer-based codec backend — adds video, audio and container support via libgstreamer.",
-        LibHeif.key.id to "libheif-based image codec backend — adds HEIF/HEIC/AVIF decode/encode (desktop via heif-dec/heif-enc; no-op on Android/iOS).",
+        GStreamer.key.id to "GStreamer-based codec backend -- adds video, audio and container support via libgstreamer.",
+        LibHeif.key.id to "libheif-based image codec backend -- adds HEIF/HEIC/AVIF decode/encode (desktop via heif-dec/heif-enc; no-op on Android/iOS).",
     )
 
     /**

@@ -1,4 +1,4 @@
-package dev.transmute.image.transform
+﻿package dev.transmute.image.transform
 
 import dev.transmute.common.PipelineContext
 import dev.transmute.image.ByteArrayPixelBuffer
@@ -28,7 +28,7 @@ class ImageGrayscaleTransform : ImageTransform {
     val srcBuffer = ir.buffer as? ByteArrayPixelBuffer
       ?: error("ImageGrayscaleTransform requires ByteArrayPixelBuffer, got ${ir.buffer::class.simpleName}")
 
-    context.logger.info("ImageGrayscaleTransform: converting ${ir.width}×${ir.height} to grayscale")
+    context.logger.info("ImageGrayscaleTransform: converting ${ir.width}x${ir.height} to grayscale")
 
     val bpp = ir.pixelFormat.bytesPerPixel
     val srcData = srcBuffer.data

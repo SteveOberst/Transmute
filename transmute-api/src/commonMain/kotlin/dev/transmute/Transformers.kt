@@ -1,4 +1,4 @@
-package dev.transmute
+﻿package dev.transmute
 
 import dev.transmute.audio.transform.*
 import dev.transmute.image.transform.*
@@ -92,14 +92,14 @@ object ImageTransforms {
     /** Adjust brightness and/or contrast. Brightness: 255..+255, contrast: 0..3. */
     @TransformDescriptor("brightnessContrast", "Adjust brightness and contrast")
     fun brightnessContrast(
-        @Param("Brightness adjustment (−255 to +255)", default = "0.0", min = "-255", max = "255") brightness: Float = 0f,
+        @Param("Brightness adjustment (-255 to +255)", default = "0.0", min = "-255", max = "255") brightness: Float = 0f,
         @Param("Contrast multiplier (0 = flat grey, 1 = no change, 3 = high contrast)", default = "1.0", min = "0", max = "3") contrast: Float = 1f,
     ) = ImageBrightnessContrastTransform(brightness, contrast)
 
     /** Apply box blur. Radius: 1 = 3x3, 2 = 5x5, etc. */
     @TransformDescriptor("blur", "Apply box blur")
     fun blur(
-        @Param("Blur radius (1 = 3×3 kernel, 2 = 5×5, ...)", default = "1", min = "1", max = "20") radius: Int = 1,
+        @Param("Blur radius (1 = 3x3 kernel, 2 = 5x5, ...)", default = "1", min = "1", max = "20") radius: Int = 1,
     ) = ImageBlurTransform(radius)
 
     /** Adjust alpha channel opacity (0.0 = transparent, 1.0 = unchanged). */
@@ -143,7 +143,7 @@ object AudioTransforms {
     /** Apply volume gain in decibels (+dB louder, dB quieter). */
     @TransformDescriptor("gain", "Apply volume gain or attenuation in decibels")
     fun gain(
-        @Param("Gain in decibels (+dB = louder, −dB = quieter)", required = true, min = "-60", max = "60") db: Float,
+        @Param("Gain in decibels (+dB = louder, -dB = quieter)", required = true, min = "-60", max = "60") db: Float,
     ) = AudioGainTransform(db)
 
     /** Convert stereo -> mono by averaging channels. */
@@ -231,8 +231,8 @@ object VideoTransforms {
     ) = VideoSpeedTransform(speed)
 
     /** Rotate frames by 90 deg, 180 deg, or 270 deg clockwise. */
-    @TransformDescriptor("rotate", "Rotate video frames (90°, 180°, or 270° clockwise)")
+    @TransformDescriptor("rotate", "Rotate video frames (90 deg, 180 deg, or 270 deg clockwise)")
     fun rotate(
-        @Param("Rotation in degrees — must be 90, 180, or 270", required = true, enumValues = "90,180,270") degrees: Int,
+        @Param("Rotation in degrees -- must be 90, 180, or 270", required = true, enumValues = "90,180,270") degrees: Int,
     ) = VideoRotateTransform(degrees)
 }

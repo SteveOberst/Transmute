@@ -1,4 +1,4 @@
-package dev.transmute.gstreamer
+﻿package dev.transmute.gstreamer
 
 import dev.transmute.audio.AudioFormat
 import dev.transmute.audio.CanonicalAudioDecodeOptions
@@ -51,7 +51,7 @@ class GStreamerAndroidAudioCodecTest {
     @Test
     fun aac_encodeAndDecode_roundTrip() = runBlocking {
         if (!GStreamerAndroidTestHelpers.gstreamerAvailable) {
-            println("SKIP: GStreamer not available – test skipped")
+            println("SKIP: GStreamer not available - test skipped")
             return@runBlocking
         }
         val ir = GStreamerAndroidTestHelpers.sineWave(durationMs = 500, sampleRate = 44100)
@@ -85,7 +85,7 @@ class GStreamerAndroidAudioCodecTest {
     @Test
     fun m4a_encodeAndDecode_roundTrip() = runBlocking {
         if (!GStreamerAndroidTestHelpers.gstreamerAvailable) {
-            println("SKIP: GStreamer not available – test skipped")
+            println("SKIP: GStreamer not available - test skipped")
             return@runBlocking
         }
         val ir = GStreamerAndroidTestHelpers.sineWave(durationMs = 500, sampleRate = 44100)
@@ -119,7 +119,7 @@ class GStreamerAndroidAudioCodecTest {
     @Test
     fun opus_encodeAndDecode_roundTrip() = runBlocking {
         if (!GStreamerAndroidTestHelpers.gstreamerAvailable) {
-            println("SKIP: GStreamer not available – test skipped")
+            println("SKIP: GStreamer not available - test skipped")
             return@runBlocking
         }
         val ir = GStreamerAndroidTestHelpers.sineWave(durationMs = 500, sampleRate = 48000)
@@ -148,7 +148,7 @@ class GStreamerAndroidAudioCodecTest {
     @Test
     fun flac_encode_producesNonEmptyOutput() = runBlocking {
         if (!GStreamerAndroidTestHelpers.gstreamerAvailable) {
-            println("SKIP: GStreamer not available – test skipped")
+            println("SKIP: GStreamer not available - test skipped")
             return@runBlocking
         }
         val ir = GStreamerAndroidTestHelpers.sineWave(durationMs = 500, sampleRate = 44100)
@@ -173,7 +173,7 @@ class GStreamerAndroidAudioCodecTest {
     @Test
     fun ogg_encode_producesNonEmptyOutput() = runBlocking {
         if (!GStreamerAndroidTestHelpers.gstreamerAvailable) {
-            println("SKIP: GStreamer not available – test skipped")
+            println("SKIP: GStreamer not available - test skipped")
             return@runBlocking
         }
         val ir = GStreamerAndroidTestHelpers.sineWave(durationMs = 500, sampleRate = 44100)

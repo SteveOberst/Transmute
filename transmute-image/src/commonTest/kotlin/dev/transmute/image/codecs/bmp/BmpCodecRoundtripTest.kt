@@ -1,4 +1,4 @@
-package dev.transmute.image.codecs.bmp
+﻿package dev.transmute.image.codecs.bmp
 
 import dev.transmute.image.ByteArrayPixelBuffer
 import dev.transmute.image.ImageFormat
@@ -109,8 +109,8 @@ class BmpCodecRoundtripTest {
       val original = solidColor(w, h, 128, 128, 128)
       val encoded = encoder.encode(original, ImageFormat.Bmp, CanonicalImageEncodeOptions(), ctx)
       val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
-      assertEquals(w, decoded.width, "BMP: width not preserved for ${w}×${h}")
-      assertEquals(h, decoded.height, "BMP: height not preserved for ${w}×${h}")
+      assertEquals(w, decoded.width, "BMP: width not preserved for ${w}x${h}")
+      assertEquals(h, decoded.height, "BMP: height not preserved for ${w}x${h}")
     }
   }
 

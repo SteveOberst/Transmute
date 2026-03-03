@@ -1,4 +1,4 @@
-package dev.transmute.libheif
+﻿package dev.transmute.libheif
 
 import dev.transmute.image.MutableImageDecoderRegistry
 import dev.transmute.image.MutableImageEncoderRegistry
@@ -8,7 +8,7 @@ import dev.transmute.plugin.PluginFeaturesConfig
  * Installs libheif-backed image codecs into the provided registries.
  *
  * On Desktop/JVM, libheif is invoked via subprocess (`heif-dec`/`heif-enc`).
- * On Android and iOS this is a no-op — those platforms support HEIF/HEIC/AVIF
+ * On Android and iOS this is a no-op -- those platforms support HEIF/HEIC/AVIF
  * natively through their respective platform image I/O APIs.
  */
 object LibHeifCodecInstaller {
@@ -20,7 +20,7 @@ object LibHeifCodecInstaller {
      * Register libheif image codecs: HEIF, HEIC, AVIF decode and optionally encode.
      *
      * When [LibHeifFeature.ImageEncoding] is disabled in [features],
-     * only the decoder is registered — the HEIF/AVIF encoder is skipped.
+     * only the decoder is registered -- the HEIF/AVIF encoder is skipped.
      */
     fun installImageCodecs(
         decoders: MutableImageDecoderRegistry,

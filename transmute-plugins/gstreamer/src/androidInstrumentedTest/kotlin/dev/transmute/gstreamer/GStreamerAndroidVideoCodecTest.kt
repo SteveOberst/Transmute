@@ -1,4 +1,4 @@
-package dev.transmute.gstreamer
+﻿package dev.transmute.gstreamer
 
 import dev.transmute.gstreamer.GStreamerAndroidTestHelpers.codecOp
 import dev.transmute.gstreamer.GStreamerAndroidTestHelpers.testContext
@@ -49,7 +49,7 @@ class GStreamerAndroidVideoCodecTest {
     @Test
     fun mp4_encodeAndDecode_roundTrip() = runBlocking {
         if (!GStreamerAndroidTestHelpers.gstreamerAvailable) {
-            println("SKIP: GStreamer not available – test skipped")
+            println("SKIP: GStreamer not available - test skipped")
             return@runBlocking
         }
         val video = GStreamerAndroidTestHelpers.syntheticVideo(
@@ -86,7 +86,7 @@ class GStreamerAndroidVideoCodecTest {
     @Test
     fun mov_encodeAndDecode_roundTrip() = runBlocking {
         if (!GStreamerAndroidTestHelpers.gstreamerAvailable) {
-            println("SKIP: GStreamer not available – test skipped")
+            println("SKIP: GStreamer not available - test skipped")
             return@runBlocking
         }
         val video = GStreamerAndroidTestHelpers.syntheticVideo(
@@ -121,7 +121,7 @@ class GStreamerAndroidVideoCodecTest {
     @Test
     fun webm_encodeAndDecode_roundTrip() = runBlocking {
         if (!GStreamerAndroidTestHelpers.gstreamerAvailable) {
-            println("SKIP: GStreamer not available – test skipped")
+            println("SKIP: GStreamer not available - test skipped")
             return@runBlocking
         }
         val video = GStreamerAndroidTestHelpers.syntheticVideo(
@@ -156,7 +156,7 @@ class GStreamerAndroidVideoCodecTest {
     @Test
     fun avi_encodeAndDecode_roundTrip() = runBlocking {
         if (!GStreamerAndroidTestHelpers.gstreamerAvailable) {
-            println("SKIP: GStreamer not available – test skipped")
+            println("SKIP: GStreamer not available - test skipped")
             return@runBlocking
         }
         val video = GStreamerAndroidTestHelpers.syntheticVideo(
@@ -191,7 +191,7 @@ class GStreamerAndroidVideoCodecTest {
     @Test
     fun mkv_encodeAndDecode_roundTrip() = runBlocking {
         if (!GStreamerAndroidTestHelpers.gstreamerAvailable) {
-            println("SKIP: GStreamer not available – test skipped")
+            println("SKIP: GStreamer not available - test skipped")
             return@runBlocking
         }
         val video = GStreamerAndroidTestHelpers.syntheticVideo(

@@ -1,4 +1,4 @@
-package dev.transmute.gstreamer
+﻿package dev.transmute.gstreamer
 
 import java.io.File
 import java.io.InputStream
@@ -57,7 +57,7 @@ internal object GStreamerBundleExtractor {
         if (platform == null) {
             val os   = System.getProperty("os.name", "unknown")
             val arch = System.getProperty("os.arch", "unknown")
-            diag.appendLine("[GStreamer] Bundled: unsupported platform ($os / $arch) — skipping bundle extraction")
+            diag.appendLine("[GStreamer] Bundled: unsupported platform ($os / $arch) -- skipping bundle extraction")
             return null
         }
         diag.appendLine("[GStreamer] Bundled: detected platform '$platform', cache dir: ${cacheDir.absolutePath}")
@@ -67,7 +67,7 @@ internal object GStreamerBundleExtractor {
         val launchBinary = File(binDir, "gst-launch-1.0$ext")
 
         if (launchBinary.exists()) {
-            diag.appendLine("[GStreamer] Bundled: cache hit — using pre-extracted binaries at ${binDir.absolutePath}")
+            diag.appendLine("[GStreamer] Bundled: cache hit -- using pre-extracted binaries at ${binDir.absolutePath}")
             return binDir
         }
 
@@ -89,7 +89,7 @@ internal object GStreamerBundleExtractor {
         val resourcePrefix = "/gstreamer/$platform/"
         val manifest = javaClass.getResourceAsStream("${resourcePrefix}manifest.txt")
             ?: run {
-                diag.appendLine("[GStreamer] Bundled: no manifest at classpath '${resourcePrefix}manifest.txt' — no bundled GStreamer available for '$platform'")
+                diag.appendLine("[GStreamer] Bundled: no manifest at classpath '${resourcePrefix}manifest.txt' -- no bundled GStreamer available for '$platform'")
                 return false
             }
 

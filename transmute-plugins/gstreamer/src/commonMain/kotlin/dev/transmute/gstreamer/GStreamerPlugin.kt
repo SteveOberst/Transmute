@@ -1,4 +1,4 @@
-package dev.transmute.gstreamer
+﻿package dev.transmute.gstreamer
 
 import dev.transmute.filesystem.TPath
 import dev.transmute.plugin.HasPluginConfigure
@@ -164,7 +164,7 @@ object GStreamer : TransmutePlugin<GStreamerPluginConfig> {
     if (!GStreamerCodecInstaller.available) {
       val diag = resolverDiagnostics()
       if (diag.isNotBlank()) logger.warn("GStreamer resolution trace:\n$diag")
-        logger.warn("GStreamer is not available — skipping codec registration")
+        logger.warn("GStreamer is not available -- skipping codec registration")
       return
     }
 
@@ -178,7 +178,7 @@ object GStreamer : TransmutePlugin<GStreamerPluginConfig> {
       GStreamerCodecInstaller.installAudioCodecs(scope.codecs.audio.decoders, scope.codecs.audio.encoders)
       logger.info("Registered GStreamer audio codecs")
     } else {
-      logger.debug("Audio codecs feature disabled — skipping")
+      logger.debug("Audio codecs feature disabled -- skipping")
     }
 
     if (features.isEnabled(GStreamerFeature.VideoCodecs)) {
@@ -189,7 +189,7 @@ object GStreamer : TransmutePlugin<GStreamerPluginConfig> {
       )
       logger.info("Registered GStreamer video codecs")
     } else {
-      logger.debug("Video codecs feature disabled — skipping")
+      logger.debug("Video codecs feature disabled -- skipping")
     }
   }
 }

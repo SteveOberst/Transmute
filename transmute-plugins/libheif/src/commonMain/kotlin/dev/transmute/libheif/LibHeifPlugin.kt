@@ -1,4 +1,4 @@
-package dev.transmute.libheif
+﻿package dev.transmute.libheif
 
 import dev.transmute.filesystem.TPath
 import dev.transmute.plugin.HasPluginConfigure
@@ -171,7 +171,7 @@ object LibHeif : TransmutePlugin<LibHeifPluginConfig> {
         if (!LibHeifCodecInstaller.available) {
             val diag = libHeifResolverDiagnostics()
             if (diag.isNotBlank()) logger.warn("libheif resolution trace:\n$diag")
-            logger.warn("libheif is not available — skipping HEIF/HEIC/AVIF codec registration")
+            logger.warn("libheif is not available -- skipping HEIF/HEIC/AVIF codec registration")
             return
         }
 
@@ -189,7 +189,7 @@ object LibHeif : TransmutePlugin<LibHeifPluginConfig> {
             )
             logger.info("Registered libheif image codecs (HEIF, HEIC, AVIF)")
         } else {
-            logger.debug("Image codecs feature disabled — skipping")
+            logger.debug("Image codecs feature disabled -- skipping")
         }
     }
 }

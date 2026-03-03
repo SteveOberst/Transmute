@@ -1,4 +1,4 @@
-package dev.transmute.gstreamer
+﻿package dev.transmute.gstreamer
 
 import dev.transmute.gstreamer.GStreamerAndroidTestHelpers.codecOp
 import dev.transmute.gstreamer.GStreamerAndroidTestHelpers.testContext
@@ -63,11 +63,11 @@ class GStreamerAndroidImageCodecTest {
     @Test
     fun heif_encodeAndDecode_roundTrip() = runBlocking {
         if (!GStreamerAndroidTestHelpers.gstreamerAvailable) {
-            println("SKIP: GStreamer not available – test skipped")
+            println("SKIP: GStreamer not available - test skipped")
             return@runBlocking
         }
         if (!GStreamerJni.hasElement("x265enc")) {
-            println("SKIP: x265enc not available – test skipped")
+            println("SKIP: x265enc not available - test skipped")
             return@runBlocking
         }
         val ir = GStreamerAndroidTestHelpers.solidColor(64, 64, r = 128, g = 64, b = 32)
@@ -89,11 +89,11 @@ class GStreamerAndroidImageCodecTest {
     @Test
     fun heic_encodeAndDecode_roundTrip() = runBlocking {
         if (!GStreamerAndroidTestHelpers.gstreamerAvailable) {
-            println("SKIP: GStreamer not available – test skipped")
+            println("SKIP: GStreamer not available - test skipped")
             return@runBlocking
         }
         if (!GStreamerJni.hasElement("x265enc")) {
-            println("SKIP: x265enc not available – test skipped")
+            println("SKIP: x265enc not available - test skipped")
             return@runBlocking
         }
         val ir = GStreamerAndroidTestHelpers.solidColor(64, 64, r = 200, g = 100, b = 50)
@@ -115,11 +115,11 @@ class GStreamerAndroidImageCodecTest {
     @Test
     fun avif_encodeAndDecode_roundTrip() = runBlocking {
         if (!GStreamerAndroidTestHelpers.gstreamerAvailable) {
-            println("SKIP: GStreamer not available – test skipped")
+            println("SKIP: GStreamer not available - test skipped")
             return@runBlocking
         }
         if (!GStreamerJni.hasElement("av1enc")) {
-            println("SKIP: av1enc not available – test skipped")
+            println("SKIP: av1enc not available - test skipped")
             return@runBlocking
         }
         val ir = GStreamerAndroidTestHelpers.solidColor(64, 64, r = 100, g = 200, b = 150)

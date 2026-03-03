@@ -1,4 +1,4 @@
-package dev.transmute.image.transform
+﻿package dev.transmute.image.transform
 
 import dev.transmute.common.PipelineContext
 import dev.transmute.image.ByteArrayPixelBuffer
@@ -40,7 +40,7 @@ class ImageFlipTransform(
       if (horizontal && vertical) append("+")
       if (vertical) append("vertical")
     }
-    context.logger.info("ImageFlipTransform: $label flip on ${ir.width}×${ir.height}")
+    context.logger.info("ImageFlipTransform: $label flip on ${ir.width}x${ir.height}")
 
     val bpp = ir.pixelFormat.bytesPerPixel
     val srcData = srcBuffer.data

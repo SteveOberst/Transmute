@@ -1,4 +1,4 @@
-package dev.transmute.image.transform
+﻿package dev.transmute.image.transform
 
 import dev.transmute.common.PipelineContext
 import dev.transmute.image.ByteArrayPixelBuffer
@@ -46,7 +46,7 @@ class ImageCropTransform(
       return ir
     }
 
-    context.logger.info("ImageCropTransform: cropping to ($cx,$cy) ${cw}×${ch} from ${ir.width}×${ir.height}")
+    context.logger.info("ImageCropTransform: cropping to ($cx,$cy) ${cw}x${ch} from ${ir.width}x${ir.height}")
 
     val bpp = ir.pixelFormat.bytesPerPixel
     val srcData = srcBuffer.data

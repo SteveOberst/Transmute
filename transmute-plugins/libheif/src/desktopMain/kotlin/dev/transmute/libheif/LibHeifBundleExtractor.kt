@@ -1,4 +1,4 @@
-package dev.transmute.libheif
+﻿package dev.transmute.libheif
 
 import java.io.File
 import java.io.InputStream
@@ -32,7 +32,7 @@ import java.nio.file.StandardCopyOption
  */
 internal object LibHeifBundleExtractor {
 
-    /** Version marker — must match the libheif version used during staging. */
+    /** Version marker -- must match the libheif version used during staging. */
     private const val BUNDLE_VERSION = "1.21.2"
 
     private val cacheDir: File by lazy {
@@ -47,7 +47,7 @@ internal object LibHeifBundleExtractor {
      * files without changing the version string.
      */
     fun invalidateCache(diag: StringBuilder, reason: String) {
-        diag.appendLine("[libheif] Bundled: invalidating cache (${cacheDir.absolutePath}) — $reason")
+        diag.appendLine("[libheif] Bundled: invalidating cache (${cacheDir.absolutePath}) -- $reason")
         try {
             cacheDir.deleteRecursively()
         } catch (_: Exception) {
@@ -80,7 +80,7 @@ internal object LibHeifBundleExtractor {
         if (platform == null) {
             val os   = System.getProperty("os.name", "unknown")
             val arch = System.getProperty("os.arch", "unknown")
-            diag.appendLine("[libheif] Bundled: unsupported platform ($os / $arch) — skipping bundle extraction")
+            diag.appendLine("[libheif] Bundled: unsupported platform ($os / $arch) -- skipping bundle extraction")
             return null
         }
         diag.appendLine("[libheif] Bundled: detected platform '$platform', cache dir: ${cacheDir.absolutePath}")
@@ -93,7 +93,7 @@ internal object LibHeifBundleExtractor {
         val legacyBinary = File(binDir, "heif-convert$ext")
 
         if (decoderBinary.exists() || legacyBinary.exists()) {
-            diag.appendLine("[libheif] Bundled: cache hit — using pre-extracted binaries at ${binDir.absolutePath}")
+            diag.appendLine("[libheif] Bundled: cache hit -- using pre-extracted binaries at ${binDir.absolutePath}")
             return binDir
         }
 
@@ -103,7 +103,7 @@ internal object LibHeifBundleExtractor {
             return binDir
         }
 
-        // JAR resources not available — try runtime auto-provisioning (Windows only; MSYS2 CDN)
+        // JAR resources not available -- try runtime auto-provisioning (Windows only; MSYS2 CDN)
         if (platform.startsWith("windows")) {
             diag.appendLine("[libheif] Bundled: JAR resources not available, attempting runtime auto-provisioning...")
             val provisionedBinDir = LibHeifAutoProvisioner.provision(diag)
@@ -124,7 +124,7 @@ internal object LibHeifBundleExtractor {
         val resourcePrefix = "/libheif/$platform/"
         val manifest = javaClass.getResourceAsStream("${resourcePrefix}manifest.txt")
             ?: run {
-                diag.appendLine("[libheif] Bundled: no manifest at classpath '${resourcePrefix}manifest.txt' — no bundled libheif available for '$platform'")
+                diag.appendLine("[libheif] Bundled: no manifest at classpath '${resourcePrefix}manifest.txt' -- no bundled libheif available for '$platform'")
                 return false
             }
 

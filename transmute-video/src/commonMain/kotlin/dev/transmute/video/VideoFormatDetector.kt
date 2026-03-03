@@ -1,4 +1,4 @@
-package dev.transmute.video
+﻿package dev.transmute.video
 
 import dev.transmute.codec.MagicBytes
 import dev.transmute.model.core.Bytes
@@ -46,7 +46,7 @@ object VideoFormatDetector {
       return when (MagicBytes.ebmlDocType(data)) {
         "matroska" -> VideoFormat.Mkv
         "webm" -> VideoFormat.Webm
-        else -> VideoFormat.Webm // Short EBML without identifiable doctype — assume WebM
+        else -> VideoFormat.Webm // Short EBML without identifiable doctype -- assume WebM
       }
     }
 

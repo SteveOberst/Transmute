@@ -1,4 +1,4 @@
-package dev.transmute.audio.transform
+﻿package dev.transmute.audio.transform
 
 import dev.transmute.audio.AudioHint
 import dev.transmute.audio.AudioIR
@@ -43,7 +43,7 @@ class AudioCompressorTransform(
 
   override suspend fun apply(ir: AudioIR, context: PipelineContext): AudioIR {
     if (ratio <= 1f) {
-      context.logger.debug("AudioCompressorTransform: ratio ≤ 1 - skipping")
+      context.logger.debug("AudioCompressorTransform: ratio <= 1 - skipping")
       return ir
     }
 

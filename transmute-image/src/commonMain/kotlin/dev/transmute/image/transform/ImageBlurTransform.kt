@@ -1,4 +1,4 @@
-package dev.transmute.image.transform
+﻿package dev.transmute.image.transform
 
 import dev.transmute.common.PipelineContext
 import dev.transmute.image.ByteArrayPixelBuffer
@@ -32,14 +32,14 @@ class ImageBlurTransform(
 
   override suspend fun apply(ir: ImageIR, context: PipelineContext): ImageIR {
     if (radius <= 0) {
-      context.logger.debug("ImageBlurTransform: radius ≤ 0 - skipping")
+      context.logger.debug("ImageBlurTransform: radius <= 0 - skipping")
       return ir
     }
 
     val srcBuffer = ir.buffer as? ByteArrayPixelBuffer
       ?: error("ImageBlurTransform requires ByteArrayPixelBuffer, got ${ir.buffer::class.simpleName}")
 
-    context.logger.info("ImageBlurTransform: radius=$radius on ${ir.width}×${ir.height}")
+    context.logger.info("ImageBlurTransform: radius=$radius on ${ir.width}x${ir.height}")
 
     val bpp = ir.pixelFormat.bytesPerPixel
     val w = ir.width

@@ -1,4 +1,4 @@
-package dev.transmute.gstreamer
+﻿package dev.transmute.gstreamer
 
 import dev.transmute.audio.AudioIR
 import dev.transmute.audio.AudioSamples
@@ -36,7 +36,7 @@ object GStreamerIosTestHelpers {
      */
     inline fun requireGStreamer(block: () -> Unit) {
         if (!gstreamerAvailable) {
-            println("SKIP: GStreamer not available on this device – test skipped")
+            println("SKIP: GStreamer not available on this device - test skipped")
             return
         }
         block()
@@ -47,11 +47,11 @@ object GStreamerIosTestHelpers {
      */
     suspend fun requireGStreamerElement(element: String, block: suspend () -> Unit) {
         if (!gstreamerAvailable) {
-            println("SKIP: GStreamer not available – test skipped")
+            println("SKIP: GStreamer not available - test skipped")
             return
         }
         if (!GStreamerIosBridge.hasElement(element)) {
-            println("SKIP: GStreamer element '$element' not available – test skipped")
+            println("SKIP: GStreamer element '$element' not available - test skipped")
             return
         }
         block()

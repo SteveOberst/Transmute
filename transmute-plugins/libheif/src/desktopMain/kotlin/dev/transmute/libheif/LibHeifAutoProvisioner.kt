@@ -1,4 +1,4 @@
-package dev.transmute.libheif
+﻿package dev.transmute.libheif
 
 import java.io.File
 import java.net.URI
@@ -109,7 +109,7 @@ internal object LibHeifAutoProvisioner {
      * Provisions libheif binaries, returning the `bin/` directory on success
      * or `null` on failure. Diagnostic messages are appended to [diag].
      *
-     * This is safe to call concurrently — a lock file prevents parallel
+     * This is safe to call concurrently -- a lock file prevents parallel
      * downloads on the same machine.
      */
     fun provision(diag: StringBuilder): File? {
@@ -142,7 +142,7 @@ internal object LibHeifAutoProvisioner {
         return try {
             doProvision(diag)
         } catch (e: Exception) {
-            diag.appendLine("[libheif] Auto-provision: FAILED — ${e.message}")
+            diag.appendLine("[libheif] Auto-provision: FAILED -- ${e.message}")
             diag.appendLine("[libheif] Auto-provision: You can install libheif manually:")
             diag.appendLine("[libheif]   Windows: Install MSYS2 (https://www.msys2.org/) then run:")
             diag.appendLine("[libheif]     pacman -S mingw-w64-ucrt-x86_64-libheif")
@@ -195,14 +195,14 @@ internal object LibHeifAutoProvisioner {
             val verified = verifyBinary(decoderExe, diag)
             if (!verified) {
                 diag.appendLine("[libheif] Auto-provision: heif-dec.exe exists but failed verification (missing DLLs?)")
-                diag.appendLine("[libheif] Auto-provision: proceeding anyway — codec operations may fail at runtime")
+                diag.appendLine("[libheif] Auto-provision: proceeding anyway -- codec operations may fail at runtime")
             }
 
             // Write success marker
             File(cacheDir, ".provisioned").writeText(PROVISION_VERSION)
 
             val fileCount = dstBin.listFiles()?.size ?: 0
-            diag.appendLine("[libheif] Auto-provision: SUCCESS — $fileCount files cached at ${dstBin.absolutePath}")
+            diag.appendLine("[libheif] Auto-provision: SUCCESS -- $fileCount files cached at ${dstBin.absolutePath}")
             return dstBin
 
         } finally {
@@ -240,11 +240,11 @@ internal object LibHeifAutoProvisioner {
             diag.appendLine("[libheif] Auto-provision: using cached download $pkgFileName")
         }
 
-        // Extract .tar.zst — try multiple approaches for maximum compatibility
+        // Extract .tar.zst -- try multiple approaches for maximum compatibility
         extractDir.mkdirs()
         val extracted = tryExtractTarZst(pkgFile, extractDir, diag)
         if (!extracted) {
-            diag.appendLine("[libheif] Auto-provision: WARNING — could not extract $pkgFileName")
+            diag.appendLine("[libheif] Auto-provision: WARNING -- could not extract $pkgFileName")
         }
     }
 

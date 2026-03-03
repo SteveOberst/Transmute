@@ -1,4 +1,4 @@
-package dev.transmute.image
+﻿package dev.transmute.image
 
 import dev.transmute.image.ImageTestHelpers.checkerboard
 import dev.transmute.image.ImageTestHelpers.horizontalGradient
@@ -171,7 +171,7 @@ class ImageScaleTransformTest {
     val transform = ImageScaleTransform(maxWidth = 320, maxHeight = 240)
     val result = transform.apply(input, testContext())
 
-    assertEquals(320 * 4, result.stride, "Stride should be width × bytesPerPixel")
+    assertEquals(320 * 4, result.stride, "Stride should be width x bytesPerPixel")
   }
 
   // --- 2x downscale pixel accuracy ---

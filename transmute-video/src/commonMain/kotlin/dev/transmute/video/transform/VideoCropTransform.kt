@@ -1,4 +1,4 @@
-package dev.transmute.video.transform
+﻿package dev.transmute.video.transform
 
 import dev.transmute.common.PipelineContext
 import dev.transmute.codec.pipeline.TransformId
@@ -51,7 +51,7 @@ class VideoCropTransform(
       return ir
     }
 
-    context.logger.info("VideoCropTransform: cropping to ($cx,$cy) ${cw}×${ch}")
+    context.logger.info("VideoCropTransform: cropping to ($cx,$cy) ${cw}x${ch}")
 
     return ir.copy(
       videoTrack = track.copy(

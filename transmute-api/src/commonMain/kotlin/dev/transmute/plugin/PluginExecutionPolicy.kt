@@ -1,4 +1,4 @@
-package dev.transmute.plugin
+﻿package dev.transmute.plugin
 
 /**
  * Declares the concurrency model a plugin prefers for its codec operations.
@@ -55,6 +55,6 @@ sealed class ExecutionPolicy {
      * @param limit Maximum number of simultaneous codec operations. Must be >= 1.
      */
     data class MaxParallelism(val limit: Int) : ExecutionPolicy() {
-        init { require(limit >= 1) { "MaxParallelism limit must be ≥ 1, got $limit" } }
+        init { require(limit >= 1) { "MaxParallelism limit must be >= 1, got $limit" } }
     }
 }

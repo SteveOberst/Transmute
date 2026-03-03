@@ -1,9 +1,9 @@
-package dev.transmute.io
+﻿package dev.transmute.io
 
 /**
  * A suspending, sequential **read-only** byte source.
  *
- * `TSource` is the Transmute abstraction for streaming input — files,
+ * `TSource` is the Transmute abstraction for streaming input -- files,
  * network responses, in-memory buffers, etc.  All reads are suspending
  * to support non-blocking I/O on every platform.
  *

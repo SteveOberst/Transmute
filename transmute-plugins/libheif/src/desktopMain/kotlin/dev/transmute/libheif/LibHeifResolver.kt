@@ -1,4 +1,4 @@
-package dev.transmute.libheif
+﻿package dev.transmute.libheif
 
 import java.io.File
 
@@ -44,7 +44,7 @@ internal object LibHeifResolver {
     /**
      * Resolved path to `heif-dec` or `heif-convert`.
      *
-     * Prefer `heif-dec` (libheif ≥ 1.19), fall back to `heif-convert`.
+     * Prefer `heif-dec` (libheif >= 1.19), fall back to `heif-convert`.
      */
     val decoderPath: String
         get() {
@@ -113,11 +113,11 @@ internal object LibHeifResolver {
                 diag.appendLine("[libheif] Binary found at $_decoderPath but version check failed")
             }
             if (!_available) {
-                diag.appendLine("[libheif] UNAVAILABLE — HEIF/HEIC/AVIF codecs will be disabled")
+                diag.appendLine("[libheif] UNAVAILABLE -- HEIF/HEIC/AVIF codecs will be disabled")
             }
             if (_available && _encoderPath != null) {
                 if (!testBinary(_encoderPath!!)) {
-                    diag.appendLine("[libheif] Encoder found at $_encoderPath but version check failed — encoding disabled")
+                    diag.appendLine("[libheif] Encoder found at $_encoderPath but version check failed -- encoding disabled")
                     _encoderPath = null
                 }
             }
@@ -141,7 +141,7 @@ internal object LibHeifResolver {
             // was created by an older Transmute version missing transitive DLLs/.so files),
             // treat that as a broken cache and self-heal.
             if (_decoderPath != null && !testBinary(_decoderPath!!)) {
-                diag.appendLine("[libheif] Bundled extraction present but decoder failed verification — attempting repair")
+                diag.appendLine("[libheif] Bundled extraction present but decoder failed verification -- attempting repair")
                 _decoderPath = null
                 _encoderPath = null
 
@@ -223,7 +223,7 @@ internal object LibHeifResolver {
     /**
      * Probes [dirPath] for libheif CLI tools.
      *
-     * Checks for `heif-dec` first (libheif ≥ 1.19), then falls back to
+     * Checks for `heif-dec` first (libheif >= 1.19), then falls back to
      * `heif-convert` (earlier versions). Also looks for `heif-enc`.
      */
     private fun resolveFromDir(dirPath: String, diag: StringBuilder, source: String) {
@@ -342,9 +342,9 @@ internal object LibHeifResolver {
         diag.appendLine(
             "[libheif] Not found in Windows default paths (MSYS2, vcpkg, Chocolatey, Scoop).\n" +
                 "  Install libheif via one of:\n" +
-                "    • MSYS2: pacman -S mingw-w64-ucrt-x86_64-libheif\n" +
-                "    • vcpkg: vcpkg install libheif[core]:x64-windows\n" +
-                "    • Or place heif-dec.exe / heif-enc.exe on your system PATH",
+                "    - MSYS2: pacman -S mingw-w64-ucrt-x86_64-libheif\n" +
+                "    - vcpkg: vcpkg install libheif[core]:x64-windows\n" +
+                "    - Or place heif-dec.exe / heif-enc.exe on your system PATH",
         )
     }
 

@@ -1,4 +1,4 @@
-package dev.transmute.video.transform
+﻿package dev.transmute.video.transform
 
 import dev.transmute.common.PipelineContext
 import dev.transmute.codec.pipeline.TransformId
@@ -34,7 +34,7 @@ class VideoRotateTransform(
   override val id = TransformId("video.rotate")
 
   override suspend fun apply(ir: VideoIR, context: PipelineContext): VideoIR {
-    context.logger.info("VideoRotateTransform: rotating ${degrees}° CW")
+    context.logger.info("VideoRotateTransform: rotating ${degrees} deg CW")
 
     val track = ir.videoTrack
     val swapDimensions = degrees == 90 || degrees == 270

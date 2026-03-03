@@ -1,4 +1,4 @@
-package dev.transmute.image.codecs.jvm
+﻿package dev.transmute.image.codecs.jvm
 
 import dev.transmute.model.core.Bytes
 import dev.transmute.image.ImageFormatDetector
@@ -73,8 +73,8 @@ class ExtendedFormatCodecTest {
       val original = solidColor(w, h, 128, 128, 128)
       val encoded = encodeGif(original)
       val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
-      assertEquals(w, decoded.width, "Width should be preserved for ${w}×${h}")
-      assertEquals(h, decoded.height, "Height should be preserved for ${w}×${h}")
+      assertEquals(w, decoded.width, "Width should be preserved for ${w}x${h}")
+      assertEquals(h, decoded.height, "Height should be preserved for ${w}x${h}")
     }
   }
 
@@ -142,8 +142,8 @@ class ExtendedFormatCodecTest {
       val original = solidColor(w, h, 100, 100, 100)
       val encoded = encodeTiff(original)
       val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
-      assertEquals(w, decoded.width, "Width should be preserved for ${w}×${h}")
-      assertEquals(h, decoded.height, "Height should be preserved for ${w}×${h}")
+      assertEquals(w, decoded.width, "Width should be preserved for ${w}x${h}")
+      assertEquals(h, decoded.height, "Height should be preserved for ${w}x${h}")
     }
   }
 

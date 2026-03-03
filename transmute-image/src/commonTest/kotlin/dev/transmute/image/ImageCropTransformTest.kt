@@ -1,4 +1,4 @@
-package dev.transmute.image
+﻿package dev.transmute.image
 
 import dev.transmute.image.ImageTestHelpers.checkerboard
 import dev.transmute.image.ImageTestHelpers.horizontalGradient
@@ -135,7 +135,7 @@ class ImageCropTransformTest {
 
     val buffer = result.buffer as ByteArrayPixelBuffer
     val expectedSize = result.width * result.height * result.pixelFormat.bytesPerPixel
-    assertEquals(expectedSize, buffer.data.size, "Buffer size must match w×h×bpp")
+    assertEquals(expectedSize, buffer.data.size, "Buffer size must match wxhxbpp")
   }
 
   @Test

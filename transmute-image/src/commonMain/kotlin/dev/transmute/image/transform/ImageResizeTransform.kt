@@ -1,4 +1,4 @@
-package dev.transmute.image.transform
+﻿package dev.transmute.image.transform
 
 import dev.transmute.common.PipelineContext
 import dev.transmute.codec.pipeline.TransformId
@@ -55,21 +55,21 @@ class ImageResizeTransform(
 
     // Already at target size - nothing to do.
     if (srcW == targetWidth && srcH == targetHeight) {
-      context.logger.debug("ImageResizeTransform: already ${srcW}×${srcH} - skipping")
+      context.logger.debug("ImageResizeTransform: already ${srcW}x${srcH} - skipping")
       return ir
     }
 
     // Upscale guard.
     if (!allowUpscale && srcW <= targetWidth && srcH <= targetHeight) {
       context.logger.debug(
-        "ImageResizeTransform: ${srcW}×${srcH} smaller than ${targetWidth}×${targetHeight} " +
+        "ImageResizeTransform: ${srcW}x${srcH} smaller than ${targetWidth}x${targetHeight} " +
           "and upscale disabled - skipping"
       )
       return ir
     }
 
     context.logger.info(
-      "ImageResizeTransform: ${srcW}×${srcH} -> ${targetWidth}×${targetHeight} (${filter.name})"
+      "ImageResizeTransform: ${srcW}x${srcH} -> ${targetWidth}x${targetHeight} (${filter.name})"
     )
 
     val srcBuffer = ir.buffer as? ByteArrayPixelBuffer

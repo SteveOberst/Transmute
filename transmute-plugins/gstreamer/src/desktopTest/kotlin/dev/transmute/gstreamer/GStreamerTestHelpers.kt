@@ -1,4 +1,4 @@
-package dev.transmute.gstreamer
+﻿package dev.transmute.gstreamer
 
 import dev.transmute.audio.AudioIR
 import dev.transmute.audio.AudioSamples
@@ -21,7 +21,7 @@ import kotlin.math.sin
  * Test utilities for GStreamer integration tests.
  *
  * Provides synthetic media generators (audio, image, video) used by
- * the integration test suite. Self-contained — does not depend on
+ * the integration test suite. Self-contained -- does not depend on
  * test helpers from other modules (which aren't on the test classpath).
  *
  * GStreamer availability is gated at the Gradle level: the `desktopTest`

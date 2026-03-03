@@ -1,4 +1,4 @@
-package dev.transmute.playground
+﻿package dev.transmute.playground
 
 import dev.transmute.playground.routes.*
 import dev.transmute.playground.ws.progressSocket
@@ -140,7 +140,7 @@ fun Application.configureServer(service: TransmuteService = TransmuteService()) 
                         <div style="text-align: center;">
                             <h1>Transmute Playground</h1>
                             <p>API server is running. Set <code>TRANSMUTE_STATIC_DIR</code> to serve the web frontend.</p>
-                            <p><a href="/api/health" style="color: #58A6FF;">Health Check</a> · <a href="/api/formats" style="color: #58A6FF;">Formats</a> · <a href="/api/transforms" style="color: #58A6FF;">Transforms</a></p>
+                            <p><a href="/api/health" style="color: #58A6FF;">Health Check</a> &middot; <a href="/api/formats" style="color: #58A6FF;">Formats</a> &middot; <a href="/api/transforms" style="color: #58A6FF;">Transforms</a></p>
                         </div>
                     </body>
                     </html>
@@ -153,7 +153,7 @@ fun Application.configureServer(service: TransmuteService = TransmuteService()) 
 
     // Shutdown hook
     monitor.subscribe(ApplicationStopped) {
-        logger.info("Shutting down — cleaning up resources")
+        logger.info("Shutting down -- cleaning up resources")
         service.cleanup()
     }
 }

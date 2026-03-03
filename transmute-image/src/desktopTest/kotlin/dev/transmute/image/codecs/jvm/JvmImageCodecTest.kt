@@ -1,4 +1,4 @@
-package dev.transmute.image.codecs.jvm
+﻿package dev.transmute.image.codecs.jvm
 
 import dev.transmute.model.core.Bytes
 import dev.transmute.image.ImageTestHelpers
@@ -192,8 +192,8 @@ class JvmImageCodecTest {
       val original = solidColor(w, h, 100, 100, 100)
       val encoded = encodeJpeg(original, quality = 0.90f)
       val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
-      assertEquals(w, decoded.width, "Width should be preserved for ${w}×${h}")
-      assertEquals(h, decoded.height, "Height should be preserved for ${w}×${h}")
+      assertEquals(w, decoded.width, "Width should be preserved for ${w}x${h}")
+      assertEquals(h, decoded.height, "Height should be preserved for ${w}x${h}")
     }
   }
 
@@ -203,8 +203,8 @@ class JvmImageCodecTest {
       val original = solidColor(w, h, 100, 100, 100)
       val encoded = encodePng(original)
       val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
-      assertEquals(w, decoded.width, "Width should be preserved for ${w}×${h}")
-      assertEquals(h, decoded.height, "Height should be preserved for ${w}×${h}")
+      assertEquals(w, decoded.width, "Width should be preserved for ${w}x${h}")
+      assertEquals(h, decoded.height, "Height should be preserved for ${w}x${h}")
     }
   }
 
