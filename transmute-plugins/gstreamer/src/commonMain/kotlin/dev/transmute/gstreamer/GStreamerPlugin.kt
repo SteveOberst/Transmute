@@ -150,6 +150,9 @@ class GStreamerPluginConfig : HasPluginConfigure {
 object GStreamer : TransmutePlugin<GStreamerPluginConfig> {
 
   override val key: PluginId = BuiltinPlugins.GStreamer
+  override val displayName: String = "GStreamer"
+  override val description: String =
+    "GStreamer-based codec backend — adds video, audio and container support via libgstreamer."
   override val features: Set<PluginFeature> = GStreamerFeature.ALL
 
   override fun createConfig(): GStreamerPluginConfig = GStreamerPluginConfig()

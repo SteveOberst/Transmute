@@ -25,6 +25,21 @@ interface TransmutePlugin<C : Any> {
   val key: PluginId
 
   /**
+   * Human-readable display name for this plugin (e.g. "GStreamer", "LibHeif").
+   *
+   * Defaults to the last segment of [key] with an upper-cased first letter.
+   */
+  val displayName: String get() = key.id.substringAfterLast('.').replaceFirstChar { it.uppercase() }
+
+  /**
+   * Short description of what this plugin provides.
+   *
+   * Shown in playground UIs and diagnostic output.  Defaults to a generic
+   * string based on [key].
+   */
+  val description: String get() = "Transmute plugin: ${key.id}"
+
+  /**
    * Plugin ids this plugin depends on.
    *
    * The framework ensures all dependencies are installed before this plugin

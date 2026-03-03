@@ -6,6 +6,7 @@ import dev.transmute.gstreamer.GStreamer
 import dev.transmute.libheif.LibHeif
 import dev.transmute.playground.shared.*
 import dev.transmute.plugin.PluginId
+import dev.transmute.plugin.TransmutePlugin
 import dev.transmute.image.ImageFormat
 import dev.transmute.image.ImageTransform
 import dev.transmute.audio.AudioFormat
@@ -49,23 +50,39 @@ class TransmuteService(
     private val featureOverrides = mutableMapOf<String, Boolean>()
     private val disabledPlugins = mutableSetOf<PluginId>().apply { addAll(initiallyDisabledPlugins) }
 
-    /** All plugins that this playground knows about, keyed by plugin ID string. */
-    private val knownPlugins: Map<String, PluginId> = mapOf(
-        GStreamer.key.id to GStreamer.key,
-        LibHeif.key.id to LibHeif.key,
-    )
+    /** All plugins this playground supports, in preferred display order. Metadata comes from the plugins themselves. */
+    private val allPlugins: List<TransmutePlugin<*>> = listOf(GStreamer, LibHeif)
 
-    /** Human-readable display name for known plugins. */
-    private val pluginDisplayNames: Map<String, String> = mapOf(
-        GStreamer.key.id to "GStreamer",
-        LibHeif.key.id to "LibHeif",
-    )
+    /** All plugins keyed by plugin ID string. */
+    private val knownPlugins: Map<String, TransmutePlugin<*>> = allPlugins.associateBy { it.key.id }
 
-    /** Short description for known plugins. */
-    private val pluginDescriptions: Map<String, String> = mapOf(
-        GStreamer.key.id to "GStreamer-based codec backend -- adds video, audio and container support via libgstreamer.",
-        LibHeif.key.id to "libheif-based image codec backend -- adds HEIF/HEIC/AVIF decode/encode (desktop via heif-dec/heif-enc; no-op on Android/iOS).",
-    )
+    /**
+     * Maps a format label to the plugin ID that provides it.
+     *
+     * Built lazily by probing each known plugin in isolation against the builtin
+     * baseline. Completely dynamic — no format→plugin attribution is ever hardcoded.
+     */
+    private val formatToPlugin: Map<String, String> by lazy {
+        buildMap {
+            for (plugin in allPlugins) {
+                try {
+                    @Suppress("UNCHECKED_CAST")
+                    val p = plugin as TransmutePlugin<Any>
+                    val t = transmute { plugins { install(p) } }
+                    try {
+                        val all =
+                            t.codec.image.decodableFormats + t.codec.image.encodableFormats +
+                            t.codec.audio.decodableFormats + t.codec.audio.encodableFormats +
+                            t.codec.video.decodableFormats + t.codec.video.encodableFormats
+                        all.filter { it.label.lowercase() != "unknown" && it.label !in builtInFormatLabels }
+                            .forEach { putIfAbsent(it.label, plugin.key.id) }
+                    } finally {
+                        t.close()
+                    }
+                } catch (_: Exception) { }
+            }
+        }
+    }
 
     /**
      * Format labels available without any plugins installed.
@@ -223,7 +240,7 @@ class TransmuteService(
                 canDecode = fmt in decodable,
                 canEncode = fmt in encodable,
                 hasStructureReader = transmute.codec.hasStructureDecoder(fmt),
-                providedBy = if (fmt.label in builtInFormatLabels) null else GStreamer.key.id,
+                providedBy = if (fmt.label in builtInFormatLabels) null else formatToPlugin[fmt.label],
             )
         }.sortedBy { it.name }
     }
@@ -288,14 +305,15 @@ class TransmuteService(
 
     fun listPlugins(): List<PluginDescriptor> {
         val installed = transmute.installedPlugins.associateBy { it.key.id }
-        return knownPlugins.entries.map { (keyId, pluginId) ->
+        return allPlugins.map { plugin ->
+            val keyId = plugin.key.id
             val info = installed[keyId]
             PluginDescriptor(
                 key = keyId,
-                name = pluginDisplayNames[keyId] ?: keyId.substringAfterLast('.').replaceFirstChar { it.uppercase() },
-                description = pluginDescriptions[keyId] ?: "Transmute plugin: $keyId",
+                name = plugin.displayName,
+                description = plugin.description,
                 version = null,
-                enabled = pluginId !in disabledPlugins,
+                enabled = plugin.key !in disabledPlugins,
                 status = PluginStatusInfo(available = true),
                 domains = deriveDomains(),
                 features = info?.features?.map { feat ->
@@ -317,7 +335,7 @@ class TransmuteService(
         listPlugins().firstOrNull { it.key == key }
 
     fun updatePlugin(key: String, update: PluginUpdate): PluginDescriptor? {
-        val pluginId = knownPlugins[key] ?: return null
+        val pluginId = knownPlugins[key]?.key ?: return null
 
         update.enabled?.let { enabled ->
             if (enabled) disabledPlugins.remove(pluginId)
