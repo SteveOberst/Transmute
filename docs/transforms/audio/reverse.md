@@ -1,26 +1,32 @@
-# Reverse
+# Audio: reverse
 
-Reverse the playback direction of audio.
+Reverse the audio playback direction.
 
-## Parameters
-
-None.
-
-## Usage
-
-### DSL
+## Factory
 
 ```kotlin
-Transmute.audio { reverse() }.transmute(bytes.asBytes()).bytes.data
+Transformers.audio().reverse()
 ```
 
-### Pipeline
+No parameters.
+
+## Behaviour
+
+- The entire sample buffer is reversed in place.
+- Duration and format are unchanged.
+
+## DSL usage
 
 ```kotlin
-transform { add(Transformers.audio().reverse()) }
+val transmuter = Transmute.audio.to(AudioFormat.Wav) {
+    decode {
+        pipeline { reverse() }
+    }
+}
 ```
 
-## Notes
+## Related
 
-- Reverses sample order within each channel independently.
-- Duration and sample rate remain unchanged.
+- [trim](trim.md)
+- [speed](speed.md)
+- [Transforms overview](README.md)

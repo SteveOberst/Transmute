@@ -1,44 +1,74 @@
 # AVI
 
-AVI is a legacy video container format. It is still encountered frequently in archives and older workflows.
+`VideoFormat.Avi` — Audio Video Interleave
 
-## Platform Support
+| Property | Value |
+|----------|-------|
+| Enum value | `VideoFormat.Avi` |
+| MIME type | `video/x-msvideo` |
+| Extension | `.avi` |
+| Container | RIFF |
+| Metadata | `RiffInfoMetadata` |
+| Structure | `AviStructure` |
 
-| Platform | Decode | Encode | Engine                                     |
-|----------|--------|--------|--------------------------------------------|
-| Android  | ✅      | ✅      | MediaCodec                                 |
-| Desktop  | ✅      | ✅      | GStreamer (requires `transmute-gstreamer`) |
-| iOS      | ✅      | ❌      | AVFoundation (decode only)                 |
+## Platform support
 
-## Usage
+| Platform | Decode | Encode |
+|----------|--------|--------|
+| Android | ⚠️ GStreamer plugin | ⚠️ GStreamer plugin |
+| Desktop (JVM) | ⚠️ GStreamer plugin | ⚠️ GStreamer plugin |
+| iOS | ⚠️ GStreamer plugin | ⚠️ GStreamer plugin |
 
-```kotlin
-// Convert video to AVI (Android/Desktop)
-suspend fun convertToAvi(inputBytes: ByteArray): ByteArray =
-  Transmute.video {
-    encode { options { outputFormat = OutputFormat.Exact(VideoFormat.Avi) } }
-  }.transmute(inputBytes.asBytes()).bytes.data
+AVI requires the [GStreamer plugin](../plugins.md) on **all platforms**.
 
-// Decode AVI (re-encode to MP4)
-suspend fun convertToMp4(aviBytes: ByteArray): ByteArray =
-  Transmute.video {
-    encode { options { outputFormat = OutputFormat.Exact(VideoFormat.Mp4) } }
-  }.transmute(aviBytes.asBytes()).bytes.data
-```
-
-## Structure Reading
-
-AVI files can be parsed into an `Avi` structure that mirrors the RIFF container layout:
+## Plugin setup
 
 ```kotlin
-val avi: Avi = Transmute.structure.read(aviBytes.asBytes(), VideoFormat.Avi)
-
-// Round-trip
-val raw = Transmute.structure.write(avi)
+val transmute = Transmute {
+    plugins {
+        install(GStreamerPlugin) {
+            domains(MediaDomain.VIDEO)
+        }
+    }
+}
 ```
 
-The reader validates the `RIFF....AVI ` signature, then recursively parses `LIST` chunks (`hdrl`,
-`movi`) and leaf chunks (`avih`, `strh`, `strf`, `idx1`). See `docs/structures.md`.
+## Encode options
 
-## Notes
-- Desktop requires the optional `transmute-gstreamer` module with GStreamer installed.
+AVI uses `CanonicalVideoEncodeOptions` — there are currently no format-specific encoding knobs.
+
+```kotlin
+encode {
+    options {
+        metadataPolicy = MetadataPolicy.PRESERVE   // default: STRIP_ALL
+        outputFormat   = OutputFormat.Exact(VideoFormat.Avi)
+    }
+}
+```
+
+## Basic usage
+
+```kotlin
+val transmute = Transmute {
+    plugins {
+        install(GStreamerPlugin) { domains(MediaDomain.VIDEO) }
+    }
+}
+
+val transmuter = transmute.video.to(VideoFormat.Avi)
+val aviBytes = transmuter.transmute(inputBytes)
+```
+
+## Inspection
+
+```kotlin
+val structure  = Transmute.inspect.structure(aviBytes)   // AviStructure
+val inspection = Transmute.inspect.inspect(aviBytes)
+// RiffInfoMetadata carries RIFF INFO list chunk fields
+```
+
+## Related
+
+- [Codec API](../codec.md)
+- [Plugins](../plugins.md)
+- [Video transforms](../transforms/README.md)

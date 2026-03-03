@@ -3,10 +3,10 @@ package dev.transmute.audio
 import kotlin.concurrent.Volatile
 import dev.transmute.audio.codecs.WavDecoder
 import dev.transmute.audio.codecs.WavEncoder
-import dev.transmute.model.core.Bytes
-import dev.transmute.codec.Codec
-import dev.transmute.codec.Decoder
-import dev.transmute.codec.Encoder
+import dev.transmute.io.TSource
+import dev.transmute.codec.MediaCodec
+import dev.transmute.codec.MediaDecoder
+import dev.transmute.codec.MediaEncoder
 import dev.transmute.common.PipelineContext
 
 /**
@@ -23,23 +23,21 @@ class MutableAudioDecoderRegistry : AudioDecoderRegistry {
     }
   }
 
-  /** Register a core [Decoder] as an [AudioDecoder]. */
-  fun register(decoder: Decoder<AudioFormat, AudioIR, AudioDecodeOptions>) {
+  /** Register a core [MediaDecoder] as an [AudioDecoder]. */
+  fun register(decoder: MediaDecoder<AudioFormat, AudioIR, AudioDecodeOptions>) {
     val wrapper = object : AudioDecoder {
       override val supportedFormats = decoder.decodableFormats
-      override fun sniff(data: Bytes) = decoder.sniff(data)
-      override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: PipelineContext) =
+      override suspend fun decode(source: TSource, options: AudioDecodeOptions, context: PipelineContext) =
         decoder.decode(source, options, context)
     }
     register(wrapper)
   }
 
-  /** Register a unified [Codec] as a decoder. */
-  fun register(codec: Codec<AudioFormat, AudioIR, AudioDecodeOptions, AudioEncodeOptions>) {
+  /** Register a unified [MediaCodec] as a decoder. */
+  fun register(codec: MediaCodec<AudioFormat, AudioIR, AudioDecodeOptions, AudioEncodeOptions>) {
     val wrapper = object : AudioDecoder {
       override val supportedFormats = codec.decodableFormats
-      override fun sniff(data: Bytes) = codec.sniff(data)
-      override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: PipelineContext) =
+      override suspend fun decode(source: TSource, options: AudioDecodeOptions, context: PipelineContext) =
         codec.decode(source, options, context)
     }
     decoderList.add(wrapper)
@@ -67,8 +65,8 @@ class MutableAudioEncoderRegistry : AudioEncoderRegistry {
     }
   }
 
-  /** Register a core [Encoder] as an [AudioEncoder]. */
-  fun register(encoder: Encoder<AudioFormat, AudioIR, AudioEncodeOptions>) {
+  /** Register a core [MediaEncoder] as an [AudioEncoder]. */
+  fun register(encoder: MediaEncoder<AudioFormat, AudioIR, AudioEncodeOptions>) {
     val wrapper = object : AudioEncoder {
       override val supportedFormats = encoder.encodableFormats
       override suspend fun encode(
@@ -81,8 +79,8 @@ class MutableAudioEncoderRegistry : AudioEncoderRegistry {
     register(wrapper)
   }
 
-  /** Register a unified [Codec] as an encoder. */
-  fun register(codec: Codec<AudioFormat, AudioIR, AudioDecodeOptions, AudioEncodeOptions>) {
+  /** Register a unified [MediaCodec] as an encoder. */
+  fun register(codec: MediaCodec<AudioFormat, AudioIR, AudioDecodeOptions, AudioEncodeOptions>) {
     for (format in codec.encodableFormats) {
       encoders[format] = object : AudioEncoder {
         override val supportedFormats = codec.encodableFormats
@@ -148,16 +146,16 @@ object AudioRegistries {
     encoders.register(encoder)
   }
 
-  fun register(decoder: Decoder<AudioFormat, AudioIR, AudioDecodeOptions>) {
+  fun register(decoder: MediaDecoder<AudioFormat, AudioIR, AudioDecodeOptions>) {
     decoders.register(decoder)
   }
 
-  fun register(encoder: Encoder<AudioFormat, AudioIR, AudioEncodeOptions>) {
+  fun register(encoder: MediaEncoder<AudioFormat, AudioIR, AudioEncodeOptions>) {
     encoders.register(encoder)
   }
 
-  /** Register a unified codec for both decode, encode, and sniffing. */
-  fun register(codec: Codec<AudioFormat, AudioIR, AudioDecodeOptions, AudioEncodeOptions>) {
+  /** Register a unified codec for both decode and encode. */
+  fun register(codec: MediaCodec<AudioFormat, AudioIR, AudioDecodeOptions, AudioEncodeOptions>) {
     decoders.register(codec)
     encoders.register(codec)
   }

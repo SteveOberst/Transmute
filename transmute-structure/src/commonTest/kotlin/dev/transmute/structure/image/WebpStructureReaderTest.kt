@@ -3,7 +3,6 @@ package dev.transmute.structure.image
 import dev.transmute.model.core.asBytes
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class WebpStructureReaderTest {
@@ -36,21 +35,6 @@ class WebpStructureReaderTest {
         p += 4
         chunkBody.copyInto(out, p)
         return out
-    }
-
-    @Test
-    fun canReadAcceptsValidWebp() {
-        assertTrue(reader.canRead(minimalWebp().asBytes()))
-    }
-
-    @Test
-    fun canReadRejectsGarbage() {
-        assertFalse(reader.canRead(ByteArray(16).asBytes()))
-    }
-
-    @Test
-    fun canReadRejectsTooShort() {
-        assertFalse(reader.canRead(ByteArray(6).asBytes()))
     }
 
     @Test

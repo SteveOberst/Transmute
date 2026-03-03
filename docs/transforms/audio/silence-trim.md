@@ -1,32 +1,51 @@
-# Silence Trim
+# Audio: silenceTrim
 
-Trim silence from the start and/or end of audio.
+Remove silence from the start and/or end of audio.
 
-## Parameters
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| thresholdDb | Float | -40f | Silence threshold in dB below peak |
-| minSilenceMs | Long | 100 | Minimum consecutive silence duration to detect |
-| trimStart | Boolean | true | Trim silence from the beginning |
-| trimEnd | Boolean | true | Trim silence from the end |
-
-## Usage
-
-### DSL
+## Factory
 
 ```kotlin
-Transmute.audio { silenceTrim(thresholdDb = -40f) }.transmute(bytes.asBytes()).bytes.data
+Transformers.audio().silenceTrim(
+    thresholdDb: Float = -40f,
+    minSilenceMs: Long = 100,
+    trimStart: Boolean = true,
+    trimEnd: Boolean = true,
+)
 ```
 
-### Pipeline
+| Parameter | Type | Default | Range | Description |
+|-----------|------|---------|-------|-------------|
+| `thresholdDb` | `Float` | `-40f` | −80 … 0 | Level below which audio is considered silence |
+| `minSilenceMs` | `Long` | `100` | ≥ 0 | Minimum continuous silence required before trimming |
+| `trimStart` | `Boolean` | `true` | | Remove leading silence |
+| `trimEnd` | `Boolean` | `true` | | Remove trailing silence |
+
+## Behaviour
+
+- A run of samples is considered silent when their RMS/peak level stays below `thresholdDb` for at least `minSilenceMs` milliseconds.
+- Only silence at the absolute start and/or end is trimmed; internal silence is preserved.
+
+## DSL usage
 
 ```kotlin
-transform { add(Transformers.audio().silenceTrim(-40f)) }
+val transmuter = Transmute.audio.to(AudioFormat.Mp3) {
+    decode {
+        pipeline {
+            silenceTrim(thresholdDb = -50f, minSilenceMs = 200L)
+        }
+    }
+}
+
+// Only trim the end
+val transmuter = Transmute.audio {
+    decode {
+        pipeline { silenceTrim(trimStart = false) }
+    }
+}
 ```
 
-## Notes
+## Related
 
-- Scans samples against the dB threshold to locate leading/trailing silence.
-- `minSilenceMs` prevents trimming brief pauses shorter than the minimum.
-- Set `trimStart` or `trimEnd` to `false` to trim only one end.
+- [trim](trim.md)
+- [fade](fade.md)
+- [Transforms overview](README.md)

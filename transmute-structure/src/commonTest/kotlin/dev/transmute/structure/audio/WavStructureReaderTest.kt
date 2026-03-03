@@ -3,7 +3,6 @@ package dev.transmute.structure.audio
 import dev.transmute.model.core.asBytes
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class WavStructureReaderTest {
@@ -50,21 +49,6 @@ class WavStructureReaderTest {
         buf[offset + 1] = ((value shr 8) and 0xFF).toByte()
         buf[offset + 2] = ((value shr 16) and 0xFF).toByte()
         buf[offset + 3] = ((value shr 24) and 0xFF).toByte()
-    }
-
-    @Test
-    fun canReadAcceptsValidWav() {
-        assertTrue(reader.canRead(minimalWav().asBytes()))
-    }
-
-    @Test
-    fun canReadRejectsGarbage() {
-        assertFalse(reader.canRead(ByteArray(16).asBytes()))
-    }
-
-    @Test
-    fun canReadRejectsTooShort() {
-        assertFalse(reader.canRead(ByteArray(6).asBytes()))
     }
 
     @Test

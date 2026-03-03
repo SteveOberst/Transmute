@@ -2,8 +2,6 @@ package dev.transmute.gstreamer
 
 import dev.transmute.audio.MutableAudioDecoderRegistry
 import dev.transmute.audio.MutableAudioEncoderRegistry
-import dev.transmute.image.MutableImageDecoderRegistry
-import dev.transmute.image.MutableImageEncoderRegistry
 import dev.transmute.plugin.PluginFeaturesConfig
 import dev.transmute.video.MutableVideoDecoderRegistry
 import dev.transmute.video.MutableVideoEncoderRegistry
@@ -24,6 +22,10 @@ import dev.transmute.video.MutableVideoEncoderRegistry
  *    **Frameworks, Libraries, and Embedded Content**.
  * 3. This module's cinterop binding enables Kotlin/Native access to
  *    the GStreamer C API.
+ *
+ * **Note:** HEIF/HEIC/AVIF image codecs have been removed from GStreamer.
+ * iOS supports these natively via CoreGraphics/ImageIO. Install the `libheif`
+ * plugin for additional desktop support.
  */
 
 internal actual fun isGStreamerAvailable(): Boolean = GStreamerIosBridge.available
@@ -48,24 +50,6 @@ internal actual fun installGstAudioCodecs(
 
     encoders.register(GstIosFlacEncoder())
     encoders.register(GstIosOggVorbisEncoder())
-}
-
-internal actual fun installGstImageCodecs(
-    decoders: MutableImageDecoderRegistry,
-    encoders: MutableImageEncoderRegistry,
-    features: PluginFeaturesConfig,
-) {
-    if (!GStreamerIosBridge.available) return
-
-    decoders.register(GstIosImageDecoder())
-
-    // Only register encoder if the ImageEncoding feature is enabled
-    // AND the required GStreamer elements are present
-    if (features.isEnabled(GStreamerFeature.ImageEncoding)) {
-        if (GStreamerIosBridge.hasElement("x265enc") || GStreamerIosBridge.hasElement("av1enc")) {
-            encoders.register(GstIosImageEncoder())
-        }
-    }
 }
 
 internal actual fun installGstVideoCodecs(

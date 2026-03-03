@@ -1,29 +1,37 @@
-# Opacity
+# Image: opacity
 
-Adjust the alpha channel of every pixel.
+Adjust the alpha channel opacity.
 
-## Parameters
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| opacity | Float | - | Opacity multiplier, 0.0 = fully transparent, 1.0 = unchanged |
-
-## Usage
-
-### DSL
+## Factory
 
 ```kotlin
-Transmute.image { opacity(0.5f) }.transmute(bytes.asBytes()).bytes.data
+Transformers.image().opacity(opacity: Float)
 ```
 
-### Pipeline
+| Parameter | Type | Required | Range | Description |
+|-----------|------|----------|-------|-------------|
+| `opacity` | `Float` | ✅ | 0.0 … 1.0 | Target opacity (`1.0` = unchanged, `0.0` = fully transparent) |
+
+## Behaviour
+
+- Scales each pixel's alpha channel by `opacity`.
+- If the source format has no alpha channel (e.g. JPEG), the alpha is treated as fully opaque (255) before scaling.
+- Output formats that do not support transparency (JPEG, BMP) will discard alpha on encode; use PNG, WebP, or HEIF for transparent results.
+
+## DSL usage
 
 ```kotlin
-transform { add(Transformers.image().opacity(0.5f)) }
+val transmuter = Transmute.image.to(ImageFormat.Png) {
+    decode {
+        pipeline {
+            opacity(0.5f)   // 50% transparent
+        }
+    }
+}
 ```
 
-## Notes
+## Related
 
-- Each pixel's alpha is multiplied by `opacity`.
-- RGB channels are not modified.
-- `opacity = 1.0` is a no-op.
+- [grayscale](grayscale.md)
+- [brightnessContrast](brightness-contrast.md)
+- [Transforms overview](README.md)

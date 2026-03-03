@@ -9,6 +9,41 @@ import dev.transmute.model.identify.FourCC
 import dev.transmute.model.identify.RiffChunkId
 import dev.transmute.model.structure.common.IsoBmffBox
 import dev.transmute.model.structure.common.RiffChunk
+import dev.transmute.model.structure.image.types.AvifRaw
+import dev.transmute.model.structure.image.types.BmpCompression
+import dev.transmute.model.structure.image.types.BmpDibHeader
+import dev.transmute.model.structure.image.types.BmpFileHeader
+import dev.transmute.model.structure.image.types.BmpRaw
+import dev.transmute.model.structure.image.types.GifBlock
+import dev.transmute.model.structure.image.types.GifDisposalMethod
+import dev.transmute.model.structure.image.types.GifLogicalScreenDescriptor
+import dev.transmute.model.structure.image.types.GifRaw
+import dev.transmute.model.structure.image.types.GifVersion
+import dev.transmute.model.structure.image.types.HeifRaw
+import dev.transmute.model.structure.image.types.JpegComponent
+import dev.transmute.model.structure.image.types.JpegFrame
+import dev.transmute.model.structure.image.types.JpegMarkerType
+import dev.transmute.model.structure.image.types.JpegRaw
+import dev.transmute.model.structure.image.types.JpegSegment
+import dev.transmute.model.structure.image.types.parseSofData
+import dev.transmute.model.structure.image.types.TiffFieldType
+import dev.transmute.model.structure.image.types.TiffRaw
+import dev.transmute.model.structure.image.types.TiffTag
+import dev.transmute.model.structure.image.types.WebpFormat
+import dev.transmute.model.structure.image.types.WebpRaw
+import dev.transmute.model.structure.image.types.bitsPerPixel
+import dev.transmute.model.structure.image.types.chunks
+import dev.transmute.model.structure.image.types.compatibleBrands
+import dev.transmute.model.structure.image.types.compression
+import dev.transmute.model.structure.image.types.format
+import dev.transmute.model.structure.image.types.frameCount
+import dev.transmute.model.structure.image.types.ftypBox
+import dev.transmute.model.structure.image.types.height
+import dev.transmute.model.structure.image.types.isAnimated
+import dev.transmute.model.structure.image.types.isTopDown
+import dev.transmute.model.structure.image.types.majorBrand
+import dev.transmute.model.structure.image.types.sofData
+import dev.transmute.model.structure.image.types.width
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -65,8 +100,10 @@ class ImageFileTests {
     @Test
     fun bmpIsTopDown() {
         val fh = BmpFileHeader(fileSize = 54u, dataOffset = 54u)
-        val topDown = BmpRaw(fh, BmpDibHeader(40u, 1, -1, bitsPerPixel = 24u.toUShort()), pixelData = Bytes(ByteArray(0)))
-        val bottomUp = BmpRaw(fh, BmpDibHeader(40u, 1,  1, bitsPerPixel = 24u.toUShort()), pixelData = Bytes(ByteArray(0)))
+        val topDown =
+            BmpRaw(fh, BmpDibHeader(40u, 1, -1, bitsPerPixel = 24u.toUShort()), pixelData = Bytes(ByteArray(0)))
+        val bottomUp =
+            BmpRaw(fh, BmpDibHeader(40u, 1, 1, bitsPerPixel = 24u.toUShort()), pixelData = Bytes(ByteArray(0)))
         assertTrue(topDown.isTopDown)
         assertFalse(bottomUp.isTopDown)
     }
@@ -142,7 +179,10 @@ class ImageFileTests {
     fun jpegFileMinimal() {
         val soi = JpegSegment(marker = 0xD8u.toUByte())
         val eoi = JpegSegment(marker = 0xD9u.toUByte())
-        val file = JpegRaw(listOf(soi, eoi))
+        val file = JpegRaw(
+            headerSegments = listOf(soi),
+            trailerSegments = listOf(eoi),
+        )
 
         val bytes = file.toBytes()
         assertEquals(0xFF.toByte(), bytes.data[0])
@@ -172,7 +212,15 @@ class ImageFileTests {
         val soi = JpegSegment(marker = 0xD8u.toUByte())
         val sof = JpegSegment(marker = 0xC0u.toUByte(), data = sofData)
         val eoi = JpegSegment(marker = 0xD9u.toUByte())
-        val file = JpegRaw(listOf(soi, sof, eoi))
+        val file = JpegRaw(
+            headerSegments = listOf(soi),
+            frame = JpegFrame(
+                sofMarker = 0xC0u.toUByte(),
+                sofSegment = sof,
+                sofData = parseSofData(sofData.data),
+            ),
+            trailerSegments = listOf(eoi),
+        )
 
         val sofInfo = file.sofData
         assertNotNull(sofInfo)

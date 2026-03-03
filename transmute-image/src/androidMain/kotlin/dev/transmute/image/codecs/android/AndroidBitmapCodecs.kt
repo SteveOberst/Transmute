@@ -2,6 +2,7 @@ package dev.transmute.image.codecs.android
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import dev.transmute.io.TSource
 import dev.transmute.common.PipelineContext
 import dev.transmute.model.core.Bytes
 import dev.transmute.model.core.asBytes
@@ -23,55 +24,12 @@ class AndroidBitmapImageDecoder : ImageDecoder {
     ImageFormat.Avif,
   )
 
-  override fun sniff(data: Bytes): ImageFormat? {
-    val bytes = data.data
-    if (bytes.size < 4) return null
-    // JPEG
-    if (bytes[0] == 0xFF.toByte() && bytes[1] == 0xD8.toByte() && bytes[2] == 0xFF.toByte())
-      return ImageFormat.Jpeg
-    // PNG
-    if (bytes.size >= 8 && bytes[0] == 0x89.toByte() && bytes[1] == 0x50.toByte() &&
-      bytes[2] == 0x4E.toByte() && bytes[3] == 0x47.toByte())
-      return ImageFormat.Png
-    // GIF
-    if (bytes.size >= 6 && bytes[0] == 0x47.toByte() && bytes[1] == 0x49.toByte() &&
-      bytes[2] == 0x46.toByte() && bytes[3] == 0x38.toByte())
-      return ImageFormat.Gif
-    // BMP
-    if (bytes[0] == 0x42.toByte() && bytes[1] == 0x4D.toByte())
-      return ImageFormat.Bmp
-    // TIFF
-    if ((bytes[0] == 0x49.toByte() && bytes[1] == 0x49.toByte() && bytes[2] == 0x2A.toByte() && bytes[3] == 0x00.toByte()) ||
-      (bytes[0] == 0x4D.toByte() && bytes[1] == 0x4D.toByte() && bytes[2] == 0x00.toByte() && bytes[3] == 0x2A.toByte()))
-      return ImageFormat.Tiff
-    // WebP
-    if (bytes.size >= 12 && bytes[0] == 0x52.toByte() && bytes[1] == 0x49.toByte() &&
-      bytes[2] == 0x46.toByte() && bytes[3] == 0x46.toByte() &&
-      bytes[8] == 0x57.toByte() && bytes[9] == 0x45.toByte() &&
-      bytes[10] == 0x42.toByte() && bytes[11] == 0x50.toByte())
-      return ImageFormat.Webp
-    // HEIF/HEIC/AVIF
-    if (bytes.size >= 12 && bytes[4] == 0x66.toByte() && bytes[5] == 0x74.toByte() &&
-      bytes[6] == 0x79.toByte() && bytes[7] == 0x70.toByte()) {
-      val brand = bytes.sliceArray(8 until 12).decodeToString()
-      return when {
-        brand == "heic" || brand == "heix" -> ImageFormat.Heic
-        brand == "mif1" || brand == "msf1" -> ImageFormat.Heif
-        brand == "hevc" || brand == "hevx" -> ImageFormat.Heic
-        brand == "avif" || brand == "avis" -> ImageFormat.Avif
-        brand == "heif" || brand == "heis" -> ImageFormat.Heif
-        else -> null
-      }
-    }
-    return null
-  }
-
-  override suspend fun decode(source: Bytes, options: ImageDecodeOptions, context: PipelineContext): ImageIR {
+  override suspend fun decode(source: TSource, options: ImageDecodeOptions, context: PipelineContext): ImageIR {
     val opts = BitmapFactory.Options().apply {
       inPreferredConfig = Bitmap.Config.ARGB_8888
     }
 
-    val bytes = source.data
+    val bytes = source.readAll()
     val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, opts)
       ?: error("AndroidBitmapImageDecoder: BitmapFactory returned null")
 

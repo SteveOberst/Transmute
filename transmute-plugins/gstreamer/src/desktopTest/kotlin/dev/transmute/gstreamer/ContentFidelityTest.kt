@@ -3,13 +3,7 @@ package dev.transmute.gstreamer
 import dev.transmute.audio.AudioFormat
 import dev.transmute.audio.CanonicalAudioDecodeOptions
 import dev.transmute.audio.CanonicalAudioEncodeOptions
-import dev.transmute.gstreamer.GStreamerTestHelpers.requireGStreamer
-import dev.transmute.gstreamer.GStreamerTestHelpers.requireGStreamerElement
 import dev.transmute.gstreamer.GStreamerTestHelpers.testContext
-import dev.transmute.image.ByteArrayPixelBuffer
-import dev.transmute.image.CanonicalImageDecodeOptions
-import dev.transmute.image.HeifEncodeOptions
-import dev.transmute.image.ImageFormat
 import dev.transmute.video.CanonicalVideoDecodeOptions
 import dev.transmute.video.CanonicalVideoEncodeOptions
 import dev.transmute.video.VideoFormat
@@ -19,7 +13,6 @@ import kotlin.math.ln
 import kotlin.math.sqrt
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 /**
@@ -32,9 +25,9 @@ import kotlin.test.assertTrue
  * - Audio duration accuracy (50 ms)
  * - Video dimension roundtrip (exact match)
  * - Video frame count (within 1 of expected)
- * - Image pixel fidelity (mean absolute error < threshold)
  *
- * All tests are **soft-skipped** when GStreamer is not installed locally.
+ * The `desktopTest` task is disabled at the Gradle level when GStreamer
+ * is not installed, so these tests always run against real GStreamer.
  */
 class ContentFidelityTest {
 
@@ -51,62 +44,56 @@ class ContentFidelityTest {
      */
     @Test
     fun aac_waveformPreservation_rmsWithinTolerance() = runTest {
-        requireGStreamer {
-            val original = GStreamerTestHelpers.sineWave(durationMs = 500, sampleRate = 44100)
-            val originalRmsDb = rmsDb(original.samples.data)
+        val original = GStreamerTestHelpers.sineWave(durationMs = 500, sampleRate = 44100)
+        val originalRmsDb = rmsDb(original.samples.data)
 
-            val codec = GstAacCodec()
-            val encoded = codec.encode(original, AudioFormat.Aac, CanonicalAudioEncodeOptions(), ctx)
-            val decoded = codec.decode(encoded, CanonicalAudioDecodeOptions(), ctx)
+        val codec = GstAacCodec()
+        val encoded = codec.encode(original, AudioFormat.Aac, CanonicalAudioEncodeOptions(), ctx)
+        val decoded = codec.decode(encoded, CanonicalAudioDecodeOptions(), ctx)
 
-            val decodedRmsDb = rmsDb(decoded.samples.data)
-            val diff = abs(originalRmsDb - decodedRmsDb)
-            assertTrue(
-                diff < 5.0,
-                "AAC waveform RMS should be within 5 dB of original. " +
-                    "Original=${originalRmsDb} dB, Decoded=${decodedRmsDb} dB, Diff=${diff} dB",
-            )
-        }
+        val decodedRmsDb = rmsDb(decoded.samples.data)
+        val diff = abs(originalRmsDb - decodedRmsDb)
+        assertTrue(
+            diff < 5.0,
+            "AAC waveform RMS should be within 5 dB of original. " +
+                "Original=${originalRmsDb} dB, Decoded=${decodedRmsDb} dB, Diff=${diff} dB",
+        )
     }
 
     @Test
     fun m4a_waveformPreservation_rmsWithinTolerance() = runTest {
-        requireGStreamer {
-            val original = GStreamerTestHelpers.sineWave(durationMs = 500, sampleRate = 44100)
-            val originalRmsDb = rmsDb(original.samples.data)
+        val original = GStreamerTestHelpers.sineWave(durationMs = 500, sampleRate = 44100)
+        val originalRmsDb = rmsDb(original.samples.data)
 
-            val codec = GstM4aCodec()
-            val encoded = codec.encode(original, AudioFormat.M4a, CanonicalAudioEncodeOptions(), ctx)
-            val decoded = codec.decode(encoded, CanonicalAudioDecodeOptions(), ctx)
+        val codec = GstM4aCodec()
+        val encoded = codec.encode(original, AudioFormat.M4a, CanonicalAudioEncodeOptions(), ctx)
+        val decoded = codec.decode(encoded, CanonicalAudioDecodeOptions(), ctx)
 
-            val decodedRmsDb = rmsDb(decoded.samples.data)
-            val diff = abs(originalRmsDb - decodedRmsDb)
-            assertTrue(
-                diff < 5.0,
-                "M4A waveform RMS should be within 5 dB. " +
-                    "Original=${originalRmsDb} dB, Decoded=${decodedRmsDb} dB, Diff=${diff} dB",
-            )
-        }
+        val decodedRmsDb = rmsDb(decoded.samples.data)
+        val diff = abs(originalRmsDb - decodedRmsDb)
+        assertTrue(
+            diff < 5.0,
+            "M4A waveform RMS should be within 5 dB. " +
+                "Original=${originalRmsDb} dB, Decoded=${decodedRmsDb} dB, Diff=${diff} dB",
+        )
     }
 
     @Test
     fun opus_waveformPreservation_rmsWithinTolerance() = runTest {
-        requireGStreamer {
-            val original = GStreamerTestHelpers.sineWave(durationMs = 500, sampleRate = 48000)
-            val originalRmsDb = rmsDb(original.samples.data)
+        val original = GStreamerTestHelpers.sineWave(durationMs = 500, sampleRate = 48000)
+        val originalRmsDb = rmsDb(original.samples.data)
 
-            val codec = GstOpusCodec()
-            val encoded = codec.encode(original, AudioFormat.Opus, CanonicalAudioEncodeOptions(), ctx)
-            val decoded = codec.decode(encoded, CanonicalAudioDecodeOptions(), ctx)
+        val codec = GstOpusCodec()
+        val encoded = codec.encode(original, AudioFormat.Opus, CanonicalAudioEncodeOptions(), ctx)
+        val decoded = codec.decode(encoded, CanonicalAudioDecodeOptions(), ctx)
 
-            val decodedRmsDb = rmsDb(decoded.samples.data)
-            val diff = abs(originalRmsDb - decodedRmsDb)
-            assertTrue(
-                diff < 5.0,
-                "Opus waveform RMS should be within 5 dB. " +
-                    "Original=${originalRmsDb} dB, Decoded=${decodedRmsDb} dB, Diff=${diff} dB",
-            )
-        }
+        val decodedRmsDb = rmsDb(decoded.samples.data)
+        val diff = abs(originalRmsDb - decodedRmsDb)
+        assertTrue(
+            diff < 5.0,
+            "Opus waveform RMS should be within 5 dB. " +
+                "Original=${originalRmsDb} dB, Decoded=${decodedRmsDb} dB, Diff=${diff} dB",
+        )
     }
 
     // -----------------------------------------------------------------------
@@ -115,37 +102,27 @@ class ContentFidelityTest {
 
     @Test
     fun aac_durationAccuracy_1s() = runTest {
-        requireGStreamer {
-            assertDurationWithin(GstAacCodec(), AudioFormat.Aac, inputMs = 1000, toleranceMs = 50)
-        }
+        assertDurationWithin(GstAacCodec(), AudioFormat.Aac, inputMs = 1000, toleranceMs = 50)
     }
 
     @Test
     fun aac_durationAccuracy_100ms() = runTest {
-        requireGStreamer {
-            assertDurationWithin(GstAacCodec(), AudioFormat.Aac, inputMs = 100, toleranceMs = 80)
-        }
+        assertDurationWithin(GstAacCodec(), AudioFormat.Aac, inputMs = 100, toleranceMs = 80)
     }
 
     @Test
     fun aac_durationAccuracy_5s() = runTest {
-        requireGStreamer {
-            assertDurationWithin(GstAacCodec(), AudioFormat.Aac, inputMs = 5000, toleranceMs = 50)
-        }
+        assertDurationWithin(GstAacCodec(), AudioFormat.Aac, inputMs = 5000, toleranceMs = 50)
     }
 
     @Test
     fun m4a_durationAccuracy_1s() = runTest {
-        requireGStreamer {
-            assertDurationWithin(GstM4aCodec(), AudioFormat.M4a, inputMs = 1000, toleranceMs = 50)
-        }
+        assertDurationWithin(GstM4aCodec(), AudioFormat.M4a, inputMs = 1000, toleranceMs = 50)
     }
 
     @Test
     fun opus_durationAccuracy_1s() = runTest {
-        requireGStreamer {
-            assertDurationWithin(GstOpusCodec(), AudioFormat.Opus, inputMs = 1000, toleranceMs = 50)
-        }
+        assertDurationWithin(GstOpusCodec(), AudioFormat.Opus, inputMs = 1000, toleranceMs = 50)
     }
 
     // -----------------------------------------------------------------------
@@ -154,37 +131,27 @@ class ContentFidelityTest {
 
     @Test
     fun mp4_dimensionRoundtrip_320x240() = runTest {
-        requireGStreamer {
-            assertVideoDimensions(GstMp4Codec(), VideoFormat.Mp4, 320, 240)
-        }
+        assertVideoDimensions(GstMp4Codec(), VideoFormat.Mp4, 320, 240)
     }
 
     @Test
     fun webm_dimensionRoundtrip_320x240() = runTest {
-        requireGStreamer {
-            assertVideoDimensions(GstWebmCodec(), VideoFormat.Webm, 320, 240)
-        }
+        assertVideoDimensions(GstWebmCodec(), VideoFormat.Webm, 320, 240)
     }
 
     @Test
     fun mkv_dimensionRoundtrip_320x240() = runTest {
-        requireGStreamer {
-            assertVideoDimensions(GstMkvCodec(), VideoFormat.Mkv, 320, 240)
-        }
+        assertVideoDimensions(GstMkvCodec(), VideoFormat.Mkv, 320, 240)
     }
 
     @Test
     fun avi_dimensionRoundtrip_320x240() = runTest {
-        requireGStreamer {
-            assertVideoDimensions(GstAviCodec(), VideoFormat.Avi, 320, 240)
-        }
+        assertVideoDimensions(GstAviCodec(), VideoFormat.Avi, 320, 240)
     }
 
     @Test
     fun mov_dimensionRoundtrip_320x240() = runTest {
-        requireGStreamer {
-            assertVideoDimensions(GstMovCodec(), VideoFormat.Mov, 320, 240)
-        }
+        assertVideoDimensions(GstMovCodec(), VideoFormat.Mov, 320, 240)
     }
 
     // -----------------------------------------------------------------------
@@ -193,64 +160,17 @@ class ContentFidelityTest {
 
     @Test
     fun mp4_frameCount_10fps1s() = runTest {
-        requireGStreamer {
-            assertFrameCount(GstMp4Codec(), VideoFormat.Mp4, fps = 10.0, durationMs = 1000, expectedMin = 9, expectedMax = 11)
-        }
+        assertFrameCount(GstMp4Codec(), VideoFormat.Mp4, fps = 10.0, durationMs = 1000, expectedMin = 9, expectedMax = 11)
     }
 
     @Test
     fun webm_frameCount_10fps1s() = runTest {
-        requireGStreamer {
-            assertFrameCount(GstWebmCodec(), VideoFormat.Webm, fps = 10.0, durationMs = 1000, expectedMin = 9, expectedMax = 11)
-        }
+        assertFrameCount(GstWebmCodec(), VideoFormat.Webm, fps = 10.0, durationMs = 1000, expectedMin = 9, expectedMax = 11)
     }
 
     @Test
     fun mkv_frameCount_10fps1s() = runTest {
-        requireGStreamer {
-            assertFrameCount(GstMkvCodec(), VideoFormat.Mkv, fps = 10.0, durationMs = 1000, expectedMin = 9, expectedMax = 11)
-        }
-    }
-
-    // -----------------------------------------------------------------------
-    // Image pixel fidelity
-    // -----------------------------------------------------------------------
-
-    @Test
-    fun heif_pixelFidelity_solidRed() = runTest {
-        requireGStreamerElement("x265enc") {
-            assertImagePixelFidelity(
-                format = ImageFormat.Heif,
-                options = HeifEncodeOptions(quality = 0.95f),
-                r = 255, g = 0, b = 0,
-                // HEIF is lossy; allow fairly generous per-channel MAE
-                maxMae = 15.0,
-            )
-        }
-    }
-
-    @Test
-    fun heic_pixelFidelity_solidGreen() = runTest {
-        requireGStreamerElement("x265enc") {
-            assertImagePixelFidelity(
-                format = ImageFormat.Heic,
-                options = HeifEncodeOptions(quality = 0.95f, format = ImageFormat.Heic),
-                r = 0, g = 255, b = 0,
-                maxMae = 15.0,
-            )
-        }
-    }
-
-    @Test
-    fun avif_pixelFidelity_solidBlue() = runTest {
-        requireGStreamerElement("av1enc") {
-            assertImagePixelFidelity(
-                format = ImageFormat.Avif,
-                options = HeifEncodeOptions(quality = 0.95f, format = ImageFormat.Avif),
-                r = 0, g = 0, b = 255,
-                maxMae = 15.0,
-            )
-        }
+        assertFrameCount(GstMkvCodec(), VideoFormat.Mkv, fps = 10.0, durationMs = 1000, expectedMin = 9, expectedMax = 11)
     }
 
     // =======================================================================
@@ -321,53 +241,6 @@ class ContentFidelityTest {
         assertTrue(
             frameCount in expectedMin..expectedMax,
             "$format frame count should be in [$expectedMin, $expectedMax], got $frameCount",
-        )
-    }
-
-    /**
-     * Assert that encoding a solid-colour image and decoding it back
-     * produces pixels whose mean absolute error (per channel) is below [maxMae].
-     */
-    private suspend fun assertImagePixelFidelity(
-        format: ImageFormat,
-        options: HeifEncodeOptions,
-        r: Int,
-        g: Int,
-        b: Int,
-        maxMae: Double,
-    ) {
-        val encoder = GstImageEncoder()
-        val decoder = GstImageDecoder()
-
-        val original = GStreamerTestHelpers.solidColor(64, 64, r, g, b)
-        val encoded = encoder.encode(original, format, options, ctx)
-        assertTrue(encoded.isNotEmpty(), "Encoded $format must not be empty")
-
-        val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
-        assertNotNull(decoded, "Decoded ImageIR must not be null")
-        assertEquals(64, decoded.width, "Width must survive roundtrip")
-        assertEquals(64, decoded.height, "Height must survive roundtrip")
-
-        // Compute per-channel MAE
-        val pixels = (decoded.buffer as ByteArrayPixelBuffer).data
-        val pixelCount = decoded.width * decoded.height
-        var errR = 0L; var errG = 0L; var errB = 0L
-        for (i in 0 until pixelCount) {
-            val off = i * 4  // RGBA_8888
-            errR += abs((pixels[off].toInt() and 0xFF) - r)
-            errG += abs((pixels[off + 1].toInt() and 0xFF) - g)
-            errB += abs((pixels[off + 2].toInt() and 0xFF) - b)
-        }
-        val maeR = errR.toDouble() / pixelCount
-        val maeG = errG.toDouble() / pixelCount
-        val maeB = errB.toDouble() / pixelCount
-        val avgMae = (maeR + maeG + maeB) / 3.0
-
-        assertTrue(
-            avgMae < maxMae,
-            "$format pixel fidelity: avg MAE=${"%.2f".format(avgMae)} " +
-                "(R=${"%.2f".format(maeR)}, G=${"%.2f".format(maeG)}, B=${"%.2f".format(maeB)}), " +
-                "expected < $maxMae",
         )
     }
 }

@@ -69,7 +69,7 @@ class ImageResizeTransform(
     }
 
     context.logger.info(
-      "ImageResizeTransform: ${srcW}×${srcH} → ${targetWidth}×${targetHeight} (${filter.name})"
+      "ImageResizeTransform: ${srcW}×${srcH} -> ${targetWidth}×${targetHeight} (${filter.name})"
     )
 
     val srcBuffer = ir.buffer as? ByteArrayPixelBuffer

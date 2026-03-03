@@ -52,9 +52,9 @@ export interface ParameterSchema {
   name: string
   type: ParameterType
   required?: boolean
-  default?: string
-  min?: string
-  max?: string
+  default?: string | null
+  min?: string | null
+  max?: string | null
   enumValues?: string[]
   description: string
 }
@@ -68,19 +68,19 @@ export interface InspectResult {
   metadata?: MediaMetadata[]
 }
 
-/** JSON envelope for decoded metadata (EXIF, XMP, ICC, ID3, etc.) */
-export interface MediaMetadata {
-  /** Type discriminator, e.g. "transmute.exif" */
-  type: string
-  /** Metadata-type-specific fields - arbitrary nested JSON */
-  value: Record<string, unknown>
-}
-
 /** JSON envelope for a decoded media file structure */
 export interface MediaStructure {
   /** Type discriminator, e.g. "transmute.png" */
   type: string
   /** Format-specific fields - arbitrary nested JSON */
+  value: Record<string, unknown>
+}
+
+/** JSON envelope for a decoded metadata block */
+export interface MediaMetadata {
+  /** Type discriminator, e.g. "transmute.exif" */
+  type: string
+  /** Format-specific metadata fields */
   value: Record<string, unknown>
 }
 
@@ -95,7 +95,7 @@ export interface TransformRequest {
 
 export interface TransformStep {
   transformId: string
-  parameters?: Record<string, string>
+  parameters?: Record<string, string | null>
 }
 
 export interface TransformResult {

@@ -4,8 +4,6 @@ import dev.transmute.transmute
 import dev.transmute.audio.AudioFormat
 import dev.transmute.audio.CanonicalAudioEncodeOptions
 import dev.transmute.codec.OutputFormat
-import dev.transmute.gstreamer.GStreamerTestHelpers.requireGStreamer
-import dev.transmute.gstreamer.GStreamerTestHelpers.requireGStreamerElement
 import dev.transmute.gstreamer.GStreamerTestHelpers.testContext
 import dev.transmute.image.CanonicalImageDecodeOptions
 import dev.transmute.image.CanonicalImageEncodeOptions
@@ -41,32 +39,30 @@ class CrossFormatImageTest {
 
     @Test
     fun heif_to_png() = runTest {
-        requireGStreamerElement("x265enc") {
-            val transmute = transmute {
-                plugins {
-                    install(GStreamer)
-                }
+        val transmute = transmute {
+            plugins {
+                install(GStreamer)
             }
-
-            val original = GStreamerTestHelpers.solidColor(64, 64, r = 200, g = 100, b = 50)
-            val heifBytes = GstImageEncoder().encode(original, ImageFormat.Heif, HeifEncodeOptions(), ctx)
-
-            val transmuter = transmute.image {
-                encode { options(PngEncodeOptions()) }
-            }
-            val result = transmuter.transmute(heifBytes)
-
-            assertTrue(result.bytes.isNotEmpty(), "PNG output must not be empty")
-            assertEquals(ImageFormat.Png, result.format, "Output format must be PNG")
-
-            val reader = PngStructureReader()
-            assertTrue(reader.canRead(result.bytes), "Output must be valid PNG")
-
-            val decoded = dev.transmute.image.codecs.jvm.JvmImageIoDecoder()
-                .decode(result.bytes, CanonicalImageDecodeOptions(), ctx)
-            assertEquals(64, decoded.width, "Decoded width must match")
-            assertEquals(64, decoded.height, "Decoded height must match")
         }
+
+        val original = GStreamerTestHelpers.solidColor(64, 64, r = 200, g = 100, b = 50)
+        val heifBytes = GstImageEncoder().encode(original, ImageFormat.Heif, HeifEncodeOptions(), ctx)
+
+        val transmuter = transmute.image {
+            encode { options(PngEncodeOptions()) }
+        }
+        val result = transmuter.transmute(heifBytes)
+
+        assertTrue(result.bytes.isNotEmpty(), "PNG output must not be empty")
+        assertEquals(ImageFormat.Png, result.format, "Output format must be PNG")
+
+        val reader = PngStructureReader()
+        reader.read(result.bytes)  // validates the output is parseable
+
+        val decoded = dev.transmute.image.codecs.jvm.JvmImageIoDecoder()
+            .decode(result.bytes, CanonicalImageDecodeOptions(), ctx)
+        assertEquals(64, decoded.width, "Decoded width must match")
+        assertEquals(64, decoded.height, "Decoded height must match")
     }
 
     // =======================================================================
@@ -75,27 +71,25 @@ class CrossFormatImageTest {
 
     @Test
     fun heif_to_jpeg() = runTest {
-        requireGStreamerElement("x265enc") {
-            val transmute = transmute {
-                plugins {
-                    install(GStreamer)
-                }
+        val transmute = transmute {
+            plugins {
+                install(GStreamer)
             }
-
-            val original = GStreamerTestHelpers.solidColor(64, 64, r = 128, g = 64, b = 32)
-            val heifBytes = GstImageEncoder().encode(original, ImageFormat.Heif, HeifEncodeOptions(), ctx)
-
-            val transmuter = transmute.image {
-                encode { options(JpegEncodeOptions(quality = 0.90f)) }
-            }
-            val result = transmuter.transmute(heifBytes)
-
-            assertTrue(result.bytes.isNotEmpty(), "JPEG output must not be empty")
-            assertEquals(ImageFormat.Jpeg, result.format, "Output format must be JPEG")
-
-            val reader = JpegStructureReader()
-            assertTrue(reader.canRead(result.bytes), "Output must be valid JPEG")
         }
+
+        val original = GStreamerTestHelpers.solidColor(64, 64, r = 128, g = 64, b = 32)
+        val heifBytes = GstImageEncoder().encode(original, ImageFormat.Heif, HeifEncodeOptions(), ctx)
+
+        val transmuter = transmute.image {
+            encode { options(JpegEncodeOptions(quality = 0.90f)) }
+        }
+        val result = transmuter.transmute(heifBytes)
+
+        assertTrue(result.bytes.isNotEmpty(), "JPEG output must not be empty")
+        assertEquals(ImageFormat.Jpeg, result.format, "Output format must be JPEG")
+
+        val reader = JpegStructureReader()
+        reader.read(result.bytes)  // validates the output is parseable
     }
 
     // =======================================================================
@@ -123,7 +117,7 @@ class CrossFormatImageTest {
         assertEquals(ImageFormat.Jpeg, result.format, "Output format must be JPEG")
 
         val reader = JpegStructureReader()
-        assertTrue(reader.canRead(result.bytes), "Output must be valid JPEG")
+        reader.read(result.bytes)  // validates the output is parseable
     }
 
     // =======================================================================
@@ -151,7 +145,7 @@ class CrossFormatImageTest {
         assertEquals(ImageFormat.Png, result.format, "Output format must be PNG")
 
         val reader = PngStructureReader()
-        assertTrue(reader.canRead(result.bytes), "Output must be valid PNG")
+        reader.read(result.bytes)  // validates the output is parseable
     }
 
     // =======================================================================
@@ -160,30 +154,28 @@ class CrossFormatImageTest {
 
     @Test
     fun avif_to_png() = runTest {
-        requireGStreamerElement("av1enc") {
-            val transmute = transmute {
-                plugins {
-                    install(GStreamer)
-                }
+        val transmute = transmute {
+            plugins {
+                install(GStreamer)
             }
-
-            val original = GStreamerTestHelpers.solidColor(64, 64, r = 50, g = 100, b = 200)
-            val avifBytes = GstImageEncoder().encode(
-                original, ImageFormat.Avif,
-                HeifEncodeOptions(format = ImageFormat.Avif), ctx,
-            )
-
-            val transmuter = transmute.image {
-                encode { options(PngEncodeOptions()) }
-            }
-            val result = transmuter.transmute(avifBytes)
-
-            assertTrue(result.bytes.isNotEmpty(), "PNG output must not be empty")
-            assertEquals(ImageFormat.Png, result.format, "Output format must be PNG")
-
-            val reader = PngStructureReader()
-            assertTrue(reader.canRead(result.bytes), "Output must be valid PNG")
         }
+
+        val original = GStreamerTestHelpers.solidColor(64, 64, r = 50, g = 100, b = 200)
+        val avifBytes = GstImageEncoder().encode(
+            original, ImageFormat.Avif,
+            HeifEncodeOptions(format = ImageFormat.Avif), ctx,
+        )
+
+        val transmuter = transmute.image {
+            encode { options(PngEncodeOptions()) }
+        }
+        val result = transmuter.transmute(avifBytes)
+
+        assertTrue(result.bytes.isNotEmpty(), "PNG output must not be empty")
+        assertEquals(ImageFormat.Png, result.format, "Output format must be PNG")
+
+        val reader = PngStructureReader()
+        reader.read(result.bytes)  // validates the output is parseable
     }
 
     // =======================================================================
@@ -211,7 +203,7 @@ class CrossFormatImageTest {
         assertEquals(ImageFormat.Bmp, result.format, "Output format must be BMP")
 
         val reader = BmpStructureReader()
-        assertTrue(reader.canRead(result.bytes), "Output must be valid BMP")
+        reader.read(result.bytes)  // validates the output is parseable
     }
 
     // =======================================================================
@@ -220,28 +212,26 @@ class CrossFormatImageTest {
 
     @Test
     fun jpeg_to_heif() = runTest {
-        requireGStreamerElement("x265enc") {
-            val transmute = transmute {
-                plugins {
-                    install(GStreamer)
-                }
+        val transmute = transmute {
+            plugins {
+                install(GStreamer)
             }
-
-            val original = GStreamerTestHelpers.solidColor(64, 64, r = 180, g = 90, b = 45)
-            val encoder = dev.transmute.image.codecs.jvm.JvmImageIoEncoder()
-            val jpegBytes = encoder.encode(original, ImageFormat.Jpeg, JpegEncodeOptions(), ctx)
-
-            val transmuter = transmute.image {
-                encode { options(HeifEncodeOptions()) }
-            }
-            val result = transmuter.transmute(jpegBytes)
-
-            assertTrue(result.bytes.isNotEmpty(), "HEIF output must not be empty")
-            assertEquals(ImageFormat.Heif, result.format, "Output format must be HEIF")
-
-            val reader = HeifStructureReader()
-            assertTrue(reader.canRead(result.bytes), "Output must be valid HEIF")
         }
+
+        val original = GStreamerTestHelpers.solidColor(64, 64, r = 180, g = 90, b = 45)
+        val encoder = dev.transmute.image.codecs.jvm.JvmImageIoEncoder()
+        val jpegBytes = encoder.encode(original, ImageFormat.Jpeg, JpegEncodeOptions(), ctx)
+
+        val transmuter = transmute.image {
+            encode { options(HeifEncodeOptions()) }
+        }
+        val result = transmuter.transmute(jpegBytes)
+
+        assertTrue(result.bytes.isNotEmpty(), "HEIF output must not be empty")
+        assertEquals(ImageFormat.Heif, result.format, "Output format must be HEIF")
+
+        val reader = HeifStructureReader()
+        reader.read(result.bytes)  // validates the output is parseable
     }
 
     // =======================================================================
@@ -271,6 +261,6 @@ class CrossFormatImageTest {
         assertEquals(ImageFormat.Gif, result.format, "Output format must be GIF")
 
         val reader = GifStructureReader()
-        assertTrue(reader.canRead(result.bytes), "Output must be valid GIF")
+        reader.read(result.bytes)  // validates the output is parseable
     }
 }

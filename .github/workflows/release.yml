@@ -23,9 +23,59 @@ jobs:
           manifest-file: .release-please-manifest.json
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
 
+  # ---------------------------------------------------------------------------
+  # Stage GStreamer desktop binaries for bundling into the desktop JAR.
+  # Runs on the two platforms that ship portable GStreamer binaries.
+  # The staged files are uploaded as artifacts and merged by the publish job.
+  # ---------------------------------------------------------------------------
+  stage-gstreamer-desktop:
+    name: Stage GStreamer Desktop (${{ matrix.os }})
+    if: github.event_name == 'release'
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [windows-latest, macos-15]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      # Cache the staged output keyed by GStreamer version + OS so re-runs and
+      # future releases of the same GStreamer version skip the download.
+      - name: Restore GStreamer staging cache
+        id: gst-cache
+        uses: actions/cache@v4
+        with:
+          path: transmute-plugins/gstreamer/build/gstreamer-desktop/
+          key: gstreamer-desktop-1.26.4-${{ runner.os }}
+
+      - name: Stage GStreamer desktop binaries
+        if: steps.gst-cache.outputs.cache-hit != 'true'
+        run: ./gradlew --no-daemon :transmute-plugins:gstreamer:stageGStreamerDesktop
+
+      - name: Upload staged binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: gstreamer-desktop-${{ runner.os }}
+          path: transmute-plugins/gstreamer/build/gstreamer-desktop/
+          if-no-files-found: error
+          # Retention only needs to outlive this workflow run
+          retention-days: 1
+
   publish:
     name: Publish to GitHub Packages
     if: github.event_name == 'release'
+    needs: [stage-gstreamer-desktop]
     runs-on: [self-hosted, linux, x64]
     env:
       GITHUB_USERNAME: ${{ github.repository_owner }}
@@ -44,6 +94,20 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
+      # Download both platform artifacts into the same destination — they contain
+      # non-overlapping platform subdirectories so they merge cleanly.
+      - name: Download staged GStreamer binaries (Windows)
+        uses: actions/download-artifact@v4
+        with:
+          name: gstreamer-desktop-Windows
+          path: transmute-plugins/gstreamer/build/gstreamer-desktop/
+
+      - name: Download staged GStreamer binaries (macOS)
+        uses: actions/download-artifact@v4
+        with:
+          name: gstreamer-desktop-macOS
+          path: transmute-plugins/gstreamer/build/gstreamer-desktop/
+
       - name: Build (tests already gated on the release PR)
         run: ./gradlew --no-daemon build -x test -x check -Pkotlin.native.enabled=false
 
@@ -58,3 +122,4 @@ jobs:
             transmute-audio/build/libs/*.jar
             transmute-image/build/libs/*.jar
             transmute-video/build/libs/*.jar
+            transmute-plugins/gstreamer/build/libs/*.jar

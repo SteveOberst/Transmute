@@ -14,6 +14,23 @@ import dev.transmute.model.structure.common.RiffChunk
 import dev.transmute.model.core.ByteLength
 import dev.transmute.model.core.ByteOffset
 import dev.transmute.model.core.ByteRange
+import dev.transmute.model.structure.video.types.AviRaw
+import dev.transmute.model.structure.video.types.MatroskaIds
+import dev.transmute.model.structure.video.types.MkvRaw
+import dev.transmute.model.structure.video.types.MovRaw
+import dev.transmute.model.structure.video.types.Mp4Raw
+import dev.transmute.model.structure.video.types.WebmRaw
+import dev.transmute.model.structure.video.types.chunks
+import dev.transmute.model.structure.video.types.compatibleBrands
+import dev.transmute.model.structure.video.types.ebmlHeader
+import dev.transmute.model.structure.video.types.headerData
+import dev.transmute.model.structure.video.types.headerList
+import dev.transmute.model.structure.video.types.mainHeader
+import dev.transmute.model.structure.video.types.majorBrand
+import dev.transmute.model.structure.video.types.minorVersion
+import dev.transmute.model.structure.video.types.moovBox
+import dev.transmute.model.structure.video.types.movieList
+import dev.transmute.model.structure.video.types.segment
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -107,10 +124,12 @@ class VideoFileTests {
     @Test
     fun movFileWithFtyp() {
         val ftypData = buildFtypData("qt  ", 0, listOf("qt  "))
-        val file = MovRaw(boxes = listOf(
-            IsoBmffBox(FourCC("ftyp"), ftypData),
-            IsoBmffBox(FourCC("moov")),
-        ))
+        val file = MovRaw(
+            boxes = listOf(
+                IsoBmffBox(FourCC("ftyp"), ftypData),
+                IsoBmffBox(FourCC("moov")),
+            )
+        )
 
         assertEquals(Brand(FourCC("qt  ")), file.majorBrand)
         assertEquals(2, file.boxes.size)

@@ -99,7 +99,7 @@ object ImageTransforms {
     /** Apply box blur. Radius: 1 = 3x3, 2 = 5x5, etc. */
     @TransformDescriptor("blur", "Apply box blur")
     fun blur(
-        @Param("Blur radius (1 = 3×3 kernel, 2 = 5×5, …)", default = "1", min = "1", max = "20") radius: Int = 1,
+        @Param("Blur radius (1 = 3×3 kernel, 2 = 5×5, ...)", default = "1", min = "1", max = "20") radius: Int = 1,
     ) = ImageBlurTransform(radius)
 
     /** Adjust alpha channel opacity (0.0 = transparent, 1.0 = unchanged). */
@@ -182,7 +182,7 @@ object AudioTransforms {
     /** Remap audio channels. [mapping] defines output->source channel indices. */
     @TransformDescriptor("channelMap", "Remap audio channels to a different layout")
     fun channelMap(
-        @Param("Output-to-source channel index mapping (e.g. [0, 0] for left→mono)", required = true) mapping: IntArray,
+        @Param("Output-to-source channel index mapping (e.g. [0, 0] for left->mono)", required = true) mapping: IntArray,
     ) = AudioChannelMapTransform(mapping)
 }
 

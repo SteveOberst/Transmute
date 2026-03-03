@@ -1,29 +1,44 @@
-# Speed (Video)
+# Video: speed
 
-Change playback speed, adjusting both frame timing and audio.
+Change video playback speed.
 
-## Parameters
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| speed | Float | - | Speed multiplier; >1 = faster, <1 = slower |
-
-## Usage
-
-### DSL
+## Factory
 
 ```kotlin
-Transmute.video { speed(2.0f) }.transmute(bytes.asBytes()).bytes.data
+Transformers.video().speed(speed: Float)
 ```
 
-### Pipeline
+| Parameter | Type | Required | Range | Description |
+|-----------|------|----------|-------|-------------|
+| `speed` | `Float` | ✅ | 0.25 … 4.0 | Speed multiplier (`1.0` = unchanged) |
+
+## Behaviour
+
+- Adjusts both video frame timestamps and audio pitch.
+- `0.5` → half speed (slow motion; output is twice as long).
+- `2.0` → double speed (time-lapse; output is half as long).
+- Audio pitch is adjusted to match the new speed (tempo change, not pitch shift).
+
+## DSL usage
 
 ```kotlin
-transform { add(Transformers.video().speed(2.0f)) }
+// 2× fast-forward
+val transmuter = Transmute.video.to(VideoFormat.Mp4) {
+    decode {
+        pipeline { speed(2.0f) }
+    }
+}
+
+// Slow motion at 0.5×
+val transmuter = Transmute.video.to(VideoFormat.Mp4) {
+    decode {
+        pipeline { speed(0.5f) }
+    }
+}
 ```
 
-## Notes
+## Related
 
-- Both video frame timestamps and audio samples are adjusted.
-- Audio pitch changes proportionally (no time-stretch).
-- `speed = 2.0` halves the duration; `speed = 0.5` doubles it.
+- [frameRate](frame-rate.md)
+- [trim](trim.md)
+- [Transforms overview](README.md)

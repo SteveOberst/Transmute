@@ -29,18 +29,31 @@ object BuiltinPlugins {
     /**
      * GStreamer-backed codec plugin.
      *
-     * Provides audio (AAC, M4A, Opus, FLAC, OGG), video (MP4, MOV, WebM,
-     * AVI, MKV), and image (HEIF, HEIC, AVIF) support via GStreamer.
+     * Provides audio (AAC, M4A, Opus, FLAC, OGG) and video (MP4, MOV, WebM,
+     * AVI, MKV) support via GStreamer.
      *
      * All features are enabled by default. Selectively disable via features:
      * ```kotlin
      * install(BuiltinPlugins.GStreamer) {
      *     disable(GStreamerFeature.LegacyAvi)
-     *     disable(GStreamerFeature.ImageEncoding)
      * }
      * ```
      */
     val GStreamer = PluginId("dev.transmute.gstreamer")
+
+    /**
+     * LibHeif-backed image codec plugin.
+     *
+     * Provides HEIF, HEIC, and AVIF decode/encode support via the libheif
+     * command-line tools (`heif-dec`, `heif-enc`). On Android and iOS,
+     * these formats are handled natively by the platform and the plugin
+     * is a no-op.
+     *
+     * ```kotlin
+     * install(BuiltinPlugins.LibHeif)
+     * ```
+     */
+    val LibHeif = PluginId("dev.transmute.libheif")
 
     /**
      * All first-party Transmute plugins, in recommended install order.
@@ -50,9 +63,10 @@ object BuiltinPlugins {
      *
      * Note: due to generic type erasure, configuring plugins via this list
      * requires casting. Prefer referencing individual plugin objects
-     * (e.g. [GStreamer]) in install blocks.
+     * (e.g. [GStreamer], [LibHeif]) in install blocks.
      */
     val all: List<PluginId> = listOf(
         GStreamer,
+        LibHeif,
     )
 }

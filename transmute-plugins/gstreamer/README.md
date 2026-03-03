@@ -56,7 +56,6 @@ install(GStreamer) {
 | `GStreamerFeature`        | Typed feature constants for codec control                          |
 | `GStreamerPluginConfig`   | Configuration: feature toggles, installation mode, timeout, logging |
 | `GStreamerCodecInstaller` | Installs GStreamer codecs into registries                           |
-| `GStreamerSniff`          | Format detection via GStreamer                                      |
 
 ### Runtime Detection
 

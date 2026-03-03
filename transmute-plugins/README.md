@@ -6,7 +6,8 @@ Official plugin catalog for the Transmute media processing library.
 
 | Plugin      | Module                          | Key                        | Description                                      |
 |-------------|---------------------------------|----------------------------|--------------------------------------------------|
-| `GStreamer` | `transmute-plugins:gstreamer`   | `GStreamer.key`            | HEIF/AVIF, OGG/Opus/FLAC, MP4/MOV/WebM/AVI/MKV  |
+| `GStreamer` | `transmute-plugins:gstreamer`   | `GStreamer.key`            | OGG/Opus/FLAC, MP4/MOV/WebM/AVI/MKV             |
+| `LibHeif`   | `transmute-plugins:libheif`     | `LibHeif.key`              | HEIF/HEIC/AVIF decode/encode via libheif         |
 
 ## Installation
 
@@ -17,16 +18,17 @@ Add the plugin module to your dependencies alongside `transmute-api`:
 dependencies {
     implementation("dev.transmute:transmute-api:<version>")
     implementation("dev.transmute:transmute-gstreamer:<version>")
+    implementation("dev.transmute:transmute-libheif:<version>")
 }
 ```
 
 Then install the plugin via the builder DSL:
 
 ```kotlin
-// All features (audio, video, image) are enabled by default
 val transmute = Transmute {
     plugins {
-        install(GStreamer)
+        install(GStreamer)   // audio + video codecs
+        install(LibHeif)     // HEIF/HEIC/AVIF image codecs
     }
 }
 ```
@@ -41,7 +43,9 @@ val transmute = Transmute {
     plugins {
         install(GStreamer) {
             disable(GStreamerFeature.LegacyAvi)       // skip AVI codec
-            disable(GStreamerFeature.ImageEncoding)    // skip HEIF/AVIF encoding
+        }
+        install(LibHeif) {
+            disable(LibHeifFeature.ImageEncoding)      // decode only, no encoding
         }
     }
 }
@@ -51,11 +55,16 @@ val transmute = Transmute {
 
 | Feature                          | Default | Description                                           |
 |----------------------------------|---------|-------------------------------------------------------|
-| `GStreamerFeature.AudioCodecs`   | enabled | AAC, M4A, Opus, FLAC/OGG encode                      |
-| `GStreamerFeature.ImageCodecs`   | enabled | HEIF, HEIC, AVIF decode/encode                        |
-| `GStreamerFeature.ImageEncoding` | enabled | HEIF/AVIF encoding via x265enc/av1enc                 |
+| `GStreamerFeature.AudioCodecs`   | enabled | AAC, M4A, Opus, FLAC/OGG decode/encode               |
 | `GStreamerFeature.VideoCodecs`   | enabled | MP4, MOV, WebM, AVI, MKV                              |
 | `GStreamerFeature.LegacyAvi`    | enabled | Legacy AVI container support                           |
+
+**LibHeif features:**
+
+| Feature                          | Default | Description                                           |
+|----------------------------------|---------|-------------------------------------------------------|
+| `LibHeifFeature.ImageCodecs`    | enabled | HEIF, HEIC, AVIF decode/encode                        |
+| `LibHeifFeature.ImageEncoding`  | enabled | HEIF/AVIF encoding via `heif-enc`                     |
 
 ## Plugin System Features
 

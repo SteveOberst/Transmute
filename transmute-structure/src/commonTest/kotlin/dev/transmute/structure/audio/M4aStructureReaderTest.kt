@@ -3,7 +3,6 @@ package dev.transmute.structure.audio
 import dev.transmute.model.core.asBytes
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class M4aStructureReaderTest {
@@ -19,26 +18,6 @@ class M4aStructureReaderTest {
         "ftyp".encodeToByteArray().copyInto(out, 4)
         brand.encodeToByteArray().copyInto(out, 8)
         return out
-    }
-
-    @Test
-    fun canReadAcceptsM4A() {
-        assertTrue(reader.canRead(ftypFile("M4A ").asBytes()))
-    }
-
-    @Test
-    fun canReadAcceptsM4B() {
-        assertTrue(reader.canRead(ftypFile("M4B ").asBytes()))
-    }
-
-    @Test
-    fun canReadRejectsIsom() {
-        assertFalse(reader.canRead(ftypFile("isom").asBytes()))
-    }
-
-    @Test
-    fun canReadRejectsGarbage() {
-        assertFalse(reader.canRead(ByteArray(16).asBytes()))
     }
 
     @Test

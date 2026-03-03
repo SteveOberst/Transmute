@@ -1,6 +1,7 @@
 package dev.transmute.plugin
 
 import dev.transmute.CodecRegistry
+import dev.transmute.MediaMetadataRegistrationScope
 import dev.transmute.MediaStructureRegistrationScope
 
 /**
@@ -12,21 +13,19 @@ import dev.transmute.MediaStructureRegistrationScope
  * with each other, and [diagnostics] provides a structured way to report
  * health info.
  *
- * Every plugin receives a [logger] scoped to its key, which can be configured
- * via the `configure { logging { } }` DSL block.
- *
  * ```kotlin
  * class MyPlugin : TransmutePlugin<MyConfig> {
  *     override fun install(scope: TransmuteScope, config: MyConfig) {
  *         scope.codecs.image.encoders.register(HwAccelEncoder())
  *         scope.codecs.image.rawStructureDecoders.register(ImageFormat.MyFormat, MyRawDecoder())
  *         scope.mediaStructures.register("myplugin.myformat", MyFormatStructure.serializer())
+ *         scope.mediaMetadata.register("myplugin.mymetadata", MyMetadata.serializer())
  *     }
  * }
  * ```
  */
 class TransmuteScope(
-    /** All codec registries (IR decoders/encoders + structure decoders) grouped by domain. */
+    /** All codec registries (IR decoders/encoders + structure decoders + metadata decoders) grouped by domain. */
     val codecs: CodecRegistry,
     /** Type-safe service registry for cross-plugin collaboration. */
     val services: ServiceRegistry,
@@ -38,4 +37,6 @@ class TransmuteScope(
     val features: PluginFeaturesConfig = PluginFeaturesConfig(),
     /** Scoped access to [dev.transmute.model.core.MediaStructureRegistry] for JSON-structure type registration. */
     val mediaStructures: MediaStructureRegistrationScope = MediaStructureRegistrationScope(),
+    /** Scoped access to [dev.transmute.model.core.MediaMetadataRegistry] for JSON-metadata type registration. */
+    val mediaMetadata: MediaMetadataRegistrationScope = MediaMetadataRegistrationScope(),
 )

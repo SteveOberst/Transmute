@@ -3,9 +3,6 @@ package dev.transmute.gstreamer
 import dev.transmute.audio.AudioRegistries
 import dev.transmute.audio.MutableAudioDecoderRegistry
 import dev.transmute.audio.MutableAudioEncoderRegistry
-import dev.transmute.image.ImageRegistries
-import dev.transmute.image.MutableImageDecoderRegistry
-import dev.transmute.image.MutableImageEncoderRegistry
 import dev.transmute.plugin.PluginFeaturesConfig
 import dev.transmute.video.MutableVideoDecoderRegistry
 import dev.transmute.video.MutableVideoEncoderRegistry
@@ -13,6 +10,9 @@ import dev.transmute.video.VideoRegistries
 
 /**
  * Installs GStreamer-backed codecs into the provided registries.
+ *
+ * GStreamer handles **audio** and **video** codecs. Image codecs for
+ * HEIF/HEIC/AVIF have been moved to the dedicated `libheif` plugin.
  *
  * On Desktop/JVM, GStreamer is invoked via subprocess (`gst-launch-1.0`).
  * On Android, GStreamer is invoked via JNI (`libgstreamer_bridge.so`).
@@ -36,7 +36,6 @@ object GStreamerCodecInstaller {
      */
     fun registerAsSupplementary() {
         AudioRegistries.addSupplementaryInstaller { d, e -> installGstAudioCodecs(d, e) }
-        ImageRegistries.addSupplementaryInstaller { d, e -> installGstImageCodecs(d, e, PluginFeaturesConfig()) }
         VideoRegistries.addSupplementaryInstaller { d, e -> installGstVideoCodecs(d, e, PluginFeaturesConfig()) }
     }
 
@@ -48,29 +47,6 @@ object GStreamerCodecInstaller {
         decoders: MutableAudioDecoderRegistry,
         encoders: MutableAudioEncoderRegistry,
     ) = installGstAudioCodecs(decoders, encoders)
-
-    /**
-     * Register GStreamer image codecs: HEIF, HEIC, AVIF decode/encode.
-     *
-     * All image codecs are registered; use the feature-aware overload for
-     * fine-grained control over encoding.
-     */
-    fun installImageCodecs(
-        decoders: MutableImageDecoderRegistry,
-        encoders: MutableImageEncoderRegistry,
-    ) = installGstImageCodecs(decoders, encoders, PluginFeaturesConfig())
-
-    /**
-     * Register GStreamer image codecs with feature-toggle control.
-     *
-     * When [GStreamerFeature.ImageEncoding] is disabled in [features],
-     * only decoders are registered - the HEIF/AVIF encoder is skipped.
-     */
-    fun installImageCodecs(
-        decoders: MutableImageDecoderRegistry,
-        encoders: MutableImageEncoderRegistry,
-        features: PluginFeaturesConfig,
-    ) = installGstImageCodecs(decoders, encoders, features)
 
     /**
      * Register GStreamer video codecs: MP4, MOV, WebM, AVI, MKV.
@@ -101,12 +77,6 @@ internal expect fun isGStreamerAvailable(): Boolean
 internal expect fun installGstAudioCodecs(
     decoders: MutableAudioDecoderRegistry,
     encoders: MutableAudioEncoderRegistry,
-)
-
-internal expect fun installGstImageCodecs(
-    decoders: MutableImageDecoderRegistry,
-    encoders: MutableImageEncoderRegistry,
-    features: PluginFeaturesConfig,
 )
 
 internal expect fun installGstVideoCodecs(

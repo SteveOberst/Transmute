@@ -2,8 +2,6 @@ package dev.transmute.gstreamer
 
 import dev.transmute.audio.MutableAudioDecoderRegistry
 import dev.transmute.audio.MutableAudioEncoderRegistry
-import dev.transmute.image.MutableImageDecoderRegistry
-import dev.transmute.image.MutableImageEncoderRegistry
 import dev.transmute.plugin.PluginFeaturesConfig
 import dev.transmute.video.MutableVideoDecoderRegistry
 import dev.transmute.video.MutableVideoEncoderRegistry
@@ -32,24 +30,6 @@ internal actual fun installGstAudioCodecs(
     // Encode-only - decode is handled natively by JFlac / JOrbis
     encoders.register(GstFlacEncoder())
     encoders.register(GstOggVorbisEncoder())
-}
-
-internal actual fun installGstImageCodecs(
-    decoders: MutableImageDecoderRegistry,
-    encoders: MutableImageEncoderRegistry,
-    features: PluginFeaturesConfig,
-) {
-    if (!GStreamerResolver.available) return
-
-    decoders.register(GstImageDecoder())
-
-    // Only register encoder if the ImageEncoding feature is enabled
-    // AND the required GStreamer elements are present
-    if (features.isEnabled(GStreamerFeature.ImageEncoding)) {
-        if (GStreamerResolver.hasElement("x265enc") || GStreamerResolver.hasElement("av1enc")) {
-            encoders.register(GstImageEncoder())
-        }
-    }
 }
 
 internal actual fun installGstVideoCodecs(
@@ -100,5 +80,5 @@ internal actual fun resolvedInstallationInfo(): String {
         is GStreamerInstallation.System  -> "system"
         is GStreamerInstallation.Custom  -> "custom (${(GStreamerResolver.installation as GStreamerInstallation.Custom).home})"
     }
-    return "$mode → ${GStreamerResolver.gstLaunchPath}"
+    return "$mode -> ${GStreamerResolver.gstLaunchPath}"
 }

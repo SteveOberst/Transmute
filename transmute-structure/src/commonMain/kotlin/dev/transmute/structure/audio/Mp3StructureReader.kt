@@ -6,7 +6,7 @@ import dev.transmute.model.core.Bytes
 import dev.transmute.model.core.asBytes
 import dev.transmute.model.structure.StructureReadException
 import dev.transmute.model.structure.StructureReader
-import dev.transmute.model.structure.audio.Mp3Raw
+import dev.transmute.model.structure.audio.types.Mp3Raw
 
 /**
  * Parses raw MP3 file bytes into an [Mp3Raw] structure.
@@ -21,19 +21,8 @@ import dev.transmute.model.structure.audio.Mp3Raw
  */
 class Mp3StructureReader : StructureReader<Mp3Raw> {
 
-    override fun canRead(source: Bytes): Boolean {
-        val d = source.data
-        if (d.size < 4) return false
-        // ID3v2 tag at start
-        if (d[0] == 0x49.toByte() && d[1] == 0x44.toByte() && d[2] == 0x33.toByte()) return true
-        // MPEG sync word (0xFF followed by 0xE0+ mask)
-        if ((d[0].toInt() and 0xFF) == 0xFF && (d[1].toInt() and 0xE0) == 0xE0) return true
-        return false
-    }
-
     override fun read(source: Bytes): Mp3Raw {
         val d = source.data
-        if (!canRead(source)) throw StructureReadException("Not an MP3 file")
 
         var audioStart = 0
 

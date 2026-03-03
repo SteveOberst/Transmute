@@ -12,7 +12,7 @@ class VideoDecodeTimeRangeContractTest {
   fun decodeHandlerPropagatesUnsupportedTimeRange() = kotlinx.coroutines.test.runTest {
     val fakeDecoder = object : VideoDecoder {
       override val supportedFormats: Set<VideoFormat> = setOf(VideoFormat.Mp4)
-      override suspend fun decode(source: dev.transmute.model.core.Bytes, options: VideoDecodeOptions, context: PipelineContext): VideoIR {
+      override suspend fun decode(source: dev.transmute.io.TSource, options: VideoDecodeOptions, context: PipelineContext): VideoIR {
         if (options.decodeRange != null) throw UnsupportedOperationException("decodeRange not supported")
         return VideoTestHelpers.syntheticVideo()
       }

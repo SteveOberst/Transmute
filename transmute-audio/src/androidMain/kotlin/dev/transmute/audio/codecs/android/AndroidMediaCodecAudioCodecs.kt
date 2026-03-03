@@ -21,6 +21,7 @@ import de.sciss.jump3r.mp3.Version
 import de.sciss.jump3r.mpg.Common
 import de.sciss.jump3r.mpg.Interface
 import de.sciss.jump3r.mpg.MPGLib
+import dev.transmute.io.TSource
 import dev.transmute.audio.AudioCodec
 import dev.transmute.audio.AudioDecoder
 import dev.transmute.audio.AudioDecodeOptions
@@ -267,8 +268,8 @@ internal abstract class AndroidMediaCodecAudioDecoder(
 
   override val supportedFormats: Set<AudioFormat> = setOf(format)
 
-  override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: PipelineContext): AudioIR =
-    decodeWithMediaCodec(source.data, options, context)
+  override suspend fun decode(source: TSource, options: AudioDecodeOptions, context: PipelineContext): AudioIR =
+    decodeWithMediaCodec(source.readAll(), options, context)
 }
 
 internal class AndroidMp3Codec : AudioCodec {
@@ -276,34 +277,8 @@ internal class AndroidMp3Codec : AudioCodec {
   override val decodableFormats: Set<AudioFormat> = setOf(AudioFormat.Mp3)
   override val encodableFormats: Set<AudioFormat> = setOf(AudioFormat.Mp3)
 
-  override fun sniff(data: Bytes): AudioFormat? {
-    val bytes = data.data
-    if (bytes.size < 3) return null
-    // ID3v2 tag header
-    if (bytes[0] == 0x49.toByte() && bytes[1] == 0x44.toByte() && bytes[2] == 0x33.toByte()) {
-      return AudioFormat.Mp3
-    }
-    // MPEG audio frame sync word (first 11 bits set)
-    // NOTE: AAC ADTS headers also start with 0xFF Fx and can be mis-detected as MP3
-    // unless we validate the MPEG audio layer bits.
-    if (bytes.size >= 2 && (bytes[0].toInt() and 0xFF) == 0xFF) {
-      val b1 = bytes[1].toInt() and 0xFF
-      if ((b1 and 0xE0) == 0xE0) {
-        val versionBits = (b1 shr 3) and 0x03
-        val layerBits = (b1 shr 1) and 0x03
-
-        // versionBits == 0b01 is reserved; layerBits == 0b00 is invalid for MPEG audio.
-        // ADTS uses layerBits == 0, so this excludes AAC.
-        if (versionBits != 0x01 && layerBits != 0x00) {
-          return AudioFormat.Mp3
-        }
-      }
-    }
-    return null
-  }
-
-  override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: PipelineContext): AudioIR =
-    decodeWithMediaCodec(source.data, options, context)
+  override suspend fun decode(source: TSource, options: AudioDecodeOptions, context: PipelineContext): AudioIR =
+    decodeWithMediaCodec(source.readAll(), options, context)
 
   override suspend fun encode(
     ir: AudioIR,
@@ -392,22 +367,7 @@ internal class AndroidMp3Codec : AudioCodec {
   }
 }
 
-internal class AndroidOggDecoder : AndroidMediaCodecAudioDecoder(AudioFormat.Ogg) {
-  override fun sniff(data: Bytes): AudioFormat? {
-    val bytes = data.data
-    if (bytes.size < 4) return null
-    if (bytes[0] == 'O'.code.toByte() && bytes[1] == 'g'.code.toByte() &&
-      bytes[2] == 'g'.code.toByte() && bytes[3] == 'S'.code.toByte()) {
-      // Check for Opus inside OGG
-      if (bytes.size >= 36) {
-        val header = String(bytes, 28, 8, Charsets.US_ASCII)
-        if (header == "OpusHead") return null // Let OpusCodec handle it
-      }
-      return AudioFormat.Ogg
-    }
-    return null
-  }
-}
+internal class AndroidOggDecoder : AndroidMediaCodecAudioDecoder(AudioFormat.Ogg)
 
 // ---------------------------------------------------------------------------
 // Full codecs - formats we can both decode AND encode on Android.
@@ -424,20 +384,8 @@ internal class AndroidFlacCodec : AudioCodec {
   override val decodableFormats: Set<AudioFormat> = setOf(AudioFormat.Flac)
   override val encodableFormats: Set<AudioFormat> = setOf(AudioFormat.Flac)
 
-  override fun sniff(data: Bytes): AudioFormat? {
-    val bytes = data.data
-    if (bytes.size < 4) return null
-    // FLAC stream marker: "fLaC" (0x664C6143)
-    if (bytes[0] == 0x66.toByte() && bytes[1] == 0x4C.toByte() &&
-      bytes[2] == 0x61.toByte() && bytes[3] == 0x43.toByte()
-    ) {
-      return AudioFormat.Flac
-    }
-    return null
-  }
-
-  override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: PipelineContext): AudioIR =
-    decodeWithMediaCodec(source.data, options, context)
+  override suspend fun decode(source: TSource, options: AudioDecodeOptions, context: PipelineContext): AudioIR =
+    decodeWithMediaCodec(source.readAll(), options, context)
 
   override suspend fun encode(
     ir: AudioIR,
@@ -530,24 +478,8 @@ internal class AndroidOpusCodec : AudioCodec {
   override val encodableFormats: Set<AudioFormat> =
     if (canEncode) setOf(AudioFormat.Opus) else emptySet()
 
-  override fun sniff(data: Bytes): AudioFormat? {
-    val bytes = data.data
-    if (bytes.size < 4) return null
-    // OGG container: "OggS" magic
-    if (bytes[0] == 'O'.code.toByte() && bytes[1] == 'g'.code.toByte() &&
-      bytes[2] == 'g'.code.toByte() && bytes[3] == 'S'.code.toByte()
-    ) {
-      // Could be OGG/Vorbis too - check for "OpusHead" in first page.
-      if (bytes.size >= 36) {
-        val header = String(bytes, 28, 8, Charsets.US_ASCII)
-        if (header == "OpusHead") return AudioFormat.Opus
-      }
-    }
-    return null
-  }
-
-  override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: PipelineContext): AudioIR =
-    decodeWithMediaCodec(source.data, options, context)
+  override suspend fun decode(source: TSource, options: AudioDecodeOptions, context: PipelineContext): AudioIR =
+    decodeWithMediaCodec(source.readAll(), options, context)
 
   override suspend fun encode(
     ir: AudioIR,
@@ -667,18 +599,8 @@ internal class AndroidAacCodec : AudioCodec {
   override val decodableFormats: Set<AudioFormat> = setOf(AudioFormat.Aac)
   override val encodableFormats: Set<AudioFormat> = setOf(AudioFormat.Aac)
 
-  override fun sniff(data: Bytes): AudioFormat? {
-    val bytes = data.data
-    if (bytes.size < 2) return null
-    // ADTS sync word: 0xFFF (12 bits)
-    if ((bytes[0].toInt() and 0xFF) == 0xFF && (bytes[1].toInt() and 0xF0) == 0xF0) {
-      return AudioFormat.Aac
-    }
-    return null
-  }
-
-  override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: PipelineContext): AudioIR =
-    decodeWithMediaCodec(source.data, options, context)
+  override suspend fun decode(source: TSource, options: AudioDecodeOptions, context: PipelineContext): AudioIR =
+    decodeWithMediaCodec(source.readAll(), options, context)
 
   override suspend fun encode(
     ir: AudioIR,
@@ -768,26 +690,8 @@ internal class AndroidM4aCodec : AudioCodec {
   override val decodableFormats: Set<AudioFormat> = setOf(AudioFormat.M4a)
   override val encodableFormats: Set<AudioFormat> = setOf(AudioFormat.M4a)
 
-  override fun sniff(data: Bytes): AudioFormat? {
-    val bytes = data.data
-    if (bytes.size < 12) return null
-    // ftyp box: bytes 4-7 == "ftyp"
-    val ftyp = String(bytes, 4, 4, Charsets.US_ASCII)
-    if (ftyp != "ftyp") return null
-
-    val brand = String(bytes, 8, 4, Charsets.US_ASCII)
-    if (brand == "M4A " || brand == "M4B " || brand == "M4P " || brand == "M4V ") return AudioFormat.M4a
-
-    // Avoid misclassifying MP4 video as M4A if we see a video marker early.
-    val window = String(bytes, 0, minOf(bytes.size, 256 * 1024), Charsets.ISO_8859_1)
-    val hasVideo = window.contains("vide") || window.contains("avc1") || window.contains("hvc1")
-    if (hasVideo) return null
-
-    return AudioFormat.M4a
-  }
-
-  override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: PipelineContext): AudioIR =
-    decodeWithMediaCodec(source.data, options, context)
+  override suspend fun decode(source: TSource, options: AudioDecodeOptions, context: PipelineContext): AudioIR =
+    decodeWithMediaCodec(source.readAll(), options, context)
 
   override suspend fun encode(
     ir: AudioIR,

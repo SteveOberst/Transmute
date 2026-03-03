@@ -34,6 +34,7 @@ kotlin {
             api(project(":transmute-model:core"))
             api(project(":transmute-model:identify"))
             api(project(":transmute-model:structure"))
+            api(project(":transmute-model:metadata"))
             api(project(":transmute-codec"))
             api(project(":transmute-image"))
             api(project(":transmute-audio"))
@@ -44,6 +45,7 @@ kotlin {
             implementation(kotlin("test"))
         }
 
+        val androidMain by getting
         val desktopMain by getting
         val desktopTest by getting
 

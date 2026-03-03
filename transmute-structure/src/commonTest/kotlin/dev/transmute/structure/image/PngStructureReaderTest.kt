@@ -4,8 +4,6 @@ import dev.transmute.model.core.Bytes
 import dev.transmute.model.core.asBytes
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
 class PngStructureReaderTest {
@@ -37,21 +35,6 @@ class PngStructureReaderTest {
 
         return sig + ihdrLen + ihdrType + ihdrData + ihdrCrc +
             iendLen + iendType + iendCrc
-    }
-
-    @Test
-    fun canReadAcceptsValidPng() {
-        assertTrue(reader.canRead(minimalPng().asBytes()))
-    }
-
-    @Test
-    fun canReadRejectsGarbage() {
-        assertFalse(reader.canRead(ByteArray(16).asBytes()))
-    }
-
-    @Test
-    fun canReadRejectsTooShort() {
-        assertFalse(reader.canRead(ByteArray(4).asBytes()))
     }
 
     @Test

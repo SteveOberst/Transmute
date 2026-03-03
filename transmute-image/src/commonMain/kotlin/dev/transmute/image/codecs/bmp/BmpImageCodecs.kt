@@ -1,5 +1,6 @@
 package dev.transmute.image.codecs.bmp
 
+import dev.transmute.io.TSource
 import dev.transmute.model.core.Bytes
 import dev.transmute.common.PipelineContext
 import dev.transmute.image.*
@@ -20,14 +21,8 @@ import dev.transmute.image.*
 class BmpImageDecoder : ImageDecoder {
   override val supportedFormats: Set<ImageFormat> = setOf(ImageFormat.Bmp)
 
-  override fun sniff(data: Bytes): ImageFormat? {
-    val bytes = data.data
-    if (bytes.size >= 2 && bytes[0] == 0x42.toByte() && bytes[1] == 0x4D.toByte()) return ImageFormat.Bmp
-    return null
-  }
-
-  override suspend fun decode(source: Bytes, options: ImageDecodeOptions, context: PipelineContext): ImageIR {
-    val bytes = source.data
+  override suspend fun decode(source: TSource, options: ImageDecodeOptions, context: PipelineContext): ImageIR {
+    val bytes = source.readAll()
     require(bytes.size >= 54) { "BMP too small" }
     require(bytes[0] == 'B'.code.toByte() && bytes[1] == 'M'.code.toByte()) { "Not a BMP" }
 

@@ -32,11 +32,8 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api(project(":transmute-model:core"))
-            api(project(":transmute-model:identify"))
             api(project(":transmute-model:structure"))
-            api(project(":transmute-model:stream"))
             api(project(":transmute-model:metadata"))
-            api(project(":transmute-model:diagnostics"))
         }
 
         val desktopMain by getting

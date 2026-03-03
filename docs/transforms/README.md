@@ -1,52 +1,132 @@
 # Transforms
 
-All transforms are platform-independent, stateless operations on intermediate
-representations (IRs). They require no native dependencies and work identically
-on Android, Desktop/JVM, and iOS.
+Transforms operate on an intermediate representation (IR) between the decode and encode stages. They are applied in order and are composable.
 
-## Image Transforms (9)
+## Quick reference
 
-| Class | DSL | Description | Docs |
-|-------|-----|-------------|------|
-| `ImageScaleTransform` | `scale` | Fit within bounds, preserve aspect ratio | [scale.md](image/scale.md) |
-| `ImageResizeTransform` | `resize` | Exact resize with resample filter (Lanczos3, Mitchell, etc.) | [resize.md](image/resize.md) |
-| `ImageCropTransform` | `crop` | Crop to sub-region | [crop.md](image/crop.md) |
-| `ImageRotateTransform` | `rotate` | Rotate by 90°, 180°, or 270° clockwise | [rotate.md](image/rotate.md) |
-| `ImageGrayscaleTransform` | `grayscale` | BT.709 luma conversion | [grayscale.md](image/grayscale.md) |
-| `ImageFlipTransform` | `flip` | Mirror horizontally / vertically | [flip.md](image/flip.md) |
-| `ImageBrightnessContrastTransform` | `brightnessContrast` | Adjust brightness (−255..+255) and contrast (0..3) | [brightness-contrast.md](image/brightness-contrast.md) |
-| `ImageBlurTransform` | `blur` | Box blur with configurable radius | [blur.md](image/blur.md) |
-| `ImageOpacityTransform` | `opacity` | Adjust alpha channel | [opacity.md](image/opacity.md) |
+### Image transforms (9)
 
-## Audio Transforms (11)
+| DSL name | Class | Description |
+|----------|-------|-------------|
+| `scale(maxWidth, maxHeight)` | `ImageScaleTransform` | Scale to fit within bounds, preserving aspect ratio. No upscaling. |
+| `resize(w, h, filter?, allowUpscale?)` | `ImageResizeTransform` | Resize to exact dimensions with a configurable resample filter. |
+| `crop(x, y, width, height)` | `ImageCropTransform` | Crop to a rectangular sub-region. |
+| `rotate(degrees)` | `ImageRotateTransform` | Rotate clockwise by 90, 180, or 270°. |
+| `grayscale()` | `ImageGrayscaleTransform` | Convert to grayscale using BT.709 luma coefficients. |
+| `flip(horizontal?, vertical?)` | `ImageFlipTransform` | Flip horizontally and/or vertically. |
+| `brightnessContrast(brightness?, contrast?)` | `ImageBrightnessContrastTransform` | Adjust brightness (−255..+255) and contrast (0..3). |
+| `blur(radius?)` | `ImageBlurTransform` | Apply box blur. Radius 1 = 3×3 kernel. |
+| `opacity(opacity)` | `ImageOpacityTransform` | Adjust alpha channel opacity (0.0–1.0). |
 
-| Class | DSL | Description | Docs |
-|-------|-----|-------------|------|
-| `AudioNormalizeTransform` | `normalize` | Peak amplitude normalization | [normalize.md](audio/normalize.md) |
-| `AudioResampleTransform` | `resample` | Resample to target sample rate | [resample.md](audio/resample.md) |
-| `AudioFadeTransform` | `fade` | Fade-in / fade-out envelopes | [fade.md](audio/fade.md) |
-| `AudioTrimTransform` | `trim` | Trim to time range | [trim.md](audio/trim.md) |
-| `AudioGainTransform` | `gain` | Volume gain in dB | [gain.md](audio/gain.md) |
-| `AudioMonoTransform` | `mono` | Stereo → mono | [mono.md](audio/mono.md) |
-| `AudioReverseTransform` | `reverse` | Reverse playback | [reverse.md](audio/reverse.md) |
-| `AudioSpeedTransform` | `speed` | Playback speed (SOLA time-stretch, no pitch change) | [speed.md](audio/speed.md) |
-| `AudioSilenceTrimTransform` | `silenceTrim` | Trim silence from start / end | [silence-trim.md](audio/silence-trim.md) |
-| `AudioCompressorTransform` | `compressor` | Dynamic range compressor | [compressor.md](audio/compressor.md) |
-| `AudioChannelMapTransform` | `channelMap` | Remap audio channels | [channel-map.md](audio/channel-map.md) |
+### Audio transforms (11)
 
-## Video Transforms (7)
+| DSL name | Class | Description |
+|----------|-------|-------------|
+| `normalize(targetPeak?)` | `AudioNormalizeTransform` | Normalize peak amplitude to a target level (default 0.95). |
+| `resample(targetSampleRate)` | `AudioResampleTransform` | Resample to a different sample rate (linear interpolation). |
+| `fade(fadeInMs?, fadeOutMs?)` | `AudioFadeTransform` | Apply fade-in and/or fade-out amplitude envelopes. |
+| `trim(startMs, endMs?)` | `AudioTrimTransform` | Trim to a time range. Omit `endMs` to trim to the end. |
+| `gain(db)` | `AudioGainTransform` | Apply volume gain/attenuation in decibels. |
+| `mono()` | `AudioMonoTransform` | Mix down to mono by averaging channels. |
+| `reverse()` | `AudioReverseTransform` | Reverse playback direction. |
+| `speed(speed)` | `AudioSpeedTransform` | Change playback speed without pitch shift (SOLA time-stretch). |
+| `silenceTrim(thresholdDb?, minSilenceMs?, trimStart?, trimEnd?)` | `AudioSilenceTrimTransform` | Remove silence from start and/or end. |
+| `compressor(thresholdDb?, ratio?, attackMs?, releaseMs?, makeupGainDb?)` | `AudioCompressorTransform` | Apply dynamic range compression. |
+| `channelMap(mapping)` | `AudioChannelMapTransform` | Remap audio channels by output→source index array. |
 
-| Class | DSL | Description | Docs |
-|-------|-----|-------------|------|
-| `VideoTrimTransform` | `trim` | Trim to time range | [trim.md](video/trim.md) |
-| `VideoResizeTransform` | `resize` | Fit within bounds, preserve aspect ratio | [resize.md](video/resize.md) |
-| `VideoFrameRateTransform` | `frameRate` | Change frame rate | [frame-rate.md](video/frame-rate.md) |
-| `VideoRemoveAudioTransform` | `removeAudio` | Strip audio track | [remove-audio.md](video/remove-audio.md) |
-| `VideoCropTransform` | `crop` | Crop frames to sub-region | [crop.md](video/crop.md) |
-| `VideoSpeedTransform` | `speed` | Playback speed (adjusts frames + audio) | [speed.md](video/speed.md) |
-| `VideoRotateTransform` | `rotate` | Rotate by 90°, 180°, or 270° | [rotate.md](video/rotate.md) |
+### Video transforms (7)
 
-## Adding a Custom Transform
+| DSL name | Class | Description |
+|----------|-------|-------------|
+| `trim(startMs, endMs?)` | `VideoTrimTransform` | Trim to a time range. Omit `endMs` to keep to the end. |
+| `resize(maxWidth, maxHeight)` | `VideoResizeTransform` | Resize frames to fit within bounds, preserving aspect ratio. |
+| `frameRate(targetFps)` | `VideoFrameRateTransform` | Change the frame rate. |
+| `removeAudio()` | `VideoRemoveAudioTransform` | Strip the audio track. |
+| `crop(x, y, width, height)` | `VideoCropTransform` | Crop frames to a rectangular sub-region. |
+| `speed(speed)` | `VideoSpeedTransform` | Change playback speed (adjusts both frame timing and audio). |
+| `rotate(degrees)` | `VideoRotateTransform` | Rotate frames by 90, 180, or 270° clockwise. |
 
-See [extending.md](../extending.md) and [CONTRIBUTING.md](../../CONTRIBUTING.md#adding-a-new-transform).
+## Applying transforms
 
+### DSL shorthand (recommended)
+
+Extension functions on the builder are the most concise approach:
+
+```kotlin
+Transmute.image {
+    scale(1920, 1080)
+    rotate(90)
+    grayscale()
+}.transmute(source)
+
+Transmute.audio {
+    normalize(targetPeak = 0.9f)
+    trim(startMs = 1_000, endMs = 30_000)
+    fade(fadeInMs = 500, fadeOutMs = 500)
+}.transmute(source)
+
+Transmute.video {
+    trim(0, 60_000)
+    resize(1280, 720)
+    frameRate(24.0)
+}.transmute(source)
+```
+
+### Explicit transform block
+
+```kotlin
+Transmute.image {
+    transform {
+        add(ImageScaleTransform(1920, 1080))
+        add(ImageRotateTransform(90))
+    }
+}.transmute(source)
+```
+
+### Transformers factory
+
+`Transformers` is a catalog object useful when building transforms programmatically:
+
+```kotlin
+val myTransforms = listOf(
+    Transformers.image().scale(800, 600),
+    Transformers.image().grayscale(),
+)
+
+Transmute.image {
+    transform { myTransforms.forEach { add(it) } }
+}.transmute(source)
+```
+
+### Insert before a specific type
+
+```kotlin
+Transmute.video {
+    transform {
+        add(Transformers.video().resize(640, 480))
+        before<VideoResizeTransform>(Transformers.video().trim(0, 5_000))  // insert trim before resize
+    }
+}
+```
+
+## Resample filters (image resize)
+
+| Filter | Description |
+|--------|-------------|
+| `ResampleFilter.NEAREST` | Nearest-neighbour — fastest, aliased |
+| `ResampleFilter.BILINEAR` | Bilinear — smooth, fast |
+| `ResampleFilter.BICUBIC_MITCHELL` | Bicubic Mitchell (default) — balanced quality/speed |
+| `ResampleFilter.CATMULL_ROM` | Catmull-Rom — sharper bicubic |
+| `ResampleFilter.LANCZOS3` | Lanczos3 — highest quality; anti-aliased for downscaling |
+
+```kotlin
+Transmute.image {
+    resize(800, 600, filter = ResampleFilter.LANCZOS3, allowUpscale = false)
+}
+```
+
+## Per-transform documentation
+
+- [transforms/image/](image/) — Image transform details
+- [transforms/audio/](audio/) — Audio transform details
+- [transforms/video/](video/) — Video transform details

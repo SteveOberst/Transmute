@@ -1,5 +1,6 @@
 package dev.transmute.audio.codecs
 
+import dev.transmute.io.TSource
 import dev.transmute.audio.AudioDecodeOptions
 import dev.transmute.audio.AudioDecoder
 import dev.transmute.audio.AudioEncodeOptions
@@ -20,18 +21,8 @@ class WavDecoder : AudioDecoder {
 
   override val supportedFormats: Set<AudioFormat> = setOf(AudioFormat.Wav)
 
-  override fun sniff(data: Bytes): AudioFormat? {
-    val bytes = data.data
-    if (bytes.size < 12) return null
-    if (bytes[0] == 'R'.code.toByte() && bytes[1] == 'I'.code.toByte() &&
-      bytes[2] == 'F'.code.toByte() && bytes[3] == 'F'.code.toByte() &&
-      bytes[8] == 'W'.code.toByte() && bytes[9] == 'A'.code.toByte() &&
-      bytes[10] == 'V'.code.toByte() && bytes[11] == 'E'.code.toByte()) return AudioFormat.Wav
-    return null
-  }
-
-  override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: PipelineContext): AudioIR {
-    val bytes = source.data
+  override suspend fun decode(source: TSource, options: AudioDecodeOptions, context: PipelineContext): AudioIR {
+    val bytes = source.readAll()
     require(bytes.size >= 44) { "WAV file too small: ${bytes.size} bytes" }
 
     // Parse RIFF header

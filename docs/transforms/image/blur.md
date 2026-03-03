@@ -1,29 +1,36 @@
-# Blur
+# Image: blur
 
-Apply a box blur to an image.
+Apply a box blur.
 
-## Parameters
-
-| Parameter | Type | Default | Description                                |
-|-----------|------|---------|--------------------------------------------|
-| radius    | Int  | -       | Blur radius; 1 = 3×3 kernel, 2 = 5×5, etc. |
-
-## Usage
-
-### DSL
+## Factory
 
 ```kotlin
-Transmute.image { blur(radius = 2) }.transmute(bytes.asBytes()).bytes.data
+Transformers.image().blur(radius: Int = 1)
 ```
 
-### Pipeline
+| Parameter | Type | Default | Range | Description |
+|-----------|------|---------|-------|-------------|
+| `radius` | `Int` | `1` | 1 … 20 | Blur radius. Kernel size = `(2 * radius + 1)²` |
+
+## Behaviour
+
+- Applies a box (average) blur over a `(2r+1) × (2r+1)` kernel.
+- `radius = 1` → 3×3 kernel; `radius = 2` → 5×5; `radius = 10` → 21×21.
+- Edge pixels are handled with clamping.
+
+## DSL usage
 
 ```kotlin
-transform { add(Transformers.image().blur(2)) }
+val transmuter = Transmute.image {
+    decode {
+        pipeline {
+            blur(radius = 3)   // noticeable blur
+        }
+    }
+}
 ```
 
-## Notes
+## Related
 
-- Kernel size is `(2 * radius + 1) × (2 * radius + 1)`.
-- Uses uniform (box) averaging; all kernel weights are equal.
-- Edge pixels are clamped (no wrap-around).
+- [brightnessContrast](brightness-contrast.md)
+- [Transforms overview](README.md)

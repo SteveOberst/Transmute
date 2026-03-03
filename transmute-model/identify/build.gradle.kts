@@ -5,6 +5,9 @@ plugins {
     `maven-publish`
 }
 
+// Keep model artifacts grouped consistently
+group = "${rootProject.group}.model"
+
 kotlin {
     val isMac = System.getProperty("os.name").startsWith("Mac", ignoreCase = true)
 
@@ -32,7 +35,7 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            api(project(":transmute-model:core"))
+            api(libs.kotlinx.serialization.core)
         }
 
         val desktopMain by getting

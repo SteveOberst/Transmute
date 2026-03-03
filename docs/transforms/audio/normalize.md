@@ -1,29 +1,41 @@
-# Normalize
+# Audio: normalize
 
-Peak amplitude normalization - scales the entire signal so the loudest sample reaches a target peak.
+Normalize peak amplitude to a target level.
 
-## Parameters
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| targetPeak | Float | 0.95f | Target peak amplitude, 0.0–1.0 |
-
-## Usage
-
-### DSL
+## Factory
 
 ```kotlin
-Transmute.audio { normalize(targetPeak = 0.9f) }.transmute(bytes.asBytes()).bytes.data
+Transformers.audio().normalize(targetPeak: Float = 0.95f)
 ```
 
-### Pipeline
+| Parameter | Type | Default | Range | Description |
+|-----------|------|---------|-------|-------------|
+| `targetPeak` | `Float` | `0.95f` | 0.0 … 1.0 | Target peak amplitude as a linear value |
+
+## Behaviour
+
+- Scans the entire track for the maximum absolute sample value.
+- Scales all samples by `targetPeak / maxSample`.
+- If the audio is silence (maxSample = 0), no scaling is applied.
+
+## DSL usage
 
 ```kotlin
-transform { add(Transformers.audio().normalize(0.9f)) }
+val transmuter = Transmute.audio.to(AudioFormat.Mp3) {
+    decode {
+        pipeline { normalize() }                   // default: 0.95
+    }
+}
+
+val transmuter = Transmute.audio {
+    decode {
+        pipeline { normalize(targetPeak = 0.9f) }
+    }
+}
 ```
 
-## Notes
+## Related
 
-- Scans all samples to find the current peak, then applies a uniform gain.
-- No-op if the audio is already at or above the target peak.
-- Applied per-channel but with the same gain factor for all channels to preserve stereo balance.
+- [gain](gain.md)
+- [compressor](compressor.md)
+- [Transforms overview](README.md)

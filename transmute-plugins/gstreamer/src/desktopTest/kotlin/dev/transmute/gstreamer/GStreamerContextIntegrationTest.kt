@@ -1,7 +1,6 @@
 package dev.transmute.gstreamer
 
 import dev.transmute.transmute
-import dev.transmute.gstreamer.GStreamerTestHelpers.requireGStreamer
 import kotlin.test.Test
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
@@ -16,58 +15,50 @@ class GStreamerContextIntegrationTest {
 
     @Test
     fun allFeaturesEnabledByDefault_pluginAvailable() {
-        requireGStreamer {
-            val transmute = transmute { plugins { install(GStreamer) } }
-            val diag = transmute.diagnostics.plugin(GStreamer.key)
-            assertNotNull(diag, "GStreamer diagnostics must be present")
-            assertTrue(diag.current?.available == true, "GStreamer must report as available")
-        }
+        val transmute = transmute { plugins { install(GStreamer) } }
+        val diag = transmute.diagnostics.plugin(GStreamer.key)
+        assertNotNull(diag, "GStreamer diagnostics must be present")
+        assertTrue(diag.current?.available == true, "GStreamer must report as available")
     }
 
     @Test
     fun disableIndividualFeatures_doesNotThrow() {
-        requireGStreamer {
-            transmute {
-                plugins {
-                    install(GStreamer) {
-                        disable(GStreamerFeature.AudioCodecs)
-                        disable(GStreamerFeature.VideoCodecs)
-                    }
+        transmute {
+            plugins {
+                install(GStreamer) {
+                    disable(GStreamerFeature.AudioCodecs)
+                    disable(GStreamerFeature.VideoCodecs)
                 }
             }
-            // Reaching here without exception confirms the DSL works correctly
         }
+        // Reaching here without exception confirms the DSL works correctly
     }
 
     @Test
     fun setFeatureByStringId_worksForDynamicControl() {
-        requireGStreamer {
-            transmute {
-                plugins {
-                    install(GStreamer) {
-                        set(GStreamerFeature.ImageEncoding.id, false)
-                    }
+        transmute {
+            plugins {
+                install(GStreamer) {
+                    set(GStreamerFeature.AudioCodecs.id, false)
                 }
             }
-            // String-based set() API must not throw
         }
+        // String-based set() API must not throw
     }
 
     @Test
     fun disableAllCodecFeatures_pluginStillInstalls() {
-        requireGStreamer {
-            val transmute = transmute {
-                plugins {
-                    install(GStreamer) {
-                        disable(GStreamerFeature.AudioCodecs)
-                        disable(GStreamerFeature.ImageCodecs)
-                        disable(GStreamerFeature.VideoCodecs)
-                    }
+        val transmute = transmute {
+            plugins {
+                install(GStreamer) {
+                    disable(GStreamerFeature.AudioCodecs)
+                    disable(GStreamerFeature.VideoCodecs)
+                    disable(GStreamerFeature.LegacyAvi)
                 }
             }
-            // Plugin must still report diagnostics even when all codec features are off
-            val diag = transmute.diagnostics.plugin(GStreamer.key)
-            assertNotNull(diag, "Plugin diagnostics must be present even when features are disabled")
         }
+        // Plugin must still report diagnostics even when all codec features are off
+        val diag = transmute.diagnostics.plugin(GStreamer.key)
+        assertNotNull(diag, "Plugin diagnostics must be present even when features are disabled")
     }
 }

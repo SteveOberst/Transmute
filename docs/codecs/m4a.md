@@ -1,45 +1,74 @@
-# M4A (AAC in MP4)
+# M4A
 
-M4A is an audio-only MP4 container, typically containing AAC audio. It is widely supported and commonly used by Apple ecosystems.
+`AudioFormat.M4a` — MPEG-4 Audio
 
-## Platform Support
+| Property | Value |
+|----------|-------|
+| Enum value | `AudioFormat.M4a` |
+| MIME type | `audio/mp4` |
+| Extension | `.m4a` |
+| Container | ISOBMFF (MP4) |
+| Metadata | `ItunesMetadata` |
+| Structure | `M4aStructure` |
 
-| Platform | Decode | Encode | Engine                                     |
-|----------|--------|--------|--------------------------------------------|
-| Android  | ✅      | ✅      | MediaCodec                                 |
-| Desktop  | ✅      | ✅      | GStreamer (requires `transmute-gstreamer`) |
-| iOS      | ✅      | ✅      | AVFoundation                               |
+## Platform support
 
-## Usage
+| Platform | Decode | Encode |
+|----------|--------|--------|
+| Android | ✅ built-in (MediaCodec) | ✅ built-in |
+| Desktop (JVM) | ⚠️ GStreamer plugin | ⚠️ GStreamer plugin |
+| iOS | ✅ built-in | ✅ built-in |
 
-```kotlin
-// Convert audio to M4A
-suspend fun convertToM4a(inputBytes: ByteArray): ByteArray =
-  Transmute.audio {
-    encode { options { outputFormat = OutputFormat.Exact(AudioFormat.M4a) } }
-  }.transmute(inputBytes.asBytes()).bytes.data
+On Desktop, M4A requires the [GStreamer plugin](../plugins.md).
 
-// Decode M4A (re-encode to WAV)
-suspend fun decodeToWav(m4aBytes: ByteArray): ByteArray =
-  Transmute.audio {
-    encode { options { outputFormat = OutputFormat.Exact(AudioFormat.Wav) } }
-  }.transmute(m4aBytes.asBytes()).bytes.data
-```
-
-## Structure Reading
-
-M4A files can be parsed into an `M4a` structure that mirrors the ISO BMFF box layout:
+## Desktop plugin setup
 
 ```kotlin
-val m4a: M4a = Transmute.structure.read(m4aBytes.asBytes(), AudioFormat.M4a)
-
-// Round-trip
-val raw = Transmute.structure.write(m4a)
+val transmute = Transmute {
+    plugins {
+        install(GStreamerPlugin) {
+            domains(MediaDomain.AUDIO)
+        }
+    }
+}
 ```
 
-The reader walks `ftyp`, `moov`, `mdat`, and nested boxes (`trak`, `mdia`, `hdlr`, etc.).
-`ftyp.majorBrand` is typically `"M4A "` or `"isom"`. See `docs/structures.md`.
+## Encode options
+
+M4A uses `CanonicalAudioEncodeOptions` — there are currently no format-specific encoding knobs.
+
+```kotlin
+encode {
+    options {
+        metadataPolicy = MetadataPolicy.PRESERVE   // default: STRIP_ALL
+        outputFormat   = OutputFormat.Exact(AudioFormat.M4a)
+    }
+}
+```
+
+## Basic usage
+
+```kotlin
+val transmuter = Transmute.audio.to(AudioFormat.M4a)
+val m4aBytes = transmuter.transmute(inputBytes)
+```
+
+## Inspection
+
+```kotlin
+val structure  = Transmute.inspect.structure(m4aBytes)  // M4aStructure
+val inspection = Transmute.inspect.inspect(m4aBytes)
+// ItunesMetadata carries iTunes-style atoms: artist, album, cover art, etc.
+```
 
 ## Notes
-- Great compatibility on iOS and modern Android.
-- Desktop requires the optional `transmute-gstreamer` module with GStreamer installed.
+
+- M4A is an audio-only MP4 container, commonly using AAC audio internally.
+- iTunes metadata (`©nam`, `©ART`, `©alb`, `covr`, etc.) is preserved when `metadataPolicy = MetadataPolicy.PRESERVE`.
+
+## Related
+
+- [Codec API](../codec.md)
+- [Plugins](../plugins.md)
+- [AAC](aac.md)
+- [MP4](mp4.md)

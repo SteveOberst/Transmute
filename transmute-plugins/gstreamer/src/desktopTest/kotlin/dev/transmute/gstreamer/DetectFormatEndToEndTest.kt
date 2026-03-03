@@ -6,8 +6,6 @@ import dev.transmute.audio.CanonicalAudioEncodeOptions
 import dev.transmute.audio.codecs.WavEncoder
 import dev.transmute.audio.codecs.jvm.JvmMp3Codec
 import dev.transmute.codec.OutputFormat
-import dev.transmute.gstreamer.GStreamerTestHelpers.requireGStreamer
-import dev.transmute.gstreamer.GStreamerTestHelpers.requireGStreamerElement
 import dev.transmute.gstreamer.GStreamerTestHelpers.testContext
 import dev.transmute.image.CanonicalImageEncodeOptions
 import dev.transmute.image.HeifEncodeOptions
@@ -30,7 +28,7 @@ import kotlin.test.assertNotEquals
  *
  * Generates **real media bytes** for every supported format and verifies
  * that `Transmute.inspect.detectFormat()` correctly identifies each one.
- * This exercises the full detection chain: magic-byte sniffing, BMFF
+ * This exercises the full detection chain: magic-byte detection, BMFF
  * disambiguation, and the image->video->audio priority cascade.
  *
  * Soft-skipped when GStreamer is not available locally.
@@ -118,29 +116,25 @@ class DetectFormatEndToEndTest {
 
     @Test
     fun detectFormat_heif() = runTest {
-        requireGStreamerElement("x265enc") {
-            val imageIR = GStreamerTestHelpers.solidColor(64, 64, r = 128, g = 64, b = 32)
-            val bytes = GstImageEncoder().encode(imageIR, ImageFormat.Heif, HeifEncodeOptions(), ctx)
+        val imageIR = GStreamerTestHelpers.solidColor(64, 64, r = 128, g = 64, b = 32)
+        val bytes = GstImageEncoder().encode(imageIR, ImageFormat.Heif, HeifEncodeOptions(), ctx)
 
-            val detected = transmute.inspect.detectFormat(bytes)
-            // HEIF could detect as Heif or Heic depending on the ftyp brand
-            val isHeif = detected == ImageFormat.Heif || detected == ImageFormat.Heic
-            assert(isHeif) { "HEIF must be detected as Heif or Heic, got $detected" }
-        }
+        val detected = transmute.inspect.detectFormat(bytes)
+        // HEIF could detect as Heif or Heic depending on the ftyp brand
+        val isHeif = detected == ImageFormat.Heif || detected == ImageFormat.Heic
+        assert(isHeif) { "HEIF must be detected as Heif or Heic, got $detected" }
     }
 
     @Test
     fun detectFormat_avif() = runTest {
-        requireGStreamerElement("av1enc") {
-            val imageIR = GStreamerTestHelpers.solidColor(64, 64, r = 50, g = 100, b = 200)
-            val bytes = GstImageEncoder().encode(
-                imageIR, ImageFormat.Avif,
-                HeifEncodeOptions(format = ImageFormat.Avif), ctx,
-            )
+        val imageIR = GStreamerTestHelpers.solidColor(64, 64, r = 50, g = 100, b = 200)
+        val bytes = GstImageEncoder().encode(
+            imageIR, ImageFormat.Avif,
+            HeifEncodeOptions(format = ImageFormat.Avif), ctx,
+        )
 
-            val detected = transmute.inspect.detectFormat(bytes)
-            assertEquals(ImageFormat.Avif, detected, "AVIF must be detected")
-        }
+        val detected = transmute.inspect.detectFormat(bytes)
+        assertEquals(ImageFormat.Avif, detected, "AVIF must be detected")
     }
 
     // =======================================================================
@@ -149,61 +143,51 @@ class DetectFormatEndToEndTest {
 
     @Test
     fun detectFormat_aac() = runTest {
-        requireGStreamer {
-            val audioIR = GStreamerTestHelpers.sineWave(durationMs = 200, sampleRate = 44100)
-            val bytes = GstAacCodec().encode(audioIR, AudioFormat.Aac, CanonicalAudioEncodeOptions(), ctx)
+        val audioIR = GStreamerTestHelpers.sineWave(durationMs = 200, sampleRate = 44100)
+        val bytes = GstAacCodec().encode(audioIR, AudioFormat.Aac, CanonicalAudioEncodeOptions(), ctx)
 
-            val detected = transmute.inspect.detectFormat(bytes)
-            assertEquals(AudioFormat.Aac, detected, "AAC must be detected")
-        }
+        val detected = transmute.inspect.detectFormat(bytes)
+        assertEquals(AudioFormat.Aac, detected, "AAC must be detected")
     }
 
     @Test
     fun detectFormat_m4a() = runTest {
-        requireGStreamer {
-            val audioIR = GStreamerTestHelpers.sineWave(durationMs = 200, sampleRate = 44100)
-            val bytes = GstM4aCodec().encode(audioIR, AudioFormat.M4a, CanonicalAudioEncodeOptions(), ctx)
+        val audioIR = GStreamerTestHelpers.sineWave(durationMs = 200, sampleRate = 44100)
+        val bytes = GstM4aCodec().encode(audioIR, AudioFormat.M4a, CanonicalAudioEncodeOptions(), ctx)
 
-            val detected = transmute.inspect.detectFormat(bytes)
-            assertEquals(AudioFormat.M4a, detected, "M4A must be detected")
-        }
+        val detected = transmute.inspect.detectFormat(bytes)
+        assertEquals(AudioFormat.M4a, detected, "M4A must be detected")
     }
 
     @Test
     fun detectFormat_opus() = runTest {
-        requireGStreamer {
-            val audioIR = GStreamerTestHelpers.sineWave(durationMs = 200, sampleRate = 48000)
-            val bytes = GstOpusCodec().encode(audioIR, AudioFormat.Opus, CanonicalAudioEncodeOptions(), ctx)
+        val audioIR = GStreamerTestHelpers.sineWave(durationMs = 200, sampleRate = 48000)
+        val bytes = GstOpusCodec().encode(audioIR, AudioFormat.Opus, CanonicalAudioEncodeOptions(), ctx)
 
-            val detected = transmute.inspect.detectFormat(bytes)
-            // Opus is wrapped in OGG, so depending on detection it may be Opus or Ogg
-            val isOpusOrOgg = detected == AudioFormat.Opus || detected == AudioFormat.Ogg
-            assert(isOpusOrOgg) { "Opus/OGG must be detected, got $detected" }
-        }
+        val detected = transmute.inspect.detectFormat(bytes)
+        // Opus is wrapped in OGG, so depending on detection it may be Opus or Ogg
+        val isOpusOrOgg = detected == AudioFormat.Opus || detected == AudioFormat.Ogg
+        assert(isOpusOrOgg) { "Opus/OGG must be detected, got $detected" }
     }
 
     @Test
     fun detectFormat_flac() = runTest {
-        requireGStreamer {
-            val audioIR = GStreamerTestHelpers.sineWave(durationMs = 200, sampleRate = 44100)
-            val bytes = GstFlacEncoder().encode(audioIR, AudioFormat.Flac, CanonicalAudioEncodeOptions(), ctx)
+        val audioIR = GStreamerTestHelpers.sineWave(durationMs = 200, sampleRate = 44100)
+        val bytes = GstFlacEncoder().encode(audioIR, AudioFormat.Flac, CanonicalAudioEncodeOptions(), ctx)
 
-            val detected = transmute.inspect.detectFormat(bytes)
-            assertEquals(AudioFormat.Flac, detected, "FLAC must be detected")
-        }
+        val detected = transmute.inspect.detectFormat(bytes)
+        assertEquals(AudioFormat.Flac, detected, "FLAC must be detected")
     }
 
     @Test
     fun detectFormat_ogg() = runTest {
-        requireGStreamer {
-            val audioIR = GStreamerTestHelpers.sineWave(durationMs = 200, sampleRate = 44100)
-            val bytes = GstOggVorbisEncoder().encode(
-                audioIR, AudioFormat.Ogg, CanonicalAudioEncodeOptions(), ctx,
-            )
+        val audioIR = GStreamerTestHelpers.sineWave(durationMs = 200, sampleRate = 44100)
+        val bytes = GstOggVorbisEncoder().encode(
+            audioIR, AudioFormat.Ogg, CanonicalAudioEncodeOptions(), ctx,
+        )
 
-            val detected = transmute.inspect.detectFormat(bytes)
-            assertEquals(AudioFormat.Ogg, detected, "OGG must be detected")
-        }
+        val detected = transmute.inspect.detectFormat(bytes)
+        assertEquals(AudioFormat.Ogg, detected, "OGG must be detected")
     }
 
     @Test
@@ -230,67 +214,57 @@ class DetectFormatEndToEndTest {
 
     @Test
     fun detectFormat_mp4() = runTest {
-        requireGStreamer {
-            val videoIR = GStreamerTestHelpers.syntheticVideo(
-                width = 160, height = 120, frameRate = 10.0, durationMs = 200,
-            )
-            val bytes = GstMp4Codec().encode(videoIR, VideoFormat.Mp4, CanonicalVideoEncodeOptions(), ctx)
+        val videoIR = GStreamerTestHelpers.syntheticVideo(
+            width = 160, height = 120, frameRate = 10.0, durationMs = 200,
+        )
+        val bytes = GstMp4Codec().encode(videoIR, VideoFormat.Mp4, CanonicalVideoEncodeOptions(), ctx)
 
-            val detected = transmute.inspect.detectFormat(bytes)
-            assertEquals(VideoFormat.Mp4, detected, "MP4 must be detected")
-        }
+        val detected = transmute.inspect.detectFormat(bytes)
+        assertEquals(VideoFormat.Mp4, detected, "MP4 must be detected")
     }
 
     @Test
     fun detectFormat_mov() = runTest {
-        requireGStreamer {
-            val videoIR = GStreamerTestHelpers.syntheticVideo(
-                width = 160, height = 120, frameRate = 10.0, durationMs = 200,
-            )
-            val bytes = GstMovCodec().encode(videoIR, VideoFormat.Mov, CanonicalVideoEncodeOptions(), ctx)
+        val videoIR = GStreamerTestHelpers.syntheticVideo(
+            width = 160, height = 120, frameRate = 10.0, durationMs = 200,
+        )
+        val bytes = GstMovCodec().encode(videoIR, VideoFormat.Mov, CanonicalVideoEncodeOptions(), ctx)
 
-            val detected = transmute.inspect.detectFormat(bytes)
-            assertEquals(VideoFormat.Mov, detected, "MOV must be detected")
-        }
+        val detected = transmute.inspect.detectFormat(bytes)
+        assertEquals(VideoFormat.Mov, detected, "MOV must be detected")
     }
 
     @Test
     fun detectFormat_webm() = runTest {
-        requireGStreamer {
-            val videoIR = GStreamerTestHelpers.syntheticVideo(
-                width = 160, height = 120, frameRate = 10.0, durationMs = 200,
-            )
-            val bytes = GstWebmCodec().encode(videoIR, VideoFormat.Webm, CanonicalVideoEncodeOptions(), ctx)
+        val videoIR = GStreamerTestHelpers.syntheticVideo(
+            width = 160, height = 120, frameRate = 10.0, durationMs = 200,
+        )
+        val bytes = GstWebmCodec().encode(videoIR, VideoFormat.Webm, CanonicalVideoEncodeOptions(), ctx)
 
-            val detected = transmute.inspect.detectFormat(bytes)
-            assertEquals(VideoFormat.Webm, detected, "WebM must be detected")
-        }
+        val detected = transmute.inspect.detectFormat(bytes)
+        assertEquals(VideoFormat.Webm, detected, "WebM must be detected")
     }
 
     @Test
     fun detectFormat_mkv() = runTest {
-        requireGStreamer {
-            val videoIR = GStreamerTestHelpers.syntheticVideo(
-                width = 160, height = 120, frameRate = 10.0, durationMs = 200,
-            )
-            val bytes = GstMkvCodec().encode(videoIR, VideoFormat.Mkv, CanonicalVideoEncodeOptions(), ctx)
+        val videoIR = GStreamerTestHelpers.syntheticVideo(
+            width = 160, height = 120, frameRate = 10.0, durationMs = 200,
+        )
+        val bytes = GstMkvCodec().encode(videoIR, VideoFormat.Mkv, CanonicalVideoEncodeOptions(), ctx)
 
-            val detected = transmute.inspect.detectFormat(bytes)
-            assertEquals(VideoFormat.Mkv, detected, "MKV must be detected")
-        }
+        val detected = transmute.inspect.detectFormat(bytes)
+        assertEquals(VideoFormat.Mkv, detected, "MKV must be detected")
     }
 
     @Test
     fun detectFormat_avi() = runTest {
-        requireGStreamer {
-            val videoIR = GStreamerTestHelpers.syntheticVideo(
-                width = 160, height = 120, frameRate = 10.0, durationMs = 200,
-            )
-            val bytes = GstAviCodec().encode(videoIR, VideoFormat.Avi, CanonicalVideoEncodeOptions(), ctx)
+        val videoIR = GStreamerTestHelpers.syntheticVideo(
+            width = 160, height = 120, frameRate = 10.0, durationMs = 200,
+        )
+        val bytes = GstAviCodec().encode(videoIR, VideoFormat.Avi, CanonicalVideoEncodeOptions(), ctx)
 
-            val detected = transmute.inspect.detectFormat(bytes)
-            assertEquals(VideoFormat.Avi, detected, "AVI must be detected")
-        }
+        val detected = transmute.inspect.detectFormat(bytes)
+        assertEquals(VideoFormat.Avi, detected, "AVI must be detected")
     }
 
     // =======================================================================
@@ -341,15 +315,13 @@ class DetectFormatEndToEndTest {
 
     @Test
     fun inspectVideo_detectFormat_mp4() = runTest {
-        requireGStreamer {
-            val videoIR = GStreamerTestHelpers.syntheticVideo(
-                width = 160, height = 120, frameRate = 10.0, durationMs = 200,
-            )
-            val bytes = GstMp4Codec().encode(videoIR, VideoFormat.Mp4, CanonicalVideoEncodeOptions(), ctx)
+        val videoIR = GStreamerTestHelpers.syntheticVideo(
+            width = 160, height = 120, frameRate = 10.0, durationMs = 200,
+        )
+        val bytes = GstMp4Codec().encode(videoIR, VideoFormat.Mp4, CanonicalVideoEncodeOptions(), ctx)
 
-            val detected = transmute.inspect.video.detectFormat(bytes)
-            assertEquals(VideoFormat.Mp4, detected, "inspect.video must detect MP4")
-        }
+        val detected = transmute.inspect.video.detectFormat(bytes)
+        assertEquals(VideoFormat.Mp4, detected, "inspect.video must detect MP4")
     }
 
     // =======================================================================
@@ -358,27 +330,25 @@ class DetectFormatEndToEndTest {
 
     @Test
     fun detectFormat_bmff_mp4_vs_m4a() = runTest {
-        requireGStreamer {
-            // MP4 with video track
-            val videoIR = GStreamerTestHelpers.syntheticVideo(
-                width = 160, height = 120, frameRate = 10.0, durationMs = 200,
-            )
-            val mp4Bytes = GstMp4Codec().encode(videoIR, VideoFormat.Mp4, CanonicalVideoEncodeOptions(), ctx)
+        // MP4 with video track
+        val videoIR = GStreamerTestHelpers.syntheticVideo(
+            width = 160, height = 120, frameRate = 10.0, durationMs = 200,
+        )
+        val mp4Bytes = GstMp4Codec().encode(videoIR, VideoFormat.Mp4, CanonicalVideoEncodeOptions(), ctx)
 
-            // M4A with audio only
-            val audioIR = GStreamerTestHelpers.sineWave(durationMs = 200, sampleRate = 44100)
-            val m4aBytes = GstM4aCodec().encode(audioIR, AudioFormat.M4a, CanonicalAudioEncodeOptions(), ctx)
+        // M4A with audio only
+        val audioIR = GStreamerTestHelpers.sineWave(durationMs = 200, sampleRate = 44100)
+        val m4aBytes = GstM4aCodec().encode(audioIR, AudioFormat.M4a, CanonicalAudioEncodeOptions(), ctx)
 
-            val mp4Detected = transmute.inspect.detectFormat(mp4Bytes)
-            val m4aDetected = transmute.inspect.detectFormat(m4aBytes)
+        val mp4Detected = transmute.inspect.detectFormat(mp4Bytes)
+        val m4aDetected = transmute.inspect.detectFormat(m4aBytes)
 
-            // Both are BMFF but should be disambiguated
-            assertNotEquals(mp4Detected, m4aDetected, "MP4 and M4A must be distinguished")
+        // Both are BMFF but should be disambiguated
+        assertNotEquals(mp4Detected, m4aDetected, "MP4 and M4A must be distinguished")
 
-            // MP4 should be detected as video
-            assertEquals(VideoFormat.Mp4, mp4Detected, "MP4 with video track must detect as MP4")
-            // M4A should be detected as audio
-            assertEquals(AudioFormat.M4a, m4aDetected, "M4A with audio only must detect as M4A")
-        }
+        // MP4 should be detected as video
+        assertEquals(VideoFormat.Mp4, mp4Detected, "MP4 with video track must detect as MP4")
+        // M4A should be detected as audio
+        assertEquals(AudioFormat.M4a, m4aDetected, "M4A with audio only must detect as M4A")
     }
 }

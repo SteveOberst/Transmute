@@ -1,5 +1,6 @@
 package dev.transmute.image.codecs.jvm
 
+import dev.transmute.io.TSource
 import dev.transmute.model.core.Bytes
 import dev.transmute.common.PipelineContext
 import dev.transmute.model.core.asBytes
@@ -23,38 +24,10 @@ class JvmImageIoDecoder : ImageDecoder {
     ImageFormat.Webp,
   )
 
-  override fun sniff(data: Bytes): ImageFormat? {
-    val bytes = data.data
-    if (bytes.size < 4) return null
-    // JPEG: FF D8 FF
-    if (bytes[0] == 0xFF.toByte() && bytes[1] == 0xD8.toByte() && bytes[2] == 0xFF.toByte())
-      return ImageFormat.Jpeg
-    // PNG: 89 50 4E 47
-    if (bytes.size >= 8 && bytes[0] == 0x89.toByte() && bytes[1] == 0x50.toByte() &&
-      bytes[2] == 0x4E.toByte() && bytes[3] == 0x47.toByte())
-      return ImageFormat.Png
-    // GIF: GIF8
-    if (bytes.size >= 6 && bytes[0] == 0x47.toByte() && bytes[1] == 0x49.toByte() &&
-      bytes[2] == 0x46.toByte() && bytes[3] == 0x38.toByte())
-      return ImageFormat.Gif
-    // BMP: BM
-    if (bytes[0] == 0x42.toByte() && bytes[1] == 0x4D.toByte())
-      return ImageFormat.Bmp
-    // TIFF: II*\0 or MM\0*
-    if ((bytes[0] == 0x49.toByte() && bytes[1] == 0x49.toByte() && bytes[2] == 0x2A.toByte() && bytes[3] == 0x00.toByte()) ||
-      (bytes[0] == 0x4D.toByte() && bytes[1] == 0x4D.toByte() && bytes[2] == 0x00.toByte() && bytes[3] == 0x2A.toByte()))
-      return ImageFormat.Tiff
-    // WebP: RIFF....WEBP
-    if (bytes.size >= 12 && bytes[0] == 0x52.toByte() && bytes[1] == 0x49.toByte() &&
-      bytes[2] == 0x46.toByte() && bytes[3] == 0x46.toByte() &&
-      bytes[8] == 0x57.toByte() && bytes[9] == 0x45.toByte() &&
-      bytes[10] == 0x42.toByte() && bytes[11] == 0x50.toByte())
-      return ImageFormat.Webp
-    return null
-  }
 
-  override suspend fun decode(source: Bytes, options: ImageDecodeOptions, context: PipelineContext): ImageIR {
-    val input = ByteArrayInputStream(source.data)
+
+  override suspend fun decode(source: TSource, options: ImageDecodeOptions, context: PipelineContext): ImageIR {
+    val input = ByteArrayInputStream(source.readAll())
     val img = ImageIO.read(input) ?: error("ImageIO could not decode image")
 
     val converted = BufferedImage(img.width, img.height, BufferedImage.TYPE_4BYTE_ABGR)

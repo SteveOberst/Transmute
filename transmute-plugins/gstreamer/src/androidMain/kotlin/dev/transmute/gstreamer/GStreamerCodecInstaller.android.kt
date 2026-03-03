@@ -2,8 +2,6 @@ package dev.transmute.gstreamer
 
 import dev.transmute.audio.MutableAudioDecoderRegistry
 import dev.transmute.audio.MutableAudioEncoderRegistry
-import dev.transmute.image.MutableImageDecoderRegistry
-import dev.transmute.image.MutableImageEncoderRegistry
 import dev.transmute.plugin.PluginFeaturesConfig
 import dev.transmute.video.MutableVideoDecoderRegistry
 import dev.transmute.video.MutableVideoEncoderRegistry
@@ -23,6 +21,10 @@ import dev.transmute.video.MutableVideoEncoderRegistry
  * 2. Set `GSTREAMER_ROOT_ANDROID` to the extracted SDK root.
  * 3. Build the project - the CMake script in `src/androidMain/cpp/`
  *    will compile `libgstreamer_bridge.so` for each ABI.
+ *
+ * **Note:** HEIF/HEIC/AVIF image codecs have been removed from GStreamer.
+ * Android supports these natively via BitmapFactory. Install the `libheif`
+ * plugin for additional desktop support.
  */
 
 internal actual fun isGStreamerAvailable(): Boolean = GStreamerJni.available
@@ -47,24 +49,6 @@ internal actual fun installGstAudioCodecs(
 
     encoders.register(GstAndroidFlacEncoder())
     encoders.register(GstAndroidOggVorbisEncoder())
-}
-
-internal actual fun installGstImageCodecs(
-    decoders: MutableImageDecoderRegistry,
-    encoders: MutableImageEncoderRegistry,
-    features: PluginFeaturesConfig,
-) {
-    if (!GStreamerJni.available) return
-
-    decoders.register(GstAndroidImageDecoder())
-
-    // Only register encoder if the ImageEncoding feature is enabled
-    // AND the required GStreamer elements are present
-    if (features.isEnabled(GStreamerFeature.ImageEncoding)) {
-        if (GStreamerJni.hasElement("x265enc") || GStreamerJni.hasElement("av1enc")) {
-            encoders.register(GstAndroidImageEncoder())
-        }
-    }
 }
 
 internal actual fun installGstVideoCodecs(

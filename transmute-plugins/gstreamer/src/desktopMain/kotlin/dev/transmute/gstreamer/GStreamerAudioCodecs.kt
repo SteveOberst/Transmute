@@ -1,5 +1,6 @@
 package dev.transmute.gstreamer
 
+import dev.transmute.io.TSource
 import dev.transmute.audio.AudioCodec
 import dev.transmute.audio.AudioDecodeOptions
 import dev.transmute.audio.AudioEncoder
@@ -25,18 +26,8 @@ internal class GstAacCodec : AudioCodec {
     override val decodableFormats: Set<AudioFormat> = setOf(AudioFormat.Aac)
     override val encodableFormats: Set<AudioFormat> = setOf(AudioFormat.Aac)
 
-    override fun sniff(data: Bytes): AudioFormat? {
-        val bytes = data.data
-        if (bytes.size < 4) return null
-        val b0 = bytes[0].toInt() and 0xFF
-        val b1 = bytes[1].toInt() and 0xFF
-        // ADTS sync word (0xFFF) + layer must be 00 (distinguishes from MPEG audio).
-        if (b0 == 0xFF && (b1 and 0xF6) == 0xF0) return AudioFormat.Aac
-        return null
-    }
-
-    override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: PipelineContext): AudioIR =
-        GStreamerAudioEngine.decode(source.data, "aac", options, context)
+    override suspend fun decode(source: TSource, options: AudioDecodeOptions, context: PipelineContext): AudioIR =
+        GStreamerAudioEngine.decode(source.readAll(), "aac", options, context)
 
     override suspend fun encode(
         ir: AudioIR,
@@ -66,27 +57,8 @@ internal class GstM4aCodec : AudioCodec {
     override val decodableFormats: Set<AudioFormat> = setOf(AudioFormat.M4a)
     override val encodableFormats: Set<AudioFormat> = setOf(AudioFormat.M4a)
 
-    override fun sniff(data: Bytes): AudioFormat? {
-        val bytes = data.data
-        if (bytes.size < 12) return null
-        // ISO BMFF / MP4: bytes 4..7 = "ftyp"
-        if (bytes[4] != 0x66.toByte() || bytes[5] != 0x74.toByte() ||
-            bytes[6] != 0x79.toByte() || bytes[7] != 0x70.toByte()
-        ) return null
-
-        val brand = (8 until 12).map { bytes[it].toInt().toChar() }.joinToString("")
-        if (brand == "M4A " || brand == "M4B " || brand == "M4P " || brand == "M4V ") return AudioFormat.M4a
-
-        // Avoid misclassifying MP4 video as M4A if we see a video marker early.
-        val window = bytes.copyOfRange(0, minOf(bytes.size, 256 * 1024)).decodeToString()
-        val hasVideo = window.contains("vide") || window.contains("avc1") || window.contains("hvc1")
-        if (hasVideo) return null
-
-        return AudioFormat.M4a
-    }
-
-    override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: PipelineContext): AudioIR =
-        GStreamerAudioEngine.decode(source.data, "m4a", options, context)
+    override suspend fun decode(source: TSource, options: AudioDecodeOptions, context: PipelineContext): AudioIR =
+        GStreamerAudioEngine.decode(source.readAll(), "m4a", options, context)
 
     override suspend fun encode(
         ir: AudioIR,
@@ -116,26 +88,8 @@ internal class GstOpusCodec : AudioCodec {
     override val decodableFormats: Set<AudioFormat> = setOf(AudioFormat.Opus)
     override val encodableFormats: Set<AudioFormat> = setOf(AudioFormat.Opus)
 
-    override fun sniff(data: Bytes): AudioFormat? {
-        val bytes = data.data
-        if (bytes.size < 36) return null
-        // OGG container magic: "OggS"
-        if (bytes[0] != 0x4F.toByte() || bytes[1] != 0x67.toByte() ||
-            bytes[2] != 0x67.toByte() || bytes[3] != 0x53.toByte()
-        ) return null
-        // Opus identification header: "OpusHead" at byte 28.
-        if (bytes[28] == 0x4F.toByte() && bytes[29] == 0x70.toByte() &&
-            bytes[30] == 0x75.toByte() && bytes[31] == 0x73.toByte() &&
-            bytes[32] == 0x48.toByte() && bytes[33] == 0x65.toByte() &&
-            bytes[34] == 0x61.toByte() && bytes[35] == 0x64.toByte()
-        ) {
-            return AudioFormat.Opus
-        }
-        return null
-    }
-
-    override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: PipelineContext): AudioIR =
-        GStreamerAudioEngine.decode(source.data, "opus", options, context)
+    override suspend fun decode(source: TSource, options: AudioDecodeOptions, context: PipelineContext): AudioIR =
+        GStreamerAudioEngine.decode(source.readAll(), "opus", options, context)
 
     override suspend fun encode(
         ir: AudioIR,

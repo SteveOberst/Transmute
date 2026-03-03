@@ -1,51 +1,67 @@
 # WAV
 
-WAV (Waveform Audio File Format) is an uncompressed (or lightly compressed) audio format. It is simple, widely supported, and ideal as an intermediate format for transformations.
+`AudioFormat.Wav` — Waveform Audio File Format
 
-## Platform Support
+| Property | Value |
+|----------|-------|
+| Enum value | `AudioFormat.Wav` |
+| MIME type | `audio/wav` |
+| Extension | `.wav` |
+| Container | RIFF |
+| Metadata | `RiffInfoMetadata` |
+| Structure | `WavStructure` |
 
-| Platform | Decode | Encode | Engine |
-|----------|--------|--------|--------|
-| Android  | ✅     | ✅     | Pure Kotlin / MediaCodec |
-| Desktop  | ✅     | ✅     | Pure Kotlin |
-| iOS      | ✅     | ✅     | Pure Kotlin / AVFoundation |
+## Platform support
 
-## Usage
+| Platform | Decode | Encode |
+|----------|--------|--------|
+| Android | ✅ built-in | ✅ built-in |
+| Desktop (JVM) | ✅ built-in | ✅ built-in |
+| iOS | ✅ built-in | ✅ built-in |
 
-```kotlin
-// Convert any audio to WAV
-suspend fun convertToWav(inputBytes: ByteArray): ByteArray =
-  Transmute.audio {
-    encode { options { outputFormat = OutputFormat.Exact(AudioFormat.Wav) } }
-  }.transmute(inputBytes.asBytes()).bytes.data
+WAV is implemented as a pure-Kotlin codec and works on **all platforms** without any plugins.
 
-// Convert WAV to AAC
-suspend fun convertToAac(wavBytes: ByteArray): ByteArray =
-  Transmute.audio {
-    encode { options { outputFormat = OutputFormat.Exact(AudioFormat.Aac) } }
-  }.transmute(wavBytes.asBytes()).bytes.data
-```
+## Encode options
 
-## Structure Reading
-
-WAV files can be parsed into a `Wav` structure that mirrors the RIFF container layout:
+WAV uses `CanonicalAudioEncodeOptions` — there are currently no format-specific encoding knobs.
 
 ```kotlin
-val wav: Wav = Transmute.structure.read(wavBytes.asBytes(), AudioFormat.Wav)
-
-// Access RIFF container
-val riff = wav.riffHeader             // RiffHeader (id, size, formType)
-val children = riff.children          // List<RiffChunk>
-val fmtChunk = children.firstOrNull { it.chunkId == "fmt " }
-
-// Round-trip
-val raw = Transmute.structure.write(wav)
+encode {
+    options {
+        metadataPolicy = MetadataPolicy.PRESERVE   // default: STRIP_ALL
+        outputFormat   = OutputFormat.Exact(AudioFormat.Wav)
+    }
+}
 ```
 
-The reader recursively parses RIFF/LIST containers and leaf chunks, handling odd-size pad bytes. See `docs/structures.md`.
+## Basic usage
+
+```kotlin
+// Convert any audio to WAV (uncompressed)
+val transmuter = Transmute.audio.to(AudioFormat.Wav)
+val wavBytes = transmuter.transmute(inputBytes)
+
+// Preserve RIFF INFO chunk metadata
+val transmuter = Transmute.audio.to(AudioFormat.Wav) {
+    encode { options { metadataPolicy = MetadataPolicy.PRESERVE } }
+}
+```
+
+## Inspection
+
+```kotlin
+val structure = Transmute.inspect.structure(wavBytes) // WavStructure — includes fmt chunk info
+val inspection = Transmute.inspect.inspect(wavBytes)
+val riffInfo = inspection.metadata  // RiffInfoMetadata
+```
 
 ## Notes
 
-- Simple format, ideal for intermediate processing.
-- Larger files due to minimal compression.
-- Includes a pure Kotlin codec that works on all platforms.
+- WAV is an uncompressed PCM container. Converting to WAV always produces large files.
+- The RIFF INFO chunk carries text metadata fields such as artist, title, comment, etc.
+
+## Related
+
+- [Codec API](../codec.md)
+- [Inspection](../inspect.md)
+- [Structures](../structures.md)

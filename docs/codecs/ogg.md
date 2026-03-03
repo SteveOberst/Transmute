@@ -1,45 +1,68 @@
-# OGG (Vorbis)
+# OGG / Vorbis
 
-Ogg Vorbis is an open-source lossy audio format. It provides good quality at lower bitrates and is commonly used in games and open ecosystems.
+`AudioFormat.Ogg` — Ogg Vorbis
 
-## Platform Support
+| Property | Value |
+|----------|-------|
+| Enum value | `AudioFormat.Ogg` |
+| MIME type | `audio/ogg` |
+| Extension | `.ogg` |
+| Container | Ogg |
+| Metadata | `VorbisCommentMetadata` |
+| Structure | `OggAudioStructure` |
 
-| Platform | Decode | Encode | Engine                                     |
-|----------|--------|--------|--------------------------------------------|
-| Android  | ✅      | ✅      | MediaCodec                                 |
-| Desktop  | ✅      | ✅      | GStreamer (requires `transmute-gstreamer`) |
-| iOS      | ✅      | ❌      | AVFoundation (decode only)                 |
+## Platform support
 
-## Usage
+| Platform | Decode | Encode |
+|----------|--------|--------|
+| Android | ✅ built-in (MediaCodec) | ✅ built-in |
+| Desktop (JVM) | ✅ built-in (decode only) | ⚠️ GStreamer plugin |
+| iOS | ⚠️ GStreamer plugin | ⚠️ GStreamer plugin |
 
-```kotlin
-// Convert audio to OGG (Vorbis) (Android/Desktop)
-suspend fun convertToOgg(inputBytes: ByteArray): ByteArray =
-  Transmute.audio {
-    encode { options { outputFormat = OutputFormat.Exact(AudioFormat.Ogg) } }
-  }.transmute(inputBytes.asBytes()).bytes.data
+On Desktop, decoding OGG is available built-in; encoding requires the [GStreamer plugin](../plugins.md). On iOS, both operations require GStreamer.
 
-// Decode OGG on any platform (re-encode to WAV)
-suspend fun decodeToWav(oggBytes: ByteArray): ByteArray =
-  Transmute.audio {
-    encode { options { outputFormat = OutputFormat.Exact(AudioFormat.Wav) } }
-  }.transmute(oggBytes.asBytes()).bytes.data
-```
-
-## Structure Reading
-
-OGG Vorbis files can be parsed into an `OggAudio` structure that mirrors the Ogg bitstream layout:
+## Desktop/iOS plugin setup
 
 ```kotlin
-val ogg: OggAudio = Transmute.structure.read(oggBytes.asBytes(), AudioFormat.Ogg)
-
-// Round-trip
-val raw = Transmute.structure.write(ogg)
+val transmute = Transmute {
+    plugins {
+        install(GStreamerPlugin) {
+            domains(MediaDomain.AUDIO)
+        }
+    }
+}
 ```
 
-The reader parses Ogg page headers (capture pattern, stream serial number, page sequence number)
-and collects logical bitstream packets. See `docs/structures.md`.
+## Encode options
 
-## Notes
-- iOS can decode OGG but cannot encode to it.
-- Desktop requires the optional `transmute-gstreamer` module with GStreamer installed.
+OGG uses `CanonicalAudioEncodeOptions` — there are currently no format-specific encoding knobs.
+
+```kotlin
+encode {
+    options {
+        metadataPolicy = MetadataPolicy.PRESERVE   // default: STRIP_ALL
+        outputFormat   = OutputFormat.Exact(AudioFormat.Ogg)
+    }
+}
+```
+
+## Basic usage
+
+```kotlin
+val transmuter = Transmute.audio.to(AudioFormat.Ogg)
+val oggBytes = transmuter.transmute(inputBytes)
+```
+
+## Inspection
+
+```kotlin
+val structure  = Transmute.inspect.structure(oggBytes)  // OggAudioStructure
+val inspection = Transmute.inspect.inspect(oggBytes)
+// Vorbis comment tags: artist, album, title, etc.
+```
+
+## Related
+
+- [Codec API](../codec.md)
+- [Plugins](../plugins.md)
+- [Structures](../structures.md)

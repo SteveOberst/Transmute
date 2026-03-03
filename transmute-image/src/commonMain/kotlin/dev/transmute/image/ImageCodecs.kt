@@ -1,6 +1,6 @@
 package dev.transmute.image
 
-import dev.transmute.model.core.Bytes
+import dev.transmute.io.TSource
 import dev.transmute.codec.pipeline.Decoded
 import dev.transmute.codec.pipeline.EncodedBytes
 import dev.transmute.codec.pipeline.PipelineHandler
@@ -17,7 +17,7 @@ import dev.transmute.codec.pipeline.PipelineHandler
  */
 object ImageCodecs {
   object Decode {
-    val DEFAULT: PipelineHandler<Bytes, Decoded<ImageFormat, ImageIR>> = ImageDecodeHandler()
+    val DEFAULT: PipelineHandler<TSource, Decoded<ImageFormat, ImageIR>> = ImageDecodeHandler()
   }
 
   object Encode {

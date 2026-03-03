@@ -1,30 +1,39 @@
-# Fade
+# Audio: fade
 
-Apply fade-in and/or fade-out amplitude envelopes.
+Apply fade-in and/or fade-out envelopes.
 
-## Parameters
+## Factory
+
+```kotlin
+Transformers.audio().fade(fadeInMs: Long = 0, fadeOutMs: Long = 0)
+```
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| fadeInMs | Long | 0 | Fade-in duration in milliseconds |
-| fadeOutMs | Long | 0 | Fade-out duration in milliseconds |
+| `fadeInMs` | `Long` | `0` | Fade-in duration in milliseconds (0 = no fade in) |
+| `fadeOutMs` | `Long` | `0` | Fade-out duration in milliseconds (0 = no fade out) |
 
-## Usage
+## Behaviour
 
-### DSL
+- Applies a linear amplitude envelope:
+  - **Fade in:** samples ramp from 0 → full during the first `fadeInMs` milliseconds.
+  - **Fade out:** samples ramp from full → 0 during the last `fadeOutMs` milliseconds.
+- Both may be specified simultaneously; if their ranges overlap they are compounded.
+
+## DSL usage
 
 ```kotlin
-Transmute.audio { fade(fadeInMs = 100, fadeOutMs = 200) }.transmute(bytes.asBytes()).bytes.data
+val transmuter = Transmute.audio.to(AudioFormat.Mp3) {
+    decode {
+        pipeline {
+            fade(fadeInMs = 500, fadeOutMs = 1000)
+        }
+    }
+}
 ```
 
-### Pipeline
+## Related
 
-```kotlin
-transform { add(Transformers.audio().fade(100, 200)) }
-```
-
-## Notes
-
-- Uses a linear amplitude ramp for both fade-in and fade-out.
-- If `fadeInMs + fadeOutMs` exceeds the audio duration, the envelopes overlap in the middle.
-- Set either value to `0` to skip that end.
+- [trim](trim.md)
+- [silenceTrim](silence-trim.md)
+- [Transforms overview](README.md)

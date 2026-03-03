@@ -1,50 +1,75 @@
 # FLAC
 
-FLAC (Free Lossless Audio Codec) is a lossless audio format. It compresses audio without any quality loss, making it ideal for archiving and high-fidelity audio.
+`AudioFormat.Flac` — Free Lossless Audio Codec
 
-## Platform Support
+| Property | Value |
+|----------|-------|
+| Enum value | `AudioFormat.Flac` |
+| MIME type | `audio/flac` |
+| Extension | `.flac` |
+| Container | FLAC native |
+| Metadata | `VorbisCommentMetadata` |
+| Structure | `FlacStructure` |
 
-| Platform | Decode | Encode | Engine                                   |
-|----------|--------|--------|------------------------------------------|
-| Android  | ✅      | ✅      | MediaCodec                               |
-| Desktop  | ✅      | ✅      | JFlac (decode) / GStreamer (+gst encode) |
-| iOS      | ✅      | ❌      | AVFoundation (decode only)               |
+## Platform support
 
-## Usage
+| Platform | Decode | Encode |
+|----------|--------|--------|
+| Android | ✅ built-in (MediaCodec) | ✅ built-in |
+| Desktop (JVM) | ✅ built-in (decode only) | ⚠️ GStreamer plugin |
+| iOS | ✅ built-in | ✅ built-in |
 
-```kotlin
-// Convert audio to FLAC (Android/Desktop)
-suspend fun convertToFlac(inputBytes: ByteArray): ByteArray =
-  Transmute.audio {
-    encode { options { outputFormat = OutputFormat.Exact(AudioFormat.Flac) } }
-  }.transmute(inputBytes.asBytes()).bytes.data
+On Desktop, FLAC decoding is available built-in; encoding requires the [GStreamer plugin](../plugins.md).
 
-// Decode FLAC on any platform (re-encode to WAV)
-suspend fun decodeToWav(flacBytes: ByteArray): ByteArray =
-  Transmute.audio {
-    encode { options { outputFormat = OutputFormat.Exact(AudioFormat.Wav) } }
-  }.transmute(flacBytes.asBytes()).bytes.data
-```
-
-## Structure Reading
-
-FLAC files can be parsed into a `Flac` structure that mirrors the metadata block layout:
+## Desktop plugin setup (encode only)
 
 ```kotlin
-val flac: Flac = Transmute.structure.read(flacBytes.asBytes(), AudioFormat.Flac)
-
-// Access metadata blocks
-val blocks = flac.metadataBlocks // List<FlacMetadataBlock>
-val audioData = flac.audioData   // raw audio frames after the last metadata block
-
-// Round-trip
-val raw = Transmute.structure.write(flac)
+val transmute = Transmute {
+    plugins {
+        install(GStreamerPlugin) {
+            domains(MediaDomain.AUDIO)
+        }
+    }
+}
 ```
 
-The reader validates the "fLaC" magic bytes and parses each metadata block header (isLast flag, type, 24-bit length). See `docs/structures.md`.
+## Encode options
+
+FLAC uses `CanonicalAudioEncodeOptions` — there are currently no format-specific encoding knobs (compression level, etc.).
+
+```kotlin
+encode {
+    options {
+        metadataPolicy = MetadataPolicy.PRESERVE   // default: STRIP_ALL
+        outputFormat   = OutputFormat.Exact(AudioFormat.Flac)
+    }
+}
+```
+
+## Basic usage
+
+```kotlin
+// Decode FLAC to PCM-backed intermediate, re-encode as FLAC
+val transmuter = Transmute.audio.to(AudioFormat.Flac) {
+    encode { options { metadataPolicy = MetadataPolicy.PRESERVE } }
+}
+val flacBytes = transmuter.transmute(inputBytes)
+```
+
+## Inspection
+
+```kotlin
+val structure  = Transmute.inspect.structure(flacBytes)  // FlacStructure
+val inspection = Transmute.inspect.inspect(flacBytes)
+// VorbisCommentMetadata carries ARTIST, ALBUM, TITLE, etc.
+```
 
 ## Notes
 
-- Lossless compression - no quality degradation on re-encode.
-- iOS can decode FLAC but cannot encode to it.
-- Desktop decode is native via JFlac; encoding requires the optional `transmute-gstreamer` module.
+- FLAC is lossless; the re-encoded output is bit-for-bit equivalent to the source audio, not necessarily to the original FLAC file (encoder parameters may differ).
+
+## Related
+
+- [Codec API](../codec.md)
+- [Plugins](../plugins.md)
+- [Structures](../structures.md)

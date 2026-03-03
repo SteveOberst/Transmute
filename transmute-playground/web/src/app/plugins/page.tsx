@@ -173,13 +173,13 @@ export default function PluginsPage() {
                           disabled={updating === plugin.key}
                           aria-checked={plugin.enabled}
                           role="switch"
-                          className={`relative w-9 h-5 rounded-full transition-colors disabled:opacity-50 ${
-                            plugin.enabled ? 'bg-[var(--accent)]' : 'bg-[var(--surface-3)]'
-                          }`}
-                        >
-                          <span
-                            className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${
-                              plugin.enabled ? 'translate-x-4' : 'translate-x-0.5'
+                            className={`relative w-9 h-5 rounded-full overflow-hidden transition-colors disabled:opacity-50 ${
+                              plugin.enabled ? 'bg-[var(--accent)]' : 'bg-[var(--surface-3)]'
+                            }`}
+                          >
+                            <span
+                              className={`absolute left-0 top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${
+                                plugin.enabled ? 'translate-x-[18px]' : 'translate-x-0.5'
                             }`}
                           />
                         </button>
@@ -235,13 +235,13 @@ export default function PluginsPage() {
                                   disabled={!plugin.enabled || updating === feat.id}
                                   aria-checked={feat.currentlyEnabled}
                                   role="switch"
-                                  className={`relative w-9 h-5 rounded-full transition-colors disabled:opacity-40 ${
-                                    feat.currentlyEnabled ? 'bg-[var(--accent)]' : 'bg-[var(--surface-3)]'
-                                  }`}
-                                >
-                                  <span
-                                    className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${
-                                      feat.currentlyEnabled ? 'translate-x-4' : 'translate-x-0.5'
+                                    className={`relative w-9 h-5 rounded-full overflow-hidden transition-colors disabled:opacity-40 ${
+                                      feat.currentlyEnabled ? 'bg-[var(--accent)]' : 'bg-[var(--surface-3)]'
+                                    }`}
+                                  >
+                                    <span
+                                      className={`absolute left-0 top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${
+                                        feat.currentlyEnabled ? 'translate-x-[18px]' : 'translate-x-0.5'
                                     }`}
                                   />
                                 </button>

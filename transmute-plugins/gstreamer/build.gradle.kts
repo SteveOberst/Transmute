@@ -4,6 +4,8 @@ plugins {
     `maven-publish`
 }
 
+apply(from = "gstreamer-sdk.gradle.kts")
+
 // -- Optional GStreamer SDK locations -----------------------------------------
 val gstreamerAndroidRoot: String? = System.getenv("GSTREAMER_ROOT_ANDROID")
 val gstreamerIosFramework = file("/Library/Frameworks/GStreamer.framework")
@@ -64,7 +66,12 @@ kotlin {
             }
         }
 
-        val desktopMain by getting
+        val desktopMain by getting {
+            // Staged GStreamer binaries are bundled into the desktop JAR as classpath resources.
+            // Run `./gradlew stageGStreamerDesktop` (once per version, per platform) to populate
+            // build/gstreamer-desktop/ before building a distribution.
+            resources.srcDir(layout.buildDirectory.dir("gstreamer-desktop"))
+        }
         val desktopTest by getting
 
         if (isMac) {
@@ -119,4 +126,61 @@ android {
 tasks.withType<org.gradle.api.tasks.compile.JavaCompile>().configureEach {
     sourceCompatibility = "17"
     targetCompatibility = "17"
+}
+
+// Ensure GStreamer binaries are staged before desktop resources are processed.
+// stageGStreamerDesktop is a no-op on Linux (where bundling is not supported)
+// and is skipped when the marker file already exists (i.e. already staged).
+// NOTE: KMP names this task processDesktopMainResources (process<Target>MainResources).
+tasks.matching { it.name == "processDesktopMainResources" }.configureEach {
+    dependsOn("stageGStreamerDesktop")
+}
+
+// ---------------------------------------------------------------------------
+// Desktop integration tests require a working GStreamer installation.
+// Rather than soft-skipping individual tests at runtime, we disable the
+// desktopTest task entirely when GStreamer isn't usable on this machine.
+//
+// Override:
+//   TRANSMUTE_GSTREAMER_TESTS=on   -> always run
+//   TRANSMUTE_GSTREAMER_TESTS=off  -> always skip
+// ---------------------------------------------------------------------------
+val gstreamerTestsOverride: String? =
+    (findProperty("transmute.gstreamer.tests") as? String)
+        ?: System.getenv("TRANSMUTE_GSTREAMER_TESTS")
+
+val gstreamerDesktopUsable: Boolean by lazy {
+    when (gstreamerTestsOverride?.trim()?.lowercase()) {
+        "1", "true", "on", "force", "enable", "enabled" -> return@lazy true
+        "0", "false", "off", "disable", "disabled" -> return@lazy false
+        else -> Unit
+    }
+    // Probe for a working gst-launch-1.0.
+    try {
+        val proc = ProcessBuilder("gst-launch-1.0", "--version")
+            .redirectErrorStream(true)
+            .start()
+        proc.inputStream.bufferedReader().readText()
+        proc.waitFor() == 0
+    } catch (_: Exception) {
+        false
+    }
+}
+
+tasks.matching { it.name == "desktopTest" }.configureEach {
+    onlyIf {
+        val usable = gstreamerDesktopUsable
+        if (!usable) {
+            logger.lifecycle("SKIP desktopTest: GStreamer not usable on this machine (set TRANSMUTE_GSTREAMER_TESTS=on to override)")
+        }
+        usable
+    }
+}
+
+// When desktopTest is skipped its binary results directory won't exist,
+// which causes the KMP `allTests` aggregate TestReport to fail.
+// Skip allTests entirely when GStreamer isn't usable — the only desktop
+// tests in this module require GStreamer.
+tasks.matching { it.name == "allTests" }.configureEach {
+    onlyIf { gstreamerDesktopUsable }
 }

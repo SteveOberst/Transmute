@@ -1,32 +1,41 @@
-# Crop (Video)
+# Video: crop
 
 Crop video frames to a rectangular sub-region.
 
-## Parameters
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| x | Int | - | Left edge of crop region |
-| y | Int | - | Top edge of crop region |
-| width | Int | - | Width of crop region |
-| height | Int | - | Height of crop region |
-
-## Usage
-
-### DSL
+## Factory
 
 ```kotlin
-Transmute.video { crop(x = 0, y = 0, width = 640, height = 480) }.transmute(bytes.asBytes()).bytes.data
+Transformers.video().crop(x: Int, y: Int, width: Int, height: Int)
 ```
 
-### Pipeline
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `x` | `Int` | ✅ | X offset from the left edge in pixels |
+| `y` | `Int` | ✅ | Y offset from the top edge in pixels |
+| `width` | `Int` | ✅ | Crop width in pixels |
+| `height` | `Int` | ✅ | Crop height in pixels |
+
+## Behaviour
+
+- Applies the crop to every frame.
+- Coordinates are clamped to frame bounds.
+- Output dimensions are the requested `width × height` (or smaller if clamped).
+- Width and height are rounded down to the nearest even number if required by the codec.
+
+## DSL usage
 
 ```kotlin
-transform { add(Transformers.video().crop(0, 0, 640, 480)) }
+val transmuter = Transmute.video.to(VideoFormat.Mp4) {
+    decode {
+        pipeline {
+            crop(x = 0, y = 140, width = 1920, height = 800)  // 21:9 crop
+        }
+    }
+}
 ```
 
-## Notes
+## Related
 
-- Applied to every frame in the video.
-- Dimensions are rounded to even numbers for codec compatibility.
-- Coordinates exceeding the frame size are clamped.
+- [resize](resize.md)
+- [rotate](rotate.md)
+- [Transforms overview](README.md)

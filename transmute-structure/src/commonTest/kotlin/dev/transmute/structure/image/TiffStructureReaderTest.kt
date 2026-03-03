@@ -4,8 +4,6 @@ import dev.transmute.model.core.asBytes
 import dev.transmute.model.identify.Endianness
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 class TiffStructureReaderTest {
 
@@ -37,26 +35,6 @@ class TiffStructureReaderTest {
             0x00, 0x00, 0x00, 0x00, // nextIfdOffset = 0 (BE)
         )
         return header + ifd
-    }
-
-    @Test
-    fun canReadAcceptsLittleEndian() {
-        assertTrue(reader.canRead(minimalTiffLE().asBytes()))
-    }
-
-    @Test
-    fun canReadAcceptsBigEndian() {
-        assertTrue(reader.canRead(minimalTiffBE().asBytes()))
-    }
-
-    @Test
-    fun canReadRejectsGarbage() {
-        assertFalse(reader.canRead(ByteArray(16).asBytes()))
-    }
-
-    @Test
-    fun canReadRejectsTooShort() {
-        assertFalse(reader.canRead(ByteArray(3).asBytes()))
     }
 
     @Test

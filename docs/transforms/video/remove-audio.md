@@ -1,27 +1,32 @@
-# Remove Audio
+# Video: removeAudio
 
 Strip the audio track from a video.
 
-## Parameters
-
-None.
-
-## Usage
-
-### DSL
+## Factory
 
 ```kotlin
-Transmute.video { removeAudio() }.transmute(bytes.asBytes()).bytes.data
+Transformers.video().removeAudio()
 ```
 
-### Pipeline
+No parameters.
+
+## Behaviour
+
+- Removes all audio streams from the output container.
+- The video stream is unchanged.
+- If the input has no audio track, the transform is a no-op.
+
+## DSL usage
 
 ```kotlin
-transform { add(Transformers.video().removeAudio()) }
+val transmuter = Transmute.video.to(VideoFormat.Mp4) {
+    decode {
+        pipeline { removeAudio() }
+    }
+}
 ```
 
-## Notes
+## Related
 
-- The video track is kept intact; only the audio track is removed.
-- No-op if the video has no audio track.
-- Useful for creating silent loops or reducing file size.
+- [trim](trim.md)
+- [Transforms overview](README.md)

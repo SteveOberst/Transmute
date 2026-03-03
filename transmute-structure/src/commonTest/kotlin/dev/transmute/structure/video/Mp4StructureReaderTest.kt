@@ -3,7 +3,6 @@ package dev.transmute.structure.video
 import dev.transmute.model.core.asBytes
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class Mp4StructureReaderTest {
@@ -19,26 +18,6 @@ class Mp4StructureReaderTest {
         "ftyp".encodeToByteArray().copyInto(out, 4)
         brand.encodeToByteArray().copyInto(out, 8)
         return out
-    }
-
-    @Test
-    fun canReadAcceptsIsom() {
-        assertTrue(reader.canRead(ftypFile("isom").asBytes()))
-    }
-
-    @Test
-    fun canReadAcceptsMp41() {
-        assertTrue(reader.canRead(ftypFile("mp41").asBytes()))
-    }
-
-    @Test
-    fun canReadRejectsHeic() {
-        assertFalse(reader.canRead(ftypFile("heic").asBytes()))
-    }
-
-    @Test
-    fun canReadRejectsGarbage() {
-        assertFalse(reader.canRead(ByteArray(16).asBytes()))
     }
 
     @Test

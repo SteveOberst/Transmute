@@ -1,29 +1,35 @@
-# Speed
+# Audio: speed
 
 Change playback speed without altering pitch.
 
-## Parameters
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| speed | Float | - | Speed multiplier; >1 = faster, <1 = slower |
-
-## Usage
-
-### DSL
+## Factory
 
 ```kotlin
-Transmute.audio { speed(1.5f) }.transmute(bytes.asBytes()).bytes.data
+Transformers.audio().speed(speed: Float)
 ```
 
-### Pipeline
+| Parameter | Type | Required | Range | Description |
+|-----------|------|----------|-------|-------------|
+| `speed` | `Float` | ✅ | 0.25 … 4.0 | Speed multiplier (`1.0` = unchanged) |
+
+## Behaviour
+
+- Uses SOLA (Synchronised Overlap-Add) time-stretching to adjust duration without changing pitch.
+- `0.5` → half speed (audio is twice as long).
+- `2.0` → double speed (audio is half as long).
+
+## DSL usage
 
 ```kotlin
-transform { add(Transformers.audio().speed(1.5f)) }
+val transmuter = Transmute.audio.to(AudioFormat.Mp3) {
+    decode {
+        pipeline { speed(1.5f) }   // 50% faster
+    }
+}
 ```
 
-## Notes
+## Related
 
-- Uses SOLA (Synchronous Overlap-Add) time-stretching to change tempo while preserving pitch.
-- `speed = 2.0` halves the duration; `speed = 0.5` doubles it.
-- Extreme values (e.g., <0.25 or >4.0) may introduce audible artifacts.
+- [resample](resample.md)
+- [trim](trim.md)
+- [Transforms overview](README.md)

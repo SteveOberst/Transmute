@@ -5,6 +5,7 @@
 
 package dev.transmute.video.codecs.ios
 
+import dev.transmute.io.TSource
 import dev.transmute.audio.AudioSamples
 import dev.transmute.model.core.Bytes
 import dev.transmute.common.PipelineContext
@@ -362,23 +363,8 @@ internal class IosMp4Codec : VideoCodec {
   override val decodableFormats: Set<VideoFormat> = setOf(VideoFormat.Mp4)
   override val encodableFormats: Set<VideoFormat> = setOf(VideoFormat.Mp4)
 
-  override fun sniff(data: Bytes): VideoFormat? {
-    val bytes = data.data
-    if (bytes.size < 12) return null
-    if (bytes[4] != 0x66.toByte() || bytes[5] != 0x74.toByte() ||
-      bytes[6] != 0x79.toByte() || bytes[7] != 0x70.toByte()) return null
-    val brand = (8 until 12).map { bytes[it].toInt().toChar() }.joinToString("")
-    return when {
-      brand.startsWith("mp4") || brand == "isom" || brand == "M4V " ||
-        brand == "avc1" || brand == "iso2" || brand == "iso5" ||
-        brand == "iso6" || brand == "mmp4" -> VideoFormat.Mp4
-      brand.startsWith("3gp") || brand.startsWith("3g2") -> VideoFormat.Mp4
-      else -> null
-    }
-  }
-
-  override suspend fun decode(source: Bytes, options: VideoDecodeOptions, context: PipelineContext): VideoIR {
-    val fileUrl = writeTempFile(source.data, "mp4")
+  override suspend fun decode(source: TSource, options: VideoDecodeOptions, context: PipelineContext): VideoIR {
+    val fileUrl = writeTempFile(source.readAll(), "mp4")
     try {
       val timeRange = options.decodeRange?.timeframe()
       val frames = decodeVideoFrames(fileUrl, timeRange)
@@ -423,17 +409,8 @@ internal class IosMovCodec : VideoCodec {
   override val decodableFormats: Set<VideoFormat> = setOf(VideoFormat.Mov)
   override val encodableFormats: Set<VideoFormat> = setOf(VideoFormat.Mov)
 
-  override fun sniff(data: Bytes): VideoFormat? {
-    val bytes = data.data
-    if (bytes.size < 12) return null
-    if (bytes[4] != 0x66.toByte() || bytes[5] != 0x74.toByte() ||
-      bytes[6] != 0x79.toByte() || bytes[7] != 0x70.toByte()) return null
-    val brand = (8 until 12).map { bytes[it].toInt().toChar() }.joinToString("")
-    return if (brand == "qt  ") VideoFormat.Mov else null
-  }
-
-  override suspend fun decode(source: Bytes, options: VideoDecodeOptions, context: PipelineContext): VideoIR {
-    val fileUrl = writeTempFile(source.data, "mov")
+  override suspend fun decode(source: TSource, options: VideoDecodeOptions, context: PipelineContext): VideoIR {
+    val fileUrl = writeTempFile(source.readAll(), "mov")
     try {
       val timeRange = options.decodeRange?.timeframe()
       val frames = decodeVideoFrames(fileUrl, timeRange)

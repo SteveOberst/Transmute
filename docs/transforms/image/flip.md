@@ -1,29 +1,38 @@
-# Flip
+# Image: flip
 
-Mirror an image horizontally and/or vertically.
+Flip the image horizontally, vertically, or both.
 
-## Parameters
+## Factory
+
+```kotlin
+Transformers.image().flip(horizontal: Boolean = false, vertical: Boolean = false)
+```
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| horizontal | Boolean | false | Mirror along the vertical axis (left ↔ right) |
-| vertical | Boolean | false | Mirror along the horizontal axis (top ↔ bottom) |
+| `horizontal` | `Boolean` | `false` | Mirror left↔right |
+| `vertical` | `Boolean` | `false` | Mirror top↔bottom |
 
-## Usage
+## Behaviour
 
-### DSL
+- Both `horizontal` and `vertical` may be `true` simultaneously (equivalent to a 180° rotation).
+- If both are `false` the transform is a no-op.
 
-```kotlin
-Transmute.image { flip(horizontal = true) }.transmute(bytes.asBytes()).bytes.data
-```
-
-### Pipeline
+## DSL usage
 
 ```kotlin
-transform { add(Transformers.image().flip(horizontal = true, vertical = false)) }
+val transmuter = Transmute.image {
+    decode {
+        pipeline {
+            flip(horizontal = true)          // mirror
+            flip(vertical   = true)          // upside-down
+            flip(horizontal = true, vertical = true)  // both
+        }
+    }
+}
 ```
 
-## Notes
+## Related
 
-- At least one of `horizontal` or `vertical` should be `true`; otherwise the image is unchanged.
-- Both can be `true` simultaneously (equivalent to a 180° rotation).
+- [rotate](rotate.md)
+- [Transforms overview](README.md)

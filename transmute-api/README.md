@@ -21,8 +21,7 @@ transmute.image   // -> image transcoding
 transmute.audio   // -> audio transcoding
 transmute.video   // -> video transcoding
 transmute.codec   // -> low-level decode / encode / detect
-transmute.inspect // -> format detection & lightweight probing
-transmute.structure // -> structure read / write / transform
+transmute.inspect // -> format detection, lightweight probing, structure parsing
 ```
 
 ## Key Types
@@ -31,9 +30,8 @@ transmute.structure // -> structure read / write / transform
 |------|---------|
 | `Transmute` | Main facade class — builder DSL, plugin installation, domain access |
 | `TransmuteCodec` | Low-level codec facade (decode, encode, format detection) |
-| `TransmuteInspect` | Format detection and lightweight probing |
-| `TransmuteStructure` | Structure read / write / in-place transforms via `TChannel` |
-| `TransmuteImage` | Image transcoding builder (`from → to`) |
+| `TransmuteInspect` | Format detection, lightweight probing, structure and metadata parsing |
+| `TransmuteImage` | Image transcoding builder (`from -> to`) |
 | `TransmuteAudio` | Audio transcoding builder |
 | `TransmuteVideo` | Video transcoding builder |
 | `Transmuter<IN, OUT>` | Immutable, reusable transmutation executor |
@@ -55,27 +53,21 @@ In-memory implementations (`ByteArraySource`, `ByteArraySink`,
 `ByteArrayChannel`) are provided for testing. Bridge extensions
 `Bytes.asSource()` and `Bytes.asChannel()` create these from a `Bytes` value.
 
-## Lambda Sugar & Coroutine Support
-
-Read with a trailing lambda — the parsed structure is the receiver:
-
-```kotlin
-val width: Int = transmute.structure.read<Png>(src, ImageFormat.Png) {
-    ihdr.width.toInt()
-}
-```
-
-In-place transform via `TChannel`:
-
-```kotlin
-val ch: TChannel = fs.channel(TPath.of("image.png"))
-transmute.structure.transform<Png>(ch, ImageFormat.Png) {
-    edit { ihdr = ihdr.copy(width = 100u) }
-}
-```
+## Coroutine Support
 
 All I/O-bound methods are `suspend` functions — no blocking overloads. If callers
 need synchronous execution they can use `runBlocking {}`.
+
+```kotlin
+// Detect format
+val format = Transmute.inspect.detectFormat(bytes)
+
+// Parse typed structure
+val structure = Transmute.inspect.structure(bytes)  // -> MediaStructure?
+
+// Full inspection (format + structure + metadata)
+val inspection = Transmute.inspect.inspect(bytes)   // -> MediaInspection
+```
 
 ## Targets
 

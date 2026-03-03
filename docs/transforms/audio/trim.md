@@ -1,30 +1,44 @@
-# Trim
+# Audio: trim
 
-Trim audio to a specific time range.
+Trim to a specific time range.
 
-## Parameters
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| startMs | Long | - | Start time in milliseconds |
-| endMs | Long? | null | End time in milliseconds; `null` means end of audio |
-
-## Usage
-
-### DSL
+## Factory
 
 ```kotlin
-Transmute.audio { trim(startMs = 1000, endMs = 5000) }.transmute(bytes.asBytes()).bytes.data
+Transformers.audio().trim(startMs: Long, endMs: Long? = null)
 ```
 
-### Pipeline
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `startMs` | `Long` | ✅ | Start time in milliseconds (≥ 0) |
+| `endMs` | `Long?` | | End time in milliseconds; `null` trims to the end of the audio |
+
+## Behaviour
+
+- Samples before `startMs` are discarded.
+- Samples after `endMs` are discarded (if `endMs` is not `null`).
+- If `startMs` exceeds the audio duration the result is silence.
+
+## DSL usage
 
 ```kotlin
-transform { add(Transformers.audio().trim(1000, 5000)) }
+// Keep seconds 10–40
+val transmuter = Transmute.audio.to(AudioFormat.Mp3) {
+    decode {
+        pipeline { trim(startMs = 10_000L, endMs = 40_000L) }
+    }
+}
+
+// Keep from 5 s to end
+val transmuter = Transmute.audio {
+    decode {
+        pipeline { trim(startMs = 5_000L) }
+    }
+}
 ```
 
-## Notes
+## Related
 
-- `endMs = null` trims from `startMs` to the end of the file.
-- Values exceeding the audio duration are clamped.
-- Sample-accurate - the nearest sample boundary is used.
+- [fade](fade.md)
+- [silenceTrim](silence-trim.md)
+- [Transforms overview](README.md)

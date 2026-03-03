@@ -36,6 +36,7 @@ kotlin {
             api(project(":transmute-image"))
             api(project(":transmute-video"))
             api(project(":transmute-model:structure"))
+            api(project(":transmute-model:metadata"))
             api(project(":transmute-structure"))
             implementation(libs.kotlinx.coroutines.core)
         }

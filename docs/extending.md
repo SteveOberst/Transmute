@@ -1,161 +1,192 @@
-# Extending Transmute (Custom Codecs, Transforms & Structure Readers)
+# Extending Transmute
 
-## Custom codecs
+Transmute is designed to be extended through the plugin system. Plugins can register custom decoders, encoders, transforms, structure decoders, and metadata decoders.
 
-You can register custom codecs (or split decoders/encoders) in the registries.
+## Creating a plugin
 
-Example: register a custom image decoder + encoder:
-
-```kotlin
-class MyWebpDecoder : ImageDecoder {
-  override val supportedFormats = setOf(ImageFormat.Webp)
-  override fun sniff(data: Bytes): ImageFormat? = null // optional magic bytes
-  override suspend fun decode(source: Bytes, options: ImageDecodeOptions, context: TransmuteContext): ImageIR = TODO()
-}
-
-class MyWebpEncoder : ImageEncoder {
-  override val supportedFormats = setOf(ImageFormat.Webp)
-  override suspend fun encode(
-    ir: ImageIR,
-    format: ImageFormat,
-    options: ImageEncodeOptions,
-    context: TransmuteContext,
-  ): Bytes = TODO()
-}
-
-ImageRegistries.register(MyWebpDecoder())
-ImageRegistries.register(MyWebpEncoder())
-```
-
-You can also register unified codecs, or register core `Decoder` / `Encoder` instances directly; see `transmute-*/.../ImageRegistry.kt` / `AudioRegistry.kt` / `VideoRegistry.kt`.
-
-### Via the Plugin System
-
-For reusable codec bundles, wrap registration in a `TransmutePlugin`:
+### Simple plugin (no configuration)
 
 ```kotlin
-object MyCodecPlugin : TransmutePlugin<MyCodecConfig> {
-    override val key = pluginId("com.example.my-codec")
-    override fun createConfig() = MyCodecConfig()
-
-    override fun install(scope: TransmuteScope, config: MyCodecConfig) {
-        scope.codecs.image.decoders.register(MyWebpDecoder())
-        scope.codecs.image.encoders.register(MyWebpEncoder())
-    }
-}
-
-val transmute = Transmute {
-    plugins { install(MyCodecPlugin) }
-}
-```
-
-See [plugins.md](plugins.md) for the full plugin system documentation.
-
-## Custom transforms
-
-Transforms are just `Transform<IR>` implementations. You can add them directly in a transmuter:
-
-```kotlin
-class WatermarkTransform : dev.transmute.codec.pipeline.Transform<ImageIR> {
-    override val id = dev.transmute.codec.pipeline.TransformId("image.watermark")
-    override suspend fun apply(ir: ImageIR, ctx: TransmuteContext): ImageIR = TODO()
-}
-
-val t =
-    Transmute.image {
-        transform { add(WatermarkTransform()) }
-    }
-```
-
-## Custom structure readers
-
-A `StructureReader<S>` parses raw bytes into a `MediaStructure` subtype without decoding pixel/sample data.
-
-```kotlin
-class MyTiffStructureReader : StructureReader<MyTiffStructure> {
-    override fun canRead(source: Bytes): Boolean {
-        if (source.data.size < 4) return false
-        val h = source.data
-        return (h[0] == 0x49.toByte() && h[1] == 0x49.toByte()) ||
-               (h[0] == 0x4D.toByte() && h[1] == 0x4D.toByte())
-    }
-
-    override fun read(source: Bytes): MyTiffStructure {
-        // Parse the TIFF binary layout into your data class
-        TODO()
-    }
-}
-
-// Register via the static TransmuteStructure API (app-level, outside a plugin):
-Transmute.structure.register(MyTiffStructureReader(), ImageFormat.Tiff)
-```
-
-Custom readers override the built-in reader when registered for the same format.
-
-### Structure decoders inside a plugin: `rawDecoderFor` / `structureDecoderFor`
-
-When registering structure readers inside a `TransmutePlugin`, use the factory
-functions `rawDecoderFor` and `structureDecoderFor` from `transmute-structure`
-instead of creating named subclasses:
-
-```kotlin
-import dev.transmute.structure.rawDecoderFor
-import dev.transmute.structure.structureDecoderFor
-
-object MyPlugin : SimpleTransmutePlugin() {
-    override val key = pluginId("com.example.my-plugin")
+object MyImagePlugin : SimpleTransmutePlugin() {
+    override val key = pluginId("com.example.my-image-plugin")
 
     override fun install(scope: TransmuteScope) {
-        // Raw decoder: bytes -> RawMediaStructure (no toStructure() step)
-        val myRawDecoder = rawDecoderFor(ImageFormat.Tiff, MyTiffStructureReader())
-        scope.codecs.image.rawStructureDecoders.register(ImageFormat.Tiff, myRawDecoder)
+        scope.codecs.image.decoders.register(MyImageDecoder())
+        scope.codecs.image.encoders.register(MyImageEncoder())
+    }
+}
 
-        // Full structure decoder: bytes -> MediaStructure (applies toStructure())
-        val myDecoder = structureDecoderFor(ImageFormat.Tiff, MyTiffStructureReader()) {
-            toStructure() // extension on MyTiffStructure
+// Install it:
+val transmute = Transmute {
+    plugins { install(MyImagePlugin) }
+}
+```
+
+### Configurable plugin
+
+```kotlin
+data class MyPluginConfig(var quality: Float = 0.8f, var enableHardware: Boolean = false)
+
+class MyPlugin : TransmutePlugin<MyPluginConfig> {
+    override val key = pluginId("com.example.my-plugin")
+
+    override fun createConfig() = MyPluginConfig()
+
+    override fun install(scope: TransmuteScope, config: MyPluginConfig) {
+        scope.codecs.image.encoders.register(MyEncoder(config.quality, config.enableHardware))
+    }
+}
+
+// Install with configuration:
+val transmute = Transmute {
+    plugins {
+        install(MyPlugin()) {
+            quality = 0.95f
+            enableHardware = true
         }
-        scope.codecs.image.structureDecoders.register(ImageFormat.Tiff, myDecoder)
     }
 }
 ```
 
-Both factory functions create anonymous `Decoder<F, OUT, NoDecodeOptions>` instances
-that delegate `sniff` and `decode` to the underlying `StructureReader` — no boilerplate
-subclasses needed.
+## Writing a custom decoder
 
-The pre-built reader singletons in `DefaultStructureReaders` can be used directly:
+Implement `MediaDecoder<F, OUT, D>` where `F` is the format type, `OUT` is the intermediate representation, and `D` is the decode options type:
 
 ```kotlin
-import dev.transmute.structure.DefaultStructureReaders
-import dev.transmute.structure.rawDecoderFor
+class MyJpegDecoder : MediaDecoder<ImageFormat, Decoded<ImageFormat, ImageIR>, ImageDecodeOptions> {
 
-// Reuse the built-in WAV reader instead of instantiating your own:
-val wavRaw = rawDecoderFor(AudioFormat.Wav, DefaultStructureReaders.wav)
-scope.codecs.audio.rawStructureDecoders.register(AudioFormat.Wav, wavRaw)
+    override val decodableFormats: Set<ImageFormat> = setOf(ImageFormat.Jpeg)
+
+    override suspend fun decode(
+        source: TSource,
+        options: ImageDecodeOptions,
+        context: PipelineContext,
+    ): Decoded<ImageFormat, ImageIR> {
+        val bytes = source.readAll()
+        // ... decode bytes into ImageIR ...
+        val ir = ImageIR(
+            buffer = pixelData,
+            width = width,
+            height = height,
+            stride = width * 4,
+            pixelFormat = PixelFormat.ARGB_8888,
+            alphaSemantics = AlphaSemantics.PREMULTIPLIED,
+            colorInfo = ColorInfo(),
+        )
+        return Decoded(ImageFormat.Jpeg, ir)
+    }
+}
 ```
 
-### Reading from a TSource
-
-Once registered, your reader works automatically with all `TransmuteStructure` overloads,
-including the suspending `TSource` variants:
+Register it in your plugin:
 
 ```kotlin
-suspend fun readTiff(source: TSource): MyTiffStructure =
-    Transmute.structure.read(source, ImageFormat.Tiff)
-
-// Lambda sugar
-suspend fun tiffWidth(source: TSource): Int =
-    Transmute.structure.read<MyTiffStructure>(source, ImageFormat.Tiff) { width }
+override fun install(scope: TransmuteScope) {
+    scope.codecs.image.decoders.register(MyJpegDecoder())
+}
 ```
 
-See [structures.md](structures.md) for the full structure API, including
-IO abstractions (`TSource`, `TSink`, `TChannel`).
+## Writing a custom encoder
 
-## Module reference
+Implement `MediaEncoder<F, IN, O>`:
 
-| Module                | README                                     | Key types                                    |
-|-----------------------|--------------------------------------------|----------------------------------------------|
-| `transmute-codec`     | [README](../transmute-codec/README.md)     | Decoder, Encoder, Pipeline                   |
-| `transmute-structure` | [README](../transmute-structure/README.md) | StructureReader, all 20 readers              |
-| `transmute-api`       | [README](../transmute-api/README.md)       | TransmuteStructure, TSource, TSink, TChannel |
+```kotlin
+class MyWebpEncoder : MediaEncoder<ImageFormat, Decoded<ImageFormat, ImageIR>, ImageEncodeOptions> {
 
+    override val encodableFormats: Set<ImageFormat> = setOf(ImageFormat.Webp)
+
+    override suspend fun encode(
+        ir: Decoded<ImageFormat, ImageIR>,
+        format: ImageFormat,
+        options: ImageEncodeOptions,
+        context: PipelineContext,
+    ): Bytes {
+        // ... encode ir.ir (the ImageIR) to WebP bytes ...
+        return encodedBytes.asBytes()
+    }
+}
+```
+
+## Writing a custom transform
+
+Implement `Transform<IR>`:
+
+```kotlin
+class ImageSharpnessTransform(private val amount: Float) : Transform<ImageIR> {
+    override val id: TransformId = TransformId("com.example.sharpness")
+
+    override suspend fun apply(ir: ImageIR, context: PipelineContext): ImageIR {
+        // apply sharpening to ir.buffer
+        return sharpened
+    }
+}
+
+// Use it:
+Transmute.image {
+    transform { add(ImageSharpnessTransform(1.5f)) }
+}.transmute(source)
+```
+
+## Writing a custom structure decoder
+
+Structure decoders return `MediaStructure` (high-level) or `RawMediaStructure` (binary-level):
+
+```kotlin
+// Implement a MediaDecoder that produces MediaStructure
+class MyFormatStructureDecoder : MediaDecoder<ImageFormat, MediaStructure, NoDecodeOptions> {
+    override val decodableFormats: Set<ImageFormat> = emptySet() // unused by structure registry
+
+    override suspend fun decode(
+        source: TSource,
+        options: NoDecodeOptions,
+        context: PipelineContext,
+    ): MediaStructure {
+        val bytes = source.readAll().asBytes()
+        // parse bytes into MyFormatStructure (which implements MediaStructure)
+        return MyFormatStructure(/* ... */)
+    }
+}
+
+// Register in your plugin alongside a serializer:
+override fun install(scope: TransmuteScope) {
+    scope.codecs.image.structureDecoders.register(ImageFormat.Heic, MyFormatStructureDecoder())
+    scope.mediaStructures.register("com.example.heic", HeicStructure.serializer())
+}
+```
+
+## Writing a custom metadata decoder
+
+```kotlin
+class MyAacMetadataDecoder : MediaDecoder<AudioFormat, List<MediaMetadata>, NoDecodeOptions> {
+    override val decodableFormats: Set<AudioFormat> = emptySet()
+
+    override suspend fun decode(
+        source: TSource,
+        options: NoDecodeOptions,
+        context: PipelineContext,
+    ): List<MediaMetadata> {
+        val bytes = source.readAll().asBytes()
+        return listOf(parseId3v2(bytes))
+    }
+}
+
+override fun install(scope: TransmuteScope) {
+    scope.codecs.audio.metadataDecoders.register(AudioFormat.Aac, MyAacMetadataDecoder())
+    scope.mediaMetadata.register("com.example.mymeta", MyMetadata.serializer())
+}
+```
+
+## Registries available in TransmuteScope
+
+| Registry | Type |
+|----------|------|
+| `scope.codecs.image.decoders` | `MutableImageDecoderRegistry` |
+| `scope.codecs.image.encoders` | `MutableImageEncoderRegistry` |
+| `scope.codecs.image.structureDecoders` | Format→Structure registry |
+| `scope.codecs.image.rawStructureDecoders` | Format→RawStructure registry |
+| `scope.codecs.image.metadataDecoders` | Format→List\<MediaMetadata\> registry |
+| `scope.codecs.audio.*` | Same for audio |
+| `scope.codecs.video.*` | Same for video |
+| `scope.services` | `ServiceRegistry` (cross-plugin) |
+| `scope.mediaStructures` | `MediaStructureRegistrationScope` |
+| `scope.mediaMetadata` | `MediaMetadataRegistrationScope` |

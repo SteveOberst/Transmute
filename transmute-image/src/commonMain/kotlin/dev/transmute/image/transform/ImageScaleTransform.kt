@@ -40,7 +40,7 @@ class ImageScaleTransform(
     }
 
     val (targetW, targetH) = fitDimensions(ir.width, ir.height, maxWidth, maxHeight)
-    context.logger.info("ImageScaleTransform: ${ir.width}×${ir.height} → ${targetW}×${targetH}")
+    context.logger.info("ImageScaleTransform: ${ir.width}×${ir.height} -> ${targetW}×${targetH}")
 
     val srcBuffer = ir.buffer as? ByteArrayPixelBuffer
       ?: error("ImageScaleTransform requires ByteArrayPixelBuffer, got ${ir.buffer::class.simpleName}")

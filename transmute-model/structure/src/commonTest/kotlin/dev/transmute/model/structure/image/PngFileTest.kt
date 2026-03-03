@@ -3,6 +3,51 @@ package dev.transmute.model.structure.image
 import dev.transmute.model.core.Bytes
 import dev.transmute.model.core.asBytes
 import dev.transmute.model.identify.FourCC
+import dev.transmute.model.structure.image.types.PngActl
+import dev.transmute.model.structure.image.types.PngBlendOp
+import dev.transmute.model.structure.image.types.PngChrm
+import dev.transmute.model.structure.image.types.PngChunk
+import dev.transmute.model.structure.image.types.PngChunkType
+import dev.transmute.model.structure.image.types.PngColorType
+import dev.transmute.model.structure.image.types.PngDisposeOp
+import dev.transmute.model.structure.image.types.PngFctl
+import dev.transmute.model.structure.image.types.PngGama
+import dev.transmute.model.structure.image.types.PngIccp
+import dev.transmute.model.structure.image.types.PngIend
+import dev.transmute.model.structure.image.types.PngIhdr
+import dev.transmute.model.structure.image.types.PngInterlaceMethod
+import dev.transmute.model.structure.image.types.PngItxt
+import dev.transmute.model.structure.image.types.PngPhys
+import dev.transmute.model.structure.image.types.PngPlte
+import dev.transmute.model.structure.image.types.PngPlteEntry
+import dev.transmute.model.structure.image.types.PngRaw
+import dev.transmute.model.structure.image.types.PngRenderingIntent
+import dev.transmute.model.structure.image.types.PngSbit
+import dev.transmute.model.structure.image.types.PngSrgb
+import dev.transmute.model.structure.image.types.PngTextChunk
+import dev.transmute.model.structure.image.types.PngTime
+import dev.transmute.model.structure.image.types.PngZtxt
+import dev.transmute.model.structure.image.types.actl
+import dev.transmute.model.structure.image.types.bkgd
+import dev.transmute.model.structure.image.types.chrm
+import dev.transmute.model.structure.image.types.compressedImageData
+import dev.transmute.model.structure.image.types.fctlChunks
+import dev.transmute.model.structure.image.types.gama
+import dev.transmute.model.structure.image.types.hist
+import dev.transmute.model.structure.image.types.iccp
+import dev.transmute.model.structure.image.types.idatChunks
+import dev.transmute.model.structure.image.types.iend
+import dev.transmute.model.structure.image.types.ihdr
+import dev.transmute.model.structure.image.types.itxtChunks
+import dev.transmute.model.structure.image.types.phys
+import dev.transmute.model.structure.image.types.plte
+import dev.transmute.model.structure.image.types.sbit
+import dev.transmute.model.structure.image.types.spltChunks
+import dev.transmute.model.structure.image.types.srgb
+import dev.transmute.model.structure.image.types.textChunks
+import dev.transmute.model.structure.image.types.time
+import dev.transmute.model.structure.image.types.trns
+import dev.transmute.model.structure.image.types.ztxtChunks
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -41,7 +86,7 @@ private fun UShort.be(): ByteArray = byteArrayOf(
 )
 
 /**
- * Builds the raw bytes of a single PNG chunk and returns a [PngChunk].
+ * Builds the raw bytes of a single PNG chunk and returns a [dev.transmute.model.structure.image.types.PngChunk].
  */
 private fun buildChunk(type: String, data: ByteArray = ByteArray(0)): PngChunk {
     val typeBytes = type.encodeToByteArray()

@@ -1,10 +1,9 @@
 package dev.transmute.structure.audio
 
 import dev.transmute.model.core.asBytes
-import dev.transmute.model.structure.audio.FlacMetadataBlockType
+import dev.transmute.model.structure.audio.types.FlacMetadataBlockType
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class FlacStructureReaderTest {
@@ -22,21 +21,6 @@ class FlacStructureReaderTest {
             0x00, 0x00, 0x22,       // length = 34 (Big-Endian 24-bit)
         )
         return marker + blockHeader + streamInfoBody
-    }
-
-    @Test
-    fun canReadAcceptsFlac() {
-        assertTrue(reader.canRead(minimalFlac().asBytes()))
-    }
-
-    @Test
-    fun canReadRejectsGarbage() {
-        assertFalse(reader.canRead(ByteArray(16).asBytes()))
-    }
-
-    @Test
-    fun canReadRejectsTooShort() {
-        assertFalse(reader.canRead(ByteArray(2).asBytes()))
     }
 
     @Test

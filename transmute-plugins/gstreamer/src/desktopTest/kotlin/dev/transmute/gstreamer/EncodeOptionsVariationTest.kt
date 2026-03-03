@@ -1,9 +1,6 @@
 package dev.transmute.gstreamer
 
-import dev.transmute.gstreamer.GStreamerTestHelpers.requireGStreamer
-import dev.transmute.gstreamer.GStreamerTestHelpers.requireGStreamerElement
 import dev.transmute.gstreamer.GStreamerTestHelpers.testContext
-import dev.transmute.image.HeifEncodeOptions
 import dev.transmute.image.ImageFormat
 import dev.transmute.image.JpegEncodeOptions
 import dev.transmute.image.PngEncodeOptions
@@ -107,59 +104,7 @@ class EncodeOptionsVariationTest {
         )
     }
 
-    // =======================================================================
-    // HEIF quality variation
-    // =======================================================================
-
-    @Test
-    fun heif_quality_affects_size() = runTest {
-        requireGStreamerElement("x265enc") {
-            val image = gradientImage(128, 128)
-
-            val lowQ = GstImageEncoder().encode(
-                image, ImageFormat.Heif, HeifEncodeOptions(quality = 0.10f), ctx,
-            )
-            val highQ = GstImageEncoder().encode(
-                image, ImageFormat.Heif, HeifEncodeOptions(quality = 0.95f), ctx,
-            )
-
-            assertTrue(lowQ.isNotEmpty(), "Low quality HEIF must not be empty")
-            assertTrue(highQ.isNotEmpty(), "High quality HEIF must not be empty")
-            assertNotEquals(
-                lowQ.size, highQ.size,
-                "Different HEIF qualities must produce different sizes " +
-                    "(low=${lowQ.size}, high=${highQ.size})",
-            )
-        }
-    }
-
-    // =======================================================================
-    // AVIF quality variation
-    // =======================================================================
-
-    @Test
-    fun avif_quality_affects_size() = runTest {
-        requireGStreamerElement("av1enc") {
-            val image = gradientImage(128, 128)
-
-            val lowQ = GstImageEncoder().encode(
-                image, ImageFormat.Avif,
-                HeifEncodeOptions(quality = 0.10f, format = ImageFormat.Avif), ctx,
-            )
-            val highQ = GstImageEncoder().encode(
-                image, ImageFormat.Avif,
-                HeifEncodeOptions(quality = 0.95f, format = ImageFormat.Avif), ctx,
-            )
-
-            assertTrue(lowQ.isNotEmpty(), "Low quality AVIF must not be empty")
-            assertTrue(highQ.isNotEmpty(), "High quality AVIF must not be empty")
-            assertNotEquals(
-                lowQ.size, highQ.size,
-                "Different AVIF qualities must produce different sizes " +
-                    "(low=${lowQ.size}, high=${highQ.size})",
-            )
-        }
-    }
+    // NOTE: HEIF/AVIF quality variation tests have been moved to the libheif plugin module.
 
     // =======================================================================
     // Helpers

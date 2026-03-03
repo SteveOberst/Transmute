@@ -2,6 +2,7 @@ package dev.transmute.gstreamer
 
 import dev.transmute.common.PipelineContext
 import dev.transmute.image.*
+import dev.transmute.io.TSource
 import dev.transmute.model.core.Bytes
 import dev.transmute.model.core.asBytes
 import kotlinx.coroutines.Dispatchers
@@ -36,33 +37,15 @@ internal class GstImageDecoder : ImageDecoder {
         ImageFormat.Avif,
     )
 
-    override fun sniff(data: Bytes): ImageFormat? {
-        val bytes = data.data
-        if (bytes.size < 12) return null
-        // ISO BMFF ftyp box
-        if (bytes[4] == 0x66.toByte() && bytes[5] == 0x74.toByte() &&
-            bytes[6] == 0x79.toByte() && bytes[7] == 0x70.toByte()
-        ) {
-            val brand = bytes.sliceArray(8 until 12).decodeToString()
-            return when {
-                brand == "heic" || brand == "heix" -> ImageFormat.Heic
-                brand == "mif1" || brand == "msf1" -> ImageFormat.Heif
-                brand == "hevc" || brand == "hevx" -> ImageFormat.Heic
-                brand == "avif" || brand == "avis" -> ImageFormat.Avif
-                else -> null
-            }
-        }
-        return null
-    }
-
     override suspend fun decode(
-        source: Bytes,
+        source: TSource,
         options: ImageDecodeOptions,
         context: PipelineContext,
     ): ImageIR = withContext(Dispatchers.IO) {
         check(GStreamerResolver.available) { "GStreamer is not available" }
 
-        val format = ImageFormatDetector.detect(source)
+        val bytes = if (source is Bytes) source else Bytes(source.readAll())
+        val format = ImageFormatDetector.detect(bytes)
         val ext = when (format) {
             ImageFormat.Heif -> "heif"
             ImageFormat.Heic -> "heic"
@@ -73,7 +56,7 @@ internal class GstImageDecoder : ImageDecoder {
         val tmpIn = File.createTempFile("transmute_gst_img_in_", ".$ext")
         val tmpOut = File.createTempFile("transmute_gst_img_out_", ".png")
         try {
-            tmpIn.writeBytes(source.data)
+            tmpIn.writeBytes(bytes.data)
 
             val args = buildGstPipeline(
                 "filesrc", "location=${tmpIn.absolutePath.toGstPath()}",

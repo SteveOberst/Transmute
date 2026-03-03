@@ -3,7 +3,6 @@ package dev.transmute.structure.video
 import dev.transmute.model.core.asBytes
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class AviStructureReaderTest {
@@ -37,26 +36,6 @@ class AviStructureReaderTest {
         buf[offset + 1] = ((value shr 8) and 0xFF).toByte()
         buf[offset + 2] = ((value shr 16) and 0xFF).toByte()
         buf[offset + 3] = ((value shr 24) and 0xFF).toByte()
-    }
-
-    @Test
-    fun canReadAcceptsAvi() {
-        assertTrue(reader.canRead(minimalAvi().asBytes()))
-    }
-
-    @Test
-    fun canReadRejectsWave() {
-        // Build a RIFF + "WAVE" file - should be rejected by AVI reader
-        val wave = ByteArray(12)
-        "RIFF".encodeToByteArray().copyInto(wave, 0)
-        writeU32LE(wave, 4, 4)
-        "WAVE".encodeToByteArray().copyInto(wave, 8)
-        assertFalse(reader.canRead(wave.asBytes()))
-    }
-
-    @Test
-    fun canReadRejectsGarbage() {
-        assertFalse(reader.canRead(ByteArray(16).asBytes()))
     }
 
     @Test

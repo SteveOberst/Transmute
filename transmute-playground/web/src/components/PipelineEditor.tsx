@@ -80,7 +80,7 @@ export default function PipelineEditor({ transforms, domain, pipeline, onChange 
             hover:border-white/15 transition-colors text-left
           "
         >
-          <span className="font-mono text-xs text-white/40">＋ add transform…</span>
+          <span className="font-mono text-xs text-white/40">＋ add transform...</span>
           <span className="font-mono text-[10px] text-white/20 uppercase tracking-widest">
             {available.length} available
           </span>
@@ -106,7 +106,7 @@ export default function PipelineEditor({ transforms, domain, pipeline, onChange 
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search transforms…"
+                  placeholder="Search transforms..."
                   className="
                     w-full bg-transparent font-mono text-xs text-white/80
                     placeholder:text-white/20 outline-none

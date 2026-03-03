@@ -459,7 +459,7 @@ class AudioCompressorTransformTest {
 
     assertTrue(
       outputPeak < inputPeak,
-      "Peak should be reduced: input=$inputPeak → output=$outputPeak"
+      "Peak should be reduced: input=$inputPeak -> output=$outputPeak"
     )
   }
 

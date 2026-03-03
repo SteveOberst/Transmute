@@ -1,6 +1,6 @@
 # Transmute
 
-Kotlin Multiplatform media conversion, compression and transformation - image, audio, and video - with a single API across Android, Desktop/JVM, and iOS.
+Kotlin Multiplatform media conversion, compression, and transformation — image, audio, and video — with a single API across Android, Desktop/JVM, and iOS.
 
 [![JitPack](https://jitpack.io/v/SteveOberst/Transmute.svg)](https://jitpack.io/#SteveOberst/Transmute)
 [![Kotlin](https://img.shields.io/badge/kotlin-2.2.21-blue.svg?logo=kotlin)](http://kotlinlang.org)
@@ -8,618 +8,168 @@ Kotlin Multiplatform media conversion, compression and transformation - image, a
 
 ## Features
 
-- Single `commonMain` API for image, audio, and video conversion across Android, Desktop (JVM), and iOS
+- Single `commonMain` API for image, audio, and video across Android, Desktop (JVM), and iOS
 - Instance-based API with plugin system — create isolated `Transmute` instances with custom codec configurations
-- Native platform codecs by default — no external dependencies for common formats
-- Optional `transmute-gstreamer` module fills platform gaps (HEIF/AVIF on Desktop, OGG/Opus on iOS, video on Desktop, etc.)
+- Platform-native codecs by default — no external dependencies for common formats
+- Optional `transmute-plugins:gstreamer` fills platform gaps (HEIF/AVIF on Desktop, Opus/OGG on iOS, video on Desktop, etc.)
+- Optional `transmute-plugins:libheif` for bundled HEIF/AVIF support on Desktop without a system GStreamer install
 - Pure-Kotlin WAV and BMP codecs that work on all platforms without native dependencies
-- Pipeline-based decode/transform/encode: decode produces an IR, transforms operate on the IR, encode consumes the IR (swap default handlers or build custom typed pipelines)
-- Structure reading: parse files into typed Kotlin data classes mirroring on-disk layout (PNG chunks, JPEG segments, RIFF containers, etc.) without decoding pixel/sample data
-- Suspending I/O via `TSource`, `TSink`, `TChannel` — non-blocking byte streams on every platform, with lambda sugar for structure reads and in-place transforms
-- Image resample filters: Nearest, Bilinear, Mitchell, Catmull-Rom, Lanczos3 (with anti-alias for downscale)
-- 27 transforms across all three media types (scale, crop, rotate, blur, normalize, trim, fade, gain, speed, compressor, etc.)
-- Configurable logging with level filtering and pluggable logger backends
-
-## Quick Start
-
-```kotlin       
-suspend fun quickStart(
-    pngBytes: ByteArray,
-    wavBytes: ByteArray,
-    mp4Bytes: ByteArray,
-) {
-    // Transmute uses `Bytes` as the canonical binary type.
-    // Use `ByteArray.asBytes()` when your inputs are raw byte arrays.
-
-    // Scale and convert to JPEG
-    val jpegBytes = Transmute.image {
-        scale(maxWidth = 1920, maxHeight = 1080)
-        encode { options(JpegEncodeOptions(quality = 0.85f)) }
-    }.transmute(pngBytes.asBytes()).bytes.data
-
-    // Resize to exact dimensions with Lanczos resampling
-    val resizedBytes = Transmute.image {
-        resize(800, 600, filter = ResampleFilter.LANCZOS3)
-    }.transmute(pngBytes.asBytes()).bytes.data
-
-    // Normalize and trim audio (preserves input format if encodable, otherwise falls back to WAV)
-    val audioBytes = Transmute.audio {
-        normalize(targetPeak = 0.9f)
-        trim(startMs = 1000, endMs = 5000)
-        fade(fadeInMs = 100, fadeOutMs = 200)
-    }.transmute(wavBytes.asBytes()).bytes.data
-
-    // Resize video and force output format via encode options
-    val videoBytes = Transmute.video {
-        resize(maxWidth = 1280, maxHeight = 720)
-        trim(startMs = 0, endMs = 30_000)
-        encode { options { outputFormat = OutputFormat.Exact(VideoFormat.Mp4) } }
-    }.transmute(mp4Bytes.asBytes()).bytes.data
-
-    // Detect format from raw bytes
-    val format = Transmute.inspect.detectFormat(pngBytes.asBytes())
-    if (format == UnknownFormat) error("Could not detect format")
-
-    // Parse file structure without decoding
-    val pngStructure: Png = Transmute.structure.read(pngBytes.asBytes(), ImageFormat.Png)
-    val roundTripped: Bytes = Transmute.structure.write(pngStructure)
-}
-```
-
-### Structure Lambda Sugar & Suspending I/O
-
-```kotlin
-// Lambda sugar - parsed structure is the receiver
-val width: Int = transmute.structure.read<Png>(pngBytes.asBytes(), ImageFormat.Png) {
-    ihdr.width.toInt()
-}
-
-// Read from a TSource (suspending, non-blocking)
-val src: TSource = ByteArraySource(pngBytes)
-val png: Png = transmute.structure.read<Png>(src, ImageFormat.Png)
-
-// Bridge: Bytes.asSource() / Bytes.asChannel()
-val png2: Png = transmute.structure.read<Png>(pngBytes.asBytes().asSource(), ImageFormat.Png)
-
-// In-place transform via TChannel
-val ch: TChannel = ByteArrayChannel(pngBytes)
-transmute.structure.transform<Png>(ch, ImageFormat.Png) {
-    edit { ihdr = ihdr.copy(width = 100u) }
-}
-
-// Write to a TSink
-val sink = ByteArraySink()
-transmute.structure.writeTo(pngStructure, sink)
-```
-
-All I/O-bound structure methods are `suspend` functions. For synchronous callers:
-`runBlocking { transmute.structure.read<Png>(src, format) }`.
-```
-
-## Building Transmuters
-
-Transmuters are reusable objects you build once and apply to many inputs.
-If your inputs are `ByteArray`, pass `bytes.asBytes()` to `transmute(...)`.
-
-```kotlin
-// Reusable dynamic-output image transmuter (output defaults to "same as input" unless encode options force it)
-val thumbnailer = Transmute.image {
-    decode { options { acceptedInputFormats += setOf(ImageFormat.Png, ImageFormat.Jpeg, ImageFormat.Webp) } } // optional
-    scale(maxWidth = 512, maxHeight = 512)
-    encode { options(JpegEncodeOptions(quality = 0.85f)) }
-}
-
-suspend fun makeThumb(bytes: ByteArray): ByteArray =
-  thumbnailer.transmute(bytes.asBytes()).bytes.data
-```
-
-Fixed-output transmuters expose a type-level output format object (useful for type-safe post-encode handlers in custom encode pipelines):
-
-```kotlin
-val pngOnly = Transmute.image.to(ImageFormat.Png) {
-    encode { options(PngEncodeOptions(compressionLevel = 6)) }
-}
-
-suspend fun toPng(bytes: ByteArray): ByteArray =
-  pngOnly.transmute(bytes.asBytes()).bytes.data
-```
-
-Decode pipelines are generic over `IN`, so you can accept custom inputs by supplying your own decode stage:
-See “Advanced Pipelines” below for a full example.
-## Instance-Based API & Plugins
-
-Transmute supports both a convenient static API (`Transmute.image { ... }`) and a fully
-instance-based API where each `Transmute` instance carries its own codec registries.
-
-### Creating Instances
-
-```kotlin
-// Default instance - same as static Transmute.image / Transmute.audio / etc.
-val default = Transmute()
-
-// Instance with GStreamer plugin for desktop HEIF/AVIF/video support
-// All features (audio, video, image) are enabled by default
-val transmute = Transmute {
-    plugins {
-        install(GStreamer)
-    }
-}
-
-// Or selectively disable features you don't need:
-val slim = Transmute {
-    plugins {
-        install(GStreamer) {
-            disable(GStreamerFeature.LegacyAvi)      // skip AVI container
-            disable(GStreamerFeature.ImageEncoding)  // skip HEIF/AVIF encoding
-        }
-    }
-}
-
-// Use the instance exactly like the static API
-val jpeg = transmute.image {
-    scale(maxWidth = 1920, maxHeight = 1080)
-    encode { options(JpegEncodeOptions(quality = 0.85f)) }
-}.transmute(pngBytes.asBytes())
-```
-
-### Writing a Plugin
-
-Implement `TransmutePlugin<C>` to register custom codecs or services:
-
-```kotlin
-object MyCodecPlugin : TransmutePlugin<MyCodecConfig> {
-    override val key = pluginId("com.example.my-codec")
-    override fun createConfig() = MyCodecConfig()
-
-    override fun install(scope: TransmuteScope, config: MyCodecConfig) {
-        scope.codecs.image.decoders.register(MyCustomDecoder())
-        scope.codecs.image.encoders.register(MyCustomEncoder())
-    }
-}
-
-// For plugins with no configuration, extend SimpleTransmutePlugin:
-object MinimalPlugin : SimpleTransmutePlugin() {
-    override val key = pluginId("com.example.minimal")
-    override fun install(scope: TransmuteScope) {
-        scope.codecs.audio.decoders.register(MyAudioDecoder())
-    }
-}
-```
-
-### Backward Compatibility
-
-The static `Transmute.image`, `Transmute.codec`, etc. properties delegate to a lazy
-default instance (`Transmute.Default`) that uses platform codecs only. Existing code
-continues to work without changes.
-## Docs
-
-See `docs/README.md` for a full index.
-
-- `docs/examples.md` — recipes for image, audio, video, inspect, structure
-- `docs/pipelines.md` — typed handler chains, custom decode/encode
-- `docs/codec.md` — one-shot decode/encode via `Transmute.codec`
-- `docs/structures.md` — structure reading/writing (parse on-disk layout)
-- `docs/inspect.md` — format detection + thumbnail extraction
-- `docs/format-detection.md` — per-domain and cross-domain detection
-- `docs/extending.md` — custom codecs, transforms & structure readers
-- `docs/plugins.md` — instance-based API & plugin system
-- `docs/gstreamer.md` — optional GStreamer integration
-- `docs/codecs/` — per-format platform support notes
-- `docs/transforms/` — per-transform documentation
-
-### Module READMEs
-
-Each `transmute-*` module has its own README with types, dependencies, and usage:
-
-[transmute-api](transmute-api/README.md) ·
-[transmute-codec](transmute-codec/README.md) ·
-[transmute-common](transmute-common/README.md) ·
-[transmute-audio](transmute-audio/README.md) ·
-[transmute-image](transmute-image/README.md) ·
-[transmute-video](transmute-video/README.md) ·
-[transmute-structure](transmute-structure/README.md) ·
-[transmute-model](transmute-model/README.md) ·
-[transmute-filesystem](transmute-filesystem/README.md) ·
-[transmute-gstreamer](transmute-plugins/gstreamer/README.md)
-
-## Advanced Pipelines
-
-Transmute uses fluent, pipelines for decode and encode. You can replace either stage entirely.
-
-### Format-Specific Encode Options
-
-Some formats expose dedicated encode options types:
-
-```kotlin
-suspend fun encodeOptionsExamples(inputBytes: ByteArray) {
-    val jpeg = Transmute.image {
-        encode { options(JpegEncodeOptions(quality = 0.9f, metadataPolicy = MetadataPolicy.PRESERVE)) }
-    }.transmute(inputBytes.asBytes()).bytes.data
-
-    val webpLossless = Transmute.image {
-        encode { options(WebPEncodeOptions(lossless = true)) }
-    }.transmute(inputBytes.asBytes()).bytes.data
-
-    val avif = Transmute.image {
-        encode { options(HeifEncodeOptions(format = ImageFormat.Avif, quality = 0.8f)) }
-    }.transmute(inputBytes.asBytes()).bytes.data
-}
-```
-
-### Dynamic Encode Pipeline (choose output format at runtime)
-
-This example chooses PNG when the image is not opaque, otherwise JPEG, unless the caller explicitly forces an output format via `encode { options(...) }`.
-
-```kotlin
-val smartOutput = Transmute.image {
-    encode {
-        options { outputFormat = OutputFormat.ORIGINAL }
-
-        pipeline(
-          start =
-            ImageDynamicEncodeHandler(
-              outputFormatSelector = ImageOutputFormatSelector { decoded, options ->
-                when (val requested = options.outputFormat) {
-                  OutputFormat.ORIGINAL ->
-                    if (decoded.ir.alphaSemantics != AlphaSemantics.OPAQUE) ImageFormat.Png else ImageFormat.Jpeg
-                  is OutputFormat.Exact -> requested.format
-                }
-              },
-            ) + tap { out, ctx ->
-              ctx.logger.info("encoded ${out.format} -> ${out.bytes.size} bytes")
-            },
-        )
-    }
-}
-```
-
-### Custom Input Type + Custom Decode Pipeline
-
-Decode pipelines are `IN -> Decoded<Format, IR>`. Here we accept a custom input type and map it to raw bytes before using the default decode handler.
-
-```kotlin
-class BufferedImageToBytesHandler : PipelineHandler<BufferedImage, Bytes> {
-    override suspend fun handle(value: BufferedImage, context: TransmuteContext): Bytes {
-        // TODO
-    }
-}
-
-val fromBufferedImage = Transmute.image.custom.from<Bytes> {
-    decode {
-        options { acceptedInputFormats += setOf(ImageFormat.Jpeg, ImageFormat.Png, ImageFormat.Webp) }
-
-        pipeline(initial = BufferedImageToBytesHandler() + ImageCodecs.Decode.DEFAULT)
-    }
-}
-```
-
-## Logging
-
-Transmute uses a structured logging API. By default, logging is set to `WARN` level.
-
-```kotlin
-
-// Silence all logging
-TransmuteLogging.configure(LogLevel.OFF)
-
-// Only warnings and errors
-TransmuteLogging.configure(LogLevel.WARN)
-
-// Debug-level (verbose)
-TransmuteLogging.configure(LogLevel.DEBUG)
-
-// Supply a custom logger backend
-TransmuteLogging.configure(LogLevel.INFO, myConversionLogger)
-
-// Per-operation logger override
-suspend fun withCustomLogger(bytes: ByteArray) {
-    val out = Transmute.image {
-        logger(myLogger)
-        scale(maxWidth = 800, maxHeight = 600)
-    }.transmute(bytes.asBytes())
-}
-```
-
-## Structure Reading
-
-`Transmute.structure` parses raw file bytes into typed data classes mirroring the on-disk binary layout — without decoding pixel or sample data. Useful for metadata inspection, structural patching, and lossless round-tripping.
-
-```kotlin
-// Auto-detect format
-val structure = Transmute.structure.read(fileBytes.asBytes())
-
-// Type-safe read with explicit format
-val png: Png = Transmute.structure.read(pngBytes.asBytes(), ImageFormat.Png)
-val wav: Wav = Transmute.structure.read(wavBytes.asBytes(), AudioFormat.Wav)
-
-// Round-trip (lossless)
-val raw: Bytes = Transmute.structure.write(png)
-```
-
-Built-in readers: PNG, JPEG, BMP, WAV, MP3, FLAC. Custom readers can be registered for additional formats. See `docs/structures.md` for the full API.
-
-## Installation
-
-Add JitPack and the dependency:
+- Pipeline-based decode → transform → encode: swap or extend individual stages without touching the rest
+- 27 transforms across all three domains (scale, crop, rotate, blur, normalize, trim, fade, gain, speed, compressor, etc.)
+- Structure reading: parse files into typed Kotlin data classes mirroring the on-disk format (PNG chunks, JPEG segments, RIFF containers, ISO-BMFF boxes, etc.) without decoding pixel/sample data
+- Metadata reading: extract EXIF, XMP, ICC, ID3v1/v2, Vorbis, RIFF INFO, iTunes, Matroska tags without full decode
+- Suspending I/O via `TSource` and `TSink` — non-blocking byte streams on every platform
+- Configurable logging with level filtering and pluggable backends
+
+## Supported Formats
+
+| Domain | Formats |
+|--------|---------|
+| Image  | JPEG, PNG, WebP, HEIF, HEIC, AVIF, GIF, BMP, TIFF |
+| Audio  | MP3, AAC, WAV, OGG, FLAC, M4A, Opus |
+| Video  | MP4, WebM, MOV, AVI, MKV |
+
+## Setup
+
+Transmute is published via [JitPack](https://jitpack.io/#SteveOberst/Transmute).
 
 ```kotlin
 // settings.gradle.kts
 dependencyResolutionManagement {
     repositories {
-        google()
-        mavenCentral()
         maven("https://jitpack.io")
     }
 }
-
-// build.gradle.kts (KMP)
-kotlin {
-    sourceSets {
-        commonMain.dependencies {
-            implementation("com.github.SteveOberst.Transmute:transmute-api:<version>")
-        }
-    }
-}
-
-// or Android/JVM only
-dependencies {
-    implementation("com.github.SteveOberst.Transmute:transmute-api:<version>")
-}
 ```
-
-Individual modules are also available: `transmute-image`, `transmute-audio`, `transmute-video`, `transmute-structure`.
-
-## Modules
-
-| Module                        | Purpose                                                                             |
-|-------------------------------|-------------------------------------------------------------------------------------| 
-| `transmute-api`               | Public facade — `Transmute` object, `Transformers` factory, DSL extension functions |
-| `transmute-common`            | Shared utilities, base types (`Bytes`, `MediaFormat`), pipeline, logging            |
-| `transmute-codec`             | Codec infrastructure — registry, encode/decode handler base, format detection       |
-| `transmute-model`             | Umbrella for model sub-modules                                                      |
-| `transmute-model:core`        | Core model types, `MediaIR`, intermediate representations                           |
-| `transmute-model:identify`    | Format identification / magic-bytes sniffing                                        |
-| `transmute-model:structure`   | Binary structure types (`MediaStructure`) mirroring on-disk layout                  |
-| `transmute-model:view`        | Read-only & mutable view wrappers over structures (`StructureView`)                 |
-| `transmute-model:stream`      | Streaming byte-channel views                                                        |
-| `transmute-model:metadata`    | Metadata models (EXIF, ID3, Vorbis comments, …)                                     |
-| `transmute-model:diagnostics` | Diagnostics & validation helpers                                                    |
-| `transmute-filesystem`        | File-system abstraction umbrella                                                    |
-| `transmute-filesystem:core`   | Core file-system types                                                              |
-| `transmute-filesystem:okio`   | Okio-backed file-system implementation                                              |
-| `transmute-image`             | Image codecs (JPEG, PNG, WebP, HEIF, AVIF, GIF, BMP, TIFF) + transforms             |
-| `transmute-audio`             | Audio codecs (WAV, MP3, AAC, FLAC, OGG, Opus, M4A) + transforms                     |
-| `transmute-video`             | Video codecs (MP4, MOV, WebM, AVI, MKV) + transforms                                |
-| `transmute-structure`         | Structure readers — parse raw bytes into typed `MediaStructure` data classes        |
-| `transmute-gstreamer`         | Optional GStreamer-backed codecs — fills platform gaps automatically                |
-
-## Codec Support
-
-Each cell shows what is available **natively** (platform APIs, pure Kotlin, or
-JVM libraries — zero extra dependencies). Cells marked **+ gst** gain that
-capability when the optional `transmute-gstreamer` module is added.
-
-### Image
-
-| Format                           | Android              | Desktop              | iOS                  | Docs                           |
-|----------------------------------|----------------------|----------------------|----------------------|--------------------------------|
-| [JPEG](docs/codecs/jpeg.md)      | decode + encode      | decode + encode      | decode + encode      | [jpeg.md](docs/codecs/jpeg.md) |
-| [PNG](docs/codecs/png.md)        | decode + encode      | decode + encode      | decode + encode      | [png.md](docs/codecs/png.md)   |
-| [WebP](docs/codecs/webp.md)      | decode + encode      | decode + encode      | decode + encode      | [webp.md](docs/codecs/webp.md) |
-| [HEIF/HEIC](docs/codecs/heif.md) | decode               | — (+ gst: full)      | decode + encode      | [heif.md](docs/codecs/heif.md) |
-| [AVIF](docs/codecs/avif.md)      | decode               | — (+ gst: full)      | decode + encode ¹    | [avif.md](docs/codecs/avif.md) |
-| [GIF](docs/codecs/gif.md)        | decode (+ gst: enc)  | decode + encode      | decode + encode      | [gif.md](docs/codecs/gif.md)   |
-| [BMP](docs/codecs/bmp.md)        | decode + encode ²    | decode + encode ²    | decode + encode      | [bmp.md](docs/codecs/bmp.md)   |
-| [TIFF](docs/codecs/tiff.md)      | decode (+ gst: enc)  | decode + encode      | decode + encode      | [tiff.md](docs/codecs/tiff.md) |
-
-### Audio
-
-| Format                      | Android              | Desktop              | iOS                  | Docs                           |
-|-----------------------------|----------------------|----------------------|----------------------|--------------------------------|
-| [WAV](docs/codecs/wav.md)   | decode + encode ²    | decode + encode ²    | decode + encode ²    | [wav.md](docs/codecs/wav.md)   |
-| [MP3](docs/codecs/mp3.md)   | decode + encode      | decode + encode      | decode (+ gst: enc)  | [mp3.md](docs/codecs/mp3.md)   |
-| [AAC](docs/codecs/aac.md)   | decode + encode      | — (+ gst: full)      | decode + encode      | [aac.md](docs/codecs/aac.md)   |
-| [M4A](docs/codecs/m4a.md)   | decode + encode      | — (+ gst: full)      | decode + encode      | [m4a.md](docs/codecs/m4a.md)   |
-| [FLAC](docs/codecs/flac.md) | decode + encode      | decode (+ gst: enc)  | decode + encode      | [flac.md](docs/codecs/flac.md) |
-| [OGG](docs/codecs/ogg.md)   | decode (+ gst: enc)  | decode (+ gst: enc)  | — (+ gst: full)      | [ogg.md](docs/codecs/ogg.md)   |
-| [OPUS](docs/codecs/opus.md) | decode + encode ³    | — (+ gst: full)      | — (+ gst: full)      | [opus.md](docs/codecs/opus.md) |
-
-### Video
-
-| Format                      | Android              | Desktop              | iOS                  | Docs                           |
-|-----------------------------|----------------------|----------------------|----------------------|--------------------------------|
-| [MP4](docs/codecs/mp4.md)   | decode + encode      | — (+ gst: full)      | decode + encode      | [mp4.md](docs/codecs/mp4.md)   |
-| [MOV](docs/codecs/mov.md)   | decode + encode      | — (+ gst: full)      | decode + encode      | [mov.md](docs/codecs/mov.md)   |
-| [WebM](docs/codecs/webm.md) | decode (+ gst: enc)  | — (+ gst: full)      | — (+ gst: full)      | [webm.md](docs/codecs/webm.md) |
-| [AVI](docs/codecs/avi.md)   | — (+ gst: full)      | — (+ gst: full)      | — (+ gst: full)      | [avi.md](docs/codecs/avi.md)   |
-| [MKV](docs/codecs/mkv.md)   | — (+ gst: full)      | — (+ gst: full)      | — (+ gst: full)      | [mkv.md](docs/codecs/mkv.md)   |
-
-> ¹ iOS 16+ required. ² Pure Kotlin — works on all platforms, no native dependency. ³ Encode requires Android API 29+.
-
-**Native engines:** Android uses `BitmapFactory` + `MediaCodec`, Desktop uses `ImageIO` + `TwelveMonkeys` + JVM audio libraries, iOS uses `CoreGraphics` + `AVFoundation`. The optional `transmute-gstreamer` module uses GStreamer's plugin framework to fill platform gaps — see [docs/gstreamer.md](docs/gstreamer.md).
-
-## Transforms
-
-All transforms are platform-independent and operate on intermediate representations.
-
-### Image
-
-| Class                              | DSL                  | Description                                                  | Docs                                                                   |
-|------------------------------------|----------------------|--------------------------------------------------------------|------------------------------------------------------------------------|
-| `ImageScaleTransform`              | `scale`              | Fit within bounds, preserve aspect ratio                     | [scale.md](docs/transforms/image/scale.md)                             |
-| `ImageResizeTransform`             | `resize`             | Exact resize with resample filter (Lanczos3, Mitchell, etc.) | [resize.md](docs/transforms/image/resize.md)                           |
-| `ImageCropTransform`               | `crop`               | Crop to sub-region                                           | [crop.md](docs/transforms/image/crop.md)                               |
-| `ImageRotateTransform`             | `rotate`             | Rotate by 90°, 180°, or 270° clockwise                      | [rotate.md](docs/transforms/image/rotate.md)                           |
-| `ImageGrayscaleTransform`          | `grayscale`          | BT.709 luma conversion                                       | [grayscale.md](docs/transforms/image/grayscale.md)                     |
-| `ImageFlipTransform`               | `flip`               | Mirror horizontally / vertically                             | [flip.md](docs/transforms/image/flip.md)                               |
-| `ImageBrightnessContrastTransform` | `brightnessContrast` | Adjust brightness (−255..+255) and contrast (0..3)           | [brightness-contrast.md](docs/transforms/image/brightness-contrast.md) |
-| `ImageBlurTransform`               | `blur`               | Box blur with configurable radius                            | [blur.md](docs/transforms/image/blur.md)                               |
-| `ImageOpacityTransform`            | `opacity`            | Adjust alpha channel                                         | [opacity.md](docs/transforms/image/opacity.md)                         |
-
-### Audio
-
-| Class                       | DSL           | Description                                         | Docs                                                     |
-|-----------------------------|---------------|-----------------------------------------------------|----------------------------------------------------------|
-| `AudioNormalizeTransform`   | `normalize`   | Peak amplitude normalization                        | [normalize.md](docs/transforms/audio/normalize.md)       |
-| `AudioResampleTransform`    | `resample`    | Resample to target sample rate                      | [resample.md](docs/transforms/audio/resample.md)         |
-| `AudioFadeTransform`        | `fade`        | Fade-in / fade-out envelopes                        | [fade.md](docs/transforms/audio/fade.md)                 |
-| `AudioTrimTransform`        | `trim`        | Trim to time range                                  | [trim.md](docs/transforms/audio/trim.md)                 |
-| `AudioGainTransform`        | `gain`        | Volume gain in dB                                   | [gain.md](docs/transforms/audio/gain.md)                 |
-| `AudioMonoTransform`        | `mono`        | Stereo → mono                                       | [mono.md](docs/transforms/audio/mono.md)                 |
-| `AudioReverseTransform`     | `reverse`     | Reverse playback                                    | [reverse.md](docs/transforms/audio/reverse.md)           |
-| `AudioSpeedTransform`       | `speed`       | Playback speed (SOLA time-stretch, no pitch change) | [speed.md](docs/transforms/audio/speed.md)               |
-| `AudioSilenceTrimTransform` | `silenceTrim` | Trim silence from start / end                       | [silence-trim.md](docs/transforms/audio/silence-trim.md) |
-| `AudioCompressorTransform`  | `compressor`  | Dynamic range compressor                            | [compressor.md](docs/transforms/audio/compressor.md)     |
-| `AudioChannelMapTransform`  | `channelMap`  | Remap audio channels                                | [channel-map.md](docs/transforms/audio/channel-map.md)   |
-
-### Video
-
-| Class                       | DSL           | Description                              | Docs                                                     |
-|-----------------------------|---------------|------------------------------------------|----------------------------------------------------------|
-| `VideoTrimTransform`        | `trim`        | Trim to time range                       | [trim.md](docs/transforms/video/trim.md)                 |
-| `VideoResizeTransform`      | `resize`      | Fit within bounds, preserve aspect ratio | [resize.md](docs/transforms/video/resize.md)             |
-| `VideoFrameRateTransform`   | `frameRate`   | Change frame rate                        | [frame-rate.md](docs/transforms/video/frame-rate.md)     |
-| `VideoRemoveAudioTransform` | `removeAudio` | Strip audio track                        | [remove-audio.md](docs/transforms/video/remove-audio.md) |
-| `VideoCropTransform`        | `crop`        | Crop frames to sub-region                | [crop.md](docs/transforms/video/crop.md)                 |
-| `VideoSpeedTransform`       | `speed`       | Playback speed (adjusts frames + audio)  | [speed.md](docs/transforms/video/speed.md)               |
-| `VideoRotateTransform`      | `rotate`      | Rotate by 90°, 180°, or 270°             | [rotate.md](docs/transforms/video/rotate.md)             |
-
-## GStreamer (Optional)
-
-Formats marked **+ gst** in the codec tables above require a system-installed
-[GStreamer](https://gstreamer.freedesktop.org/) runtime and the optional
-`transmute-gstreamer` module.
 
 ```kotlin
 // build.gradle.kts
-kotlin {
-    sourceSets {
-        commonMain.dependencies {
-            implementation("com.github.SteveOberst.Transmute:transmute-gstreamer:<version>")
+dependencies {
+    // Core API (required)
+    implementation("com.github.SteveOberst.Transmute:transmute-api:<version>")
+
+    // Optional: GStreamer plugin for advanced codec support
+    implementation("com.github.SteveOberst.Transmute:transmute-plugins-gstreamer:<version>")
+
+    // Optional: libheif plugin for bundled HEIF/AVIF on Desktop
+    implementation("com.github.SteveOberst.Transmute:transmute-plugins-libheif:<version>")
+}
+```
+
+## Quick Start
+
+```kotlin
+// --- Image ---
+
+// Scale to fit within bounds, convert to JPEG
+val jpegBytes: ByteArray = Transmute.image {
+    scale(maxWidth = 1920, maxHeight = 1080)
+    encode { options { outputFormat = OutputFormat.Exact(ImageFormat.Jpeg) } }
+}.transmute(pngBytes.asBytes()).bytes.data
+
+// Resize to exact dimensions with Lanczos resampling, fixed output type
+val resized = Transmute.image.to(ImageFormat.Png) {
+    resize(800, 600, filter = ResampleFilter.LANCZOS3)
+}.transmute(pngBytes.asBytes())  // returns EncodedBytes<ImageFormat.Png>
+
+// --- Audio ---
+
+// Normalize, trim, and fade — preserves input format if encodable, else falls back to WAV
+val audioOut: ByteArray = Transmute.audio {
+    normalize(targetPeak = 0.9f)
+    trim(startMs = 1_000, endMs = 5_000)
+    fade(fadeInMs = 100, fadeOutMs = 200)
+}.transmute(wavBytes.asBytes()).bytes.data
+
+// --- Video ---
+
+// Resize frames, trim duration, force MP4 output
+val videoOut: ByteArray = Transmute.video {
+    resize(maxWidth = 1280, maxHeight = 720)
+    trim(startMs = 0, endMs = 30_000)
+    encode { options { outputFormat = OutputFormat.Exact(VideoFormat.Mp4) } }
+}.transmute(mp4Bytes.asBytes()).bytes.data
+```
+
+## Inspect & Format Detection
+
+```kotlin
+// Detect format from raw bytes (image + audio + video)
+val format = Transmute.inspect.detectFormat(bytes)
+
+// Decode metadata without a full transcode
+val metadata: List<MediaMetadata> = Transmute.inspect.metadata(bytes)
+for (meta in metadata) {
+    when (meta) {
+        is ExifMetadata -> println("EXIF: ${meta.tags}")
+        is XmpMetadata  -> println("XMP packet present")
+        is Id3v2Metadata -> println("ID3 title: ${meta.title}")
+    }
+}
+
+// One-call inspection: detect format + structure + metadata in a single pass
+val inspection: MediaInspection = Transmute.inspect.inspect(bytes)
+println("Format: ${inspection.format.label}, size: ${inspection.sizeBytes} bytes")
+println("Structure: ${inspection.structure}")
+
+// Parse file structure without decoding pixel/sample data
+val structure = Transmute.inspect.structure(pngBytes.asBytes(), ImageFormat.Png)
+
+// Extract thumbnail from first video frame
+val thumbnail: EncodedBytes<ImageFormat> =
+    Transmute.inspect.video.thumbnailFirstFrame(videoSource)
+```
+
+## Plugin System
+
+```kotlin
+// Create an isolated Transmute instance with the GStreamer plugin
+val transmute = Transmute {
+    plugins {
+        install(GStreamerPlugin) {
+            domains(MediaDomain.VIDEO or MediaDomain.AUDIO)
         }
     }
 }
+
+val mp4Out = transmute.video {
+    resize(1280, 720)
+}.transmute(source)
 ```
 
-### Plugin Installation (all platforms)
+See [docs/plugins.md](docs/plugins.md) for the full plugin API.
 
-GStreamer codecs are enabled via the plugin system. Create a `Transmute` instance
-with the `GStreamer` plugin installed:
+## Logging
 
 ```kotlin
-val transmute = Transmute {
-    plugins {
-        install(GStreamer)  // all features enabled by default
-    }
-}
+// Global — warnings and errors go to stdout by default
+TransmuteLogging.configure(LogLevel.INFO)
 
-// Now all codec operations transparently use GStreamer where needed:
-val heif = transmute.image {
-    scale(maxWidth = 512, maxHeight = 512)
-}.transmute(inputBytes.asBytes())
+// Per-operation override
+Transmute.image {
+    logger(TransmuteLogging.printLogger(LogLevel.DEBUG))
+    scale(800, 600)
+}.transmute(bytes)
 ```
 
-If GStreamer is not installed on the system, the plugin is a silent no-op.
-Set `diagnostics(true)` to see why GStreamer was or was not detected:
+See [docs/logging.md](docs/logging.md) for custom logger backends.
 
-```kotlin
-val transmute = Transmute {
-    plugins {
-        install(GStreamer) {
-            // Point to a custom GStreamer install root
-            installFrom(TPath.of("C:\\gstreamer\\1.0\\msvc_x86_64"))
+## Documentation
 
-            // Or with additional search paths
-            // installFrom(TPath.of("/opt/gstreamer"), listOf(TPath.of("/opt/gstreamer/bin")))
-
-            // Print diagnostic messages if GStreamer is not found
-            diagnostics(true)
-
-            // Subprocess timeout (default: 30 s)
-            timeout(60_000L)
-
-            // Per-plugin logging configuration
-            configure {
-                logging {
-                    level(LogLevel.DEBUG)
-                }
-            }
-        }
-    }
-}
-```
-
-You can also install GStreamer codecs directly into mutable registries:
-
-```kotlin
-val decoders = MutableAudioDecoderRegistry()
-val encoders = MutableAudioEncoderRegistry()
-GStreamerCodecInstaller.installAudioCodecs(decoders, encoders)
-```
-
-GStreamer is detected automatically via the system PATH. On Desktop/JVM, codecs
-run as `gst-launch-1.0` subprocesses. On Android, GStreamer is invoked via JNI
-(`libgstreamer_bridge.so`). On iOS, GStreamer is invoked via cinterop
-(`GStreamer.framework`).
-
-On Windows, the `GSTREAMER_1_0_ROOT_MSVC_X86_64` /
-`GSTREAMER_1_0_ROOT_X86_64` environment variables and common install paths are
-also checked.
-
-For full details, see [docs/gstreamer.md](docs/gstreamer.md).
-
-## Custom Codecs & Transforms
-
-```kotlin
-// Register a custom codec via a plugin
-class MyWebpDecoder : ImageDecoder {
-    override val supportedFormats = setOf(ImageFormat.Webp)
-    override fun sniff(data: Bytes): ImageFormat? = /* magic bytes */ null
-    override suspend fun decode(source: Bytes, options: ImageDecodeOptions, context: TransmuteContext): ImageIR = TODO()
-}
-
-class MyWebpEncoder : ImageEncoder {
-    override val supportedFormats = setOf(ImageFormat.Webp)
-    override suspend fun encode(
-        ir: ImageIR,
-        format: ImageFormat,
-        options: ImageEncodeOptions,
-        context: TransmuteContext,
-    ): Bytes = TODO()
-}
-
-// Register via a Transmute instance (preferred)
-val transmute = Transmute {
-    plugins {
-        install(object : SimpleTransmutePlugin() {
-            override val key = pluginId("my-webp")
-            override fun install(scope: TransmuteScope) {
-                scope.codecs.image.decoders.register(MyWebpDecoder())
-                scope.codecs.image.encoders.register(MyWebpEncoder())
-            }
-        })
-    }
-}
-
-// Custom transform - no registration needed
-class WatermarkTransform(private val logo: ByteArray) : Transform<ImageIR> {
-    override val id = TransformId("image.watermark")
-    override suspend fun apply(ir: ImageIR, ctx: TransmuteContext): ImageIR { /* ... */ }
-}
-
-suspend fun applyWatermark(photo: ByteArray): ByteArray =
-  Transmute.image {
-    transform { add(WatermarkTransform(logoPng)) }
-  }.transmute(photo.asBytes()).bytes.data
-```
+| Topic | File |
+|-------|------|
+| Conversion examples | [docs/examples.md](docs/examples.md) |
+| Format detection | [docs/format-detection.md](docs/format-detection.md) |
+| Inspect API | [docs/inspect.md](docs/inspect.md) |
+| Structure reading | [docs/structures.md](docs/structures.md) |
+| Pipeline customisation | [docs/pipelines.md](docs/pipelines.md) |
+| One-shot codec access | [docs/codec.md](docs/codec.md) |
+| Plugin system | [docs/plugins.md](docs/plugins.md) |
+| Extending Transmute | [docs/extending.md](docs/extending.md) |
+| Logging | [docs/logging.md](docs/logging.md) |
+| All transforms | [docs/transforms/README.md](docs/transforms/README.md) |
+| All formats | [docs/codecs/README.md](docs/codecs/README.md) |
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for setup instructions, coding conventions,
-and how to add codecs or transforms.
-
-**Uses [Conventional Commits](https://www.conventionalcommits.org/) and [release-please](https://github.com/googleapis/release-please) for automated versioning.**
-
-## License
-
-MIT License
+See [CONTRIBUTING.md](CONTRIBUTING.md).

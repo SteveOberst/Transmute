@@ -6,6 +6,8 @@ plugins {
     application
 }
 
+import org.gradle.api.file.DuplicatesStrategy
+
 application {
     mainClass.set("dev.transmute.playground.PlaygroundServerKt")
 }
@@ -16,6 +18,7 @@ dependencies {
     // Transmute (full stack)
     implementation(project(":transmute-api"))
     implementation(project(":transmute-plugins:gstreamer"))
+    implementation(project(":transmute-plugins:libheif"))
     implementation(project(":transmute-model:structure"))
     implementation(project(":transmute-structure"))
 
@@ -53,4 +56,19 @@ kotlin {
 tasks.shadowJar {
     archiveClassifier.set("all")
     mergeServiceFiles()
+}
+
+// Gradle 8+ fails distribution archives when duplicate entries exist.
+// The runtime classpath for this module can legitimately surface duplicates
+// (same jar via multiple dependency edges), so exclude duplicates in dists.
+tasks.named<Tar>("distTar") {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+tasks.named<Zip>("distZip") {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+tasks.named<Sync>("installDist") {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }

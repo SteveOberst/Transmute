@@ -6,10 +6,10 @@ import dev.transmute.model.core.Bytes
 import dev.transmute.model.core.asBytes
 import dev.transmute.model.structure.StructureReadException
 import dev.transmute.model.structure.StructureReader
-import dev.transmute.model.structure.image.BmpRaw
-import dev.transmute.model.structure.image.BmpColorEntry
-import dev.transmute.model.structure.image.BmpDibHeader
-import dev.transmute.model.structure.image.BmpFileHeader
+import dev.transmute.model.structure.image.types.BmpRaw
+import dev.transmute.model.structure.image.types.BmpColorEntry
+import dev.transmute.model.structure.image.types.BmpDibHeader
+import dev.transmute.model.structure.image.types.BmpFileHeader
 import dev.transmute.structure.common.readI32LE
 import dev.transmute.structure.common.readU16LE
 import dev.transmute.structure.common.readU32LE
@@ -24,14 +24,8 @@ import dev.transmute.structure.common.readU32LE
  */
 class BmpStructureReader : StructureReader<BmpRaw> {
 
-    override fun canRead(source: Bytes): Boolean {
-        val d = source.data
-        return d.size >= 14 && d[0] == 0x42.toByte() && d[1] == 0x4D.toByte() // "BM"
-    }
-
     override fun read(source: Bytes): BmpRaw {
         val d = source.data
-        if (!canRead(source)) throw StructureReadException("Not a BMP file (bad signature)")
         if (d.size < 54) throw StructureReadException("BMP file too small (${d.size} bytes)")
 
         // --- File header (14 bytes) ---

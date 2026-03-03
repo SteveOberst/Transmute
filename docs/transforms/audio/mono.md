@@ -1,27 +1,32 @@
-# Mono
+# Audio: mono
 
-Mix all channels down to a single mono channel.
+Mix down to mono by averaging channels.
 
-## Parameters
-
-None.
-
-## Usage
-
-### DSL
+## Factory
 
 ```kotlin
-Transmute.audio { mono() }.transmute(bytes.asBytes()).bytes.data
+Transformers.audio().mono()
 ```
 
-### Pipeline
+No parameters.
+
+## Behaviour
+
+- Averages all input channels into a single mono channel.
+- If the input is already mono, the transform is a no-op.
+- Use [`channelMap`](channel-map.md) for custom channel routing (e.g. keep only the left channel).
+
+## DSL usage
 
 ```kotlin
-transform { add(Transformers.audio().mono()) }
+val transmuter = Transmute.audio.to(AudioFormat.Mp3) {
+    decode {
+        pipeline { mono() }
+    }
+}
 ```
 
-## Notes
+## Related
 
-- Stereo → mono is computed by averaging left and right channels.
-- For multi-channel audio (>2), all channels are averaged equally.
-- No-op if the audio is already mono.
+- [channelMap](channel-map.md)
+- [Transforms overview](README.md)

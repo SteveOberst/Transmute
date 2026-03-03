@@ -1,44 +1,80 @@
-# MKV (Matroska)
+# MKV
 
-MKV (Matroska) is a flexible open container format commonly used for high-quality video files and archives.
+`VideoFormat.Mkv` — Matroska Video
 
-## Platform Support
+| Property | Value |
+|----------|-------|
+| Enum value | `VideoFormat.Mkv` |
+| MIME type | `video/x-matroska` |
+| Extension | `.mkv` |
+| Container | EBML |
+| Metadata | `MatroskaTagMetadata` |
+| Structure | `MkvStructure` |
 
-| Platform | Decode | Encode | Engine |
-|----------|--------|--------|--------|
-| Android  | ✅     | ✅     | MediaCodec |
-| Desktop  | ✅     | ✅     | GStreamer (requires `transmute-gstreamer`) |
-| iOS      | ✅     | ❌     | AVFoundation (decode only) |
+## Platform support
 
-## Usage
+| Platform | Decode | Encode |
+|----------|--------|--------|
+| Android | ⚠️ GStreamer plugin | ⚠️ GStreamer plugin |
+| Desktop (JVM) | ⚠️ GStreamer plugin | ⚠️ GStreamer plugin |
+| iOS | ⚠️ GStreamer plugin | ⚠️ GStreamer plugin |
 
-```kotlin
-// Convert video to MKV (Android/Desktop)
-suspend fun convertToMkv(inputBytes: ByteArray): ByteArray =
-  Transmute.video {
-    encode { options { outputFormat = OutputFormat.Exact(VideoFormat.Mkv) } }
-  }.transmute(inputBytes.asBytes()).bytes.data
+MKV requires the [GStreamer plugin](../plugins.md) on **all platforms**.
 
-// Decode MKV (re-encode to MP4)
-suspend fun convertToMp4(mkvBytes: ByteArray): ByteArray =
-  Transmute.video {
-    encode { options { outputFormat = OutputFormat.Exact(VideoFormat.Mp4) } }
-  }.transmute(mkvBytes.asBytes()).bytes.data
-```
-
-## Structure Reading
-
-MKV files can be parsed into a `Mkv` structure that mirrors the EBML element hierarchy:
+## Plugin setup
 
 ```kotlin
-val mkv: Mkv = Transmute.structure.read(mkvBytes.asBytes(), VideoFormat.Mkv)
-
-// Round-trip
-val raw = Transmute.structure.write(mkv)
+val transmute = Transmute {
+    plugins {
+        install(GStreamerPlugin) {
+            domains(MediaDomain.VIDEO)
+        }
+    }
+}
 ```
 
-MKV shares the EBML format with WebM. The reader validates the EBML header and walks Segment,
-SeekHead, Info, Tracks, Chapters, and Cluster elements. See `docs/structures.md`.
+## Encode options
+
+MKV uses `CanonicalVideoEncodeOptions` — there are currently no format-specific encoding knobs.
+
+```kotlin
+encode {
+    options {
+        metadataPolicy = MetadataPolicy.PRESERVE   // default: STRIP_ALL
+        outputFormat   = OutputFormat.Exact(VideoFormat.Mkv)
+    }
+}
+```
+
+## Basic usage
+
+```kotlin
+val transmute = Transmute {
+    plugins {
+        install(GStreamerPlugin) { domains(MediaDomain.VIDEO) }
+    }
+}
+
+val transmuter = transmute.video.to(VideoFormat.Mkv)
+val mkvBytes = transmuter.transmute(inputBytes)
+```
+
+## Inspection
+
+```kotlin
+val structure  = Transmute.inspect.structure(mkvBytes)   // MkvStructure
+val inspection = Transmute.inspect.inspect(mkvBytes)
+// MatroskaTagMetadata carries Matroska tags
+```
 
 ## Notes
-- Desktop requires the optional `transmute-gstreamer` module with GStreamer installed.
+
+- MKV is the same EBML container as WebM but allows any video/audio codec (not restricted to VP8/VP9/Opus/Vorbis).
+- Matroska is commonly used for high-quality encodes with subtitle and chapter support.
+
+## Related
+
+- [Codec API](../codec.md)
+- [Plugins](../plugins.md)
+- [WebM](webm.md) — sibling EBML container
+- [Video transforms](../transforms/README.md)

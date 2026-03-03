@@ -49,7 +49,7 @@ cd Transmute
 
 ### GStreamer (Bundled by Default)
 
-The `transmute-gstreamer` module ships a bundled
+The `transmute-plugins:gstreamer` module ships a bundled
 [GStreamer](https://gstreamer.freedesktop.org/) runtime that is extracted
 automatically on first use. Without GStreamer, Desktop supports WAV, MP3,
 FLAC decode, OGG decode, BMP, PNG, JPEG, WebP, GIF, and TIFF natively.
@@ -98,7 +98,9 @@ Transmute/
 ├── transmute-audio/       # Audio codecs + transforms
 ├── transmute-image/       # Image codecs + transforms
 ├── transmute-video/       # Video codecs + transforms
-├── transmute-gstreamer/   # Optional GStreamer-backed codecs
+├── transmute-plugins/     # Official plugin modules
+│   ├── gstreamer/         # GStreamer-backed codecs (video, AAC, Opus, …)
+│   └── libheif/           # libheif-backed HEIF/HEIC/AVIF (Desktop only)
 ├── gradle/
 │   └── libs.versions.toml  # Version catalog
 ├── .github/workflows/
@@ -117,7 +119,7 @@ transmute-<domain>/
     ├-- commonMain/       # Cross-platform types, IR, format detection, pure-Kotlin codecs
     ├-- commonTest/       # Tests for the above
     ├-- desktopMain/      # JVM/Desktop codecs (ImageIO, JLayer, etc.)
-    ├-- desktopTest/      # Desktop integration tests (roundtrip encode → decode)
+    ├-- desktopTest/      # Desktop integration tests (roundtrip encode -> decode)
     ├-- androidMain/      # Android codecs (BitmapFactory, MediaCodec, etc.)
     ├-- androidInstrumentedTest/  # Android instrumented tests (requires device/emulator)
     ├-- iosMain/          # iOS codecs (CoreGraphics, AVFoundation)
@@ -146,14 +148,14 @@ which drive automatic changelog generation and semantic versioning via
 
 | Type              | Purpose                      | Version Bump            |
 |-------------------|------------------------------|-------------------------|
-| `feat`            | New feature                  | Minor (0.x → 0.x+1)     |
-| `fix`             | Bug fix                      | Patch (0.1.x → 0.1.x+1) |
+| `feat`            | New feature                  | Minor (0.x -> 0.x+1)     |
+| `fix`             | Bug fix                      | Patch (0.1.x -> 0.1.x+1) |
 | `docs`            | Documentation only           | -                       |
 | `test`            | Adding/updating tests        | -                       |
 | `refactor`        | Code change (no feature/fix) | -                       |
 | `chore`           | Build/CI/tooling             | -                       |
 | `perf`            | Performance improvement      | -                       |
-| `BREAKING CHANGE` | Breaking API change          | Major (0.x → 1.0)       |
+| `BREAKING CHANGE` | Breaking API change          | Major (0.x -> 1.0)       |
 
 ### Scopes
 
@@ -203,7 +205,7 @@ BREAKING CHANGE: Builder-level encodeOptions/decodeOptions were removed. Use dec
 ### Version Policy
 
 - Pre-1.0: `feat` bumps patch, breaking changes bump minor
-- Post-1.0: Standard semver (`feat` → minor, `fix` → patch, breaking → major)
+- Post-1.0: Standard semver (`feat` -> minor, `fix` -> patch, breaking -> major)
 - Current version is tracked in `.release-please-manifest.json`
 
 ### JitPack
@@ -246,27 +248,12 @@ sealed interface AudioFormat : MediaFormat<AudioDecodeOptions, AudioEncodeOption
 }
 ```
 
-### 2. Implement Sniff-Based Detection
+### 2. Format Detection
 
-Format detection is **sniff-based**: the domain `FormatDetector` iterates all
-registered decoders/codecs and calls `sniff(data)`.
-
-When adding a codec, implement `sniff()` so it returns the format when the input
-is recognized, or `null` otherwise.
-
-**Sniff conventions:**
-- Fast, side-effect free, and tolerant of short inputs
-- Prefer conservative matching (avoid false positives)
-- Never throw - return `null` when unsure
-
-```kotlin
-override fun sniff(data: Bytes): AudioFormat? {
-  val bytes = data.data
-  if (bytes.size < 4) return null
-  // ... check container/header signature ...
-  return AudioFormat.Alac
-}
-```
+Format detection is handled by the built-in `FormatDetector` objects
+(`ImageFormatDetector`, `AudioFormatDetector`, `VideoFormatDetector`) which use
+magic-byte checks to identify file types. Codecs do **not** need to implement
+format detection themselves.
 
 ### 3. Implement the Codec
 
@@ -288,8 +275,6 @@ codec only works in one direction):
 internal class JvmAlacCodec : AudioCodec {
   override val decodableFormats = setOf(AudioFormat.Alac)
   override val encodableFormats = setOf(AudioFormat.Alac)
-
-  override fun sniff(data: Bytes): AudioFormat? = null
 
   override suspend fun decode(
     source: Bytes,
@@ -351,7 +336,7 @@ class JvmAlacCodecTest {
 - Place tests in the matching test source set (`desktopTest`, `androidInstrumentedTest`, etc.)
 - Use the `TestHelpers` classes for synthetic fixtures (`AudioTestHelpers`, `ImageTestHelpers`, `VideoTestHelpers`)
 - Skip gracefully when optional dependencies (e.g. GStreamer) aren't available
-- Test encode → decode roundtrip with dimension/sample-rate/channel preservation
+- Test encode -> decode roundtrip with dimension/sample-rate/channel preservation
 - For lossy codecs, assert with reasonable tolerance (don't compare pixel-exact)
 
 ### 6. Update Documentation
@@ -363,10 +348,10 @@ class JvmAlacCodecTest {
 ### Codec Checklist
 
 - [ ] Format object exists in the domain `*Format.kt` file and is included in `*Format.all`
-- [ ] `sniff(data: Bytes)` implemented (and covered by tests)
+- [ ] Format detection supported in the domain `FormatDetector` (magic-byte check)
 - [ ] Codec implementation (implements `Codec`, `*Codec`, `*Decoder`, or `*Encoder`)
 - [ ] Codec registered in the platform registration file
-- [ ] Integration test with roundtrip encode → decode
+- [ ] Integration test with roundtrip encode -> decode
 - [ ] Docs updated (`docs/codecs/`, README if needed)
 - [ ] Commit message follows `feat(<module>): add <FORMAT> codec for <platform>`
 
@@ -527,7 +512,7 @@ The project has three GitHub Actions workflows:
 |-----------------------|-------------------|---------------------------------|----------------------------------------------------------------------------------------------|
 | **Unit Tests**        | `ci.yml`          | Every push & PR                 | `commonTest` + `desktopTest` on Ubuntu (fast)                                                |
 | **Integration Tests** | `integration.yml` | PRs to `main`, releases, manual | Android emulator tests (Linux), iOS simulator tests (macOS), desktop tests w/ GStreamer (Linux) |
-| **Release**           | `release.yml`     | Push to `main`                  | release-please PR → integration gate → publish artifacts                                     |
+| **Release**           | `release.yml`     | Push to `main`                  | release-please PR -> integration gate -> publish artifacts                                     |
 
 **Unit Tests** run on every commit to give fast feedback. They cover all
 pure-Kotlin and JVM desktop codecs.

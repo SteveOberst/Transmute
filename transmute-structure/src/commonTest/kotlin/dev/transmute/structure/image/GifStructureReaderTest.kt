@@ -1,11 +1,9 @@
 package dev.transmute.structure.image
 
 import dev.transmute.model.core.asBytes
-import dev.transmute.model.structure.image.GifVersion
+import dev.transmute.model.structure.image.types.GifVersion
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 class GifStructureReaderTest {
 
@@ -23,28 +21,6 @@ class GifStructureReaderTest {
         )
         val trailer = byteArrayOf(0x3B) // trailer
         return sig + lsd + trailer
-    }
-
-    @Test
-    fun canReadAcceptsGif89a() {
-        assertTrue(reader.canRead(minimalGif().asBytes()))
-    }
-
-    @Test
-    fun canReadAcceptsGif87a() {
-        val gif87a = "GIF87a".encodeToByteArray() +
-            byteArrayOf(0x01, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x3B)
-        assertTrue(reader.canRead(gif87a.asBytes()))
-    }
-
-    @Test
-    fun canReadRejectsGarbage() {
-        assertFalse(reader.canRead(ByteArray(16).asBytes()))
-    }
-
-    @Test
-    fun canReadRejectsTooShort() {
-        assertFalse(reader.canRead(ByteArray(4).asBytes()))
     }
 
     @Test

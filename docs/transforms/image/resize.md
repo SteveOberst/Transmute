@@ -1,42 +1,63 @@
-# Resize
+# Image: resize
 
-Resize an image to exact dimensions with a configurable resample filter.
+Resize to exact dimensions with an optional resampling filter.
 
-## Parameters
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| targetWidth | Int | - | Desired output width in pixels |
-| targetHeight | Int | - | Desired output height in pixels |
-| filter | ResampleFilter | LANCZOS3 | Resampling filter algorithm |
-| allowUpscale | Boolean | false | Whether to upscale if source is smaller |
-
-### ResampleFilter options
-
-| Filter | Description |
-|--------|-------------|
-| NEAREST | Nearest-neighbor, fastest, blocky |
-| BILINEAR | Bilinear interpolation |
-| BICUBIC_MITCHELL | Mitchell-Netravali cubic |
-| CATMULL_ROM | Catmull-Rom cubic |
-| LANCZOS3 | Lanczos windowed sinc, 3-lobe |
-
-## Usage
-
-### DSL
+## Factory
 
 ```kotlin
-Transmute.image { resize(800, 600, filter = ResampleFilter.LANCZOS3) }.transmute(bytes.asBytes()).bytes.data
+Transformers.image().resize(
+    targetWidth: Int,
+    targetHeight: Int,
+    filter: ResampleFilter = ResampleFilter.BICUBIC_MITCHELL,
+    allowUpscale: Boolean = true,
+)
 ```
 
-### Pipeline
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `targetWidth` | `Int` | ✅ | — | Target width in pixels |
+| `targetHeight` | `Int` | ✅ | — | Target height in pixels |
+| `filter` | `ResampleFilter` | | `BICUBIC_MITCHELL` | Resampling algorithm |
+| `allowUpscale` | `Boolean` | | `true` | If `false`, images smaller than the target are not scaled up |
+
+### Available resample filters
+
+| Value | Notes |
+|-------|-------|
+| `BICUBIC_MITCHELL` | Default. High quality, moderate cost |
+| `BILINEAR` | Faster, slightly lower quality |
+| `NEAREST_NEIGHBOR` | Fastest, blocky for photos |
+| `LANCZOS` | Highest quality, most expensive |
+
+## Behaviour
+
+- **Does not preserve aspect ratio.** The image is stretched/squashed to the exact target dimensions.
+- Use [`scale`](scale.md) if you want aspect-ratio-preserving downscaling.
+
+## DSL usage
 
 ```kotlin
-transform { add(Transformers.image().resize(800, 600, ResampleFilter.LANCZOS3)) }
+val transmuter = Transmute.image {
+    decode {
+        pipeline {
+            resize(targetWidth = 800, targetHeight = 600)
+        }
+    }
+}
 ```
 
-## Notes
+## No-upscale example
 
-- Kernel-based filtering with anti-aliasing applied automatically on downscale.
-- `allowUpscale = false` by default - images smaller than the target are returned unchanged.
-- For aspect-ratio-preserving resize, use `scale` instead.
+```kotlin
+Transformers.image().resize(
+    targetWidth  = 400,
+    targetHeight = 300,
+    allowUpscale = false,
+)
+```
+
+## Related
+
+- [scale](scale.md)
+- [crop](crop.md)
+- [Transforms overview](README.md)

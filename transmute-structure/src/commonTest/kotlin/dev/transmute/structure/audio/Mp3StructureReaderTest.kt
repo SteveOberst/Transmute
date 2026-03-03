@@ -3,7 +3,6 @@ package dev.transmute.structure.audio
 import dev.transmute.model.core.asBytes
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -40,26 +39,6 @@ class Mp3StructureReaderTest {
             0x00, 0x00, 0x00, 0x00,
         )
         return id3Header + frame
-    }
-
-    @Test
-    fun canReadAcceptsSyncWord() {
-        assertTrue(reader.canRead(minimalMp3SyncWord().asBytes()))
-    }
-
-    @Test
-    fun canReadAcceptsId3v2() {
-        assertTrue(reader.canRead(minimalMp3Id3v2().asBytes()))
-    }
-
-    @Test
-    fun canReadRejectsGarbage() {
-        assertFalse(reader.canRead(ByteArray(16).asBytes()))
-    }
-
-    @Test
-    fun canReadRejectsTooShort() {
-        assertFalse(reader.canRead(ByteArray(2).asBytes()))
     }
 
     @Test

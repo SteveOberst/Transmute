@@ -1,10 +1,10 @@
 package dev.transmute.video
 
 import kotlin.concurrent.Volatile
-import dev.transmute.model.core.Bytes
-import dev.transmute.codec.Codec
-import dev.transmute.codec.Decoder
-import dev.transmute.codec.Encoder
+import dev.transmute.io.TSource
+import dev.transmute.codec.MediaCodec
+import dev.transmute.codec.MediaDecoder
+import dev.transmute.codec.MediaEncoder
 import dev.transmute.common.PipelineContext
 
 /**
@@ -21,23 +21,21 @@ class MutableVideoDecoderRegistry : VideoDecoderRegistry {
     }
   }
 
-  /** Register a core [Decoder] as a [VideoDecoder]. */
-  fun register(decoder: Decoder<VideoFormat, VideoIR, VideoDecodeOptions>) {
+  /** Register a core [MediaDecoder] as a [VideoDecoder]. */
+  fun register(decoder: MediaDecoder<VideoFormat, VideoIR, VideoDecodeOptions>) {
     val wrapper = object : VideoDecoder {
       override val supportedFormats = decoder.decodableFormats
-      override fun sniff(data: Bytes) = decoder.sniff(data)
-      override suspend fun decode(source: Bytes, options: VideoDecodeOptions, context: PipelineContext) =
+      override suspend fun decode(source: TSource, options: VideoDecodeOptions, context: PipelineContext) =
         decoder.decode(source, options, context)
     }
     register(wrapper)
   }
 
-  /** Register a unified [Codec] as a decoder. */
-  fun register(codec: Codec<VideoFormat, VideoIR, VideoDecodeOptions, VideoEncodeOptions>) {
+  /** Register a unified [MediaCodec] as a decoder. */
+  fun register(codec: MediaCodec<VideoFormat, VideoIR, VideoDecodeOptions, VideoEncodeOptions>) {
     val wrapper = object : VideoDecoder {
       override val supportedFormats = codec.decodableFormats
-      override fun sniff(data: Bytes) = codec.sniff(data)
-      override suspend fun decode(source: Bytes, options: VideoDecodeOptions, context: PipelineContext) =
+      override suspend fun decode(source: TSource, options: VideoDecodeOptions, context: PipelineContext) =
         codec.decode(source, options, context)
     }
     decoderList.add(wrapper)
@@ -65,8 +63,8 @@ class MutableVideoEncoderRegistry : VideoEncoderRegistry {
     }
   }
 
-  /** Register a core [Encoder] as a [VideoEncoder]. */
-  fun register(encoder: Encoder<VideoFormat, VideoIR, VideoEncodeOptions>) {
+  /** Register a core [MediaEncoder] as a [VideoEncoder]. */
+  fun register(encoder: MediaEncoder<VideoFormat, VideoIR, VideoEncodeOptions>) {
     val wrapper = object : VideoEncoder {
       override val supportedFormats = encoder.encodableFormats
       override suspend fun encode(
@@ -83,8 +81,8 @@ class MutableVideoEncoderRegistry : VideoEncoderRegistry {
     encoders[format] = encoder
   }
 
-  /** Register a unified [Codec] as an encoder. */
-  fun register(codec: Codec<VideoFormat, VideoIR, VideoDecodeOptions, VideoEncodeOptions>) {
+  /** Register a unified [MediaCodec] as an encoder. */
+  fun register(codec: MediaCodec<VideoFormat, VideoIR, VideoDecodeOptions, VideoEncodeOptions>) {
     for (format in codec.encodableFormats) {
       encoders[format] = object : VideoEncoder {
         override val supportedFormats = codec.encodableFormats
@@ -150,16 +148,16 @@ object VideoRegistries {
     encoders.register(encoder)
   }
 
-  fun register(decoder: Decoder<VideoFormat, VideoIR, VideoDecodeOptions>) {
+  fun register(decoder: MediaDecoder<VideoFormat, VideoIR, VideoDecodeOptions>) {
     decoders.register(decoder)
   }
 
-  fun register(encoder: Encoder<VideoFormat, VideoIR, VideoEncodeOptions>) {
+  fun register(encoder: MediaEncoder<VideoFormat, VideoIR, VideoEncodeOptions>) {
     encoders.register(encoder)
   }
 
-  /** Register a unified codec for both decode, encode, and sniffing. */
-  fun register(codec: Codec<VideoFormat, VideoIR, VideoDecodeOptions, VideoEncodeOptions>) {
+  /** Register a unified codec for both decode and encode. */
+  fun register(codec: MediaCodec<VideoFormat, VideoIR, VideoDecodeOptions, VideoEncodeOptions>) {
     decoders.register(codec)
     encoders.register(codec)
   }

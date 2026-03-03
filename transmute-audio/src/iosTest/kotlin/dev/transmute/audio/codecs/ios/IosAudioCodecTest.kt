@@ -4,7 +4,6 @@ import dev.transmute.audio.AudioFormat
 import dev.transmute.audio.AudioTestHelpers
 import dev.transmute.audio.CanonicalAudioDecodeOptions
 import dev.transmute.audio.CanonicalAudioEncodeOptions
-import dev.transmute.model.core.asBytes
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertTrue
@@ -61,25 +60,6 @@ class IosAudioCodecTest {
   fun mp3DecoderReportsCorrectFormats() {
     val decoder = IosMp3Decoder()
     assertTrue(AudioFormat.Mp3 in decoder.supportedFormats)
-  }
-
-  @Test
-  fun sniffWorksForCommonHeaders() {
-    // FLAC: "fLaC"
-    val flacHeader = byteArrayOf(0x66, 0x4C, 0x61, 0x43, 0, 0, 0, 0).asBytes()
-    assertTrue(IosFlacCodec().sniff(flacHeader) == AudioFormat.Flac)
-
-    // AAC ADTS: 0xFF 0xF1
-    val adtsHeader = byteArrayOf(0xFF.toByte(), 0xF1.toByte(), 0x00, 0x00).asBytes()
-    assertTrue(IosAacCodec().sniff(adtsHeader) == AudioFormat.Aac)
-
-    // M4A: ftyp + "M4A "
-    val m4aHeader = byteArrayOf(
-      0x00, 0x00, 0x00, 0x20,
-      0x66, 0x74, 0x79, 0x70,
-      'M'.code.toByte(), '4'.code.toByte(), 'A'.code.toByte(), ' '.code.toByte(),
-    ).asBytes()
-    assertTrue(IosM4aCodec().sniff(m4aHeader) == AudioFormat.M4a)
   }
 }
 

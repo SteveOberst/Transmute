@@ -1,5 +1,6 @@
 package dev.transmute.playground.shared
 
+import dev.transmute.model.core.MediaMetadata
 import dev.transmute.model.core.MediaStructure
 import kotlinx.serialization.Serializable
 
@@ -14,4 +15,5 @@ data class InspectResult(
     val format: String,
     val fileSize: Long,
     val structure: MediaStructure? = null,
+    val metadata: List<MediaMetadata> = emptyList(),
 )

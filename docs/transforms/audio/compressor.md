@@ -1,33 +1,51 @@
-# Compressor
+# Audio: compressor
 
-Dynamic range compressor - reduces the volume of loud passages.
+Apply dynamic range compression.
 
-## Parameters
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| thresholdDb | Float | -20f | Level above which compression is applied (dB) |
-| ratio | Float | 4f | Compression ratio (e.g., 4:1) |
-| attackMs | Float | 10f | Attack time in milliseconds |
-| releaseMs | Float | 100f | Release time in milliseconds |
-| makeupGainDb | Float | 0f | Post-compression gain boost in dB |
-
-## Usage
-
-### DSL
+## Factory
 
 ```kotlin
-Transmute.audio { compressor(thresholdDb = -20f, ratio = 4f) }.transmute(bytes.asBytes()).bytes.data
+Transformers.audio().compressor(
+    thresholdDb: Float = -20f,
+    ratio: Float = 4f,
+    attackMs: Float = 10f,
+    releaseMs: Float = 100f,
+    makeupGainDb: Float = 0f,
+)
 ```
 
-### Pipeline
+| Parameter | Type | Default | Range | Description |
+|-----------|------|---------|-------|-------------|
+| `thresholdDb` | `Float` | `-20f` | −80 … 0 | Level above which compression is applied |
+| `ratio` | `Float` | `4f` | 1.0 … 20.0 | Compression ratio (e.g. `4` = 4:1) |
+| `attackMs` | `Float` | `10f` | 0.1 … 500 | Time to engage compression after threshold is exceeded |
+| `releaseMs` | `Float` | `100f` | 1 … 2000 | Time to disengage compression after signal drops below threshold |
+| `makeupGainDb` | `Float` | `0f` | −20 … +20 | Gain applied after compression to restore loudness |
+
+## Behaviour
+
+- Signals above `thresholdDb` are reduced by `ratio`:1; a `ratio` of `1` is no compression.
+- High `ratio` settings (> 10) approximate limiting behaviour.
+- `attackMs` and `releaseMs` use an exponential envelope.
+
+## DSL usage
 
 ```kotlin
-transform { add(Transformers.audio().compressor(-20f, 4f)) }
+val transmuter = Transmute.audio.to(AudioFormat.Mp3) {
+    decode {
+        pipeline {
+            compressor(
+                thresholdDb  = -18f,
+                ratio        = 3f,
+                makeupGainDb = 4f,
+            )
+        }
+    }
+}
 ```
 
-## Notes
+## Related
 
-- Operates on a sample-by-sample basis with envelope following.
-- `ratio = 1` means no compression; higher ratios produce heavier compression.
-- Use `makeupGainDb` to compensate for the overall volume reduction.
+- [normalize](normalize.md)
+- [gain](gain.md)
+- [Transforms overview](README.md)

@@ -114,7 +114,7 @@ internal object GStreamerResolver {
     // --- Installation-mode resolvers ---
 
     private fun resolveBundled(diag: StringBuilder) {
-        diag.appendLine("[GStreamer] Installation mode: Bundled (bundled resources → system PATH → platform defaults)")
+        diag.appendLine("[GStreamer] Installation mode: Bundled (bundled resources -> system PATH -> platform defaults)")
 
         // 1. Try extracting / finding bundled GStreamer from JAR resources
         val bundledBinDir = GStreamerBundleExtractor.extractedBinDir(diag)
@@ -156,7 +156,7 @@ internal object GStreamerResolver {
     }
 
     private fun resolveSystem(diag: StringBuilder) {
-        diag.appendLine("[GStreamer] Installation mode: System (system PATH → platform defaults)")
+        diag.appendLine("[GStreamer] Installation mode: System (system PATH -> platform defaults)")
 
         // 1. System PATH
         resolveFromSystemPath(diag)

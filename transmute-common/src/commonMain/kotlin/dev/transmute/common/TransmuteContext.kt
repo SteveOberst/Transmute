@@ -1,5 +1,6 @@
 package dev.transmute.common
 
+import dev.transmute.filesystem.TransmuteFileSystem
 import dev.transmute.model.core.DecodeOptions
 import dev.transmute.model.core.EncodeOptions
 import dev.transmute.model.core.NoDecodeOptions
@@ -27,17 +28,13 @@ import dev.transmute.model.core.NoEncodeOptions
  * ## Extras
  *
  * The [extras] map provides a type-safe extension point for modules that add
- * capabilities without modifying the core context.  For example, the filesystem
- * module stores a `TransmuteFileSystem` instance via a typed extension property:
- *
- * ```kotlin
- * val TransmuteContext.fileSystem: TransmuteFileSystem?
- *     get() = service("transmute.filesystem")
- * ```
+ * capabilities without modifying the core context.
  */
 class TransmuteContext private constructor(
   /** Logger used by default for new pipeline contexts. */
   val logger: TransmuteLogger,
+  /** Optional filesystem implementation for path-based IO. */
+  val fileSystem: TransmuteFileSystem? = null,
   /**
    * Extensible key-value store for module-provided services.
    *
@@ -79,6 +76,7 @@ class TransmuteContext private constructor(
    */
   fun withExtra(key: String, value: Any): TransmuteContext = TransmuteContext(
     logger = logger,
+    fileSystem = fileSystem,
     extras = extras + (key to value),
   )
 
@@ -86,6 +84,9 @@ class TransmuteContext private constructor(
   class Builder @PublishedApi internal constructor() {
     /** Logger used by default for pipeline contexts. Defaults to [TransmuteLogger.Noop]. */
     var logger: TransmuteLogger = TransmuteLogger.Noop
+
+    /** Optional filesystem implementation for path-based IO. */
+    var fileSystem: TransmuteFileSystem? = null
 
     @PublishedApi
     internal val extras: MutableMap<String, Any> = mutableMapOf()
@@ -98,6 +99,7 @@ class TransmuteContext private constructor(
     @PublishedApi
     internal fun build(): TransmuteContext = TransmuteContext(
       logger = logger,
+      fileSystem = fileSystem,
       extras = extras.toMap(),
     )
   }
@@ -124,6 +126,7 @@ class TransmuteContext private constructor(
      */
     fun default(): TransmuteContext = TransmuteContext(
       logger = TransmuteLogging.logger,
+      fileSystem = null,
       extras = emptyMap(),
     )
   }

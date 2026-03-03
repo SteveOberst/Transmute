@@ -1,49 +1,48 @@
 # JPEG
 
-JPEG (Joint Photographic Experts Group) is a widely-used lossy image compression format, ideal for photographs and complex images with smooth color gradients.
+| Property | Value |
+|----------|-------|
+| Constant | `ImageFormat.Jpeg` |
+| MIME type | `image/jpeg` |
+| Extension | `jpg` |
+| Container | JFIF |
 
-## Platform Support
+## Platform availability
 
-| Platform | Decode | Encode | Engine                          |
-|----------|--------|--------|---------------------------------|
-| Android  | ✅      | ✅      | BitmapFactory / Bitmap.compress |
-| Desktop  | ✅      | ✅      | ImageIO (javax.imageio)         |
-| iOS      | ✅      | ✅      | CoreGraphics (CGImage)          |
+| Platform | Decode | Encode |
+|----------|--------|--------|
+| Android  | ✓ | ✓ |
+| Desktop  | ✓ | ✓ |
+| iOS      | ✓ | ✓ |
 
-## Usage
-
-```kotlin
-suspend fun convertToJpeg(inputBytes: ByteArray): ByteArray =
-  Transmute.image {
-    encode { options(JpegEncodeOptions(quality = 0.85f)) } // 0.0 - 1.0
-  }.transmute(inputBytes.asBytes()).bytes.data
-
-suspend fun compressMore(inputBytes: ByteArray): ByteArray =
-  Transmute.image {
-    encode { options(JpegEncodeOptions(quality = 0.5f)) }
-  }.transmute(inputBytes.asBytes()).bytes.data
-```
-
-## Structure Reading
-
-JPEG files can be parsed into a `Jpeg` structure that mirrors the segment layout:
+## Encode options
 
 ```kotlin
-val jpeg: Jpeg = Transmute.structure.read(jpegBytes.asBytes(), ImageFormat.Jpeg)
-
-// Access segments (SOI, APP0, DQT, SOF, SOS, EOI, ...)
-val segments = jpeg.segments // List<JpegSegment>
-
-// Round-trip
-val raw = Transmute.structure.write(jpeg)
+JpegEncodeOptions(
+    quality: Float = 0.85f,                          // 0.0 (worst) – 1.0 (best)
+    metadataPolicy: MetadataPolicy = STRIP_ALL,
+)
 ```
 
-The reader handles standalone markers, payload markers, and SOS entropy-coded data with byte-stuffing. See `docs/structures.md`.
+Usage:
 
-## Notes
+```kotlin
+Transmute.image.to(ImageFormat.Jpeg) {
+    encode { options(JpegEncodeOptions(quality = 0.92f)) }
+}.transmute(source)
+```
 
-- Lossy compression - each re-encode degrades quality slightly.
-- `quality` ranges from `0.0` (maximum compression) to `1.0` (best quality).
-- Does not support transparency; alpha channels are flattened to white/black.
-- EXIF metadata handling varies by platform.
-- Universally supported across all platforms with no additional dependencies.
+## Metadata support
+
+JPEG files may carry: `ExifMetadata`, `XmpMetadata`, `IccProfileMetadata`.
+
+## Structure support
+
+| Type | Description |
+|------|-------------|
+| `JpegStructure` | JPEG segment list |
+
+```kotlin
+val s = Transmute.inspect.structure(bytes, ImageFormat.Jpeg) as JpegStructure?
+println("Segments: ${s?.segments?.size}")
+```

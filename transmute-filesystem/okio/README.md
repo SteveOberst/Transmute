@@ -19,9 +19,6 @@ Internal: `OkioReadHandle`, `OkioWriteHandle`
 ## Usage
 
 ```kotlin
-import dev.transmute.filesystem.okio.OkioFileSystem
-import okio.FileSystem
-
 val fs: TransmuteFileSystem = OkioFileSystem(FileSystem.SYSTEM)
 val data = fs.read(TPath.of("image.png"))
 ```

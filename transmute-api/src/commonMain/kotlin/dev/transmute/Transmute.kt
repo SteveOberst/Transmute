@@ -2,6 +2,7 @@ package dev.transmute
 
 import dev.transmute.audio.*
 import dev.transmute.codec.pipeline.*
+import dev.transmute.io.TSource
 import dev.transmute.model.core.Bytes
 import dev.transmute.model.core.DecodeOptions
 import dev.transmute.model.core.EncodeOptions
@@ -25,17 +26,29 @@ import dev.transmute.plugin.installPlatformVideoDefaults
 import dev.transmute.plugin.sortPluginInstallations
 import dev.transmute.video.*
 import dev.transmute.structure.DefaultStructureDecoders
+import dev.transmute.structure.DefaultMetadataDecoders
 import dev.transmute.structure.image.*
 import dev.transmute.structure.audio.*
 import dev.transmute.structure.video.*
 import dev.transmute.model.core.MediaStructureRegistry
+import dev.transmute.model.core.MediaMetadataRegistry
 import dev.transmute.model.structure.image.*
 import dev.transmute.model.structure.audio.*
 import dev.transmute.model.structure.video.*
+import dev.transmute.model.metadata.exif.ExifMetadata
+import dev.transmute.model.metadata.xmp.XmpMetadata
+import dev.transmute.model.metadata.icc.IccProfileMetadata
+import dev.transmute.model.metadata.id3.Id3v1Metadata
+import dev.transmute.model.metadata.id3.Id3v2Metadata
+import dev.transmute.model.metadata.png.PngTextMetadata
+import dev.transmute.model.metadata.vorbis.VorbisCommentMetadata
+import dev.transmute.model.metadata.riff.RiffInfoMetadata
+import dev.transmute.model.metadata.itunes.ItunesMetadata
+import dev.transmute.model.metadata.matroska.MatroskaTagMetadata
 
-typealias DynamicImageTransmuter = ImageTransmuter<Bytes, EncodedBytes<ImageFormat>>
-typealias DynamicAudioTransmuter = AudioTransmuter<Bytes, EncodedBytes<AudioFormat>>
-typealias DynamicVideoTransmuter = VideoTransmuter<Bytes, EncodedBytes<VideoFormat>>
+typealias DynamicImageTransmuter = ImageTransmuter<TSource, EncodedBytes<ImageFormat>>
+typealias DynamicAudioTransmuter = AudioTransmuter<TSource, EncodedBytes<AudioFormat>>
+typealias DynamicVideoTransmuter = VideoTransmuter<TSource, EncodedBytes<VideoFormat>>
 
 /**
  * Discriminates the three media domains at the type level.
@@ -112,7 +125,7 @@ class Transmute private constructor(
   /**
    * Close this Transmute instance, releasing resources held by plugins.
    *
-   * Calls [PluginLifecycle.onClose] on all installed plugins that implement it.
+   * Calls [dev.transmute.plugin.PluginLifecycle.onClose] on all installed plugins that implement it.
    */
   fun close() {
     for (installation in installations) {
@@ -215,6 +228,42 @@ class Transmute private constructor(
       MediaStructureRegistry.register<MkvStructure>("transmute.mkv",       MkvStructure.serializer())
       MediaStructureRegistry.register<AviStructure>("transmute.avi",       AviStructure.serializer())
 
+      // Register built-in metadata decoders - image
+      imageCodecs.metadataDecoders.register(ImageFormat.Jpeg, DefaultMetadataDecoders.jpeg)
+      imageCodecs.metadataDecoders.register(ImageFormat.Tiff, DefaultMetadataDecoders.tiff)
+      imageCodecs.metadataDecoders.register(ImageFormat.Png,  DefaultMetadataDecoders.png)
+      imageCodecs.metadataDecoders.register(ImageFormat.Webp, DefaultMetadataDecoders.webp)
+      imageCodecs.metadataDecoders.register(ImageFormat.Heif, DefaultMetadataDecoders.heif)
+      imageCodecs.metadataDecoders.register(ImageFormat.Avif, DefaultMetadataDecoders.avif)
+
+      // Register built-in metadata decoders - audio
+      audioCodecs.metadataDecoders.register(AudioFormat.Mp3,  DefaultMetadataDecoders.mp3)
+      audioCodecs.metadataDecoders.register(AudioFormat.Flac, DefaultMetadataDecoders.flac)
+      audioCodecs.metadataDecoders.register(AudioFormat.Ogg,  DefaultMetadataDecoders.oggAudio)
+      audioCodecs.metadataDecoders.register(AudioFormat.Opus, DefaultMetadataDecoders.opus)
+      audioCodecs.metadataDecoders.register(AudioFormat.Wav,  DefaultMetadataDecoders.wav)
+      audioCodecs.metadataDecoders.register(AudioFormat.M4a,  DefaultMetadataDecoders.m4a)
+      audioCodecs.metadataDecoders.register(AudioFormat.Aac,  DefaultMetadataDecoders.aac)
+
+      // Register built-in metadata decoders - video
+      videoCodecs.metadataDecoders.register(VideoFormat.Mp4,  DefaultMetadataDecoders.mp4)
+      videoCodecs.metadataDecoders.register(VideoFormat.Mov,  DefaultMetadataDecoders.mov)
+      videoCodecs.metadataDecoders.register(VideoFormat.Avi,  DefaultMetadataDecoders.avi)
+      videoCodecs.metadataDecoders.register(VideoFormat.Webm, DefaultMetadataDecoders.webm)
+      videoCodecs.metadataDecoders.register(VideoFormat.Mkv,  DefaultMetadataDecoders.mkv)
+
+      // Register built-in MediaMetadata types into the global serialization registry
+      MediaMetadataRegistry.register<ExifMetadata>("transmute.exif",                   ExifMetadata.serializer())
+      MediaMetadataRegistry.register<XmpMetadata>("transmute.xmp",                     XmpMetadata.serializer())
+      MediaMetadataRegistry.register<IccProfileMetadata>("transmute.icc",               IccProfileMetadata.serializer())
+      MediaMetadataRegistry.register<Id3v1Metadata>("transmute.id3v1",                  Id3v1Metadata.serializer())
+      MediaMetadataRegistry.register<Id3v2Metadata>("transmute.id3v2",                  Id3v2Metadata.serializer())
+      MediaMetadataRegistry.register<PngTextMetadata>("transmute.png-text",             PngTextMetadata.serializer())
+      MediaMetadataRegistry.register<VorbisCommentMetadata>("transmute.vorbis-comment", VorbisCommentMetadata.serializer())
+      MediaMetadataRegistry.register<RiffInfoMetadata>("transmute.riff-info",           RiffInfoMetadata.serializer())
+      MediaMetadataRegistry.register<ItunesMetadata>("transmute.itunes",                ItunesMetadata.serializer())
+      MediaMetadataRegistry.register<MatroskaTagMetadata>("transmute.matroska-tags",     MatroskaTagMetadata.serializer())
+
       // Sort plugins by dependency/ordering constraints
       val sorted = sortPluginInstallations(pluginInstallations)
 
@@ -245,6 +294,9 @@ class Transmute private constructor(
         audioStructureDecoderRegistry = audioCodecs.structureDecoders,
         videoRawStructureDecoderRegistry = videoCodecs.rawStructureDecoders,
         videoStructureDecoderRegistry = videoCodecs.structureDecoders,
+        imageMetadataDecoderRegistry = imageCodecs.metadataDecoders,
+        audioMetadataDecoderRegistry = audioCodecs.metadataDecoders,
+        videoMetadataDecoderRegistry = videoCodecs.metadataDecoders,
       )
       val inspect = TransmuteInspect(codec = codec)
 
@@ -732,22 +784,22 @@ class VideoTransmuter<IN, OUT> internal constructor(
 
 internal fun defaultImageBytesDecodePipeline(
   decoders: ImageDecoderRegistry? = null,
-): DecodePipeline<Bytes, Decoded<ImageFormat, ImageIR>> =
-  PipelineBuilder.start<Bytes>()
+): DecodePipeline<TSource, Decoded<ImageFormat, ImageIR>> =
+  PipelineBuilder.start<TSource>()
     .then(if (decoders != null) ImageDecodeHandler(decoders = decoders) else ImageDecodeHandler())
     .build()
 
 internal fun defaultAudioBytesDecodePipeline(
   decoders: AudioDecoderRegistry? = null,
-): DecodePipeline<Bytes, Decoded<AudioFormat, AudioIR>> =
-  PipelineBuilder.start<Bytes>()
+): DecodePipeline<TSource, Decoded<AudioFormat, AudioIR>> =
+  PipelineBuilder.start<TSource>()
     .then(if (decoders != null) AudioDecodeHandler(decoders = decoders) else AudioDecodeHandler())
     .build()
 
 internal fun defaultVideoBytesDecodePipeline(
   decoders: VideoDecoderRegistry? = null,
-): DecodePipeline<Bytes, Decoded<VideoFormat, VideoIR>> =
-  PipelineBuilder.start<Bytes>()
+): DecodePipeline<TSource, Decoded<VideoFormat, VideoIR>> =
+  PipelineBuilder.start<TSource>()
     .then(if (decoders != null) VideoDecodeHandler(decoders = decoders) else VideoDecodeHandler())
     .build()
 

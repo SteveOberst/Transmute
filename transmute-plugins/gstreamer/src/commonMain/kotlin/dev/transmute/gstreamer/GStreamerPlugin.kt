@@ -22,7 +22,6 @@ import dev.transmute.plugins.BuiltinPlugins
  *         install(GStreamer) {
  *             // All features on by default; selectively disable:
  *             disable(GStreamerFeature.LegacyAvi)
- *             disable(GStreamerFeature.ImageEncoding)
  *
  *             // Optional: use a custom GStreamer installation
  *             installFrom(TPath.of("C:\\gstreamer\\1.0\\msvc_x86_64"))
@@ -129,16 +128,18 @@ class GStreamerPluginConfig : HasPluginConfigure {
  * [TransmutePlugin] that registers GStreamer-backed codecs into a
  * [Transmute][dev.transmute.transmute] instance's per-instance registries.
  *
- * All features ([GStreamerFeature.AudioCodecs], [GStreamerFeature.VideoCodecs],
- * [GStreamerFeature.ImageCodecs], etc.) are **enabled by default**. Disable
- * individual features via the config DSL:
+ * GStreamer handles **audio** (AAC, M4A, Opus, FLAC, OGG) and **video**
+ * (MP4, MOV, WebM, AVI, MKV) codecs. Image codecs for HEIF/HEIC/AVIF
+ * have been moved to the dedicated `libheif` plugin.
+ *
+ * All features ([GStreamerFeature.AudioCodecs], [GStreamerFeature.VideoCodecs])
+ * are **enabled by default**. Disable individual features via the config DSL:
  *
  * ```kotlin
  * val transmute = Transmute {
  *     plugins {
  *         install(GStreamer) {
  *             disable(GStreamerFeature.LegacyAvi)
- *             disable(GStreamerFeature.ImageEncoding)
  *         }
  *     }
  * }
@@ -162,8 +163,8 @@ object GStreamer : TransmutePlugin<GStreamerPluginConfig> {
 
     if (!GStreamerCodecInstaller.available) {
       val diag = resolverDiagnostics()
-      if (diag.isNotBlank()) logger.info("GStreamer resolution trace:\n$diag")
-      logger.warn("GStreamer is not available — skipping codec registration")
+      if (diag.isNotBlank()) logger.warn("GStreamer resolution trace:\n$diag")
+        logger.warn("GStreamer is not available — skipping codec registration")
       return
     }
 
@@ -178,17 +179,6 @@ object GStreamer : TransmutePlugin<GStreamerPluginConfig> {
       logger.info("Registered GStreamer audio codecs")
     } else {
       logger.debug("Audio codecs feature disabled — skipping")
-    }
-
-    if (features.isEnabled(GStreamerFeature.ImageCodecs)) {
-      GStreamerCodecInstaller.installImageCodecs(
-        scope.codecs.image.decoders,
-        scope.codecs.image.encoders,
-        features,
-      )
-      logger.info("Registered GStreamer image codecs")
-    } else {
-      logger.debug("Image codecs feature disabled — skipping")
     }
 
     if (features.isEnabled(GStreamerFeature.VideoCodecs)) {

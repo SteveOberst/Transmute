@@ -1,30 +1,54 @@
-# Scale
+# Image: scale
 
-Fit an image within maximum bounds while preserving aspect ratio. Never upscales.
+Proportionally scale to fit within bounds, preserving aspect ratio. Never upscales.
 
-## Parameters
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| maxWidth | Int | - | Maximum output width in pixels |
-| maxHeight | Int | - | Maximum output height in pixels |
-
-## Usage
-
-### DSL
+## Factory
 
 ```kotlin
-Transmute.image { scale(maxWidth = 1920, maxHeight = 1080) }.transmute(bytes.asBytes()).bytes.data
+Transformers.image().scale(maxWidth: Int, maxHeight: Int)
 ```
 
-### Pipeline
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `maxWidth` | `Int` | ✅ | Maximum output width in pixels |
+| `maxHeight` | `Int` | ✅ | Maximum output height in pixels |
+
+## Behaviour
+
+- If the image already fits within the bounds, it is returned unchanged.
+- Aspect ratio is always preserved; neither dimension ever exceeds its bound.
+- Never upscales (use `resize` with `allowUpscale = true` for that).
+
+## DSL usage
 
 ```kotlin
-transform { add(Transformers.image().scale(1920, 1080)) }
+val transmuter = Transmute.image {
+    decode {
+        pipeline { scale(maxWidth = 1920, maxHeight = 1080) }
+    }
+}
 ```
 
-## Notes
+## Programmatic usage
 
-- Aspect ratio is always preserved; the image fits within the bounding box.
-- If the image is already smaller than the bounds, it is returned unchanged.
-- Implemented by `ImageScaleTransform`.
+```kotlin
+val transmuter = Transmute.image {
+    decode {
+        transform { add(Transformers.image().scale(1920, 1080)) }
+    }
+}
+```
+
+## Comparison with resize
+
+| | `scale` | `resize` |
+|-|---------|---------|
+| Preserves aspect ratio | ✅ | ❌ (stretches) |
+| Prevents upscaling | ✅ | Configurable (`allowUpscale`) |
+| Resample filter | No | Configurable |
+
+## Related
+
+- [resize](resize.md)
+- [crop](crop.md)
+- [Transforms overview](README.md)

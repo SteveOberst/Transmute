@@ -9,6 +9,7 @@ import dev.transmute.image.ColorInfo
 import dev.transmute.image.ImageDecodeOptions
 import dev.transmute.image.ImageEncodeOptions
 import dev.transmute.image.ImageFormat
+import dev.transmute.image.ImageFormatDetector
 import dev.transmute.image.ImageIR
 import dev.transmute.image.ImageMetadata
 import dev.transmute.image.Orientation
@@ -71,7 +72,7 @@ internal object GStreamerIosImageEngine {
     ): ImageIR = withContext(Dispatchers.Default) {
         check(available) { "GStreamer is not available on this device" }
 
-        val format = GStreamerSniff.sniffImage(source)
+        val format = ImageFormatDetector.detect(source)
         val ext = when (format) {
             ImageFormat.Heif -> "heif"
             ImageFormat.Heic -> "heic"

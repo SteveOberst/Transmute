@@ -1,31 +1,24 @@
 package dev.transmute.image
 
+import dev.transmute.codec.MagicBytes
 import dev.transmute.model.core.Bytes
 
 /**
- * Detects image format from raw bytes via registered decoders/codecs.
+ * Detects image format from raw bytes using built-in magic byte detection.
  *
- * The detector iterates registered decoders and returns the first non-null
- * result from `sniff(data)`.
+ * Covers all standard image formats (JPEG, PNG, GIF, BMP, TIFF, WebP,
+ * HEIC, HEIF, AVIF). Returns [ImageFormat.Unknown] for unrecognised data.
  */
 object ImageFormatDetector {
 
   /**
-   * Sniffs the format from the first bytes of an image file.
+   * Detects the format from the first bytes of an image file.
    *
    * Requires at least 12 bytes for reliable detection (HEIF/WebP need
    * the RIFF/ftyp box). Returns [ImageFormat.Unknown] for unrecognised data.
    */
-  fun detect(data: Bytes): ImageFormat {
-    // Check built-in magic byte patterns first (format-aware, decoder-independent).
-    detectBuiltIn(data)?.let { return it }
-
-    // Fall back to registered decoders for additional/custom formats.
-    ImageRegistries.installDefaultsIfEmpty()
-    for (decoder in ImageRegistries.decoders.allDecoders) {
-      decoder.sniff(data)?.let { return it }
-    }
-    return ImageFormat.Unknown
+  fun detect(bytes: Bytes): ImageFormat {
+    return detectBuiltIn(bytes) ?: ImageFormat.Unknown
   }
 
   /**
@@ -34,9 +27,9 @@ object ImageFormatDetector {
    * This ensures format identification works regardless of which decoders
    * are registered (e.g. HEIF/AVIF detection without the GStreamer module).
    */
-  private fun detectBuiltIn(data: Bytes): ImageFormat? {
-    if (data.size < 4) return null
-    val b = data.data
+  private fun detectBuiltIn(bytes: Bytes): ImageFormat? {
+    if (bytes.size < 4) return null
+    val b = bytes.data
 
     // JPEG: FF D8 FF
     if (b[0] == 0xFF.toByte() && b[1] == 0xD8.toByte() && b[2] == 0xFF.toByte()) {
@@ -65,16 +58,10 @@ object ImageFormatDetector {
     }
 
     // WebP: RIFF....WEBP
-    if (data.size >= 12 &&
-        b[0] == 0x52.toByte() && b[1] == 0x49.toByte() && b[2] == 0x46.toByte() && b[3] == 0x46.toByte() &&
-        b[8] == 0x57.toByte() && b[9] == 0x45.toByte() && b[10] == 0x42.toByte() && b[11] == 0x50.toByte()) {
-      return ImageFormat.Webp
-    }
+    if (MagicBytes.riffType(b) == "WEBP") return ImageFormat.Webp
 
     // ISO BMFF ftyp box -> HEIC / HEIF / AVIF
-    if (data.size >= 12 &&
-        b[4] == 0x66.toByte() && b[5] == 0x74.toByte() && b[6] == 0x79.toByte() && b[7] == 0x70.toByte()) {
-      val brand = String(byteArrayOf(b[8], b[9], b[10], b[11]))
+    MagicBytes.ftypBrand(b)?.let { brand ->
       return when {
         brand == "heic" || brand == "heix" || brand == "hevc" -> ImageFormat.Heic
         brand == "mif1" -> ImageFormat.Heif

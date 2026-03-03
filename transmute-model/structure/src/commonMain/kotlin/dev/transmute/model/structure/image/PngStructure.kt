@@ -5,6 +5,45 @@ package dev.transmute.model.structure.image
 import dev.transmute.model.core.MediaStructure
 import dev.transmute.model.core.asBytes
 import dev.transmute.model.identify.FourCC
+import dev.transmute.model.structure.image.types.PngActl
+import dev.transmute.model.structure.image.types.PngBkgd
+import dev.transmute.model.structure.image.types.PngChrm
+import dev.transmute.model.structure.image.types.PngChunk
+import dev.transmute.model.structure.image.types.PngFctl
+import dev.transmute.model.structure.image.types.PngGama
+import dev.transmute.model.structure.image.types.PngHist
+import dev.transmute.model.structure.image.types.PngIccp
+import dev.transmute.model.structure.image.types.PngIdat
+import dev.transmute.model.structure.image.types.PngIhdr
+import dev.transmute.model.structure.image.types.PngItxt
+import dev.transmute.model.structure.image.types.PngPhys
+import dev.transmute.model.structure.image.types.PngPlte
+import dev.transmute.model.structure.image.types.PngRaw
+import dev.transmute.model.structure.image.types.PngSbit
+import dev.transmute.model.structure.image.types.PngSplt
+import dev.transmute.model.structure.image.types.PngSrgb
+import dev.transmute.model.structure.image.types.PngTextChunk
+import dev.transmute.model.structure.image.types.PngTime
+import dev.transmute.model.structure.image.types.PngTrns
+import dev.transmute.model.structure.image.types.PngZtxt
+import dev.transmute.model.structure.image.types.actl
+import dev.transmute.model.structure.image.types.bkgd
+import dev.transmute.model.structure.image.types.chrm
+import dev.transmute.model.structure.image.types.fctlChunks
+import dev.transmute.model.structure.image.types.gama
+import dev.transmute.model.structure.image.types.hist
+import dev.transmute.model.structure.image.types.iccp
+import dev.transmute.model.structure.image.types.ihdr
+import dev.transmute.model.structure.image.types.itxtChunks
+import dev.transmute.model.structure.image.types.phys
+import dev.transmute.model.structure.image.types.plte
+import dev.transmute.model.structure.image.types.sbit
+import dev.transmute.model.structure.image.types.spltChunks
+import dev.transmute.model.structure.image.types.srgb
+import dev.transmute.model.structure.image.types.textChunks
+import dev.transmute.model.structure.image.types.time
+import dev.transmute.model.structure.image.types.trns
+import dev.transmute.model.structure.image.types.ztxtChunks
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
@@ -24,8 +63,23 @@ data class PngUnknownChunkSummary(
     val type: String,
     /** Length of the chunk data field in bytes. */
     val length: Int,
-    /** Zero-based index into the original [PngRaw.chunks] list. */
+    /** Zero-based index into the original [dev.transmute.model.structure.image.types.PngRaw.chunks] list. */
     val chunkIndex: Int,
+)
+
+/**
+ * Ordered, JSON-safe summary of a single PNG chunk.
+ *
+ * This preserves the on-disk chunk sequence while omitting payload bytes.
+ */
+@Serializable
+data class PngChunkLayoutEntry(
+    /** Zero-based index in the original [dev.transmute.model.structure.image.types.PngRaw.chunks] list. */
+    val chunkIndex: Int,
+    /** Chunk type tag (FourCC), e.g. `IHDR`, `IDAT`, `tEXt`. */
+    val type: String,
+    /** Length of the chunk data field in bytes. */
+    val dataLength: Int,
 )
 
 // ---------------------------------------------------------------------------
@@ -35,14 +89,14 @@ data class PngUnknownChunkSummary(
 /**
  * A structured, JSON-serialisable representation of a PNG file.
  *
- * Unlike [PngRaw] - which mirrors the binary on-disk layout - this
+ * Unlike [dev.transmute.model.structure.image.types.PngRaw] - which mirrors the binary on-disk layout - this
  * class exposes all well-known chunks as typed, named fields.  Blob-heavy
  * data (IDAT compressed image data) is replaced by summary statistics
  * ([idatCount], [idatTotalBytes]).
  *
  * The [rawChunks] field is marked [@Transient] and therefore excluded from
  * JSON serialisation.  It is populated when a [PngStructure] is created from
- * a [PngRaw] via [PngRaw.toStructure], and is used by [Editor.build] to
+ * a [dev.transmute.model.structure.image.types.PngRaw] via [dev.transmute.model.structure.image.types.PngRaw.toStructure], and is used by [Editor.build] to
  * preserve original IDAT and unknown-chunk bytes during round-trip encoding.
  *
  * ### Creating and editing
@@ -97,10 +151,12 @@ data class PngStructure(
     val idatCount: Int,
     /** Total compressed image bytes across all IDAT chunks. */
     val idatTotalBytes: Long,
+    /** All chunks in file order (payload bytes excluded). */
+    val chunkLayout: List<PngChunkLayoutEntry> = emptyList(),
     /** Summaries of unrecognised / extension chunks. */
     val unknownChunks: List<PngUnknownChunkSummary> = emptyList(),
     /**
-     * Original [PngChunk] list from the source [PngRaw].
+     * Original [dev.transmute.model.structure.image.types.PngChunk] list from the source [dev.transmute.model.structure.image.types.PngRaw].
      * Excluded from JSON serialisation; required for [toRaw] / [Editor.build].
      */
     @Transient
@@ -115,7 +171,7 @@ data class PngStructure(
      * Mutable editor for a [PngStructure].
      *
      * Exposes every well-known chunk as a `var` property initialised from
-     * the source structure.  Call [build] to produce a new, immutable [PngRaw]
+     * the source structure.  Call [build] to produce a new, immutable [dev.transmute.model.structure.image.types.PngRaw]
      * with correctly computed CRCs.
      *
      * Obtain an editor via the [edit] extension function:
@@ -143,13 +199,13 @@ data class PngStructure(
         var fctl: List<PngFctl> = source.fctl
         var time: PngTime? = source.time
 
-        /** IDAT chunks extracted from the original [PngRaw] (read-only). */
+        /** IDAT chunks extracted from the original [dev.transmute.model.structure.image.types.PngRaw] (read-only). */
         private val rawIdat: List<PngIdat> = source.rawChunks
             .filter { it.type.value == "IDAT" }
             .map { PngIdat(it.data) }
 
         /**
-         * Reassemble this editor's state into a new [PngRaw] with correct
+         * Reassemble this editor's state into a new [dev.transmute.model.structure.image.types.PngRaw] with correct
          * chunk order and recomputed CRCs.
          *
          * Chunk ordering follows the PNG specification:
@@ -158,8 +214,8 @@ data class PngStructure(
          *
          * Unknown chunks from the original file are preserved in place.
          *
-         * > **Note**: IDAT bytes come from the original [PngRaw] passed to
-         * > [PngRaw.toStructure].  If this [PngStructure] was deserialised
+         * > **Note**: IDAT bytes come from the original [dev.transmute.model.structure.image.types.PngRaw] passed to
+         * > [dev.transmute.model.structure.image.types.PngRaw.toStructure].  If this [PngStructure] was deserialised
          * > from JSON (i.e. [PngStructure.rawChunks] is empty), [build] will
          * > produce a PNG with no image data - useful for metadata-only
          * > workflows but not for rendering.
@@ -352,6 +408,13 @@ fun PngRaw.toStructure(): PngStructure {
         time = time,
         idatCount = idatCount,
         idatTotalBytes = idatTotalBytes,
+        chunkLayout = chunks.mapIndexed { idx, chunk ->
+            PngChunkLayoutEntry(
+                chunkIndex = idx,
+                type = chunk.type.value,
+                dataLength = chunk.data.size,
+            )
+        },
         unknownChunks = unknownChunks,
         rawChunks = chunks,
     )

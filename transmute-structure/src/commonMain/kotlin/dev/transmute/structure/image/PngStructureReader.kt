@@ -7,8 +7,8 @@ import dev.transmute.model.core.asBytes
 import dev.transmute.model.identify.FourCC
 import dev.transmute.model.structure.StructureReadException
 import dev.transmute.model.structure.StructureReader
-import dev.transmute.model.structure.image.PngRaw
-import dev.transmute.model.structure.image.PngChunk
+import dev.transmute.model.structure.image.types.PngRaw
+import dev.transmute.model.structure.image.types.PngChunk
 import dev.transmute.structure.common.decodeAscii
 import dev.transmute.structure.common.readU32BE
 
@@ -27,18 +27,8 @@ import dev.transmute.structure.common.readU32BE
  */
 class PngStructureReader : StructureReader<PngRaw> {
 
-    override fun canRead(source: Bytes): Boolean {
-        val d = source.data
-        return d.size >= 8 &&
-            d[0] == 0x89.toByte() && d[1] == 0x50.toByte() && // \x89P
-            d[2] == 0x4E.toByte() && d[3] == 0x47.toByte() && // NG
-            d[4] == 0x0D.toByte() && d[5] == 0x0A.toByte() && // \r\n
-            d[6] == 0x1A.toByte() && d[7] == 0x0A.toByte()    // \x1a\n
-    }
-
     override fun read(source: Bytes): PngRaw {
         val d = source.data
-        if (!canRead(source)) throw StructureReadException("Not a PNG file (bad signature)")
 
         val signature = Bytes(d.copyOfRange(0, 8))
         val chunks = mutableListOf<PngChunk>()

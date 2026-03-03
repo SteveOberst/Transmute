@@ -3,7 +3,6 @@ package dev.transmute.structure.audio
 import dev.transmute.model.core.asBytes
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class OggAudioStructureReaderTest {
@@ -47,27 +46,6 @@ class OggAudioStructureReaderTest {
     }
 
     private fun minimalOggVorbis(): ByteArray = oggPage(vorbisIdPacket())
-
-    @Test
-    fun canReadAcceptsOggVorbis() {
-        assertTrue(reader.canRead(minimalOggVorbis().asBytes()))
-    }
-
-    @Test
-    fun canReadRejectsOggOpus() {
-        val opusPayload = "OpusHead".encodeToByteArray() + ByteArray(11)
-        assertFalse(reader.canRead(oggPage(opusPayload).asBytes()))
-    }
-
-    @Test
-    fun canReadRejectsGarbage() {
-        assertFalse(reader.canRead(ByteArray(64).asBytes()))
-    }
-
-    @Test
-    fun canReadRejectsTooShort() {
-        assertFalse(reader.canRead(ByteArray(10).asBytes()))
-    }
 
     @Test
     fun readParsesPages() {

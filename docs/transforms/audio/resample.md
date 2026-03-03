@@ -1,29 +1,41 @@
-# Resample
+# Audio: resample
 
-Change the sample rate of audio data.
+Resample to a different sample rate.
 
-## Parameters
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| targetSampleRate | Int | - | Desired output sample rate in Hz |
-
-## Usage
-
-### DSL
+## Factory
 
 ```kotlin
-Transmute.audio { resample(targetSampleRate = 22050) }.transmute(bytes.asBytes()).bytes.data
+Transformers.audio().resample(targetSampleRate: Int)
 ```
 
-### Pipeline
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `targetSampleRate` | `Int` | ✅ | Target sample rate in Hz (e.g. `44100`, `48000`) |
+
+## Behaviour
+
+- Uses linear interpolation for the resampled output.
+- If the source is already at `targetSampleRate`, the transform is a no-op.
+
+## DSL usage
 
 ```kotlin
-transform { add(Transformers.audio().resample(22050)) }
+val transmuter = Transmute.audio.to(AudioFormat.Wav) {
+    decode {
+        pipeline { resample(targetSampleRate = 44100) }
+    }
+}
 ```
 
-## Notes
+## Common rates
 
-- Uses linear interpolation for resampling.
-- Both upsampling and downsampling are supported.
-- No-op if the source sample rate already matches the target.
+| Value | Use case |
+|-------|----------|
+| 8000 | Telephony |
+| 22050 | Low-quality audio |
+| 44100 | CD quality |
+| 48000 | Professional / broadcast |
+
+## Related
+
+- [Transforms overview](README.md)

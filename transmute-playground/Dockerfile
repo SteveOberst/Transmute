@@ -1,4 +1,4 @@
-# ── Stage 1: Build frontend (Next.js → static export) ─────────────────────────
+# ── Stage 1: Build frontend (Next.js -> static export) ─────────────────────────
 FROM node:22-alpine AS frontend
 
 WORKDIR /app/web

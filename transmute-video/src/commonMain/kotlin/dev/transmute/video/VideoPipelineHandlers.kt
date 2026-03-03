@@ -1,5 +1,6 @@
 package dev.transmute.video
 
+import dev.transmute.io.TSource
 import dev.transmute.model.core.Bytes
 import dev.transmute.codec.OutputFormat
 import dev.transmute.common.PipelineContext
@@ -17,21 +18,22 @@ import dev.transmute.codec.pipeline.PipelineBuilder
 class VideoDecodeHandler(
   private val detector: (Bytes) -> VideoFormat = VideoFormatDetector::detect,
   private val decoders: VideoDecoderRegistry = VideoRegistries.decoders,
-) : PipelineHandler<Bytes, Decoded<VideoFormat, VideoIR>> {
+) : PipelineHandler<TSource, Decoded<VideoFormat, VideoIR>> {
 
-  override suspend fun handle(value: Bytes, context: PipelineContext): Decoded<VideoFormat, VideoIR> {
+  override suspend fun handle(value: TSource, context: PipelineContext): Decoded<VideoFormat, VideoIR> {
     VideoRegistries.installDefaultsIfEmpty()
 
+    val bytes = if (value is Bytes) value else Bytes(value.readAll())
     val options = (context.decodeOptions as? VideoDecodeOptions) ?: CanonicalVideoDecodeOptions()
     val accepted = options.acceptedInputFormats
 
-    val format = if (accepted.size == 1) accepted.first() else detector(value)
+    val format = if (accepted.size == 1) accepted.first() else detector(bytes)
     if (accepted.isNotEmpty() && format !in accepted) {
       error("Detected video format $format not in acceptedInputFormats=$accepted")
     }
 
     val decoder = decoders.decoderFor(format) ?: error("No video decoder for $format. Register a platform decoder.")
-    val ir = decoder.decode(value, options, context)
+    val ir = decoder.decode(bytes, options, context)
     return Decoded(format, ir)
   }
 }
@@ -111,7 +113,6 @@ class VideoFixedEncodeHandler<OUT : VideoFormat>(
  *
  * Format resolution uses:
  * - `acceptedInputFormats.single()` when provided, else
- * - [VideoDecoder.sniff] when available, else
  * - [VideoFormatDetector].
  */
 fun <IN> PipelineBuilder<IN, Bytes>.then(
@@ -123,7 +124,7 @@ fun <IN> PipelineBuilder<IN, Bytes>.then(
 
   val format = when {
     accepted.size == 1 -> accepted.first()
-    else -> decoder.sniff(raw) ?: detector(raw)
+    else -> detector(raw)
   }
   if (accepted.isNotEmpty() && format !in accepted) {
     error("Detected video format $format not in acceptedInputFormats=$accepted")

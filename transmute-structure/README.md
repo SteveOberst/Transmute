@@ -48,7 +48,7 @@ DefaultStructureDecoders.allImageDecoders.forEach { dec ->
     }
 }
 
-// Access the full reader list (recommended sniff order)
+// Access the full reader list (recommended priority order)
 val readers = DefaultStructureReaders.all
 ```
 

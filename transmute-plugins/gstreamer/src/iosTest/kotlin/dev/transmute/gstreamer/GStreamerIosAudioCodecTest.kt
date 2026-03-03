@@ -5,12 +5,10 @@ import dev.transmute.audio.CanonicalAudioDecodeOptions
 import dev.transmute.audio.CanonicalAudioEncodeOptions
 import dev.transmute.gstreamer.GStreamerIosTestHelpers.requireGStreamer
 import dev.transmute.gstreamer.GStreamerIosTestHelpers.testContext
-import dev.transmute.model.core.Bytes
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /**
@@ -44,23 +42,6 @@ class GStreamerIosAudioCodecTest {
     }
 
     @Test
-    fun aac_sniff_adtsSyncWord() {
-        val adts = Bytes(byteArrayOf(0xFF.toByte(), 0xF1.toByte(), 0x50, 0x80.toByte()))
-        assertEquals(AudioFormat.Aac, aac.sniff(adts))
-    }
-
-    @Test
-    fun aac_sniff_nonAac_returnsNull() {
-        val wav = Bytes(byteArrayOf(0x52, 0x49, 0x46, 0x46)) // "RIFF"
-        assertNull(aac.sniff(wav))
-    }
-
-    @Test
-    fun aac_sniff_shortData_returnsNull() {
-        assertNull(aac.sniff(Bytes(byteArrayOf(0xFF.toByte()))))
-    }
-
-    @Test
     fun aac_encodeAndDecode_roundTrip() = runTest {
         requireGStreamer {
             val ir = GStreamerIosTestHelpers.sineWave(durationMs = 500, sampleRate = 44100)
@@ -89,21 +70,6 @@ class GStreamerIosAudioCodecTest {
     }
 
     @Test
-    fun m4a_sniff_ftypM4A() {
-        val header = byteArrayOf(
-            0x00, 0x00, 0x00, 0x20,
-            0x66, 0x74, 0x79, 0x70,
-            0x4D, 0x34, 0x41, 0x20, // "M4A "
-        )
-        assertEquals(AudioFormat.M4a, m4a.sniff(Bytes(header)))
-    }
-
-    @Test
-    fun m4a_sniff_nonIsoBmff_returnsNull() {
-        assertNull(m4a.sniff(Bytes(byteArrayOf(0x00, 0x00, 0x00, 0x00, 0x00, 0x00))))
-    }
-
-    @Test
     fun m4a_encodeAndDecode_roundTrip() = runTest {
         requireGStreamer {
             val ir = GStreamerIosTestHelpers.sineWave(durationMs = 500, sampleRate = 44100)
@@ -129,22 +95,6 @@ class GStreamerIosAudioCodecTest {
     @Test
     fun opus_encodableFormats_containsOpus() {
         assertTrue(AudioFormat.Opus in opus.encodableFormats)
-    }
-
-    @Test
-    fun opus_sniff_oggOpusHead() {
-        val data = ByteArray(36)
-        data[0] = 'O'.code.toByte()
-        data[1] = 'g'.code.toByte()
-        data[2] = 'g'.code.toByte()
-        data[3] = 'S'.code.toByte()
-        "OpusHead".forEachIndexed { i, c -> data[28 + i] = c.code.toByte() }
-        assertEquals(AudioFormat.Opus, opus.sniff(Bytes(data)))
-    }
-
-    @Test
-    fun opus_sniff_nonOgg_returnsNull() {
-        assertNull(opus.sniff(Bytes(byteArrayOf(0x00, 0x01, 0x02, 0x03))))
     }
 
     @Test

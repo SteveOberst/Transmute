@@ -4,7 +4,10 @@ package dev.transmute.model.structure.video
 
 import dev.transmute.model.core.MediaStructure
 import dev.transmute.model.structure.common.FtypData
-import dev.transmute.model.structure.common.IsoBmffBoxSummary
+import dev.transmute.model.structure.common.IsoBmffBoxTree
+import dev.transmute.model.structure.common.toTree
+import dev.transmute.model.structure.video.types.Mp4Raw
+import dev.transmute.model.structure.video.types.ftyp
 import kotlinx.serialization.Serializable
 
 /**
@@ -16,21 +19,15 @@ import kotlinx.serialization.Serializable
 data class Mp4Structure(
     /** Parsed `ftyp` box (brand + compatible brands). */
     val ftyp: FtypData?,
-    /** Summary of all top-level ISO BMFF boxes. */
-    val boxes: List<IsoBmffBoxSummary>,
+    /** Full recursive ISO BMFF box hierarchy (payload bytes excluded). */
+    val boxes: List<IsoBmffBoxTree>,
 ) : MediaStructure
 
 /**
- * Parse this [Mp4Raw] into an [Mp4Structure].
+ * Parse this [dev.transmute.model.structure.video.types.Mp4Raw] into an [Mp4Structure].
  */
 fun Mp4Raw.toStructure(): Mp4Structure =
     Mp4Structure(
         ftyp = ftyp,
-        boxes = boxes.map { box ->
-            IsoBmffBoxSummary(
-                type = box.type.value,
-                dataSizeBytes = box.data.size.toLong(),
-                childTypes = box.children.map { it.type.value },
-            )
-        },
+        boxes = boxes.map { it.toTree() },
     )

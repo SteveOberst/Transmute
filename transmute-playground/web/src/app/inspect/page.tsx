@@ -9,12 +9,11 @@ import InspectPanel from '@/components/InspectPanel'
 import { uploadFile, inspectFile } from '@/lib/api'
 import { formatBytes } from '@/lib/utils'
 import { useToast } from '@/components/Toast'
-import type { FileHandle, InspectResult, MediaDomain } from '@/lib/types'
+import type { InspectResult, MediaDomain } from '@/lib/types'
 
 export default function InspectPage() {
   const [file, setFile] = useState<File | null>(null)
   const [localUrl, setLocalUrl] = useState<string | null>(null)
-  const [handle, setHandle] = useState<FileHandle | null>(null)
   const [result, setResult] = useState<InspectResult | null>(null)
   const [loading, setLoading] = useState(false)
   const toast = useToast()
@@ -36,7 +35,6 @@ export default function InspectPage() {
     setLoading(true)
     try {
       const h = await uploadFile(dropped)
-      setHandle(h)
       const insp = await inspectFile(h.handle)
       setResult(insp)
     } catch (e: unknown) {
@@ -44,11 +42,10 @@ export default function InspectPage() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [toast])
 
   const reset = useCallback(() => {
     setFile(null)
-    setHandle(null)
     setResult(null)
     if (localUrlRef.current) {
       URL.revokeObjectURL(localUrlRef.current)
@@ -108,7 +105,7 @@ export default function InspectPage() {
                     </span>
                   )}
                   {loading && (
-                    <span className="text-[#555568] ml-1 shrink-0 animate-pulse">inspecting…</span>
+                    <span className="text-[#555568] ml-1 shrink-0 animate-pulse">inspecting...</span>
                   )}
                 </div>
 
@@ -144,7 +141,7 @@ export default function InspectPage() {
                   {loading && !result && (
                     <div className="flex items-center gap-3 text-[#444456] mt-8 ml-4">
                       <div className="w-5 h-5 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin" />
-                      <span className="text-xs font-mono">Analyzing file structure…</span>
+                      <span className="text-xs font-mono">Analyzing file structure...</span>
                     </div>
                   )}
                   {result && <InspectPanel result={result} />}

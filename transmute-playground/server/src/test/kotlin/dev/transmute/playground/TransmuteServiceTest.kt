@@ -1,6 +1,7 @@
 package dev.transmute.playground
 
 import dev.transmute.gstreamer.GStreamer
+import dev.transmute.libheif.LibHeif
 import dev.transmute.playground.shared.TransformRequest
 import kotlinx.coroutines.runBlocking
 import java.io.File
@@ -108,13 +109,16 @@ class TransmuteServiceTest {
     @Test
     fun listPluginsReturnsGStreamer() {
         val plugins = service.listPlugins()
-        assertEquals(1, plugins.size)
-        assertEquals("gstreamer", plugins[0].key)
+        // The playground exposes all known built-in plugins, even if disabled
+        // or unavailable on the current machine.
+        assertTrue(plugins.size >= 2)
+        assertTrue(plugins.any { it.key == GStreamer.key.id })
+        assertTrue(plugins.any { it.key == LibHeif.key.id })
     }
 
     @Test
     fun gStreamerIsDisabledWhenInInitiallyDisabledPlugins() {
-        val gstreamer = service.listPlugins().first { it.key == "gstreamer" }
+        val gstreamer = service.listPlugins().first { it.key == GStreamer.key.id }
         assertEquals(false, gstreamer.enabled)
     }
 
@@ -125,7 +129,7 @@ class TransmuteServiceTest {
 
     @Test
     fun getPluginReturnsGStreamer() {
-        assertNotNull(service.getPlugin("gstreamer"))
+        assertNotNull(service.getPlugin(GStreamer.key.id))
     }
 
     // -- Transform execution validation ----------------------------------------

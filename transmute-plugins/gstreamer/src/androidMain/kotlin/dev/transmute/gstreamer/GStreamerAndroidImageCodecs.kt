@@ -7,6 +7,7 @@ import dev.transmute.image.ImageEncodeOptions
 import dev.transmute.image.ImageEncoder
 import dev.transmute.image.ImageFormat
 import dev.transmute.image.ImageIR
+import dev.transmute.io.TSource
 import dev.transmute.model.core.Bytes
 
 // ---------------------------------------------------------------------------
@@ -22,13 +23,14 @@ internal class GstAndroidImageDecoder : ImageDecoder {
         ImageFormat.Avif,
     )
 
-    override fun sniff(data: Bytes): ImageFormat? = GStreamerSniff.sniffImage(data)
-
     override suspend fun decode(
-        source: Bytes,
+        source: TSource,
         options: ImageDecodeOptions,
         context: PipelineContext,
-    ): ImageIR = GStreamerAndroidImageEngine.decode(source, options, context)
+    ): ImageIR {
+        val bytes = if (source is Bytes) source else Bytes(source.readAll())
+        return GStreamerAndroidImageEngine.decode(bytes, options, context)
+    }
 }
 
 internal class GstAndroidImageEncoder : ImageEncoder {

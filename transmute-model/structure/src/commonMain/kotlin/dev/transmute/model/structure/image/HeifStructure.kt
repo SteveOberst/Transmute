@@ -4,7 +4,10 @@ package dev.transmute.model.structure.image
 
 import dev.transmute.model.core.MediaStructure
 import dev.transmute.model.structure.common.FtypData
-import dev.transmute.model.structure.common.IsoBmffBoxSummary
+import dev.transmute.model.structure.common.IsoBmffBoxTree
+import dev.transmute.model.structure.common.toTree
+import dev.transmute.model.structure.image.types.HeifRaw
+import dev.transmute.model.structure.image.types.ftyp
 import kotlinx.serialization.Serializable
 
 /**
@@ -16,21 +19,15 @@ import kotlinx.serialization.Serializable
 data class HeifStructure(
     /** Parsed `ftyp` box (brand + compatible brands). */
     val ftyp: FtypData?,
-    /** Summary of all top-level ISO BMFF boxes. */
-    val boxes: List<IsoBmffBoxSummary>,
+    /** Full recursive ISO BMFF box hierarchy (payload bytes excluded). */
+    val boxes: List<IsoBmffBoxTree>,
 ) : MediaStructure
 
 /**
- * Parse this [HeifRaw] into a [HeifStructure].
+ * Parse this [dev.transmute.model.structure.image.types.HeifRaw] into a [HeifStructure].
  */
 fun HeifRaw.toStructure(): HeifStructure =
     HeifStructure(
         ftyp = ftyp,
-        boxes = boxes.map { box ->
-            IsoBmffBoxSummary(
-                type = box.type.value,
-                dataSizeBytes = box.data.size.toLong(),
-                childTypes = box.children.map { it.type.value },
-            )
-        },
+        boxes = boxes.map { it.toTree() },
     )

@@ -9,27 +9,35 @@ import java.nio.file.StandardCopyOption
  * Extracts and manages bundled GStreamer binaries on Desktop/JVM.
  *
  * On first use, GStreamer CLI tools and required plugins are extracted from
- * JAR resources to a persistent cache directory under the user's home.
+ * JAR classpath resources to a persistent cache directory under the user's home.
  * Subsequent uses reuse the cached extraction.
  *
  * The cache directory is `~/.transmute/gstreamer/<version>/`.
  *
- * ### Resource layout
+ * ### Resource layout (staged at build time)
  *
- * Bundled GStreamer resources are expected under:
+ * Before building a distribution, run:
  * ```
+ * ./gradlew :transmute-plugins:gstreamer:stageGStreamerDesktop
+ * ```
+ * This downloads the official GStreamer release and stages the binaries into
+ * `build/gstreamer-desktop/`, which is wired as a `desktopMain` resource root.
+ * The resulting classpath layout expected by this extractor is:
+ * ```
+ * /gstreamer/<platform>/manifest.txt
  * /gstreamer/<platform>/bin/gst-launch-1.0[.exe]
  * /gstreamer/<platform>/bin/gst-inspect-1.0[.exe]
  * /gstreamer/<platform>/lib/...
  * ```
  *
  * Where `<platform>` is `linux-x86_64`, `windows-x86_64`, or `macos-x86_64` /
- * `macos-aarch64`.
+ * `macos-aarch64`. Linux is not bundled; GStreamer must be installed via the
+ * system package manager on Linux.
  */
 internal object GStreamerBundleExtractor {
 
-    /** Version marker - change when bundled GStreamer binaries are updated. */
-    private const val BUNDLE_VERSION = "1.24.0"
+    /** Version marker - must match GSTREAMER_VERSION used by stageGStreamerDesktop. */
+    private const val BUNDLE_VERSION = "1.26.4"
 
     private val cacheDir: File by lazy {
         val home = System.getProperty("user.home")
@@ -63,9 +71,9 @@ internal object GStreamerBundleExtractor {
             return binDir
         }
 
-        diag.appendLine("[GStreamer] Bundled: binary not cached, attempting JAR resource extraction…")
+        diag.appendLine("[GStreamer] Bundled: binary not cached, attempting JAR resource extraction...")
         return if (extractBundle(platform, cacheDir, diag)) {
-            diag.appendLine("[GStreamer] Bundled: extraction complete → ${binDir.absolutePath}")
+            diag.appendLine("[GStreamer] Bundled: extraction complete -> ${binDir.absolutePath}")
             binDir
         } else {
             null

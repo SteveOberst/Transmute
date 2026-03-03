@@ -1,43 +1,49 @@
 # PNG
 
-PNG (Portable Network Graphics) is a lossless image format that supports transparency (alpha channel). Best for graphics, screenshots, and images requiring pixel-perfect fidelity.
+| Property | Value |
+|----------|-------|
+| Constant | `ImageFormat.Png` |
+| MIME type | `image/png` |
+| Extension | `png` |
+| Container | PNG chunks |
 
-## Platform Support
+## Platform availability
 
-| Platform | Decode | Encode | Engine |
-|----------|--------|--------|--------|
-| Android  | ✅     | ✅     | BitmapFactory / Bitmap.compress |
-| Desktop  | ✅     | ✅     | ImageIO (javax.imageio) |
-| iOS      | ✅     | ✅     | CoreGraphics (CGImage) |
+| Platform | Decode | Encode |
+|----------|--------|--------|
+| Android  | ✓ | ✓ |
+| Desktop  | ✓ | ✓ |
+| iOS      | ✓ | ✓ |
 
-## Usage
-
-```kotlin
-suspend fun convertToPng(inputBytes: ByteArray): ByteArray =
-  Transmute.image {
-    encode { options(PngEncodeOptions()) }
-  }.transmute(inputBytes.asBytes()).bytes.data
-```
-
-## Structure Reading
-
-PNG files can be parsed into a `Png` structure that mirrors the on-disk chunk layout:
+## Encode options
 
 ```kotlin
-val png: Png = Transmute.structure.read(pngBytes.asBytes(), ImageFormat.Png)
-
-// Access chunks (IHDR, PLTE, IDAT, IEND, ...)
-val chunks = png.chunks // List<PngChunk>
-
-// Round-trip
-val raw = Transmute.structure.write(png)
+PngEncodeOptions(
+    compressionLevel: Int = 6,       // 0 (no compression) – 9 (max compression)
+    metadataPolicy: MetadataPolicy = STRIP_ALL,
+)
 ```
 
-The reader validates the 8-byte PNG signature and parses each chunk (length, type, data, CRC). See `docs/structures.md`.
+Usage:
 
-## Notes
+```kotlin
+Transmute.image.to(ImageFormat.Png) {
+    encode { options(PngEncodeOptions(compressionLevel = 9)) }
+}.transmute(source)
+```
 
-- Lossless compression - no quality degradation on re-encode.
-- Supports full alpha transparency (RGBA).
-- File sizes are typically larger than JPEG for photographic content.
-- Universally supported across all platforms with no additional dependencies.
+## Metadata support
+
+PNG files may carry: `PngTextMetadata`, `XmpMetadata`.
+
+## Structure support
+
+| Type | Description |
+|------|-------------|
+| `PngStructure` | IHDR, IDAT, PLTE, and all named chunks |
+
+```kotlin
+val s = Transmute.inspect.structure(bytes, ImageFormat.Png) as PngStructure?
+println("Width:  ${s?.ihdr?.width}")
+println("Height: ${s?.ihdr?.height}")
+```

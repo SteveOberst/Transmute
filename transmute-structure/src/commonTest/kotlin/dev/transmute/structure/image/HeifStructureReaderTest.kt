@@ -3,7 +3,6 @@ package dev.transmute.structure.image
 import dev.transmute.model.core.asBytes
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class HeifStructureReaderTest {
@@ -21,31 +20,6 @@ class HeifStructureReaderTest {
         brand.encodeToByteArray().copyInto(out, 8)
         // minor version = 0 (already zero)
         return out
-    }
-
-    @Test
-    fun canReadAcceptsHeic() {
-        assertTrue(reader.canRead(ftypFile("heic").asBytes()))
-    }
-
-    @Test
-    fun canReadAcceptsMif1() {
-        assertTrue(reader.canRead(ftypFile("mif1").asBytes()))
-    }
-
-    @Test
-    fun canReadRejectsIsom() {
-        assertFalse(reader.canRead(ftypFile("isom").asBytes()))
-    }
-
-    @Test
-    fun canReadRejectsGarbage() {
-        assertFalse(reader.canRead(ByteArray(16).asBytes()))
-    }
-
-    @Test
-    fun canReadRejectsTooShort() {
-        assertFalse(reader.canRead(ByteArray(6).asBytes()))
     }
 
     @Test

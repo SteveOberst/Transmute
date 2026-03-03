@@ -3,6 +3,7 @@ package dev.transmute.audio.codecs.jvm
 import com.jcraft.jorbis.VorbisFile
 import com.jcraft.jorbis.VorbisFileAccess
 import de.sciss.jump3r.lowlevel.LameEncoder
+import dev.transmute.io.TSource
 import dev.transmute.audio.AudioCodec
 import dev.transmute.audio.AudioDecodeOptions
 import dev.transmute.audio.AudioEncodeOptions
@@ -38,35 +39,16 @@ class JvmMp3Codec : AudioCodec {
   override val decodableFormats: Set<AudioFormat> = setOf(AudioFormat.Mp3)
   override val encodableFormats: Set<AudioFormat> = setOf(AudioFormat.Mp3)
 
-  override fun sniff(data: Bytes): AudioFormat? {
-    val bytes = data.data
-    if (bytes.size < 3) return null
-    // ID3v2 tag header
-    if (bytes[0] == 0x49.toByte() && bytes[1] == 0x44.toByte() && bytes[2] == 0x33.toByte()) {
-      return AudioFormat.Mp3
-    }
-    // MPEG audio frame sync word (first 11 bits set).
-    // Exclude layer==00 which is AAC ADTS, not MP3.
-    if (bytes.size >= 2) {
-      val b0 = bytes[0].toInt() and 0xFF
-      val b1 = bytes[1].toInt() and 0xFF
-      if (b0 == 0xFF && (b1 and 0xE0) == 0xE0) {
-        val layer = (b1 shr 1) and 0x03
-        if (layer != 0) return AudioFormat.Mp3
-      }
-    }
-    return null
-  }
-
-  override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: PipelineContext): AudioIR {
+  override suspend fun decode(source: TSource, options: AudioDecodeOptions, context: PipelineContext): AudioIR {
     requireNoDecodeRange(options, "JvmMp3Codec")
-    val bitstream = Bitstream(ByteArrayInputStream(source.data))
+    val sourceData = source.readAll()
+    val bitstream = Bitstream(ByteArrayInputStream(sourceData))
     val decoder = Decoder()
 
     var sampleRate = 0
     var channels = 0
 
-    val floats = ArrayList<Float>(source.size) // heuristic
+    val floats = ArrayList<Float>(sourceData.size) // heuristic
 
     try {
       while (true) {
@@ -164,21 +146,9 @@ class JvmFlacCodec : AudioCodec {
   override val decodableFormats: Set<AudioFormat> = setOf(AudioFormat.Flac)
   override val encodableFormats: Set<AudioFormat> = emptySet()
 
-  override fun sniff(data: Bytes): AudioFormat? {
-    val bytes = data.data
-    if (bytes.size < 4) return null
-    // FLAC stream marker: "fLaC" (0x664C6143)
-    if (bytes[0] == 0x66.toByte() && bytes[1] == 0x4C.toByte() &&
-      bytes[2] == 0x61.toByte() && bytes[3] == 0x43.toByte()
-    ) {
-      return AudioFormat.Flac
-    }
-    return null
-  }
-
-  override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: PipelineContext): AudioIR {
+  override suspend fun decode(source: TSource, options: AudioDecodeOptions, context: PipelineContext): AudioIR {
     requireNoDecodeRange(options, "JvmFlacCodec")
-    val decoder = FLACDecoder(ByteArrayInputStream(source.data))
+    val decoder = FLACDecoder(ByteArrayInputStream(source.readAll()))
 
     var sampleRate = 0
     var channels = 0
@@ -262,32 +232,10 @@ class JvmOggVorbisCodec : AudioCodec {
   override val decodableFormats: Set<AudioFormat> = setOf(AudioFormat.Ogg)
   override val encodableFormats: Set<AudioFormat> = emptySet()
 
-  override fun sniff(data: Bytes): AudioFormat? {
-    val bytes = data.data
-    if (bytes.size < 4) return null
-    // OGG container magic: "OggS"
-    if (bytes[0] != 0x4F.toByte() || bytes[1] != 0x67.toByte() ||
-      bytes[2] != 0x67.toByte() || bytes[3] != 0x53.toByte()
-    ) return null
-    // With enough data, confirm Vorbis identification header (type 0x01 + "vorbis").
-    if (bytes.size >= 35) {
-      if (bytes[28] == 0x01.toByte() &&
-        bytes[29] == 0x76.toByte() && bytes[30] == 0x6F.toByte() &&
-        bytes[31] == 0x72.toByte() && bytes[32] == 0x62.toByte() &&
-        bytes[33] == 0x69.toByte() && bytes[34] == 0x73.toByte()
-      ) {
-        return AudioFormat.Ogg
-      }
-      // Enough data but no Vorbis header - might be Opus or another OGG codec.
-      return null
-    }
-    // Short OGG header (can't determine inner codec) - report as OGG container.
-    return AudioFormat.Ogg
-  }
-
-  override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: PipelineContext): AudioIR {
+  override suspend fun decode(source: TSource, options: AudioDecodeOptions, context: PipelineContext): AudioIR {
     requireNoDecodeRange(options, "JvmOggVorbisCodec")
-    val vorbis = VorbisFile(ByteArrayInputStream(source.data), ByteArray(0), 0)
+    val sourceData = source.readAll()
+    val vorbis = VorbisFile(ByteArrayInputStream(sourceData), ByteArray(0), 0)
 
     val info = vorbis.getInfo(0)
       ?: error("OGG/Vorbis: stream info not available (file may be malformed or unsupported encoder)")
@@ -297,7 +245,7 @@ class JvmOggVorbisCodec : AudioCodec {
     val pcmBytes = ByteArray(8192)
     val bitstream = IntArray(1)
 
-    val floats = ArrayList<Float>(source.size) // heuristic
+    val floats = ArrayList<Float>(sourceData.size) // heuristic
 
     try {
       while (true) {

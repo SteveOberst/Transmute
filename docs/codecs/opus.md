@@ -1,45 +1,74 @@
-# OPUS
+# Opus
 
-Opus is a modern audio codec optimized for interactive speech and music over the internet. It delivers excellent quality across a wide range of bitrates and is widely used in VoIP and streaming.
+`AudioFormat.Opus` — Opus Interactive Audio Codec
 
-## Platform Support
+| Property | Value |
+|----------|-------|
+| Enum value | `AudioFormat.Opus` |
+| MIME type | `audio/opus` |
+| Extension | `.opus` |
+| Container | Ogg |
+| Metadata | `VorbisCommentMetadata` |
+| Structure | `OpusStructure` |
 
-| Platform | Decode | Encode | Engine |
-|----------|--------|--------|--------|
-| Android  | ✅     | ✅     | MediaCodec |
-| Desktop  | ✅     | ✅     | GStreamer (requires `transmute-gstreamer`) |
-| iOS      | ✅     | ❌     | AVFoundation (decode only) |
+## Platform support
 
-## Usage
+| Platform | Decode | Encode |
+|----------|--------|--------|
+| Android | ✅ built-in (decode); ⚠️ encode requires hardware | ✅ (hardware dependent) |
+| Desktop (JVM) | ⚠️ GStreamer plugin | ⚠️ GStreamer plugin |
+| iOS | ⚠️ GStreamer plugin | ⚠️ GStreamer plugin |
 
-```kotlin
-// Convert audio to OPUS (Android/Desktop)
-suspend fun convertToOpus(inputBytes: ByteArray): ByteArray =
-  Transmute.audio {
-    encode { options { outputFormat = OutputFormat.Exact(AudioFormat.Opus) } }
-  }.transmute(inputBytes.asBytes()).bytes.data
+On Desktop and iOS, Opus requires the [GStreamer plugin](../plugins.md). On Android, decoding is always available; encoding depends on device hardware support.
 
-// Decode OPUS on any platform (re-encode to WAV)
-suspend fun decodeToWav(opusBytes: ByteArray): ByteArray =
-  Transmute.audio {
-    encode { options { outputFormat = OutputFormat.Exact(AudioFormat.Wav) } }
-  }.transmute(opusBytes.asBytes()).bytes.data
-```
-
-## Structure Reading
-
-Opus files can be parsed into an `Opus` structure that mirrors the Ogg container for Opus bitstreams:
+## Plugin setup
 
 ```kotlin
-val opus: Opus = Transmute.structure.read(opusBytes.asBytes(), AudioFormat.Opus)
-
-// Round-trip
-val raw = Transmute.structure.write(opus)
+val transmute = Transmute {
+    plugins {
+        install(GStreamerPlugin) {
+            domains(MediaDomain.AUDIO)
+        }
+    }
+}
 ```
 
-The reader validates the Ogg page capture pattern and the `OpusHead` / `OpusTags` identification
-packets on the first page. See `docs/structures.md`.
+## Encode options
+
+Opus uses `CanonicalAudioEncodeOptions` — there are currently no format-specific encoding knobs (bitrate, application mode, etc.).
+
+```kotlin
+encode {
+    options {
+        metadataPolicy = MetadataPolicy.PRESERVE   // default: STRIP_ALL
+        outputFormat   = OutputFormat.Exact(AudioFormat.Opus)
+    }
+}
+```
+
+## Basic usage
+
+```kotlin
+val transmuter = Transmute.audio.to(AudioFormat.Opus)
+val opusBytes = transmuter.transmute(inputBytes)
+```
+
+## Inspection
+
+```kotlin
+val structure  = Transmute.inspect.structure(opusBytes)  // OpusStructure
+val inspection = Transmute.inspect.inspect(opusBytes)
+// VorbisCommentMetadata carries ARTIST, ALBUM, TITLE, etc.
+```
 
 ## Notes
-- Great for speech, music, and mixed content.
-- Desktop requires the optional `transmute-gstreamer` module with GStreamer installed.
+
+- Opus is a modern, low-latency codec particularly well suited for voice and real-time audio.
+- The Ogg container carries Vorbis comment metadata in the same way as `.ogg` (Vorbis) files.
+
+## Related
+
+- [Codec API](../codec.md)
+- [Plugins](../plugins.md)
+- [OGG](ogg.md)
+- [Structures](../structures.md)

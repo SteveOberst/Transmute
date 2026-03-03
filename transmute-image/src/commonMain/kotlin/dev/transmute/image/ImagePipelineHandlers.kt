@@ -1,5 +1,6 @@
 package dev.transmute.image
 
+import dev.transmute.io.TSource
 import dev.transmute.model.core.Bytes
 import dev.transmute.codec.OutputFormat
 import dev.transmute.codec.resolve
@@ -18,21 +19,22 @@ import dev.transmute.codec.pipeline.PipelineBuilder
 class ImageDecodeHandler(
   private val detector: (Bytes) -> ImageFormat = ImageFormatDetector::detect,
   private val decoders: ImageDecoderRegistry = ImageRegistries.decoders,
-) : PipelineHandler<Bytes, Decoded<ImageFormat, ImageIR>> {
+) : PipelineHandler<TSource, Decoded<ImageFormat, ImageIR>> {
 
-  override suspend fun handle(value: Bytes, context: PipelineContext): Decoded<ImageFormat, ImageIR> {
+  override suspend fun handle(value: TSource, context: PipelineContext): Decoded<ImageFormat, ImageIR> {
     ImageRegistries.installDefaultsIfEmpty()
 
+    val bytes = if (value is Bytes) value else Bytes(value.readAll())
     val options = (context.decodeOptions as? ImageDecodeOptions) ?: CanonicalImageDecodeOptions()
     val accepted = options.acceptedInputFormats
 
-    val format = if (accepted.size == 1) accepted.first() else detector(value)
+    val format = if (accepted.size == 1) accepted.first() else detector(bytes)
     if (accepted.isNotEmpty() && format !in accepted) {
       error("Detected image format $format not in acceptedInputFormats=$accepted")
     }
 
     val decoder = decoders.decoderFor(format) ?: error("No image decoder for $format")
-    val ir = decoder.decode(value, options, context)
+    val ir = decoder.decode(bytes, options, context)
     return Decoded(format, ir)
   }
 }
@@ -119,7 +121,6 @@ class ImageFixedEncodeHandler<OUT : ImageFormat>(
  * The decoder is expected to support the resolved input format.
  * Format resolution uses:
  * - `acceptedInputFormats.single()` when provided, else
- * - [ImageDecoder.sniff] when available, else
  * - [ImageFormatDetector].
  */
 fun <IN> PipelineBuilder<IN, Bytes>.then(
@@ -131,7 +132,7 @@ fun <IN> PipelineBuilder<IN, Bytes>.then(
 
   val format = when {
     accepted.size == 1 -> accepted.first()
-    else -> decoder.sniff(raw) ?: detector(raw)
+    else -> detector(raw)
   }
   if (accepted.isNotEmpty() && format !in accepted) {
     error("Detected image format $format not in acceptedInputFormats=$accepted")

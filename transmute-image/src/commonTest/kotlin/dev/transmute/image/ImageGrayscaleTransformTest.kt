@@ -45,7 +45,7 @@ class ImageGrayscaleTransformTest {
     val result = transform.apply(input, context)
 
     val p = pixelAt(result, 5, 5)
-    assertTrue(p[0] in 53..55, "R→grey should be ~54, got ${p[0]}")
+    assertTrue(p[0] in 53..55, "R->grey should be ~54, got ${p[0]}")
     assertEquals(p[0], p[1], "All channels should be equal for grey")
     assertEquals(p[1], p[2])
   }
@@ -57,7 +57,7 @@ class ImageGrayscaleTransformTest {
     val result = transform.apply(input, context)
 
     val p = pixelAt(result, 5, 5)
-    assertTrue(p[0] in 181..183, "G→grey should be ~182, got ${p[0]}")
+    assertTrue(p[0] in 181..183, "G->grey should be ~182, got ${p[0]}")
     assertEquals(p[0], p[1])
     assertEquals(p[1], p[2])
   }

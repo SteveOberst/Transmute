@@ -5,7 +5,49 @@ package dev.transmute.structure.common
 import dev.transmute.model.core.Bytes
 import dev.transmute.model.core.asBytes
 import dev.transmute.model.identify.RiffChunkId
+import dev.transmute.model.structure.StructureReadException
 import dev.transmute.model.structure.common.RiffChunk
+
+/**
+ * Parse a complete RIFF container (e.g. WAV, AVI, WebP) with validation.
+ *
+ * Validates the file size, RIFF magic, and expected form type before
+ * parsing sub-chunks.  Shared by all RIFF-based readers.
+ *
+ * @param data             raw file bytes
+ * @param expectedFormType the 4-byte form type code to expect (e.g. "WAVE", "AVI ")
+ * @param formatName       human-readable name for error messages (e.g. "WAV", "AVI")
+ * @return a [RiffChunk] representing the top-level RIFF container
+ * @throws StructureReadException on invalid/mismatched data
+ */
+fun parseRiffContainer(
+    data: ByteArray,
+    expectedFormType: String,
+    formatName: String,
+): RiffChunk {
+    if (data.size < 12) throw StructureReadException("$formatName file too small (${data.size} bytes)")
+
+    val riffId = data.decodeAscii(0, 4)
+    if (riffId != "RIFF") throw StructureReadException("Not a RIFF file: got '$riffId'")
+
+    val fileSize = data.readU32LE(4)
+    val formType = data.decodeAscii(8, 4)
+    if (formType != expectedFormType) throw StructureReadException(
+        "Not a $formatName file: form type '$formType'"
+    )
+
+    val children = data.parseRiffChildren(
+        offset = 12,
+        end = minOf(8 + fileSize.toInt(), data.size),
+    )
+
+    return RiffChunk(
+        id = RiffChunkId("RIFF"),
+        size = fileSize,
+        formType = RiffChunkId(expectedFormType),
+        children = children,
+    )
+}
 
 /**
  * Parse sub-chunks within a RIFF/LIST container.
@@ -282,6 +324,9 @@ private val EBML_MASTER_IDS = setOf(
     0x61A7L,     // Attached file
     0x6924L,     // ChapterTranslate
     0x6944L,     // ChapProcess
+    0x7373L,     // Tag
+    0x63C0L,     // Targets
+    0x67C8L,     // SimpleTag
 )
 
 // --- Byte helpers ---

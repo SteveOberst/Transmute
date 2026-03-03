@@ -3,39 +3,38 @@
 package dev.transmute.model.structure.image
 
 import dev.transmute.model.core.MediaStructure
+import dev.transmute.model.structure.image.types.BmpColorEntry
+import dev.transmute.model.structure.image.types.BmpDibHeader
+import dev.transmute.model.structure.image.types.BmpFileHeader
+import dev.transmute.model.structure.image.types.BmpRaw
 import kotlinx.serialization.Serializable
 
 /**
- * Structured, JSON-safe representation of a BMP file.
+ * Structured representation of a BMP file, mirroring the on-disk layout.
  *
- * Raw pixel data is excluded; image geometry and encoding parameters
- * from the file and DIB headers are captured.
+ * ```
+ * | BmpFileHeader (14 B) | BmpDibHeader (40+ B) | Colour Table | Pixel Data |
+ * ```
+ *
+ * Pixel data is excluded to keep the structure serialisable;
+ * [dev.transmute.model.structure.image.types.BmpRaw.pixelData] retains the raw pixels.
  */
 @Serializable
 data class BmpStructure(
-    /** Image width in pixels (absolute value). */
-    val widthPixels: Int,
-    /** Image height in pixels (absolute value). */
-    val heightPixels: Int,
-    /** Bits per pixel (colour depth). */
-    val bitsPerPixel: Int,
-    /** Compression method. */
-    val compression: BmpCompression?,
-    /** `true` if pixels are stored top-down (negative height in DIB header). */
-    val isTopDown: Boolean,
-    /** Total file size in bytes from the file header. */
-    val fileSizeBytes: Long,
+    /** 14-byte file header (signature, file size, reserved fields, pixel-data offset). */
+    val fileHeader: BmpFileHeader,
+    /** DIB (info) header - `BITMAPINFOHEADER` or a larger variant (40-124 bytes). */
+    val dibHeader: BmpDibHeader,
+    /** Colour table entries - populated when bits-per-pixel <= 8; empty otherwise. */
+    val colorTable: List<BmpColorEntry>,
 ) : MediaStructure
 
 /**
- * Parse this [BmpRaw] into a [BmpStructure].
+ * Parse this [dev.transmute.model.structure.image.types.BmpRaw] into a [BmpStructure].
  */
 fun BmpRaw.toStructure(): BmpStructure =
     BmpStructure(
-        widthPixels = width.value,
-        heightPixels = height.value,
-        bitsPerPixel = bitsPerPixel,
-        compression = compression,
-        isTopDown = isTopDown,
-        fileSizeBytes = fileHeader.fileSize.toLong(),
+        fileHeader = fileHeader,
+        dibHeader = dibHeader,
+        colorTable = colorTable,
     )

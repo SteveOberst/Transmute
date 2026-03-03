@@ -3,7 +3,6 @@ package dev.transmute.structure.image
 import dev.transmute.model.core.asBytes
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class AvifStructureReaderTest {
@@ -19,26 +18,6 @@ class AvifStructureReaderTest {
         "ftyp".encodeToByteArray().copyInto(out, 4)
         brand.encodeToByteArray().copyInto(out, 8)
         return out
-    }
-
-    @Test
-    fun canReadAcceptsAvif() {
-        assertTrue(reader.canRead(ftypFile("avif").asBytes()))
-    }
-
-    @Test
-    fun canReadAcceptsAvis() {
-        assertTrue(reader.canRead(ftypFile("avis").asBytes()))
-    }
-
-    @Test
-    fun canReadRejectsHeic() {
-        assertFalse(reader.canRead(ftypFile("heic").asBytes()))
-    }
-
-    @Test
-    fun canReadRejectsGarbage() {
-        assertFalse(reader.canRead(ByteArray(16).asBytes()))
     }
 
     @Test

@@ -7,6 +7,7 @@ import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import io.ktor.server.plugins.*
 import io.ktor.server.plugins.calllogging.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
@@ -15,6 +16,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.http.content.*
 import io.ktor.server.websocket.*
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import org.slf4j.LoggerFactory
 import java.io.File
@@ -41,6 +43,8 @@ fun Application.configureServer(service: TransmuteService = TransmuteService()) 
             prettyPrint = false
             encodeDefaults = true
             ignoreUnknownKeys = true
+            explicitNulls = false
+            coerceInputValues = true
         })
     }
 
@@ -71,6 +75,31 @@ fun Application.configureServer(service: TransmuteService = TransmuteService()) 
 
     // -- Status Pages (global error handler) -----------------------------------
     install(StatusPages) {
+        exception<BadRequestException> { call, cause ->
+            // Common during live-preview while the user is still typing.
+            logger.debug("Bad request: ${cause.message}")
+            call.respond(
+                HttpStatusCode.BadRequest,
+                mapOf("error" to (cause.message ?: "Bad request")),
+            )
+        }
+
+        exception<io.ktor.serialization.JsonConvertException> { call, cause ->
+            logger.debug("JSON conversion failed: ${cause.message}")
+            call.respond(
+                HttpStatusCode.BadRequest,
+                mapOf("error" to (cause.message ?: "Invalid JSON")),
+            )
+        }
+
+        exception<SerializationException> { call, cause ->
+            logger.debug("Serialization failed: ${cause.message}")
+            call.respond(
+                HttpStatusCode.BadRequest,
+                mapOf("error" to (cause.message ?: "Invalid request")),
+            )
+        }
+
         exception<Throwable> { call, cause ->
             logger.error("Unhandled exception", cause)
             call.respond(

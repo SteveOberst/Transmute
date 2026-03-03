@@ -32,6 +32,8 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api(project(":transmute-model:core"))
+            api(project(":transmute-filesystem:core"))
+            implementation(libs.kotlinx.coroutines.core)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

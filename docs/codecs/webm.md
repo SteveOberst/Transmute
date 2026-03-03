@@ -1,45 +1,69 @@
 # WebM
 
-WebM is an open video container format often containing VP8/VP9 video and Opus/Vorbis audio. It's widely used on the web and in open ecosystems.
+`VideoFormat.Webm` — WebM
 
-## Platform Support
+| Property | Value |
+|----------|-------|
+| Enum value | `VideoFormat.Webm` |
+| MIME type | `video/webm` |
+| Extension | `.webm` |
+| Container | EBML (Matroska variant) |
+| Metadata | `MatroskaTagMetadata` |
+| Structure | `WebmStructure` |
 
-| Platform | Decode | Encode | Engine |
-|----------|--------|--------|--------|
-| Android  | ✅     | ✅     | MediaCodec |
-| Desktop  | ✅     | ✅     | GStreamer (requires `transmute-gstreamer`) |
-| iOS      | ✅     | ❌     | AVFoundation (decode only) |
+## Platform support
 
-## Usage
+| Platform | Decode | Encode |
+|----------|--------|--------|
+| Android | ✅ built-in (MediaCodec, VP8/VP9) | ✅ built-in |
+| Desktop (JVM) | ⚠️ GStreamer plugin | ⚠️ GStreamer plugin |
+| iOS | ⚠️ GStreamer plugin | ⚠️ GStreamer plugin |
 
-```kotlin
-// Convert video to WebM (Android/Desktop)
-suspend fun convertToWebm(inputBytes: ByteArray): ByteArray =
-  Transmute.video {
-    encode { options { outputFormat = OutputFormat.Exact(VideoFormat.Webm) } }
-  }.transmute(inputBytes.asBytes()).bytes.data
+On Desktop and iOS, WebM requires the [GStreamer plugin](../plugins.md).
 
-// Decode WebM (re-encode to MP4)
-suspend fun convertToMp4(webmBytes: ByteArray): ByteArray =
-  Transmute.video {
-    encode { options { outputFormat = OutputFormat.Exact(VideoFormat.Mp4) } }
-  }.transmute(webmBytes.asBytes()).bytes.data
-```
-
-## Structure Reading
-
-WebM files can be parsed into a `Webm` structure that mirrors the EBML element hierarchy:
+## Plugin setup
 
 ```kotlin
-val webm: Webm = Transmute.structure.read(webmBytes.asBytes(), VideoFormat.Webm)
-
-// Round-trip
-val raw = Transmute.structure.write(webm)
+val transmute = Transmute {
+    plugins {
+        install(GStreamerPlugin) {
+            domains(MediaDomain.VIDEO)
+        }
+    }
+}
 ```
 
-The reader validates the EBML header (magic `0x1A 0x45 0xDF 0xA3`), then walks Segment, SeekHead,
-Info, Tracks, and Cluster elements. See `docs/structures.md`.
+## Encode options
 
-## Notes
-- iOS can decode WebM (via platform support) but cannot encode to it.
-- Desktop requires the optional `transmute-gstreamer` module with GStreamer installed.
+WebM uses `CanonicalVideoEncodeOptions` — there are currently no format-specific encoding knobs.
+
+```kotlin
+encode {
+    options {
+        metadataPolicy = MetadataPolicy.PRESERVE   // default: STRIP_ALL
+        outputFormat   = OutputFormat.Exact(VideoFormat.Webm)
+    }
+}
+```
+
+## Basic usage
+
+```kotlin
+val transmuter = Transmute.video.to(VideoFormat.Webm)
+val webmBytes = transmuter.transmute(inputBytes)
+```
+
+## Inspection
+
+```kotlin
+val structure  = Transmute.inspect.structure(webmBytes)  // WebmStructure
+val inspection = Transmute.inspect.inspect(webmBytes)
+// MatroskaTagMetadata carries Matroska-style tags
+```
+
+## Related
+
+- [Codec API](../codec.md)
+- [Plugins](../plugins.md)
+- [MKV](mkv.md) — same EBML container family
+- [Video transforms](../transforms/README.md)

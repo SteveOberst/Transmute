@@ -3,7 +3,6 @@ package dev.transmute.structure.video
 import dev.transmute.model.core.asBytes
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class WebmStructureReaderTest {
@@ -33,26 +32,6 @@ class WebmStructureReaderTest {
             (0x80 or ebmlHeaderBody.size).toByte(),     // size as 1-byte VINT
         ) + ebmlHeaderBody
         return ebmlHeader
-    }
-
-    @Test
-    fun canReadAcceptsWebm() {
-        assertTrue(reader.canRead(ebmlFile("webm").asBytes()))
-    }
-
-    @Test
-    fun canReadRejectsMatroska() {
-        assertFalse(reader.canRead(ebmlFile("matroska").asBytes()))
-    }
-
-    @Test
-    fun canReadRejectsGarbage() {
-        assertFalse(reader.canRead(ByteArray(16).asBytes()))
-    }
-
-    @Test
-    fun canReadRejectsTooShort() {
-        assertFalse(reader.canRead(ByteArray(2).asBytes()))
     }
 
     @Test

@@ -3,6 +3,9 @@
 package dev.transmute.model.structure.audio
 
 import dev.transmute.model.core.MediaStructure
+import dev.transmute.model.structure.audio.types.AacRaw
+import dev.transmute.model.structure.audio.types.AdtsFrameHeader
+import dev.transmute.model.structure.audio.types.firstFrameHeader
 import kotlinx.serialization.Serializable
 
 /**
@@ -20,7 +23,7 @@ data class AacStructure(
 ) : MediaStructure
 
 /**
- * Parse this [AacRaw] into an [AacStructure].
+ * Parse this [dev.transmute.model.structure.audio.types.AacRaw] into an [AacStructure].
  */
 fun AacRaw.toStructure(): AacStructure =
     AacStructure(

@@ -6,9 +6,9 @@ import dev.transmute.model.core.Bytes
 import dev.transmute.model.core.asBytes
 import dev.transmute.model.structure.StructureReadException
 import dev.transmute.model.structure.StructureReader
-import dev.transmute.model.structure.audio.FlacRaw
-import dev.transmute.model.structure.audio.FlacMetadataBlock
-import dev.transmute.model.structure.audio.FlacMetadataBlockType
+import dev.transmute.model.structure.audio.types.FlacRaw
+import dev.transmute.model.structure.audio.types.FlacMetadataBlock
+import dev.transmute.model.structure.audio.types.FlacMetadataBlockType
 
 /**
  * Parses raw FLAC file bytes into a [FlacRaw] structure.
@@ -25,16 +25,8 @@ import dev.transmute.model.structure.audio.FlacMetadataBlockType
  */
 class FlacStructureReader : StructureReader<FlacRaw> {
 
-    override fun canRead(source: Bytes): Boolean {
-        val d = source.data
-        return d.size >= 4 &&
-            d[0] == 0x66.toByte() && d[1] == 0x4C.toByte() && // "fL"
-            d[2] == 0x61.toByte() && d[3] == 0x43.toByte()    // "aC"
-    }
-
     override fun read(source: Bytes): FlacRaw {
         val d = source.data
-        if (!canRead(source)) throw StructureReadException("Not a FLAC file (bad magic)")
 
         val blocks = mutableListOf<FlacMetadataBlock>()
         var pos = 4 // skip "FlacRaw"

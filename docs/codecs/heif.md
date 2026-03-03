@@ -1,45 +1,38 @@
-# HEIF/HEIC
+# HEIF / HEIC
 
-HEIF/HEIC are modern image formats used heavily in Apple ecosystems. They offer excellent compression efficiency while maintaining high visual quality.
+| Property | HEIF | HEIC |
+|----------|------|------|
+| Constant | `ImageFormat.Heif` | `ImageFormat.Heic` |
+| MIME type | `image/heif` | `image/heic` |
+| Extension | `heif` | `heic` |
+| Container | ISOBMFF | ISOBMFF |
 
-## Platform Support
+HEIC is the Apple variant of HEIF. Both share the same container family (`ContainerFamily.Heif`) and are handled by the same codec.
 
-| Platform | Decode | Encode | Engine                                     |
-|----------|--------|--------|--------------------------------------------|
-| Android  | ✅      | ❌      | BitmapFactory (decode only)                |
-| Desktop  | ✅      | ✅      | GStreamer (requires `transmute-gstreamer`) |
-| iOS      | ✅      | ✅      | CoreGraphics (CGImage)                     |
+## Platform availability
 
-## Usage
+| Platform | Decode | Encode |
+|----------|--------|--------|
+| Android  | ✓ | ✓ |
+| Desktop  | plugin (GStreamer or libheif) | plugin |
+| iOS      | ✓ | ✓ |
 
-```kotlin
-// Convert any image to HEIF (Desktop/iOS)
-suspend fun convertToHeif(inputBytes: ByteArray): ByteArray =
-  Transmute.image {
-    encode { options(HeifEncodeOptions(format = ImageFormat.Heif, quality = 0.8f)) }
-  }.transmute(inputBytes.asBytes()).bytes.data
+On Desktop, install the GStreamer plugin (`transmute-plugins:gstreamer`) or the self-contained libheif plugin (`transmute-plugins:libheif`).
 
-// Decode HEIF (re-encode to JPEG)
-suspend fun decodeToJpeg(heifBytes: ByteArray): ByteArray =
-  Transmute.image {
-    encode { options(JpegEncodeOptions(quality = 0.85f)) }
-  }.transmute(heifBytes.asBytes()).bytes.data
-```
-
-## Structure Reading
-
-HEIF/HEIC files can be parsed into a `Heif` structure that mirrors the ISO BMFF box layout:
+## Encode options
 
 ```kotlin
-val heif: Heif = Transmute.structure.read(heifBytes.asBytes(), ImageFormat.Heif)
-
-// Round-trip
-val raw = Transmute.structure.write(heif)
+HeifEncodeOptions(
+    quality: Float = 0.80f,                 // 0.0 – 1.0
+    metadataPolicy: MetadataPolicy = STRIP_ALL,
+    format: ImageFormat = ImageFormat.Heif, // or ImageFormat.Heic
+)
 ```
 
-The reader walks the `ftyp`, `meta`, `mdat`, and `moov`/`hdlr` boxes, capturing all atoms at top-level
-resolution. See `docs/structures.md`.
+## Metadata support
 
-## Notes but encode support is limited.
-- Desktop requires the optional `transmute-gstreamer` module with GStreamer installed.
-- iOS offers strong native HEIF/HEIC support.
+HEIF/HEIC files may carry: `ExifMetadata`, `XmpMetadata`.
+
+## Structure support
+
+`HeifStructure` — ISOBMFF box list.

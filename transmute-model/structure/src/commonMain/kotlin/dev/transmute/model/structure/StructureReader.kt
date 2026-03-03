@@ -25,19 +25,12 @@ import dev.transmute.model.core.RawMediaStructure
 interface StructureReader<out S : RawMediaStructure> {
 
     /**
-     * Quick check - can this reader likely parse [source]?
-     *
-     * Implementations should check magic bytes / signatures without
-     * fully parsing the file. Returns `false` when the bytes clearly
-     * do **not** belong to this format.
-     */
-    fun canRead(source: Bytes): Boolean
-
-    /**
      * Parse [source] into a typed structure.
      *
-     * @throws StructureReadException if the bytes are malformed or
-     *   do not match the expected format.
+     * The correct reader should be selected beforehand via format
+     * detection (see `FormatDetector`). Implementations may still
+     * throw [StructureReadException] if the bytes are malformed or
+     * do not match the expected format.
      */
     fun read(source: Bytes): S
 }

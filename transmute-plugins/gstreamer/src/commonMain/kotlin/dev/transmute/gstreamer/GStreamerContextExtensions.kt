@@ -74,9 +74,8 @@ fun TransmuteContext.Builder.gstreamer(block: GStreamerConfig.Builder.() -> Unit
         if (encoders.encoderFor(ImageFormat.Bmp) == null) {
             encoders.register(BmpImageEncoder())
         }
-        if (GStreamerCodecInstaller.available) {
-            GStreamerCodecInstaller.installImageCodecs(decoders, encoders)
-        }
+        // NOTE: HEIF/HEIC/AVIF image codecs are now provided by the libheif plugin,
+        // not by GStreamer. GStreamer only handles audio and video codecs.
         imageDecoders(decoders)
         imageEncoders(encoders)
     }

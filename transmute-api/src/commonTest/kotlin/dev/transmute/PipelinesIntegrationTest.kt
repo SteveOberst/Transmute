@@ -28,7 +28,8 @@ class PipelinesIntegrationTest {
       decode {
         pipeline(
           initial = { bytes, _ ->
-            val width = bytes.data.firstOrNull()?.toInt() ?: 1
+            val sourceData = bytes.readAll()
+            val width = sourceData.firstOrNull()?.toInt() ?: 1
             val ir =
               ImageIR(
                 buffer = ByteArrayPixelBuffer(ByteArray(4)),

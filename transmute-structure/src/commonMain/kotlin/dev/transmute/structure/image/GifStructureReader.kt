@@ -6,11 +6,11 @@ import dev.transmute.model.core.Bytes
 import dev.transmute.model.core.asBytes
 import dev.transmute.model.structure.StructureReadException
 import dev.transmute.model.structure.StructureReader
-import dev.transmute.model.structure.image.GifRaw
-import dev.transmute.model.structure.image.GifBlock
-import dev.transmute.model.structure.image.GifColor
-import dev.transmute.model.structure.image.GifLogicalScreenDescriptor
-import dev.transmute.model.structure.image.GifVersion
+import dev.transmute.model.structure.image.types.GifRaw
+import dev.transmute.model.structure.image.types.GifBlock
+import dev.transmute.model.structure.image.types.GifColor
+import dev.transmute.model.structure.image.types.GifLogicalScreenDescriptor
+import dev.transmute.model.structure.image.types.GifVersion
 import dev.transmute.structure.common.decodeAscii
 import dev.transmute.structure.common.readU16LE
 
@@ -24,19 +24,8 @@ import dev.transmute.structure.common.readU16LE
  */
 class GifStructureReader : StructureReader<GifRaw> {
 
-    override fun canRead(source: Bytes): Boolean {
-        val d = source.data
-        if (d.size < 6) return false
-        // GIF87a or GIF89a
-        return d[0] == 0x47.toByte() && d[1] == 0x49.toByte() && // "GI"
-            d[2] == 0x46.toByte() && d[3] == 0x38.toByte() &&    // "F8"
-            (d[4] == 0x37.toByte() || d[4] == 0x39.toByte()) &&  // "7" or "9"
-            d[5] == 0x61.toByte()                                  // "a"
-    }
-
     override fun read(source: Bytes): GifRaw {
         val d = source.data
-        if (!canRead(source)) throw StructureReadException("Not a GIF file (bad signature)")
         if (d.size < 13) throw StructureReadException("GIF file too small (${d.size} bytes)")
 
         val sigStr = d.decodeAscii(0, 6)

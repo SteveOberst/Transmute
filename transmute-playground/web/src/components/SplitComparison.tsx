@@ -97,7 +97,7 @@ export default function SplitComparison({
             {processing ? (
               <>
                 <div className="w-8 h-8 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin" />
-                <span className="text-xs font-mono">Processing…</span>
+                <span className="text-xs font-mono">Processing...</span>
               </>
             ) : (
               <span className="text-xs font-mono text-[#333345]">Result will appear here</span>

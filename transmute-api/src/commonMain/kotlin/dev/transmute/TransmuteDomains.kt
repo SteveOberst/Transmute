@@ -1,6 +1,7 @@
 package dev.transmute
 
 import dev.transmute.audio.AudioFormat
+import dev.transmute.io.TSource
 import dev.transmute.model.core.Bytes
 import dev.transmute.codec.pipeline.EncodedBytes
 import dev.transmute.image.ImageFormat
@@ -11,7 +12,7 @@ class TransmuteImage internal constructor(
 ) {
 
   operator fun invoke(
-    block: DynamicImageTransmuterBuilder<Bytes, EncodedBytes<ImageFormat>>.() -> Unit = {},
+    block: DynamicImageTransmuterBuilder<TSource, EncodedBytes<ImageFormat>>.() -> Unit = {},
   ): DynamicImageTransmuter =
     DynamicImageTransmuterBuilder(
       defaultDecodePipeline = { codec.image.defaultDecoder().pipeline },
@@ -23,15 +24,15 @@ class TransmuteImage internal constructor(
 
   fun <OUT_FORMAT : ImageFormat> to(
     output: OUT_FORMAT,
-    block: ImageTransmuterBuilder<Bytes, OUT_FORMAT>.() -> Unit = {},
-  ): ImageTransmuter<Bytes, EncodedBytes<OUT_FORMAT>> =
+    block: ImageTransmuterBuilder<TSource, OUT_FORMAT>.() -> Unit = {},
+  ): ImageTransmuter<TSource, EncodedBytes<OUT_FORMAT>> =
     ImageTransmuterBuilder(
       output,
       defaultDecodePipeline = { codec.image.defaultDecoder().pipeline },
     ).apply(block).build()
 
   @Deprecated("Use custom.out { } instead", ReplaceWith("custom.out(block)"))
-  fun <OUT> out(block: DynamicImageTransmuterBuilder<Bytes, OUT>.() -> Unit): ImageTransmuter<Bytes, OUT> =
+  fun <OUT> out(block: DynamicImageTransmuterBuilder<TSource, OUT>.() -> Unit): ImageTransmuter<TSource, OUT> =
     custom.out(block)
 
   @Deprecated("Use custom.from { } instead", ReplaceWith("custom.from(block)"))
@@ -52,8 +53,8 @@ class TransmuteImage internal constructor(
     custom.toFrom(output, block)
 
   inner class Custom internal constructor() {
-    fun <OUT> out(block: DynamicImageTransmuterBuilder<Bytes, OUT>.() -> Unit): ImageTransmuter<Bytes, OUT> =
-      DynamicImageTransmuterBuilder<Bytes, OUT>(
+    fun <OUT> out(block: DynamicImageTransmuterBuilder<TSource, OUT>.() -> Unit): ImageTransmuter<TSource, OUT> =
+      DynamicImageTransmuterBuilder<TSource, OUT>(
         defaultDecodePipeline = { codec.image.defaultDecoder().pipeline },
       ).apply(block).build()
 
@@ -80,7 +81,7 @@ class TransmuteAudio internal constructor(
 ) {
 
   operator fun invoke(
-    block: DynamicAudioTransmuterBuilder<Bytes, EncodedBytes<AudioFormat>>.() -> Unit = {},
+    block: DynamicAudioTransmuterBuilder<TSource, EncodedBytes<AudioFormat>>.() -> Unit = {},
   ): DynamicAudioTransmuter =
     DynamicAudioTransmuterBuilder(
       defaultDecodePipeline = { codec.audio.defaultDecoder().pipeline },
@@ -92,15 +93,15 @@ class TransmuteAudio internal constructor(
 
   fun <OUT_FORMAT : AudioFormat> to(
     output: OUT_FORMAT,
-    block: AudioTransmuterBuilder<Bytes, OUT_FORMAT>.() -> Unit = {},
-  ): AudioTransmuter<Bytes, EncodedBytes<OUT_FORMAT>> =
+    block: AudioTransmuterBuilder<TSource, OUT_FORMAT>.() -> Unit = {},
+  ): AudioTransmuter<TSource, EncodedBytes<OUT_FORMAT>> =
     AudioTransmuterBuilder(
       output,
       defaultDecodePipeline = { codec.audio.defaultDecoder().pipeline },
     ).apply(block).build()
 
   @Deprecated("Use custom.out { } instead", ReplaceWith("custom.out(block)"))
-  fun <OUT> out(block: DynamicAudioTransmuterBuilder<Bytes, OUT>.() -> Unit): AudioTransmuter<Bytes, OUT> =
+  fun <OUT> out(block: DynamicAudioTransmuterBuilder<TSource, OUT>.() -> Unit): AudioTransmuter<TSource, OUT> =
     custom.out(block)
 
   @Deprecated("Use custom.from { } instead", ReplaceWith("custom.from(block)"))
@@ -121,8 +122,8 @@ class TransmuteAudio internal constructor(
     custom.toFrom(output, block)
 
   inner class Custom internal constructor() {
-    fun <OUT> out(block: DynamicAudioTransmuterBuilder<Bytes, OUT>.() -> Unit): AudioTransmuter<Bytes, OUT> =
-      DynamicAudioTransmuterBuilder<Bytes, OUT>(
+    fun <OUT> out(block: DynamicAudioTransmuterBuilder<TSource, OUT>.() -> Unit): AudioTransmuter<TSource, OUT> =
+      DynamicAudioTransmuterBuilder<TSource, OUT>(
         defaultDecodePipeline = { codec.audio.defaultDecoder().pipeline },
       ).apply(block).build()
 
@@ -149,7 +150,7 @@ class TransmuteVideo internal constructor(
 ) {
 
   operator fun invoke(
-    block: DynamicVideoTransmuterBuilder<Bytes, EncodedBytes<VideoFormat>>.() -> Unit = {},
+    block: DynamicVideoTransmuterBuilder<TSource, EncodedBytes<VideoFormat>>.() -> Unit = {},
   ): DynamicVideoTransmuter =
     DynamicVideoTransmuterBuilder(
       defaultDecodePipeline = { codec.video.defaultDecoder().pipeline },
@@ -161,15 +162,15 @@ class TransmuteVideo internal constructor(
 
   fun <OUT_FORMAT : VideoFormat> to(
     output: OUT_FORMAT,
-    block: VideoTransmuterBuilder<Bytes, OUT_FORMAT>.() -> Unit = {},
-  ): VideoTransmuter<Bytes, EncodedBytes<OUT_FORMAT>> =
+    block: VideoTransmuterBuilder<TSource, OUT_FORMAT>.() -> Unit = {},
+  ): VideoTransmuter<TSource, EncodedBytes<OUT_FORMAT>> =
     VideoTransmuterBuilder(
       output,
       defaultDecodePipeline = { codec.video.defaultDecoder().pipeline },
     ).apply(block).build()
 
   @Deprecated("Use custom.out { } instead", ReplaceWith("custom.out(block)"))
-  fun <OUT> out(block: DynamicVideoTransmuterBuilder<Bytes, OUT>.() -> Unit): VideoTransmuter<Bytes, OUT> =
+  fun <OUT> out(block: DynamicVideoTransmuterBuilder<TSource, OUT>.() -> Unit): VideoTransmuter<TSource, OUT> =
     custom.out(block)
 
   @Deprecated("Use custom.from { } instead", ReplaceWith("custom.from(block)"))
@@ -190,8 +191,8 @@ class TransmuteVideo internal constructor(
     custom.toFrom(output, block)
 
   inner class Custom internal constructor() {
-    fun <OUT> out(block: DynamicVideoTransmuterBuilder<Bytes, OUT>.() -> Unit): VideoTransmuter<Bytes, OUT> =
-      DynamicVideoTransmuterBuilder<Bytes, OUT>(
+    fun <OUT> out(block: DynamicVideoTransmuterBuilder<TSource, OUT>.() -> Unit): VideoTransmuter<TSource, OUT> =
+      DynamicVideoTransmuterBuilder<TSource, OUT>(
         defaultDecodePipeline = { codec.video.defaultDecoder().pipeline },
       ).apply(block).build()
 

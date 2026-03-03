@@ -67,7 +67,7 @@ object DefaultStructureReaders {
     val avi  = AviStructureReader()
 
     /**
-     * The full list of built-in readers, in recommended sniff order.
+     * The full list of built-in readers, in recommended priority order.
      *
      * The order is: image readers first (fast magic-byte checks),
      * then audio, then video.

@@ -53,7 +53,7 @@ export default function CodePreview({ code }: Props) {
 function highlightKotlin(code: string): React.ReactNode[] {
   const lines = code.split('\n')
   return lines.map((line, i) => {
-    let processed = line
+    const processed = line
       // Keywords
       .replace(
         /\b(val|var|fun|class|object|import|package|return|if|else|when|for|while|is|as|in|by|data|sealed|suspend|override|private|internal|public|companion)\b/g,

@@ -1,13 +1,13 @@
 package dev.transmute.audio
 
-import dev.transmute.model.core.Bytes
+import dev.transmute.io.TSource
 import dev.transmute.codec.pipeline.Decoded
 import dev.transmute.codec.pipeline.EncodedBytes
 import dev.transmute.codec.pipeline.PipelineHandler
 
 object AudioCodecs {
   object Decode {
-    val DEFAULT: PipelineHandler<Bytes, Decoded<AudioFormat, AudioIR>> = AudioDecodeHandler()
+    val DEFAULT: PipelineHandler<TSource, Decoded<AudioFormat, AudioIR>> = AudioDecodeHandler()
   }
 
   object Encode {

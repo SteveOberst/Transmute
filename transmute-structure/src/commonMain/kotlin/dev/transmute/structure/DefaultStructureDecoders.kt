@@ -3,7 +3,7 @@
 package dev.transmute.structure
 
 import dev.transmute.audio.AudioFormat
-import dev.transmute.codec.Decoder
+import dev.transmute.codec.MediaDecoder
 import dev.transmute.image.ImageFormat
 import dev.transmute.model.core.MediaStructure
 import dev.transmute.model.core.NoDecodeOptions
@@ -95,27 +95,27 @@ object DefaultStructureDecoders {
 
     // -- Domain lists ---------------------------------------------------------
 
-    /** All image structure decoders, in recommended sniff order. */
-    val allImageDecoders: List<Decoder<ImageFormat, out MediaStructure, NoDecodeOptions>> =
+    /** All image structure decoders, in recommended priority order. */
+    val allImageDecoders: List<MediaDecoder<ImageFormat, MediaStructure, NoDecodeOptions>> =
         listOf(png, jpeg, bmp, gif, tiff, webp, heif, avif)
 
-    /** All audio structure decoders, in recommended sniff order. */
-    val allAudioDecoders: List<Decoder<AudioFormat, out MediaStructure, NoDecodeOptions>> =
+    /** All audio structure decoders, in recommended priority order. */
+    val allAudioDecoders: List<MediaDecoder<AudioFormat, MediaStructure, NoDecodeOptions>> =
         listOf(wav, mp3, flac, aac, m4a, oggAudio, opus)
 
-    /** All video structure decoders, in recommended sniff order. */
-    val allVideoDecoders: List<Decoder<VideoFormat, out MediaStructure, NoDecodeOptions>> =
+    /** All video structure decoders, in recommended priority order. */
+    val allVideoDecoders: List<MediaDecoder<VideoFormat, MediaStructure, NoDecodeOptions>> =
         listOf(mp4, mov, webm, mkv, avi)
 
-    /** All image raw decoders, in recommended sniff order. */
-    val allImageRawDecoders: List<Decoder<ImageFormat, out RawMediaStructure, NoDecodeOptions>> =
+    /** All image raw decoders, in recommended priority order. */
+    val allImageRawDecoders: List<MediaDecoder<ImageFormat, RawMediaStructure, NoDecodeOptions>> =
         listOf(pngRaw, jpegRaw, bmpRaw, gifRaw, tiffRaw, webpRaw, heifRaw, avifRaw)
 
-    /** All audio raw decoders, in recommended sniff order. */
-    val allAudioRawDecoders: List<Decoder<AudioFormat, out RawMediaStructure, NoDecodeOptions>> =
+    /** All audio raw decoders, in recommended priority order. */
+    val allAudioRawDecoders: List<MediaDecoder<AudioFormat, RawMediaStructure, NoDecodeOptions>> =
         listOf(wavRaw, mp3Raw, flacRaw, aacRaw, m4aRaw, oggAudioRaw, opusRaw)
 
-    /** All video raw decoders, in recommended sniff order. */
-    val allVideoRawDecoders: List<Decoder<VideoFormat, out RawMediaStructure, NoDecodeOptions>> =
+    /** All video raw decoders, in recommended priority order. */
+    val allVideoRawDecoders: List<MediaDecoder<VideoFormat, RawMediaStructure, NoDecodeOptions>> =
         listOf(mp4Raw, movRaw, webmRaw, mkvRaw, aviRaw)
 }

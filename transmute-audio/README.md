@@ -40,7 +40,7 @@ JLayer, jump3r, jflac-codec, and jorbis.
 | `AudioFadeTransform` | `fade` | Fade-in / fade-out envelopes |
 | `AudioTrimTransform` | `trim` | Trim to time range |
 | `AudioGainTransform` | `gain` | Volume gain in dB |
-| `AudioMonoTransform` | `mono` | Stereo → mono |
+| `AudioMonoTransform` | `mono` | Stereo -> mono |
 | `AudioReverseTransform` | `reverse` | Reverse playback |
 | `AudioSpeedTransform` | `speed` | Playback speed (SOLA, no pitch change) |
 | `AudioSilenceTrimTransform` | `silenceTrim` | Trim leading/trailing silence |

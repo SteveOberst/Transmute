@@ -253,7 +253,7 @@ export default function FormatGrid({ formats, selectedDomain, onDomainChange }: 
             >
               {meta && (
                 <span
-                  className="size-3.5"
+                  className="size-[18px] flex-shrink-0"
                   style={{ color: active && d ? 'var(--surface-1)' : meta.color }}
                 >
                   {meta.icon}

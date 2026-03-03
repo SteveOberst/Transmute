@@ -1,9 +1,9 @@
 package dev.transmute.structure.image
 
 import dev.transmute.model.core.asBytes
+import dev.transmute.model.structure.image.types.segments
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class JpegStructureReaderTest {
@@ -25,16 +25,6 @@ class JpegStructureReaderTest {
         )
         val eoi = byteArrayOf(0xFF.toByte(), 0xD9.toByte())
         return soi + app0 + eoi
-    }
-
-    @Test
-    fun canReadAcceptsValidJpeg() {
-        assertTrue(reader.canRead(minimalJpeg().asBytes()))
-    }
-
-    @Test
-    fun canReadRejectsGarbage() {
-        assertFalse(reader.canRead(ByteArray(16).asBytes()))
     }
 
     @Test

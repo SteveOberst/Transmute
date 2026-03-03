@@ -2,6 +2,7 @@
 
 package dev.transmute.audio.codecs.ios
 
+import dev.transmute.io.TSource
 import dev.transmute.audio.AudioCodec
 import dev.transmute.audio.AudioDecodeOptions
 import dev.transmute.audio.AudioDecoder
@@ -189,24 +190,9 @@ private suspend fun encodeToM4aWithExportSession(ir: AudioIR, context: PipelineC
 internal class IosMp3Decoder : AudioDecoder {
   override val supportedFormats: Set<AudioFormat> = setOf(AudioFormat.Mp3)
 
-  override fun sniff(data: Bytes): AudioFormat? {
-    val bytes = data.data
-    if (bytes.size < 2) return null
-    if (bytes.size >= 3 &&
-      bytes[0] == 0x49.toByte() && bytes[1] == 0x44.toByte() && bytes[2] == 0x33.toByte()
-    ) return AudioFormat.Mp3
-    val b0 = bytes[0].toInt() and 0xFF
-    val b1 = bytes[1].toInt() and 0xFF
-    if (b0 == 0xFF && (b1 and 0xE0) == 0xE0) {
-      val layer = (b1 shr 1) and 0x03
-      if (layer != 0) return AudioFormat.Mp3
-    }
-    return null
-  }
-
-  override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: PipelineContext): AudioIR =
+  override suspend fun decode(source: TSource, options: AudioDecodeOptions, context: PipelineContext): AudioIR =
     decodeWithAssetReader(
-      source.data,
+      source.readAll(),
       "mp3",
       options.decodeRange?.timeframe(),
       context,
@@ -221,18 +207,9 @@ internal class IosFlacCodec : AudioCodec {
   override val decodableFormats: Set<AudioFormat> = setOf(AudioFormat.Flac)
   override val encodableFormats: Set<AudioFormat> = emptySet()
 
-  override fun sniff(data: Bytes): AudioFormat? {
-    val bytes = data.data
-    if (bytes.size < 4) return null
-    if (bytes[0] == 0x66.toByte() && bytes[1] == 0x4C.toByte() &&
-      bytes[2] == 0x61.toByte() && bytes[3] == 0x43.toByte()
-    ) return AudioFormat.Flac
-    return null
-  }
-
-  override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: PipelineContext): AudioIR =
+  override suspend fun decode(source: TSource, options: AudioDecodeOptions, context: PipelineContext): AudioIR =
     decodeWithAssetReader(
-      source.data,
+      source.readAll(),
       "flac",
       options.decodeRange?.timeframe(),
       context,
@@ -250,18 +227,9 @@ internal class IosAacCodec : AudioCodec {
   override val decodableFormats: Set<AudioFormat> = setOf(AudioFormat.Aac)
   override val encodableFormats: Set<AudioFormat> = emptySet()
 
-  override fun sniff(data: Bytes): AudioFormat? {
-    val bytes = data.data
-    if (bytes.size < 2) return null
-    val b0 = bytes[0].toInt() and 0xFF
-    val b1 = bytes[1].toInt() and 0xFF
-    if (b0 == 0xFF && (b1 and 0xF6) == 0xF0) return AudioFormat.Aac
-    return null
-  }
-
-  override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: PipelineContext): AudioIR =
+  override suspend fun decode(source: TSource, options: AudioDecodeOptions, context: PipelineContext): AudioIR =
     decodeWithAssetReader(
-      source.data,
+      source.readAll(),
       "aac",
       options.decodeRange?.timeframe(),
       context,
@@ -279,20 +247,9 @@ internal class IosM4aCodec : AudioCodec {
   override val decodableFormats: Set<AudioFormat> = setOf(AudioFormat.M4a)
   override val encodableFormats: Set<AudioFormat> = setOf(AudioFormat.M4a)
 
-  override fun sniff(data: Bytes): AudioFormat? {
-    val bytes = data.data
-    if (bytes.size < 12) return null
-    if (bytes[4] != 0x66.toByte() || bytes[5] != 0x74.toByte() ||
-      bytes[6] != 0x79.toByte() || bytes[7] != 0x70.toByte()
-    ) return null
-    val brand = (8 until 12).map { bytes[it].toInt().toChar() }.joinToString("")
-    if (brand == "M4A " || brand == "M4B " || brand == "M4P " || brand == "M4V ") return AudioFormat.M4a
-    return null
-  }
-
-  override suspend fun decode(source: Bytes, options: AudioDecodeOptions, context: PipelineContext): AudioIR =
+  override suspend fun decode(source: TSource, options: AudioDecodeOptions, context: PipelineContext): AudioIR =
     decodeWithAssetReader(
-      source.data,
+      source.readAll(),
       "m4a",
       options.decodeRange?.timeframe(),
       context,

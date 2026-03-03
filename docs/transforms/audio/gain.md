@@ -1,29 +1,38 @@
-# Gain
+# Audio: gain
 
-Apply a volume gain in decibels.
+Apply volume gain or attenuation in decibels.
 
-## Parameters
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| db | Float | - | Gain in dB; positive = louder, negative = quieter |
-
-## Usage
-
-### DSL
+## Factory
 
 ```kotlin
-Transmute.audio { gain(db = 3f) }.transmute(bytes.asBytes()).bytes.data
+Transformers.audio().gain(db: Float)
 ```
 
-### Pipeline
+| Parameter | Type | Required | Range | Description |
+|-----------|------|----------|-------|-------------|
+| `db` | `Float` | ✅ | −60 … +60 | Gain in decibels. Positive = louder, negative = quieter |
+
+## Behaviour
+
+- Multiplies each sample by `10^(db/20)`.
+- Samples are clamped to [−1, 1] after gain application; clipping may occur for large positive values.
+- For loudness normalisation without clipping risk, prefer [`normalize`](normalize.md).
+
+## DSL usage
 
 ```kotlin
-transform { add(Transformers.audio().gain(3f)) }
+val transmuter = Transmute.audio.to(AudioFormat.Wav) {
+    decode {
+        pipeline {
+            gain(db = -6f)   // cut by 6 dB (half amplitude)
+            gain(db = +3f)   // boost by 3 dB
+        }
+    }
+}
 ```
 
-## Notes
+## Related
 
-- Converts dB to a linear multiplier: `10^(db / 20)`.
-- +6 dB ≈ double amplitude, −6 dB ≈ half amplitude.
-- Samples that exceed the valid range after gain are clipped.
+- [normalize](normalize.md)
+- [compressor](compressor.md)
+- [Transforms overview](README.md)

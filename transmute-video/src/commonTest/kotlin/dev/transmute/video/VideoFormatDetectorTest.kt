@@ -41,10 +41,12 @@ class VideoFormatDetectorTest {
 
   @Test
   fun detectWebM() {
+    // Proper EBML header with DocType element (0x4282) containing "webm"
     val data = ByteArray(64)
-    // EBML header magic bytes
     data[0] = 0x1A.toByte(); data[1] = 0x45.toByte(); data[2] = 0xDF.toByte(); data[3] = 0xA3.toByte()
-    "webm".encodeToByteArray().copyInto(data, destinationOffset = 24)
+    // DocType element: ID=0x4282, VINT size=0x84 (4 bytes), data="webm"
+    data[4] = 0x42.toByte(); data[5] = 0x82.toByte(); data[6] = 0x84.toByte()
+    "webm".encodeToByteArray().copyInto(data, destinationOffset = 7)
     assertEquals(VideoFormat.Webm, VideoFormatDetector.detect(data.asBytes()))
   }
 
@@ -61,9 +63,12 @@ class VideoFormatDetectorTest {
 
   @Test
   fun detectMkv() {
+    // Proper EBML header with DocType element (0x4282) containing "matroska"
     val data = ByteArray(64)
     data[0] = 0x1A.toByte(); data[1] = 0x45.toByte(); data[2] = 0xDF.toByte(); data[3] = 0xA3.toByte()
-    "matroska".encodeToByteArray().copyInto(data, destinationOffset = 24)
+    // DocType element: ID=0x4282, VINT size=0x88 (8 bytes), data="matroska"
+    data[4] = 0x42.toByte(); data[5] = 0x82.toByte(); data[6] = 0x88.toByte()
+    "matroska".encodeToByteArray().copyInto(data, destinationOffset = 7)
     assertEquals(VideoFormat.Mkv, VideoFormatDetector.detect(data.asBytes()))
   }
 

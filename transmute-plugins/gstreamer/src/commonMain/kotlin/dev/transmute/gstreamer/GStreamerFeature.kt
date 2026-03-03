@@ -14,7 +14,6 @@ import dev.transmute.plugin.PluginFeature
  *         features {
  *             enable(GStreamerFeature.AudioCodecs)
  *             disable(GStreamerFeature.LegacyAvi)
- *             disable(GStreamerFeature.ImageEncoding)
  *         }
  *     }
  * }
@@ -25,9 +24,11 @@ import dev.transmute.plugin.PluginFeature
  * ```kotlin
  * install(GStreamer) {
  *     disable(GStreamerFeature.LegacyAvi)
- *     disable(GStreamerFeature.ImageEncoding)
  * }
  * ```
+ *
+ * **Note:** HEIF/HEIC/AVIF image codecs have been moved to the dedicated
+ * `libheif` plugin. See [dev.transmute.libheif.LibHeifFeature].
  */
 object GStreamerFeature {
 
@@ -38,29 +39,6 @@ object GStreamerFeature {
     val AudioCodecs = PluginFeature(
         id = "audio-codecs",
         description = "GStreamer audio codecs (AAC, M4A, Opus, FLAC/OGG encode)",
-        defaultEnabled = true,
-    )
-
-    /**
-     * GStreamer image codec support: HEIF, HEIC, AVIF decode and encode.
-     */
-    val ImageCodecs = PluginFeature(
-        id = "image-codecs",
-        description = "GStreamer image codecs (HEIF, HEIC, AVIF decode/encode)",
-        defaultEnabled = true,
-    )
-
-    /**
-     * HEIF/AVIF encoding via GStreamer (requires `x265enc` or `av1enc`
-     * GStreamer elements to be installed).
-     *
-     * Disabling this feature still allows HEIF/AVIF *decoding* - only
-     * the encoder registration is skipped. This is useful when the
-     * required GStreamer encoder elements are not available.
-     */
-    val ImageEncoding = PluginFeature(
-        id = "image-encoding",
-        description = "HEIF/AVIF encoding via x265enc/av1enc",
         defaultEnabled = true,
     )
 
@@ -89,8 +67,6 @@ object GStreamerFeature {
     /** All features supported by the GStreamer plugin. */
     val ALL: Set<PluginFeature> = setOf(
         AudioCodecs,
-        ImageCodecs,
-        ImageEncoding,
         VideoCodecs,
         LegacyAvi,
     )

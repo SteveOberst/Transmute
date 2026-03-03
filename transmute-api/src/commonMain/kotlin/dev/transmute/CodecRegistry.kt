@@ -5,26 +5,28 @@ package dev.transmute
 import dev.transmute.audio.AudioFormat
 import dev.transmute.audio.MutableAudioDecoderRegistry
 import dev.transmute.audio.MutableAudioEncoderRegistry
-import dev.transmute.codec.Decoder
+import dev.transmute.codec.MediaDecoder
 import dev.transmute.image.ImageFormat
 import dev.transmute.image.MutableImageDecoderRegistry
 import dev.transmute.image.MutableImageEncoderRegistry
 import dev.transmute.model.core.MediaFormat
+import dev.transmute.model.core.MediaMetadata
+import dev.transmute.model.core.MediaMetadataRegistry
 import dev.transmute.model.core.MediaStructure
 import dev.transmute.model.core.MediaStructureRegistry
 import dev.transmute.model.core.NoDecodeOptions
 import dev.transmute.model.core.RawMediaStructure
+import dev.transmute.model.core.TypedRegistrationScope
 import dev.transmute.video.VideoFormat
 import dev.transmute.video.MutableVideoDecoderRegistry
 import dev.transmute.video.MutableVideoEncoderRegistry
-import kotlinx.serialization.KSerializer
 
 // -- Generic structure-decoder registry --------------------------------------
 
 /**
  * Generic format-keyed registry for structure decoders.
  *
- * Used to register [Decoder] implementations that produce structural models
+ * Used to register [MediaDecoder] implementations that produce structural models
  * ([RawMediaStructure] or [MediaStructure]) rather than pixel/sample IR.
  *
  * ```kotlin
@@ -33,15 +35,15 @@ import kotlinx.serialization.KSerializer
  * ```
  */
 class MutableDecoderRegistry<F : MediaFormat<*, *>, OUT> {
-    private val byFormat = mutableMapOf<MediaFormat<*, *>, Decoder<F, out OUT, NoDecodeOptions>>()
+    private val byFormat = mutableMapOf<MediaFormat<*, *>, MediaDecoder<F, out OUT, NoDecodeOptions>>()
 
     /** Register [decoder] for the given [format]. A later registration overrides an earlier one. */
-    fun register(format: F, decoder: Decoder<F, out OUT, NoDecodeOptions>) {
+    fun register(format: F, decoder: MediaDecoder<F, out OUT, NoDecodeOptions>) {
         byFormat[format] = decoder
     }
 
     /** Return the decoder registered for [format], or `null` if none is registered. */
-    operator fun get(format: MediaFormat<*, *>): Decoder<F, out OUT, NoDecodeOptions>? =
+    operator fun get(format: MediaFormat<*, *>): MediaDecoder<F, out OUT, NoDecodeOptions>? =
         byFormat[format]
 
     /** All formats for which a decoder is registered. */
@@ -65,6 +67,8 @@ class ImageCodecRegistry(
     val rawStructureDecoders: MutableDecoderRegistry<ImageFormat, RawMediaStructure> = MutableDecoderRegistry(),
     /** Developer-friendly structure decoders - bytes -> [MediaStructure]. */
     val structureDecoders: MutableDecoderRegistry<ImageFormat, MediaStructure> = MutableDecoderRegistry(),
+    /** Metadata decoders - bytes -> list of [MediaMetadata]. */
+    val metadataDecoders: MutableDecoderRegistry<ImageFormat, List<MediaMetadata>> = MutableDecoderRegistry(),
 )
 
 /**
@@ -75,6 +79,8 @@ class AudioCodecRegistry(
     val encoders: MutableAudioEncoderRegistry = MutableAudioEncoderRegistry(),
     val rawStructureDecoders: MutableDecoderRegistry<AudioFormat, RawMediaStructure> = MutableDecoderRegistry(),
     val structureDecoders: MutableDecoderRegistry<AudioFormat, MediaStructure> = MutableDecoderRegistry(),
+    /** Metadata decoders - bytes -> list of [MediaMetadata]. */
+    val metadataDecoders: MutableDecoderRegistry<AudioFormat, List<MediaMetadata>> = MutableDecoderRegistry(),
 )
 
 /**
@@ -85,6 +91,8 @@ class VideoCodecRegistry(
     val encoders: MutableVideoEncoderRegistry = MutableVideoEncoderRegistry(),
     val rawStructureDecoders: MutableDecoderRegistry<VideoFormat, RawMediaStructure> = MutableDecoderRegistry(),
     val structureDecoders: MutableDecoderRegistry<VideoFormat, MediaStructure> = MutableDecoderRegistry(),
+    /** Metadata decoders - bytes -> list of [MediaMetadata]. */
+    val metadataDecoders: MutableDecoderRegistry<VideoFormat, List<MediaMetadata>> = MutableDecoderRegistry(),
 )
 
 /**
@@ -111,31 +119,20 @@ class CodecRegistry(
     val video: VideoCodecRegistry = VideoCodecRegistry(),
 )
 
-// -- MediaStructure registration scope ----------------------------------------
+// -- Registration scopes (for plugin API) -------------------------------------
 
 /**
- * Thin wrapper over [MediaStructureRegistry] that scopes plugin registrations
- * and provides a consistent API surface on [dev.transmute.plugin.TransmuteScope].
+ * Plugin-facing scope for registering [MediaStructure] serialisation types.
  *
- * The global [MediaStructureRegistry] is the backing store; this scope just
- * delegates to it.  Registrations are visible globally and persist for the
- * lifetime of the process.
+ * Delegates to [MediaStructureRegistry] via [TypedRegistrationScope].
  */
-class MediaStructureRegistrationScope {
-    /**
-     * Register a [MediaStructure] type so it can be serialised and deserialised
-     * by [dev.transmute.model.core.MediaStructureSerializer].
-     *
-     * [typeId] must be a stable, namespaced identifier (e.g. `"myplugin.myformat"`).
-     * Class names must not be used as type IDs because they change with refactors.
-     *
-     * @throws IllegalStateException if [typeId] is already registered and [override] is `false`.
-     */
-    inline fun <reified S : MediaStructure> register(
-        typeId: String,
-        serializer: KSerializer<S>,
-        override: Boolean = false,
-    ) {
-        MediaStructureRegistry.register(typeId, serializer, override)
-    }
-}
+class MediaStructureRegistrationScope
+    : TypedRegistrationScope<MediaStructure>(MediaStructureRegistry)
+
+/**
+ * Plugin-facing scope for registering [MediaMetadata] serialisation types.
+ *
+ * Delegates to [MediaMetadataRegistry] via [TypedRegistrationScope].
+ */
+class MediaMetadataRegistrationScope
+    : TypedRegistrationScope<MediaMetadata>(MediaMetadataRegistry)

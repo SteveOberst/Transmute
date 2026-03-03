@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.android.library)
     `maven-publish`
 }
@@ -32,7 +33,6 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api(project(":transmute-model:core"))
-            api(project(":transmute-model:identify"))
         }
 
         val desktopMain by getting

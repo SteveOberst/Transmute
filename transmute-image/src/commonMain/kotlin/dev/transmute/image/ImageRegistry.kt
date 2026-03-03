@@ -1,10 +1,10 @@
 package dev.transmute.image
 
 import kotlin.concurrent.Volatile
-import dev.transmute.model.core.Bytes
-import dev.transmute.codec.Codec
-import dev.transmute.codec.Decoder
-import dev.transmute.codec.Encoder
+import dev.transmute.io.TSource
+import dev.transmute.codec.MediaCodec
+import dev.transmute.codec.MediaDecoder
+import dev.transmute.codec.MediaEncoder
 import dev.transmute.common.PipelineContext
 import dev.transmute.image.codecs.bmp.BmpImageDecoder
 import dev.transmute.image.codecs.bmp.BmpImageEncoder
@@ -26,23 +26,21 @@ class MutableImageDecoderRegistry : ImageDecoderRegistry {
     }
   }
 
-  /** Register a core [Decoder] as an [ImageDecoder]. */
-  fun register(decoder: Decoder<ImageFormat, ImageIR, ImageDecodeOptions>) {
+  /** Register a core [MediaDecoder] as an [ImageDecoder]. */
+  fun register(decoder: MediaDecoder<ImageFormat, ImageIR, ImageDecodeOptions>) {
     val wrapper = object : ImageDecoder {
       override val supportedFormats = decoder.decodableFormats
-      override fun sniff(data: Bytes) = decoder.sniff(data)
-      override suspend fun decode(source: Bytes, options: ImageDecodeOptions, context: PipelineContext) =
+      override suspend fun decode(source: TSource, options: ImageDecodeOptions, context: PipelineContext) =
         decoder.decode(source, options, context)
     }
     register(wrapper)
   }
 
-  /** Register a unified [Codec] as a decoder. */
-  fun register(codec: Codec<ImageFormat, ImageIR, ImageDecodeOptions, ImageEncodeOptions>) {
+  /** Register a unified [MediaCodec] as a decoder. */
+  fun register(codec: MediaCodec<ImageFormat, ImageIR, ImageDecodeOptions, ImageEncodeOptions>) {
     val wrapper = object : ImageDecoder {
       override val supportedFormats = codec.decodableFormats
-      override fun sniff(data: Bytes) = codec.sniff(data)
-      override suspend fun decode(source: Bytes, options: ImageDecodeOptions, context: PipelineContext) =
+      override suspend fun decode(source: TSource, options: ImageDecodeOptions, context: PipelineContext) =
         codec.decode(source, options, context)
     }
     decoderList.add(wrapper)
@@ -70,8 +68,8 @@ class MutableImageEncoderRegistry : ImageEncoderRegistry {
     }
   }
 
-  /** Register a core [Encoder] as an [ImageEncoder]. */
-  fun register(encoder: Encoder<ImageFormat, ImageIR, ImageEncodeOptions>) {
+  /** Register a core [MediaEncoder] as an [ImageEncoder]. */
+  fun register(encoder: MediaEncoder<ImageFormat, ImageIR, ImageEncodeOptions>) {
     val wrapper = object : ImageEncoder {
       override val supportedFormats = encoder.encodableFormats
       override suspend fun encode(
@@ -88,8 +86,8 @@ class MutableImageEncoderRegistry : ImageEncoderRegistry {
     encoders[format] = encoder
   }
 
-  /** Register a unified [Codec] as an encoder. */
-  fun register(codec: Codec<ImageFormat, ImageIR, ImageDecodeOptions, ImageEncodeOptions>) {
+  /** Register a unified [MediaCodec] as an encoder. */
+  fun register(codec: MediaCodec<ImageFormat, ImageIR, ImageDecodeOptions, ImageEncodeOptions>) {
     for (format in codec.encodableFormats) {
       encoders[format] = object : ImageEncoder {
         override val supportedFormats = codec.encodableFormats
@@ -111,8 +109,7 @@ class MutableImageEncoderRegistry : ImageEncoderRegistry {
 /**
  * Global image codec registry.
  *
- * Holds all registered decoders and encoders, and a list of unified codecs
- * that participate in format sniffing via [ImageFormatDetector].
+ * Holds all registered decoders and encoders, and a list of unified codecs.
  *
  * ---
  *
@@ -158,16 +155,16 @@ object ImageRegistries {
     encoders.register(encoder)
   }
 
-  fun register(decoder: Decoder<ImageFormat, ImageIR, ImageDecodeOptions>) {
+  fun register(decoder: MediaDecoder<ImageFormat, ImageIR, ImageDecodeOptions>) {
     decoders.register(decoder)
   }
 
-  fun register(encoder: Encoder<ImageFormat, ImageIR, ImageEncodeOptions>) {
+  fun register(encoder: MediaEncoder<ImageFormat, ImageIR, ImageEncodeOptions>) {
     encoders.register(encoder)
   }
 
-  /** Register a unified codec for both decode, encode, and sniffing. */
-  fun register(codec: Codec<ImageFormat, ImageIR, ImageDecodeOptions, ImageEncodeOptions>) {
+  /** Register a unified codec for both decode and encode. */
+  fun register(codec: MediaCodec<ImageFormat, ImageIR, ImageDecodeOptions, ImageEncodeOptions>) {
     decoders.register(codec)
     encoders.register(codec)
   }

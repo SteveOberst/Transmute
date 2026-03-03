@@ -3,7 +3,6 @@ package dev.transmute.structure.video
 import dev.transmute.model.core.asBytes
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class MovStructureReaderTest {
@@ -29,31 +28,6 @@ class MovStructureReaderTest {
         out[0] = 0; out[1] = 0; out[2] = 0; out[3] = boxSize.toByte()
         boxType.encodeToByteArray().copyInto(out, 4)
         return out
-    }
-
-    @Test
-    fun canReadAcceptsQtBrand() {
-        assertTrue(reader.canRead(ftypFile("qt  ").asBytes()))
-    }
-
-    @Test
-    fun canReadAcceptsClassicMoov() {
-        assertTrue(reader.canRead(classicMovBox("moov").asBytes()))
-    }
-
-    @Test
-    fun canReadAcceptsClassicWide() {
-        assertTrue(reader.canRead(classicMovBox("wide").asBytes()))
-    }
-
-    @Test
-    fun canReadRejectsIsom() {
-        assertFalse(reader.canRead(ftypFile("isom").asBytes()))
-    }
-
-    @Test
-    fun canReadRejectsGarbage() {
-        assertFalse(reader.canRead(ByteArray(16).asBytes()))
     }
 
     @Test

@@ -3,7 +3,6 @@ package dev.transmute.structure.video
 import dev.transmute.model.core.asBytes
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class MkvStructureReaderTest {
@@ -22,21 +21,6 @@ class MkvStructureReaderTest {
             (0x80 or ebmlHeaderBody.size).toByte(),
         ) + ebmlHeaderBody
         return ebmlHeader
-    }
-
-    @Test
-    fun canReadAcceptsMatroska() {
-        assertTrue(reader.canRead(ebmlFile("matroska").asBytes()))
-    }
-
-    @Test
-    fun canReadRejectsWebm() {
-        assertFalse(reader.canRead(ebmlFile("webm").asBytes()))
-    }
-
-    @Test
-    fun canReadRejectsGarbage() {
-        assertFalse(reader.canRead(ByteArray(16).asBytes()))
     }
 
     @Test

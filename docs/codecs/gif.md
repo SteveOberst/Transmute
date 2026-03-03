@@ -1,44 +1,28 @@
 # GIF
 
-GIF (Graphics Interchange Format) is a legacy image format best known for simple animations. It has limited color depth and is generally not ideal for modern still images.
+| Property | Value |
+|----------|-------|
+| Constant | `ImageFormat.Gif` |
+| MIME type | `image/gif` |
+| Extension | `gif` |
+| Container | GIF |
 
-## Platform Support
+## Platform availability
 
-| Platform | Decode | Encode | Engine                      |
-|----------|--------|--------|-----------------------------|
-| Android  | ✅      | ❌      | BitmapFactory (decode only) |
-| Desktop  | ✅      | ✅      | ImageIO (javax.imageio)     |
-| iOS      | ✅      | ✅      | CoreGraphics (CGImage)      |
+| Platform | Decode | Encode |
+|----------|--------|--------|
+| Android  | ✓ (decode) | – |
+| Desktop  | ✓ | ✓ |
+| iOS      | ✓ (decode) | – |
 
-## Usage
+## Encode options
 
-```kotlin
-// Convert any image to GIF (Desktop/iOS)
-suspend fun convertToGif(inputBytes: ByteArray): ByteArray =
-  Transmute.image {
-    encode { options { outputFormat = OutputFormat.Exact(ImageFormat.Gif) } }
-  }.transmute(inputBytes.asBytes()).bytes.data
+No format-specific options. Use `CanonicalImageEncodeOptions` if you need to set `metadataPolicy`.
 
-// Decode GIF (re-encode to PNG)
-suspend fun decodeToPng(gifBytes: ByteArray): ByteArray =
-  Transmute.image {
-    encode { options(PngEncodeOptions()) }
-  }.transmute(gifBytes.asBytes()).bytes.data
-```
+## Metadata support
 
-## Structure Reading
+No metadata extraction. GIF does not carry EXIF or XMP in a standard Transmute-parseable form.
 
-GIF files can be parsed into a `Gif` structure that mirrors the block-based layout:
+## Structure support
 
-```kotlin
-val gif: Gif = Transmute.structure.read(gifBytes.asBytes(), ImageFormat.Gif)
-
-// Round-trip
-val raw = Transmute.structure.write(gif)
-```
-
-The reader captures the logical screen descriptor, global color table, and all extension/image blocks
-(including Netscape loop extension for animated GIFs). See `docs/structures.md`.
-
-## Notes expect banding/dithering for photos.
-- Primarily used for simple animations and stickers.
+`GifStructure` — GIF header, logical screen descriptor, and frame list.

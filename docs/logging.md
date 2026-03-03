@@ -1,131 +1,95 @@
 # Logging
 
-Transmute provides logging at two levels:
+Transmute uses a two-layer logging system:
 
-1. **Per-plugin loggers** — each plugin gets its own `PluginLogger` tagged with the plugin's key
-2. **Global logging** — the legacy `TransmuteLogging` singleton for system-wide defaults
+1. **Global configuration** via `TransmuteLogging` — controls what gets emitted library-wide.
+2. **Per-operation overrides** — attach a custom logger to individual transmuter builds or via `TransmuteContext`.
 
-## Log Levels
-
-| Level   | Description                                                     |
-|---------|-----------------------------------------------------------------|
-| `OFF`   | Silence all logging                                             |
-| `ERROR` | Only errors (codec failures, I/O exceptions)                    |
-| `WARN`  | Warnings + errors (default)                                     |
-| `INFO`  | Informational messages (format detection, codec selection)       |
-| `DEBUG` | Verbose output (pipeline steps, GStreamer subprocess commands)   |
-
-## Per-Plugin Logging (recommended)
-
-Every plugin installed via the `Transmute { }` builder automatically receives a
-`PluginLogger` scoped to the plugin's key. Configure it with the `configure { }` block:
+## Log levels
 
 ```kotlin
-val transmute = Transmute {
-    plugins {
-        install(GStreamer) {
-            configure {
-                logging {
-                    // Set minimum log level for this plugin
-                    level(LogLevel.DEBUG)
-
-                    // Optional: custom backend (default: PrintLogger)
-                    backend(myCustomLogger)
-                }
-            }
-        }
-    }
+enum class LogLevel {
+    DEBUG,  // Codec internals, buffer sizes, stage timing
+    INFO,   // Pipeline progress, format detection results
+    WARN,   // Codec fallback, missing encoder (default minimum)
+    ERROR,  // Errors that may still allow the pipeline to complete
+    OFF,    // Silence all output
 }
 ```
 
-Inside a plugin's `install()` method, the scoped logger is available on the `TransmuteScope`:
+## Global configuration
+
+The default level is `WARN`. All output goes to standard output.
 
 ```kotlin
-override fun install(scope: TransmuteScope, config: MyConfig) {
-    scope.logger.info("Registering codecs")   // Output: [my-plugin] Registering codecs
-    scope.logger.debug("Verbose details...")   // Only shown if level <= DEBUG
-}
-```
+// Change level (console output)
+TransmuteLogging.configure(LogLevel.INFO)
 
-### How it works
-
-| Class | Purpose |
-|-------|---------|
-| `PluginLogger` | Per-plugin `TransmuteLogger` that prefixes messages with `[pluginId]` and filters by level |
-| `PluginLoggerConfig` | DSL block for `level()` and `backend()` |
-| `PluginConfigure` | Container for cross-cutting plugin concerns (currently: logging) |
-| `HasPluginConfigure` | Marker interface — implement in your config class to enable `configure { }` |
-
-### Making your plugin support `configure { }`
-
-```kotlin
-class MyPluginConfig : HasPluginConfigure {
-    override val pluginConfigure = PluginConfigure()
-
-    fun configure(block: PluginConfigure.() -> Unit) {
-        pluginConfigure.apply(block)
-    }
-
-    // ... your other config methods
-}
-```
-
-## Global Logging (legacy)
-
-The `TransmuteLogging` singleton sets system-wide defaults. It is still used as
-the fallback logger for code paths outside the plugin system.
-
-```kotlin
-import dev.transmute.common.TransmuteLogging
-import dev.transmute.common.LogLevel
-
-// Silence all logging
+// Silence everything
 TransmuteLogging.configure(LogLevel.OFF)
 
-// Only warnings and errors (default)
-TransmuteLogging.configure(LogLevel.WARN)
-
-// Debug-level (verbose)
-TransmuteLogging.configure(LogLevel.DEBUG)
-
-// Supply a custom logger backend
-TransmuteLogging.configure(LogLevel.INFO, myLoggerBackend)
+// Reset to default (WARN, PrintLogger)
+TransmuteLogging.reset()
 ```
 
-## Per-transmuter override
-
-Transmuters support a per-instance logger override:
+### Custom backend
 
 ```kotlin
-val t = Transmute.image {
-    logger(myLogger)
-    scale(maxWidth = 800, maxHeight = 600)
-}
-```
-
-This is useful for isolating verbose logging to a specific operation without changing the global level.
-
-## Instance-based API
-
-When using the instance-based `Transmute { }` factory, each plugin gets its own
-scoped logger. You can additionally override the logger in downstream transmuters:
-
-```kotlin
-val transmute = Transmute {
-    plugins {
-        install(GStreamer) {
-            configure {
-                logging { level(LogLevel.DEBUG) }
-            }
-        }
+TransmuteLogging.configure(
+    level = LogLevel.DEBUG,
+    output = object : TransmuteLogger {
+        override fun debug(message: String) = myLogger.debug("transmute", message)
+        override fun info(message: String)  = myLogger.info("transmute", message)
+        override fun warn(message: String)  = myLogger.warn("transmute", message)
+        override fun error(message: String, throwable: Throwable?) =
+            myLogger.error("transmute", message, throwable)
     }
+)
+```
+
+`TransmuteLogger` is the backend interface. The built-in `PrintLogger` writes `[transmute:<LEVEL>] <message>` to stdout.
+
+## Per-operation overrides
+
+Attach a logger directly to a transmuter builder:
+
+```kotlin
+Transmute.image {
+    logger(TransmuteLogging.printLogger(LogLevel.DEBUG))
+    scale(800, 600)
+}.transmute(source)
+```
+
+`TransmuteLogging.printLogger(level)` creates an isolated `PrintLogger` without affecting the global level.
+
+## TransmuteContext (recommended)
+
+`TransmuteContext` bundles a logger with decode and encode options, enabling cleaner reuse across multiple operations:
+
+```kotlin
+val debugCtx = TransmuteContext {
+    logger = TransmuteLogging.printLogger(LogLevel.DEBUG)
 }
 
-val t = transmute.image {
-    logger(myLogger)
-    scale(maxWidth = 1920, maxHeight = 1080)
+// Reuse across multiple transmuters
+val scaler = Transmute.image {
+    context(debugCtx)
+    scale(800, 600)
+}
+
+val converter = Transmute.audio {
+    context(debugCtx)
+    normalize()
 }
 ```
 
-See [plugins.md](plugins.md) for the full instance-based API documentation.
+## Plugin loggers
 
+Plugins receive a `PluginLogger` in `TransmuteScope` that is automatically tagged with the plugin key:
+
+```kotlin
+override fun install(scope: TransmuteScope, config: C) {
+    scope.logger.info("MyPlugin installed, config=$config")
+    scope.logger.warn("Native library not found, disabling hardware acceleration")
+}
+```

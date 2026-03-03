@@ -1,32 +1,53 @@
-# Channel Map
+# Audio: channelMap
 
-Remap audio channels by specifying which source channel feeds each output channel.
+Remap audio channels to a different layout.
 
-## Parameters
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| mapping | IntArray | - | Array where index = output channel, value = source channel index |
-
-## Usage
-
-### DSL
+## Factory
 
 ```kotlin
-
-// Duplicate left channel to both outputs
-Transmute.audio { channelMap(intArrayOf(0, 0)) }.transmute(bytes.asBytes()).bytes.data
+Transformers.audio().channelMap(mapping: IntArray)
 ```
 
-### Pipeline
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `mapping` | `IntArray` | ✅ | Output-to-source channel index mapping |
+
+## Behaviour
+
+- The output has `mapping.size` channels.
+- `mapping[i]` is the index of the source channel to copy into output channel `i`.
+- Source channel indices are 0-based: `0` = left, `1` = right for stereo input.
+- Repeated source indices are allowed (e.g. duplicate a channel).
+
+## Examples
 
 ```kotlin
-transform { add(Transformers.audio().channelMap(intArrayOf(0, 0))) }
+// Stereo → mono left channel only
+Transformers.audio().channelMap(intArrayOf(0))
+
+// Stereo → mono right channel only
+Transformers.audio().channelMap(intArrayOf(1))
+
+// Swap left and right
+Transformers.audio().channelMap(intArrayOf(1, 0))
+
+// Stereo → both channels carry left
+Transformers.audio().channelMap(intArrayOf(0, 0))
 ```
 
-## Notes
+## DSL usage
 
-- The length of `mapping` determines the output channel count.
-- `intArrayOf(0, 0)` = duplicate left to both channels.
-- `intArrayOf(1, 0)` = swap left and right channels.
-- Source indices that exceed the input channel count will produce silence.
+```kotlin
+val transmuter = Transmute.audio.to(AudioFormat.Wav) {
+    decode {
+        pipeline {
+            channelMap(intArrayOf(0))  // extract left channel
+        }
+    }
+}
+```
+
+## Related
+
+- [mono](mono.md)
+- [Transforms overview](README.md)

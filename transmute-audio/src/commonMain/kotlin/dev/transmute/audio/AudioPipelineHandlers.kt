@@ -1,5 +1,6 @@
 package dev.transmute.audio
 
+import dev.transmute.io.TSource
 import dev.transmute.model.core.Bytes
 import dev.transmute.codec.OutputFormat
 import dev.transmute.common.PipelineContext
@@ -17,21 +18,22 @@ import dev.transmute.codec.pipeline.PipelineBuilder
 class AudioDecodeHandler(
   private val detector: (Bytes) -> AudioFormat = AudioFormatDetector::detect,
   private val decoders: AudioDecoderRegistry = AudioRegistries.decoders,
-) : PipelineHandler<Bytes, Decoded<AudioFormat, AudioIR>> {
+) : PipelineHandler<TSource, Decoded<AudioFormat, AudioIR>> {
 
-  override suspend fun handle(value: Bytes, context: PipelineContext): Decoded<AudioFormat, AudioIR> {
+  override suspend fun handle(value: TSource, context: PipelineContext): Decoded<AudioFormat, AudioIR> {
     AudioRegistries.installDefaultsIfEmpty()
 
+    val bytes = if (value is Bytes) value else Bytes(value.readAll())
     val options = (context.decodeOptions as? AudioDecodeOptions) ?: CanonicalAudioDecodeOptions()
     val accepted = options.acceptedInputFormats
 
-    val format = if (accepted.size == 1) accepted.first() else detector(value)
+    val format = if (accepted.size == 1) accepted.first() else detector(bytes)
     if (accepted.isNotEmpty() && format !in accepted) {
       error("Detected audio format $format not in acceptedInputFormats=$accepted")
     }
 
     val decoder = decoders.decoderFor(format) ?: error("No audio decoder for $format")
-    val ir = decoder.decode(value, options, context)
+    val ir = decoder.decode(bytes, options, context)
     return Decoded(format, ir)
   }
 }
@@ -113,7 +115,6 @@ class AudioFixedEncodeHandler<OUT : AudioFormat>(
  *
  * Format resolution uses:
  * - `acceptedInputFormats.single()` when provided, else
- * - [AudioDecoder.sniff] when available, else
  * - [AudioFormatDetector].
  */
 fun <IN> PipelineBuilder<IN, Bytes>.then(
@@ -125,7 +126,7 @@ fun <IN> PipelineBuilder<IN, Bytes>.then(
 
   val format = when {
     accepted.size == 1 -> accepted.first()
-    else -> decoder.sniff(raw) ?: detector(raw)
+    else -> detector(raw)
   }
   if (accepted.isNotEmpty() && format !in accepted) {
     error("Detected audio format $format not in acceptedInputFormats=$accepted")

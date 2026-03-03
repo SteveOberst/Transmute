@@ -1,30 +1,44 @@
-# Trim (Video)
+# Video: trim
 
-Trim a video to a specific time range.
+Trim to a specific time range.
 
-## Parameters
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| startMs | Long | - | Start time in milliseconds |
-| endMs | Long? | null | End time in milliseconds; `null` means end of video |
-
-## Usage
-
-### DSL
+## Factory
 
 ```kotlin
-Transmute.video { trim(startMs = 0, endMs = 30_000) }.transmute(bytes.asBytes()).bytes.data
+Transformers.video().trim(startMs: Long, endMs: Long? = null)
 ```
 
-### Pipeline
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `startMs` | `Long` | ✅ | Start time in milliseconds (≥ 0) |
+| `endMs` | `Long?` | | End time in milliseconds; `null` trims to the end of the video |
+
+## Behaviour
+
+- Frames and audio samples outside [startMs, endMs] are discarded.
+- Timestamps are rebased to start from 0 in the output.
+- If `startMs` exceeds the video duration the result is empty.
+
+## DSL usage
 
 ```kotlin
-transform { add(Transformers.video().trim(0, 30_000)) }
+// Keep seconds 5–30
+val transmuter = Transmute.video.to(VideoFormat.Mp4) {
+    decode {
+        pipeline { trim(startMs = 5_000L, endMs = 30_000L) }
+    }
+}
+
+// Keep from 10 s to end
+val transmuter = Transmute.video.to(VideoFormat.Mp4) {
+    decode {
+        pipeline { trim(startMs = 10_000L) }
+    }
+}
 ```
 
-## Notes
+## Related
 
-- Trims both video and audio tracks to the specified range.
-- Seeks to the nearest keyframe for the start point to avoid decoding artifacts.
-- Values exceeding the video duration are clamped.
+- [speed](speed.md)
+- [removeAudio](remove-audio.md)
+- [Transforms overview](README.md)

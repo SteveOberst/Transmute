@@ -1,272 +1,122 @@
-# Structure Reading & Writing
+# Structures
 
-`Transmute.structure` parses raw file bytes into typed Kotlin data classes that mirror the on-disk binary layout — without decoding pixel or sample data.
+Structure decoding lets you parse a media file into a typed Kotlin data class that mirrors the on-disk format — PNG chunks, JPEG segments, RIFF containers, ISO-BMFF boxes, EBML elements — without decoding any pixel or sample data.
 
-This is useful for:
-
-- Inspecting container metadata (chunk sizes, header fields, stream layouts)
-- Rewriting/patching files structurally (e.g. strip metadata, reorder atoms)
-- Round-tripping: `read → modify → write` without re-encoding
-- Building diagnostic or analysis tools
-
-## Quick Start
+## Reading structures
 
 ```kotlin
-// Auto-detect format and read structure
-val structure = Transmute.structure.read(fileBytes.asBytes())
+// Auto-detect format, return null if unsupported
+val structure: MediaStructure? = Transmute.inspect.structure(pngBytes.asBytes())
 
-// Format-explicit read (returns a typed structure)
-val png: Png = Transmute.structure.read(pngBytes.asBytes(), ImageFormat.Png)
-val wav: Wav = Transmute.structure.read(wavBytes.asBytes(), AudioFormat.Wav)
+// Provide a format hint
+val structure = Transmute.inspect.structure(pngBytes.asBytes(), ImageFormat.Png)
 
-// Write a structure back to bytes
-val roundTripped: Bytes = Transmute.structure.write(png)
+// Raw variant: preserves binary field representation
+val rawStructure: RawMediaStructure? =
+    Transmute.inspect.rawStructure(pngBytes.asBytes(), ImageFormat.Png)
+
+// From Transmute.codec directly (throws if no decoder registered)
+val structure: MediaStructure = Transmute.codec.decodeStructure(bytes, ImageFormat.Jpeg)
+val raw: RawMediaStructure = Transmute.codec.decodeRawStructure(bytes, AudioFormat.Flac)
 ```
 
-## How It Works
+Check support before reading:
 
-Structure reading sits alongside codec decode/encode but operates at a lower level:
+```kotlin
+if (Transmute.codec.hasStructureDecoder(format)) {
+    val structure = Transmute.codec.decodeStructure(bytes, format)
+}
+if (Transmute.codec.hasRawStructureDecoder(format)) {
+    val raw = Transmute.codec.decodeRawStructure(bytes, format)
+}
+```
 
-| Layer         | Input     | Output                                    | Pixel/sample data               |
-|---------------|-----------|-------------------------------------------|---------------------------------|
-| **Structure** | Raw bytes | Typed data class (mirrors on-disk layout) | Preserved as opaque `ByteArray` |
-| **Codec**     | Raw bytes | IR (`ImageIR` / `AudioIR` / `VideoIR`)    | Fully decoded                   |
+## Supported structures
 
-A `StructureReader<S>` reads bytes into a `MediaStructure` subtype. Every `MediaStructure` implements `toBytes()` for lossless round-tripping.
-
-## Supported Formats
+All 21 supported formats have both a `MediaStructure` (high-level) and a `RawMediaStructure` (low-level binary fields) decoder registered by default.
 
 ### Image
 
-| Format | Structure Type | Container     |
-|--------|----------------|---------------|
-| PNG    | `Png`          | Chunk-based   |
-| JPEG   | `Jpeg`         | Segment-based |
-| BMP    | `Bmp`          | Fixed header  |
-| GIF    | `Gif`          | Block-based   |
-| TIFF   | `Tiff`         | IFD-based     |
-| WebP   | `Webp`         | RIFF          |
-| HEIF   | `Heif`         | ISO BMFF      |
-| AVIF   | `Avif`         | ISO BMFF      |
+| Format | Structure type | Registry key |
+|--------|----------------|--------------|
+| PNG    | `PngStructure` | `transmute.png` |
+| JPEG   | `JpegStructure` | `transmute.jpeg` |
+| BMP    | `BmpStructure` | `transmute.bmp` |
+| GIF    | `GifStructure` | `transmute.gif` |
+| TIFF   | `TiffStructure` | `transmute.tiff` |
+| WebP   | `WebpStructure` | `transmute.webp` |
+| HEIF   | `HeifStructure` | `transmute.heif` |
+| AVIF   | `AvifStructure` | `transmute.avif` |
 
 ### Audio
 
-| Format     | Structure Type | Container         |
-|------------|----------------|-------------------|
-| WAV        | `Wav`          | RIFF              |
-| MP3        | `Mp3`          | ID3 + MPEG frames |
-| FLAC       | `Flac`         | Metadata blocks   |
-| AAC        | `Aac`          | ADTS              |
-| M4A        | `M4a`          | ISO BMFF          |
-| OGG Vorbis | `OggAudio`     | Ogg               |
-| Opus       | `Opus`         | Ogg               |
+| Format | Structure type | Registry key |
+|--------|----------------|--------------|
+| WAV    | `WavStructure` | `transmute.wav` |
+| MP3    | `Mp3Structure` | `transmute.mp3` |
+| FLAC   | `FlacStructure` | `transmute.flac` |
+| AAC    | `AacStructure` | `transmute.aac` |
+| M4A    | `M4aStructure` | `transmute.m4a` |
+| OGG    | `OggAudioStructure` | `transmute.ogg` |
+| Opus   | `OpusStructure` | `transmute.opus` |
 
 ### Video
 
-| Format | Structure Type | Container |
-|--------|----------------|-----------|
-| MP4    | `Mp4`          | ISO BMFF  |
-| MOV    | `Mov`          | ISO BMFF  |
-| WebM   | `Webm`         | EBML      |
-| MKV    | `Mkv`          | EBML      |
-| AVI    | `Avi`          | RIFF      |
+| Format | Structure type | Registry key |
+|--------|----------------|--------------|
+| MP4    | `Mp4Structure` | `transmute.mp4` |
+| MOV    | `MovStructure` | `transmute.mov` |
+| WebM   | `WebmStructure` | `transmute.webm` |
+| MKV    | `MkvStructure` | `transmute.mkv` |
+| AVI    | `AviStructure` | `transmute.avi` |
 
-All structure readers live in the `transmute-structure` module.
-You can also register custom readers (see below).
+## Using structure data
 
-## Pre-built Readers and Decoders
-
-`transmute-structure` ships two objects that give you direct access to all built-in
-readers and decoders without instantiating them yourself.
-
-### `DefaultStructureReaders`
-
-`DefaultStructureReaders` holds pre-built `StructureReader` singleton instances for
-all 20 supported formats:
+Cast the `MediaStructure` result to the concrete type:
 
 ```kotlin
-import dev.transmute.structure.DefaultStructureReaders
+val structure = Transmute.inspect.structure(pngBytes.asBytes(), ImageFormat.Png)
+if (structure is PngStructure) {
+    println("Width:  ${structure.ihdr?.width}")
+    println("Height: ${structure.ihdr?.height}")
+    println("Bit depth: ${structure.ihdr?.bitDepth}")
+    println("Text chunks: ${structure.textChunks.size}")
+}
 
-val pngReader  = DefaultStructureReaders.png    // PngStructureReader
-val wavReader  = DefaultStructureReaders.wav    // WavStructureReader
-val mp4Reader  = DefaultStructureReaders.mp4    // Mp4StructureReader
-
-// Full list available via the `all` property (image + audio + video, sniff order):
-DefaultStructureReaders.all.forEach { reader ->
-    val bytes: Bytes = /* ... */
-    if (reader.canRead(bytes)) println("Matched: $reader")
+val jpegStruct = Transmute.inspect.structure(jpegBytes.asBytes(), ImageFormat.Jpeg)
+if (jpegStruct is JpegStructure) {
+    println("Segments: ${jpegStruct.segments.size}")
 }
 ```
 
-### `DefaultStructureDecoders`
+## Editing structures (PngStructure example)
 
-`DefaultStructureDecoders` wraps each reader in a `Decoder<F, OUT, NoDecodeOptions>`
-using the `rawDecoderFor` / `structureDecoderFor` factory functions. There is no need
-to subclass `Decoder` manually:
+The `RawMediaStructure` types expose an `edit { }` DSL for in-place modification and round-trip re-encoding:
 
 ```kotlin
-import dev.transmute.structure.DefaultStructureDecoders
+// Decode raw
+val raw = Transmute.codec.decodeRawStructure(pngBytes.asBytes(), ImageFormat.Png)
 
-// Individual decoders
-val png    = DefaultStructureDecoders.png       // Decoder<ImageFormat, PngStructure, ...>
-val pngRaw = DefaultStructureDecoders.pngRaw   // Decoder<ImageFormat, PngRaw, ...>
-val wav    = DefaultStructureDecoders.wav       // Decoder<AudioFormat, WavStructure, ...>
-
-// Domain lists (recommended sniff order):
-DefaultStructureDecoders.allImageDecoders      // List<Decoder<ImageFormat, ...>>
-DefaultStructureDecoders.allAudioDecoders
-DefaultStructureDecoders.allVideoDecoders
-DefaultStructureDecoders.allImageRawDecoders
-DefaultStructureDecoders.allAudioRawDecoders
-DefaultStructureDecoders.allVideoRawDecoders
+// (Type-specific) convert raw → structure, edit, re-encode
+// See per-format documentation for the exact API of each structure type.
 ```
 
-**Registering in a plugin** — bulk-register a domain in one pass:
+## JSON serialization
+
+All `MediaStructure` and `RawMediaStructure` types support kotlinx.serialization as sealed polymorphic types. They are pre-registered in `MediaStructureRegistry` with their registry keys:
 
 ```kotlin
-import dev.transmute.structure.DefaultStructureDecoders
+// Serialize
+val json = Json { serializersModule = MediaStructureRegistry.serializersModule }
+val encoded = json.encodeToString(MediaStructure.serializer(), structure)
 
-override fun install(scope: TransmuteScope, config: MyConfig) {
-    // Register all image structure decoders
-    DefaultStructureDecoders.allImageDecoders.forEach { dec ->
-        dec.decodableFormats.forEach { fmt ->
-            scope.codecs.image.structureDecoders.register(fmt as ImageFormat, dec)
-        }
-    }
-}
+// Deserialize
+val decoded = json.decodeFromString(MediaStructure.serializer(), encoded)
 ```
 
-## Auto-Detection
-
-When you call `Transmute.structure.read(bytes)` without specifying a format:
-
-1. The codec-level format detector (`Transmute.inspect.detectFormat(...)`) runs first for a precise lookup.
-2. If that fails, each registered reader's `canRead()` method is tried as a fallback (magic-byte sniffing).
-
-## Writing to a Sink
-
-For streaming or I/O destinations, use a `TSink` or `StructureSink`:
+Plugins can register additional types:
 
 ```kotlin
-// Write to a TSink (suspending, non-blocking)
-val sink: TSink = fs.sink(TPath.of("output.png"))
-transmute.structure.writeTo(pngStructure, sink)
-sink.close()
-
-// In-memory sink
-val memSink = ByteArraySink()
-transmute.structure.writeTo(pngStructure, memSink)
-val raw: ByteArray = memSink.collect()
+// Inside TransmutePlugin.install():
+scope.mediaStructures.register("myplugin.myformat", MyFormatStructure.serializer())
 ```
-
-## Reading from a TSource
-
-Read directly from a `TSource` — all bytes are consumed and parsed:
-
-```kotlin
-val src: TSource = fs.source(TPath.of("image.png"))
-val png: Png = transmute.structure.read<Png>(src, ImageFormat.Png)
-src.close()
-
-// Auto-detect format
-val src2: TSource = fs.source(TPath.of("unknown-file"))
-val structure: MediaStructure = transmute.structure.read(src2)
-```
-
-## Lambda Sugar
-
-Pass a trailing lambda to `read` — the parsed structure is the receiver:
-
-```kotlin
-val width: Int = transmute.structure.read<Png>(src, ImageFormat.Png) {
-    ihdr.width.toInt()
-}
-```
-
-## In-Place Transform via TChannel
-
-Read a file, mutate the structure, and write it back through the same channel:
-
-```kotlin
-val ch: TChannel = fs.channel(TPath.of("image.png"))
-transmute.structure.transform<Png>(ch, ImageFormat.Png) {
-    edit { ihdr = ihdr.copy(width = 100u) }
-}
-ch.close()
-```
-
-The `transform` lambda receives the parsed structure as its receiver and must
-return the modified copy. Use `.edit {}` inside the lambda to access the format's
-mutable view.
-
-## I/O Abstractions
-
-All I/O-bound structure methods are `suspend` functions — no blocking overloads.
-If callers need synchronous execution they can use `runBlocking {}`.
-
-| Type       | Purpose                                               |
-|------------|-------------------------------------------------------|
-| `TSource`  | Read-only sequential byte source                      |
-| `TSink`    | Write-only sequential byte sink                       |
-| `TChannel` | Combined read + write channel for in-place transforms |
-
-In-memory implementations (`ByteArraySource`, `ByteArraySink`,
-`ByteArrayChannel`) are provided for testing. Bridge extensions
-`Bytes.asSource()` and `Bytes.asChannel()` create these directly from a
-`Bytes` value. All types live in `dev.transmute.io`.
-
-## Reading Specific Structure Fields
-
-Each structure type is a Kotlin data class whose fields match the on-disk layout. Extension properties on the companion provide convenient typed access to common fields:
-
-```kotlin
-val png: Png = Transmute.structure.read(pngBytes.asBytes(), ImageFormat.Png)
-
-// Navigate the chunk tree
-val ihdr = png.chunks.first() // PngChunk with type = "IHDR"
-```
-
-```kotlin
-val wav: Wav = Transmute.structure.read(wavBytes.asBytes(), AudioFormat.Wav)
-
-// RIFF container children
-val fmtChunk = wav.riffHeader.children.firstOrNull { it.chunkId == "fmt " }
-```
-
-```kotlin
-val jpeg: Jpeg = Transmute.structure.read(jpegBytes.asBytes(), ImageFormat.Jpeg)
-
-// JPEG segments (SOI, APP0, DQT, SOF, SOS, EOI, ...)
-val segments = jpeg.segments
-```
-
-## Custom Structure Readers
-
-Register a custom reader for a format that Transmute does not yet support:
-
-```kotlin
-class MyCustomReader : StructureReader<MyCustomStructure> {
-    override fun canRead(source: Bytes): Boolean {
-        if (source.data.size < 4) return false
-        val h = source.data
-        return h[0] == 0x4D.toByte() && h[1] == 0x59.toByte() // "MY" magic
-    }
-
-    override fun read(source: Bytes): MyCustomStructure { /* ... */ }
-}
-
-// Register for a specific format
-Transmute.structure.register(MyCustomReader(), MyFormat)
-```
-
-Custom readers override built-in defaults when registered for the same format.
-
-## Relationship to Views
-
-The `transmute-model:view` module provides `StructureView` classes that offer a higher-level, domain-aware API on top of raw structures. Views delegate to structure extension properties for convenient access to width, height, sample rate, and other semantic fields — without re-parsing.
-
-| Layer                                    | Purpose                                                    |
-|------------------------------------------|------------------------------------------------------------|
-| `MediaStructure`                         | Immutable data class mirroring the on-disk binary layout   |
-| Extension properties                     | Typed accessors computed from raw structure fields         |
-| `StructureView` / `MutableStructureView` | Higher-level read/write API backed by extension properties |

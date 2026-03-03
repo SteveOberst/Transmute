@@ -1,9 +1,14 @@
 package dev.transmute
 
 import dev.transmute.audio.AudioFormat
+import dev.transmute.common.MediaDomain
 import dev.transmute.codec.DecodeRange
+import dev.transmute.io.TSource
 import dev.transmute.model.core.Bytes
 import dev.transmute.model.core.MediaFormat
+import dev.transmute.model.core.MediaMetadata
+import dev.transmute.model.core.MediaStructure
+import dev.transmute.model.core.RawMediaStructure
 import dev.transmute.codec.TimeRangeMs
 import dev.transmute.model.core.UnknownFormat
 import dev.transmute.model.core.asBytes
@@ -24,6 +29,8 @@ class TransmuteInspect internal constructor(
   val image: InspectImage = InspectImage(codec)
   val audio: InspectAudio = InspectAudio(codec)
   val video: InspectVideo = InspectVideo(codec)
+
+  suspend fun detectFormat(source: TSource): MediaFormat<*, *> = detectFormat(source.readAll().asBytes())
 
   fun detectFormat(bytes: Bytes): MediaFormat<*, *> {
     if (isBmff(bytes)) {
@@ -52,11 +59,69 @@ class TransmuteInspect internal constructor(
   }
 
   fun detectFormat(bytes: ByteArray): MediaFormat<*, *> = detectFormat(bytes.asBytes())
+
+  /** Best-effort metadata decode for [bytes]. Returns an empty list if unsupported. */
+  suspend fun metadata(bytes: Bytes, format: MediaFormat<*, *> = detectFormat(bytes)): List<MediaMetadata> =
+    codec.decodeMetadata(bytes, format)
+
+  /** Best-effort metadata decode for [source]. Reads the source once. */
+  suspend fun metadata(source: TSource): List<MediaMetadata> {
+    val bytes = source.readAll().asBytes()
+    return metadata(bytes, detectFormat(bytes))
+  }
+
+  /** Best-effort metadata decode for [bytes]. */
+  suspend fun metadata(bytes: ByteArray): List<MediaMetadata> = metadata(bytes.asBytes())
+
+  /** Best-effort structure decode for [bytes]. Returns null if unsupported. */
+  suspend fun structure(bytes: Bytes, format: MediaFormat<*, *> = detectFormat(bytes)): MediaStructure? {
+    if (!codec.hasStructureDecoder(format)) return null
+    return codec.decodeStructure(bytes, format)
+  }
+
+  /** Best-effort raw-structure decode for [bytes]. Returns null if unsupported. */
+  suspend fun rawStructure(bytes: Bytes, format: MediaFormat<*, *> = detectFormat(bytes)): RawMediaStructure? {
+    if (!codec.hasRawStructureDecoder(format)) return null
+    return codec.decodeRawStructure(bytes, format)
+  }
+
+  /** High-level inspection for [bytes]. */
+  suspend fun inspect(bytes: Bytes, options: InspectOptions = InspectOptions()): MediaInspection {
+    val format = detectFormat(bytes)
+    val domain = when (format) {
+      is ImageFormat -> MediaDomain.IMAGE
+      is AudioFormat -> MediaDomain.AUDIO
+      is VideoFormat -> MediaDomain.VIDEO
+      else -> MediaDomain.NONE
+    }
+
+    val structure = if (options.includeStructure) structure(bytes, format) else null
+    val rawStructure = if (options.includeRawStructure) rawStructure(bytes, format) else null
+    val metadata = if (options.includeMetadata) metadata(bytes, format) else emptyList()
+
+    return MediaInspection(
+      domain = domain,
+      format = format,
+      sizeBytes = bytes.size.toLong(),
+      structure = structure,
+      rawStructure = rawStructure,
+      metadata = metadata,
+    )
+  }
+
+  /** High-level inspection for [source]. Reads the source once. */
+  suspend fun inspect(source: TSource, options: InspectOptions = InspectOptions()): MediaInspection =
+    inspect(source.readAll().asBytes(), options)
+
+  /** High-level inspection for [bytes]. */
+  suspend fun inspect(bytes: ByteArray, options: InspectOptions = InspectOptions()): MediaInspection =
+    inspect(bytes.asBytes(), options)
 }
 
 class InspectImage internal constructor(
   private val codec: TransmuteCodec,
 ) {
+  suspend fun detectFormat(source: TSource): ImageFormat = detectFormat(source.readAll().asBytes())
   fun detectFormat(source: Bytes): ImageFormat = codec.image.detectFormat(source)
   fun detectFormat(source: ByteArray): ImageFormat = detectFormat(source.asBytes())
 }
@@ -64,6 +129,7 @@ class InspectImage internal constructor(
 class InspectAudio internal constructor(
   private val codec: TransmuteCodec,
 ) {
+  suspend fun detectFormat(source: TSource): AudioFormat = detectFormat(source.readAll().asBytes())
   fun detectFormat(source: Bytes): AudioFormat = codec.audio.detectFormat(source)
   fun detectFormat(source: ByteArray): AudioFormat = detectFormat(source.asBytes())
 }
@@ -71,6 +137,7 @@ class InspectAudio internal constructor(
 class InspectVideo internal constructor(
   private val codec: TransmuteCodec,
 ) {
+  suspend fun detectFormat(source: TSource): VideoFormat = detectFormat(source.readAll().asBytes())
   fun detectFormat(source: Bytes): VideoFormat = codec.video.detectFormat(source)
   fun detectFormat(source: ByteArray): VideoFormat = detectFormat(source.asBytes())
 
@@ -79,6 +146,12 @@ class InspectVideo internal constructor(
    *
    * This does not decode the full file: it requests a small decode range and stops after the first frame.
    */
+  suspend fun thumbnailFirstFrame(
+    source: TSource,
+    imageEncodeOptions: ImageEncodeOptions = PngEncodeOptions(),
+    decodeRange: DecodeRange = TimeRangeMs(startMs = 0, endMsExclusive = 2_000),
+  ): EncodedBytes<ImageFormat> = thumbnailFirstFrame(source.readAll().asBytes(), imageEncodeOptions, decodeRange)
+
   suspend fun thumbnailFirstFrame(
     source: Bytes,
     imageEncodeOptions: ImageEncodeOptions = PngEncodeOptions(),

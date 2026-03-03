@@ -1,54 +1,69 @@
 # MP3
 
-MP3 (MPEG-1 Audio Layer III) is the most widely-used lossy audio compression format. It offers good compression ratios and universal playback support.
+`AudioFormat.Mp3` — MPEG-1/2 Audio Layer III
 
-## Platform Support
+| Property | Value |
+|----------|-------|
+| Enum value | `AudioFormat.Mp3` |
+| MIME type | `audio/mpeg` |
+| Extension | `.mp3` |
+| Container | MPEG stream |
+| Metadata | `Id3v1Metadata`, `Id3v2Metadata` |
+| Structure | `Mp3Structure` |
 
-| Platform | Decode | Encode | Engine |
-|----------|--------|--------|--------|
-| Android  | ✅     | ✅     | MediaCodec (decode) / jump3r (encode) |
-| Desktop  | ✅     | ✅     | JLayer (decode) / jump3r (encode) |
-| iOS      | ✅     | ❌     | AVFoundation (decode only) |
+## Platform support
 
-## Usage
+| Platform | Decode | Encode |
+|----------|--------|--------|
+| Android | ✅ built-in (MediaCodec) | ✅ built-in |
+| Desktop (JVM) | ✅ built-in | ✅ built-in |
+| iOS | ✅ built-in | ✅ built-in |
+
+MP3 is the most universally supported audio format. No plugins are required on any platform.
+
+## Encode options
+
+MP3 uses `CanonicalAudioEncodeOptions` — there are currently no format-specific encoding knobs (bitrate, VBR settings, etc.).
 
 ```kotlin
-// Convert audio to MP3 (Android/Desktop)
-suspend fun convertToMp3(inputBytes: ByteArray): ByteArray =
-  Transmute.audio {
+encode {
+    options {
+        metadataPolicy = MetadataPolicy.PRESERVE   // default: STRIP_ALL
+        outputFormat   = OutputFormat.Exact(AudioFormat.Mp3)
+    }
+}
+```
+
+## Basic usage
+
+```kotlin
+// Transcode any audio to MP3
+val transmuter = Transmute.audio.to(AudioFormat.Mp3) {
+    encode { options { metadataPolicy = MetadataPolicy.PRESERVE } }
+}
+val mp3Bytes = transmuter.transmute(inputBytes)
+
+// Dynamic output — keep existing bytes as MP3
+val dynamic = Transmute.audio {
     encode { options { outputFormat = OutputFormat.Exact(AudioFormat.Mp3) } }
-  }.transmute(inputBytes.asBytes()).bytes.data
-
-// Decode MP3 on any platform (re-encode to WAV)
-suspend fun decodeToWav(mp3Bytes: ByteArray): ByteArray =
-  Transmute.audio {
-    encode { options { outputFormat = OutputFormat.Exact(AudioFormat.Wav) } }
-  }.transmute(mp3Bytes.asBytes()).bytes.data
+}
+val result = dynamic.transmute(inputBytes)
 ```
 
-## Structure Reading
-
-MP3 files can be parsed into an `Mp3` structure that captures ID3 tags and the audio frame data:
+## Inspection
 
 ```kotlin
-val mp3: Mp3 = Transmute.structure.read(mp3Bytes.asBytes(), AudioFormat.Mp3)
+// Read ID3 tags
+val inspection = Transmute.inspect.inspect(mp3Bytes)
+val tags = inspection.metadata
 
-// Access top-level parts
-val id3v2 = mp3.id3v2Tag   // optional ID3v2 header + tag data
-val frames = mp3.audioData // raw audio frames as a single blob
-val id3v1 = mp3.id3v1Tag   // optional 128-byte ID3v1 trailer
-
-// Round-trip
-val raw = Transmute.structure.write(mp3)
+// Read file structure (frame headers, bitrate info, etc.)
+val structure = Transmute.inspect.structure(mp3Bytes) // Mp3Structure
 ```
 
-The reader extracts the optional ID3v2 tag (syncsafe integer size), raw audio frames, and optional ID3v1 trailer. See `docs/structures.md`.
+## Related
 
-## Notes
-
-- iOS can **decode** MP3 but cannot encode to it.
-- Android decoding uses the hardware-accelerated MediaCodec pipeline.
-- Desktop decode uses JLayer; encode uses jump3r (pure-Java LAME port).
-- Lossy compression - re-encoding degrades quality.
-- Supports bitrates from 32 kbps to 320 kbps.
-- The most universally compatible audio format across devices and players.
+- [Codec API](../codec.md)
+- [Inspection](../inspect.md)
+- [Structures](../structures.md)
+- [Pipelines](../pipelines.md)

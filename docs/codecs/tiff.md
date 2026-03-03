@@ -1,44 +1,28 @@
 # TIFF
 
-TIFF is a flexible image container format used in professional imaging workflows. It can store high bit-depth and multiple pages, depending on the encoder/decoder.
+| Property | Value |
+|----------|-------|
+| Constant | `ImageFormat.Tiff` |
+| MIME type | `image/tiff` |
+| Extension | `tiff` |
+| Container | TIFF |
 
-## Platform Support
+## Platform availability
 
-| Platform | Decode | Encode | Engine |
-|----------|--------|--------|--------|
-| Android  | ✅     | ❌     | BitmapFactory (decode only) |
-| Desktop  | ✅     | ✅     | ImageIO |
-| iOS      | ✅     | ✅     | CoreGraphics (CGImage) |
+| Platform | Decode | Encode |
+|----------|--------|--------|
+| Android  | ✓ | ✓ |
+| Desktop  | ✓ | ✓ |
+| iOS      | ✓ | ✓ |
 
-## Usage
+## Encode options
 
-```kotlin
-// Convert any image to TIFF (Desktop/iOS)
-suspend fun convertToTiff(inputBytes: ByteArray): ByteArray =
-  Transmute.image {
-    encode { options { outputFormat = OutputFormat.Exact(ImageFormat.Tiff) } }
-  }.transmute(inputBytes.asBytes()).bytes.data
+No format-specific options.
 
-// Decode TIFF (re-encode to JPEG)
-suspend fun decodeToJpeg(tiffBytes: ByteArray): ByteArray =
-  Transmute.image {
-    encode { options(JpegEncodeOptions(quality = 0.85f)) }
-  }.transmute(tiffBytes.asBytes()).bytes.data
-```
+## Metadata support
 
-## Structure Reading
+TIFF files may carry: `ExifMetadata`, `XmpMetadata`, `IccProfileMetadata`.
 
-TIFF files can be parsed into a `Tiff` structure that mirrors the IFD chain:
+## Structure support
 
-```kotlin
-val tiff: Tiff = Transmute.structure.read(tiffBytes.asBytes(), ImageFormat.Tiff)
-
-// Round-trip
-val raw = Transmute.structure.write(tiff)
-```
-
-The reader auto-detects little-endian (II) and big-endian (MM) byte orders, then walks all
-Image File Directories (IFDs) and their tag entries. See `docs/structures.md`.
-
-## Notes features vary by platform codec implementation.
-- Desktop uses ImageIO for TIFF encode/decode.
+`TiffStructure` — IFD directory and tag list.

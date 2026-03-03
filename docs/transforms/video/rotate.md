@@ -1,29 +1,36 @@
-# Rotate (Video)
+# Video: rotate
 
-Rotate video frames by a fixed angle clockwise.
+Rotate video frames clockwise by 90°, 180°, or 270°.
 
-## Parameters
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| degrees | Int | - | Rotation angle: 90, 180, or 270 |
-
-## Usage
-
-### DSL
+## Factory
 
 ```kotlin
-Transmute.video { rotate(degrees = 90) }.transmute(bytes.asBytes()).bytes.data
+Transformers.video().rotate(degrees: Int)
 ```
 
-### Pipeline
+| Parameter | Type | Required | Allowed values | Description |
+|-----------|------|----------|---------------|-------------|
+| `degrees` | `Int` | ✅ | `90`, `180`, `270` | Clockwise rotation angle |
 
-```kotlin
-transform { add(Transformers.video().rotate(90)) }
-```
+## Behaviour
 
-## Notes
-
+- Applied to every frame; does not modify audio.
+- Canvas dimensions are swapped for 90° and 270° (portrait ↔ landscape).
 - Only 90°, 180°, and 270° are supported.
-- 90° and 270° swap the width and height of each frame.
-- Applied to every frame; audio is unaffected.
+
+## DSL usage
+
+```kotlin
+// Fix portrait video recorded in landscape orientation
+val transmuter = Transmute.video.to(VideoFormat.Mp4) {
+    decode {
+        pipeline { rotate(degrees = 90) }
+    }
+}
+```
+
+## Related
+
+- [crop](crop.md)
+- [resize](resize.md)
+- [Transforms overview](README.md)

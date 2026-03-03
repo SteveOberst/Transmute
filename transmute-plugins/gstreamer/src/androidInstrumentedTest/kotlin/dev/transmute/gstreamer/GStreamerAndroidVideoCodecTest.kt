@@ -2,7 +2,6 @@ package dev.transmute.gstreamer
 
 import dev.transmute.gstreamer.GStreamerAndroidTestHelpers.codecOp
 import dev.transmute.gstreamer.GStreamerAndroidTestHelpers.testContext
-import dev.transmute.model.core.Bytes
 import dev.transmute.video.CanonicalVideoDecodeOptions
 import dev.transmute.video.CanonicalVideoEncodeOptions
 import dev.transmute.video.VideoFormat
@@ -12,9 +11,7 @@ import org.junit.Test
 import org.junit.rules.Timeout
 import org.junit.runner.RunWith
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /**
@@ -47,21 +44,6 @@ class GStreamerAndroidVideoCodecTest {
     @Test
     fun mp4_encodableFormats_containsMp4() {
         assertTrue(VideoFormat.Mp4 in mp4.encodableFormats)
-    }
-
-    @Test
-    fun mp4_sniff_ftypIsom() {
-        val header = byteArrayOf(
-            0x00, 0x00, 0x00, 0x20,
-            'f'.code.toByte(), 't'.code.toByte(), 'y'.code.toByte(), 'p'.code.toByte(),
-            'i'.code.toByte(), 's'.code.toByte(), 'o'.code.toByte(), 'm'.code.toByte(),
-        )
-        assertEquals(VideoFormat.Mp4, mp4.sniff(Bytes(header)))
-    }
-
-    @Test
-    fun mp4_sniff_nonIsoBmff_returnsNull() {
-        assertNull(mp4.sniff(Bytes(byteArrayOf(0x00, 0x00, 0x00, 0x00, 0x00, 0x00))))
     }
 
     @Test
@@ -102,16 +84,6 @@ class GStreamerAndroidVideoCodecTest {
     }
 
     @Test
-    fun mov_sniff_ftypQt() {
-        val header = byteArrayOf(
-            0x00, 0x00, 0x00, 0x20,
-            'f'.code.toByte(), 't'.code.toByte(), 'y'.code.toByte(), 'p'.code.toByte(),
-            'q'.code.toByte(), 't'.code.toByte(), ' '.code.toByte(), ' '.code.toByte(),
-        )
-        assertEquals(VideoFormat.Mov, mov.sniff(Bytes(header)))
-    }
-
-    @Test
     fun mov_encodeAndDecode_roundTrip() = runBlocking {
         if (!GStreamerAndroidTestHelpers.gstreamerAvailable) {
             println("SKIP: GStreamer not available – test skipped")
@@ -144,18 +116,6 @@ class GStreamerAndroidVideoCodecTest {
     @Test
     fun webm_encodableFormats_containsWebm() {
         assertTrue(VideoFormat.Webm in webm.encodableFormats)
-    }
-
-    @Test
-    fun webm_sniff_ebmlDocTypeWebm() {
-        val data = byteArrayOf(
-            0x1A, 0x45, 0xDF.toByte(), 0xA3.toByte(),
-            0x93.toByte(),
-            0x42, 0x82.toByte(),
-            0x84.toByte(),
-            'w'.code.toByte(), 'e'.code.toByte(), 'b'.code.toByte(), 'm'.code.toByte(),
-        )
-        assertEquals(VideoFormat.Webm, webm.sniff(Bytes(data)))
     }
 
     @Test
@@ -194,16 +154,6 @@ class GStreamerAndroidVideoCodecTest {
     }
 
     @Test
-    fun avi_sniff_riffAvi() {
-        val header = byteArrayOf(
-            'R'.code.toByte(), 'I'.code.toByte(), 'F'.code.toByte(), 'F'.code.toByte(),
-            0x00, 0x00, 0x00, 0x00,
-            'A'.code.toByte(), 'V'.code.toByte(), 'I'.code.toByte(), ' '.code.toByte(),
-        )
-        assertEquals(VideoFormat.Avi, avi.sniff(Bytes(header)))
-    }
-
-    @Test
     fun avi_encodeAndDecode_roundTrip() = runBlocking {
         if (!GStreamerAndroidTestHelpers.gstreamerAvailable) {
             println("SKIP: GStreamer not available – test skipped")
@@ -236,19 +186,6 @@ class GStreamerAndroidVideoCodecTest {
     @Test
     fun mkv_encodableFormats_containsMkv() {
         assertTrue(VideoFormat.Mkv in mkv.encodableFormats)
-    }
-
-    @Test
-    fun mkv_sniff_ebmlDocTypeMatroska() {
-        val data = byteArrayOf(
-            0x1A, 0x45, 0xDF.toByte(), 0xA3.toByte(),
-            0x93.toByte(),
-            0x42, 0x82.toByte(),
-            0x88.toByte(),
-            'm'.code.toByte(), 'a'.code.toByte(), 't'.code.toByte(), 'r'.code.toByte(),
-            'o'.code.toByte(), 's'.code.toByte(), 'k'.code.toByte(), 'a'.code.toByte(),
-        )
-        assertEquals(VideoFormat.Mkv, mkv.sniff(Bytes(data)))
     }
 
     @Test

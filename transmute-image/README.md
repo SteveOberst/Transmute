@@ -43,7 +43,7 @@ TwelveMonkeys ImageIO.
 | `ImageGrayscaleTransform` | Convert to grayscale |
 | `ImageFlipTransform` | Flip horizontal/vertical |
 | `ImageBrightnessContrastTransform` | Adjust brightness and contrast |
-| `ImageBlurTransform` | Gaussian blur |
+| `ImageBlurTransform` | Box blur |
 | `ImageOpacityTransform` | Adjust opacity |
 
 ### Resample Kernels

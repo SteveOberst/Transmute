@@ -1,30 +1,36 @@
-# Resize (Video)
+# Video: resize
 
-Fit video frames within maximum bounds while preserving aspect ratio.
+Resize video frames to fit within bounds, preserving aspect ratio.
 
-## Parameters
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| maxWidth | Int | - | Maximum output width in pixels |
-| maxHeight | Int | - | Maximum output height in pixels |
-
-## Usage
-
-### DSL
+## Factory
 
 ```kotlin
-Transmute.video { resize(maxWidth = 1280, maxHeight = 720) }.transmute(bytes.asBytes()).bytes.data
+Transformers.video().resize(maxWidth: Int, maxHeight: Int)
 ```
 
-### Pipeline
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `maxWidth` | `Int` | ✅ | Maximum frame width in pixels |
+| `maxHeight` | `Int` | ✅ | Maximum frame height in pixels |
+
+## Behaviour
+
+- Frames are scaled to fit within `maxWidth × maxHeight` while preserving aspect ratio.
+- Never upscales; if the source is smaller than the bounds, it is left unchanged.
+- Output dimensions are always even numbers (required by most video codecs).
+
+## DSL usage
 
 ```kotlin
-transform { add(Transformers.video().resize(1280, 720)) }
+val transmuter = Transmute.video.to(VideoFormat.Mp4) {
+    encode {
+        pipeline { resize(maxWidth = 1280, maxHeight = 720) }
+    }
+}
 ```
 
-## Notes
+## Related
 
-- Aspect ratio is always preserved; the video fits within the bounding box.
-- Dimensions are rounded to even numbers (required by most video codecs).
-- Does not upscale - if the video is already smaller, it is returned unchanged.
+- [crop](crop.md)
+- [frameRate](frame-rate.md)
+- [Transforms overview](README.md)

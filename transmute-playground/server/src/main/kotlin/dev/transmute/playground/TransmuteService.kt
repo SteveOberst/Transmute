@@ -3,6 +3,7 @@ package dev.transmute.playground
 import dev.transmute.Transmute
 import dev.transmute.transmute
 import dev.transmute.gstreamer.GStreamer
+import dev.transmute.libheif.LibHeif
 import dev.transmute.playground.shared.*
 import dev.transmute.plugin.PluginId
 import dev.transmute.image.ImageFormat
@@ -18,6 +19,7 @@ import dev.transmute.ImageTransforms
 import dev.transmute.Param
 import dev.transmute.TransformDescriptor
 import dev.transmute.VideoTransforms
+import io.ktor.server.plugins.BadRequestException
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.util.UUID
@@ -50,16 +52,19 @@ class TransmuteService(
     /** All plugins that this playground knows about, keyed by plugin ID string. */
     private val knownPlugins: Map<String, PluginId> = mapOf(
         GStreamer.key.id to GStreamer.key,
+        LibHeif.key.id to LibHeif.key,
     )
 
     /** Human-readable display name for known plugins. */
     private val pluginDisplayNames: Map<String, String> = mapOf(
         GStreamer.key.id to "GStreamer",
+        LibHeif.key.id to "LibHeif",
     )
 
     /** Short description for known plugins. */
     private val pluginDescriptions: Map<String, String> = mapOf(
         GStreamer.key.id to "GStreamer-based codec backend — adds video, audio and container support via libgstreamer.",
+        LibHeif.key.id to "libheif-based image codec backend — adds HEIF/HEIC/AVIF decode/encode (desktop via heif-dec/heif-enc; no-op on Android/iOS).",
     )
 
     /**
@@ -134,11 +139,16 @@ class TransmuteService(
                 transmute.codec.decodeStructure(bytes.asBytes(), format)
             } catch (_: Exception) { null }
 
+            val metadata = try {
+                transmute.codec.decodeMetadata(bytes.asBytes(), format)
+            } catch (_: Exception) { emptyList() }
+
             InspectResult(
                 domain = domain,
                 format = format.label,
                 fileSize = uploaded.size,
                 structure = structure,
+                metadata = metadata,
             )
         } catch (e: Exception) {
             log.error("Inspect failed for handle='$handle': ${e.message}", e)
@@ -323,6 +333,12 @@ class TransmuteService(
                     featureOverrides.forEach { (id, enabled) -> set(id, enabled) }
                 }
             }
+
+            if (LibHeif.key !in disabledPlugins) {
+                install(LibHeif) {
+                    featureOverrides.forEach { (id, enabled) -> set(id, enabled) }
+                }
+            }
         }
     }
 
@@ -402,31 +418,46 @@ class TransmuteService(
      */
     private fun buildTransformInstances(factory: Any, steps: List<TransformStep>): List<Any> {
         val fns = factory::class.memberFunctions.filter { it.findAnnotation<TransformDescriptor>() != null }
-        return steps.mapNotNull { step ->
+        return steps.map { step ->
             val fn = fns.find { fn -> fn.findAnnotation<TransformDescriptor>()?.id == step.transformId }
                 ?: run {
-                    log.warn("Unknown transform id '${step.transformId}' — skipping")
-                    return@mapNotNull null
+                    throw BadRequestException("Unknown transform id '${step.transformId}'")
                 }
 
             val argMap = mutableMapOf<KParameter, Any?>(fn.instanceParameter!! to factory)
+            val missingRequired = mutableListOf<String>()
+
             fn.parameters.drop(1).forEach { param ->
                 val paramName = param.name ?: return@forEach
+
+                val ann = param.findAnnotation<Param>()
                 val rawValue = step.parameters[paramName]
-                if (rawValue != null) {
-                    val parsed = parseParamValue(rawValue, param)
+
+                val isRequired = ann?.required == true
+                if (isRequired && rawValue.isNullOrBlank()) {
+                    missingRequired.add(paramName)
+                    return@forEach
+                }
+
+                if (!rawValue.isNullOrBlank()) {
+                    val parsed = parseParamValue(rawValue, param, step.transformId, paramName)
                     if (parsed != null) argMap[param] = parsed
                 }
                 // If rawValue is null and param.isOptional: callBy uses the Kotlin default.
-                // If rawValue is null and !param.isOptional: callBy will throw a meaningful error.
+            }
+
+            if (missingRequired.isNotEmpty()) {
+                throw BadRequestException(
+                    "Transform '${step.transformId}' missing required parameter(s): ${missingRequired.joinToString(", ")}",
+                )
             }
 
             try {
                 fn.callBy(argMap)
+                    ?: throw BadRequestException("Failed to instantiate transform '${step.transformId}': returned null")
             } catch (e: Exception) {
                 val root = e.cause ?: e
-                log.warn("Failed to instantiate transform '${step.transformId}': ${root.message}")
-                null
+                throw BadRequestException("Failed to instantiate transform '${step.transformId}': ${root.message}")
             }
         }
     }
@@ -437,10 +468,17 @@ class TransmuteService(
      * Handles primitives (Int, Long, Float, Double, Boolean), IntArray, enum constants,
      * and falls back to String for all other types.
      */
-    private fun parseParamValue(value: String, param: KParameter): Any? {
+    private fun parseParamValue(
+        value: String,
+        param: KParameter,
+        transformId: String,
+        paramName: String,
+    ): Any? {
         // For nullable types (Long?, Float?, etc.) Kotlin reflection keeps the
         // classifier set to the underlying class, so we use it directly.
         val classifier = param.type.classifier
+
+        if (value.isBlank()) return null
 
         return try {
             when {
@@ -455,8 +493,9 @@ class TransmuteService(
                 else -> value.ifEmpty { null }
             }
         } catch (e: Exception) {
-            log.warn("Could not parse param '${param.name}' value='$value': ${e.message}")
-            null
+            throw BadRequestException(
+                "Transform '$transformId' parameter '$paramName' has invalid value '$value'",
+            )
         }
     }
 

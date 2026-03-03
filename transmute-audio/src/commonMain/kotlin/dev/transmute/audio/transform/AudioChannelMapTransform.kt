@@ -44,7 +44,7 @@ class AudioChannelMapTransform(
     }
 
     context.logger.info(
-      "AudioChannelMapTransform: ${srcChannels}ch → ${dstChannels}ch, mapping=${mapping.toList()}"
+      "AudioChannelMapTransform: ${srcChannels}ch -> ${dstChannels}ch, mapping=${mapping.toList()}"
     )
 
     val samples = ir.samples.data

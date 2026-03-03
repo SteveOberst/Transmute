@@ -20,9 +20,13 @@ import kotlin.math.sin
 /**
  * Test utilities for GStreamer integration tests.
  *
- * Provides synthetic media generators and soft-skip guards for
- * GStreamer-dependent tests. Self-contained - does not depend on
+ * Provides synthetic media generators (audio, image, video) used by
+ * the integration test suite. Self-contained — does not depend on
  * test helpers from other modules (which aren't on the test classpath).
+ *
+ * GStreamer availability is gated at the Gradle level: the `desktopTest`
+ * task is configured with `onlyIf` so it only runs when a working
+ * GStreamer installation is detected.
  */
 object GStreamerTestHelpers {
 
@@ -30,55 +34,6 @@ object GStreamerTestHelpers {
      * Creates a test [PipelineContext] with print logging.
      */
     fun testContext(): PipelineContext = PipelineContext(logger = PrintLogger)
-
-    /**
-     * `true` when the GStreamer CLI tools (`gst-launch-1.0` etc.) are
-     * reachable on this machine. Tests that exercise real encode/decode
-     * pipelines should wrap their body in [requireGStreamer].
-     */
-    val gstreamerAvailable: Boolean get() = GStreamerResolver.available
-
-    /**
-     * Soft-skip guard for GStreamer-dependent tests.
-     *
-     * If GStreamer is not installed the test passes silently (just like
-     * the established `requireWebpWriter` pattern in the image module).
-     * On CI the integration runner installs GStreamer, so these tests
-     * will always execute in the pipeline.
-     */
-    inline fun requireGStreamer(block: () -> Unit) {
-        if (!gstreamerAvailable) {
-            PrintLogger.warn(
-                "SKIP: GStreamer not available on this machine – " +
-                    "encode/decode integration tests skipped",
-            )
-            return
-        }
-        block()
-    }
-
-    /**
-     * Soft-skip guard that also checks for a specific GStreamer element.
-     *
-     * Useful for tests that depend on optional GStreamer plugins (e.g.
-     * `x265enc` for HEIF encoding).
-     *
-     * Accepts a `suspend` block so callers inside `runTest` can call
-     * codec encode/decode directly.
-     */
-    suspend fun requireGStreamerElement(element: String, block: suspend () -> Unit) {
-        if (!gstreamerAvailable) {
-            PrintLogger.warn("SKIP: GStreamer not available – test skipped")
-            return
-        }
-        if (!GStreamerResolver.hasElement(element)) {
-            PrintLogger.warn(
-                "SKIP: GStreamer element '$element' not available – test skipped",
-            )
-            return
-        }
-        block()
-    }
 
     // -- Synthetic audio --------------------------------------------------
 

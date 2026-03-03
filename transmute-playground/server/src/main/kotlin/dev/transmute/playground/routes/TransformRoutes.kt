@@ -4,6 +4,7 @@ import dev.transmute.playground.TransmuteService
 import dev.transmute.playground.shared.TransformRequest
 import dev.transmute.playground.shared.TransformResult
 import io.ktor.http.*
+import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -40,13 +41,16 @@ fun Route.transformRoutes(service: TransmuteService) {
                     properties = buildMap {
                         put("inputSize", uploaded.size.toString())
                         if (request.pipeline.isNotEmpty()) {
-                            put("pipeline", request.pipeline.joinToString(" → ") { it.transformId })
+                            put("pipeline", request.pipeline.joinToString(" -> ") { it.transformId })
                         }
                     },
                     generatedCode = code,
                     durationMs = durationMs,
                 )
             )
+        } catch (e: BadRequestException) {
+            // Let StatusPages format this as a clean 400 without dumping stacks.
+            throw e
         } catch (e: Exception) {
             call.respond(
                 HttpStatusCode.InternalServerError,
@@ -83,13 +87,17 @@ private fun generateCode(request: TransformRequest): String = buildString {
     if (request.pipeline.isNotEmpty()) {
         appendLine("    transform {")
         for (step in request.pipeline) {
-            val params = step.parameters.entries.joinToString(", ") { (k, v) ->
-                val literal = v.toIntOrNull()?.toString()
-                    ?: v.toLongOrNull()?.let { "${it}L" }
-                    ?: v.toFloatOrNull()?.let { "${it}f" }
-                    ?: v.toBooleanStrictOrNull()?.toString()
-                "$k = ${literal ?: "\"$v\""}"
-            }
+            val params = step.parameters.entries
+                .asSequence()
+                .filter { (_, v) -> !v.isNullOrBlank() }
+                .joinToString(", ") { (k, v) ->
+                    val vv = v!!
+                    val literal = vv.toIntOrNull()?.toString()
+                        ?: vv.toLongOrNull()?.let { "${it}L" }
+                        ?: vv.toFloatOrNull()?.let { "${it}f" }
+                        ?: vv.toBooleanStrictOrNull()?.toString()
+                    "$k = ${literal ?: "\"$vv\""}"
+                }
             if (params.isEmpty()) {
                 appendLine("        add(${step.transformId}())")
             } else {

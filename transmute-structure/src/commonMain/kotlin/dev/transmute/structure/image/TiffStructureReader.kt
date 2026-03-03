@@ -7,9 +7,9 @@ import dev.transmute.model.core.asBytes
 import dev.transmute.model.identify.Endianness
 import dev.transmute.model.structure.StructureReadException
 import dev.transmute.model.structure.StructureReader
-import dev.transmute.model.structure.image.TiffRaw
-import dev.transmute.model.structure.image.TiffIfd
-import dev.transmute.model.structure.image.TiffIfdEntry
+import dev.transmute.model.structure.image.types.TiffRaw
+import dev.transmute.model.structure.image.types.TiffIfd
+import dev.transmute.model.structure.image.types.TiffIfdEntry
 
 /**
  * Parses raw TIFF file bytes into a [TiffRaw] structure.
@@ -21,28 +21,23 @@ import dev.transmute.model.structure.image.TiffIfdEntry
  */
 class TiffStructureReader : StructureReader<TiffRaw> {
 
-    override fun canRead(source: Bytes): Boolean {
-        val d = source.data
-        if (d.size < 8) return false
-        val le = d[0] == 0x49.toByte() && d[1] == 0x49.toByte() && d[2] == 0x2A.toByte() && d[3] == 0x00.toByte()
-        val be = d[0] == 0x4D.toByte() && d[1] == 0x4D.toByte() && d[2] == 0x00.toByte() && d[3] == 0x2A.toByte()
-        return le || be
-    }
-
     override fun read(source: Bytes): TiffRaw {
         val d = source.data
-        if (!canRead(source)) throw StructureReadException("Not a TIFF file (bad signature)")
 
         val byteOrder = if (d[0] == 0x49.toByte()) Endianness.Little else Endianness.Big
         val firstIfdOffset = readU32(d, 4, byteOrder)
 
-        // Parse IFD chain
-        val ifds = mutableListOf<TiffIfd>()
-        val visitedOffsets = mutableSetOf<UInt>()
-        var nextIfdOff = firstIfdOffset
+        // Parse the full reachable IFD graph starting from the first IFD.
+        // This includes the main IFD chain (nextIfdOffset) plus referenced
+        // IFDs via ExifIFD (34665), GPSIFD (34853), and SubIFDs (330).
+        val ifdByOffset = linkedMapOf<UInt, TiffIfd>()
+        val toVisit = ArrayDeque<UInt>()
+        if (firstIfdOffset != 0u) toVisit.add(firstIfdOffset)
 
-        while (nextIfdOff != 0u && nextIfdOff.toInt() + 2 <= d.size && visitedOffsets.add(nextIfdOff)) {
-            val off = nextIfdOff.toInt()
+        fun readIfdAt(offset: UInt): TiffIfd? {
+            if (offset == 0u) return null
+            if (offset.toInt() + 2 > d.size) return null
+            val off = offset.toInt()
             val entryCount = readU16(d, off, byteOrder)
             val entriesStart = off + 2
             val entries = mutableListOf<TiffIfdEntry>()
@@ -81,17 +76,69 @@ class TiffStructureReader : StructureReader<TiffRaw> {
 
             val nextOff = entriesStart + entryCount * 12
             val nextIfd = if (nextOff + 4 <= d.size) readU32(d, nextOff, byteOrder) else 0u
-            ifds += TiffIfd(entries = entries, nextIfdOffset = nextIfd)
-            nextIfdOff = nextIfd
+            return TiffIfd(offset = offset, entries = entries, nextIfdOffset = nextIfd)
         }
 
-        // The remaining data after header + IFDs is image/extra data.
-        // For simplicity we leave imageData and extraData empty - the IFD
-        // entries contain resolved value pointers already.
+        fun readU32FromBytes(bytes: ByteArray, off: Int): UInt = when (byteOrder) {
+            Endianness.Little ->
+                (bytes[off].toUInt() and 0xFFu) or
+                    ((bytes[off + 1].toUInt() and 0xFFu) shl 8) or
+                    ((bytes[off + 2].toUInt() and 0xFFu) shl 16) or
+                    ((bytes[off + 3].toUInt() and 0xFFu) shl 24)
+            Endianness.Big ->
+                ((bytes[off].toUInt() and 0xFFu) shl 24) or
+                    ((bytes[off + 1].toUInt() and 0xFFu) shl 16) or
+                    ((bytes[off + 2].toUInt() and 0xFFu) shl 8) or
+                    (bytes[off + 3].toUInt() and 0xFFu)
+        }
+
+        fun offsetValues(entry: TiffIfdEntry): List<UInt> {
+            val payload = entry.data.data
+            if (payload.size < 4) return emptyList()
+            val count = entry.count.toInt().coerceAtLeast(0)
+            return (0 until count).mapNotNull { i ->
+                val o = i * 4
+                if (o + 3 < payload.size) readU32FromBytes(payload, o) else null
+            }
+        }
+
+        while (toVisit.isNotEmpty()) {
+            val offset = toVisit.removeFirst()
+            if (ifdByOffset.containsKey(offset)) continue
+            val ifd = readIfdAt(offset) ?: continue
+            ifdByOffset[offset] = ifd
+
+            // Follow the main chain
+            if (ifd.nextIfdOffset != 0u) toVisit.add(ifd.nextIfdOffset)
+
+            // Follow referenced IFD pointers
+            val exif = ifd.entries.firstOrNull { it.tag == 34665u.toUShort() }?.let { offsetValues(it).firstOrNull() }
+            val gps = ifd.entries.firstOrNull { it.tag == 34853u.toUShort() }?.let { offsetValues(it).firstOrNull() }
+            val subIfds = ifd.entries.firstOrNull { it.tag == 330u.toUShort() }?.let { offsetValues(it) } ?: emptyList()
+
+            listOfNotNull(exif, gps).forEach { if (it != 0u) toVisit.add(it) }
+            subIfds.filter { it != 0u }.forEach { toVisit.add(it) }
+        }
+
+        // Deterministic ordering for Raw: primary chain first, then any referenced IFDs.
+        val orderedIfds = mutableListOf<TiffIfd>()
+        val inOrder = mutableSetOf<UInt>()
+        var chainOff = firstIfdOffset
+        while (chainOff != 0u && inOrder.add(chainOff)) {
+            val ifd = ifdByOffset[chainOff] ?: break
+            orderedIfds += ifd
+            chainOff = ifd.nextIfdOffset
+        }
+        // Add any remaining discovered IFDs in ascending-offset order.
+        orderedIfds += ifdByOffset
+            .filterKeys { it !in inOrder }
+            .toSortedMap()
+            .values
+
         return TiffRaw(
             byteOrder = byteOrder,
             firstIfdOffset = firstIfdOffset,
-            ifds = ifds,
+            ifds = orderedIfds,
         )
     }
 }

@@ -3,9 +3,7 @@ package dev.transmute.structure.image
 import dev.transmute.model.core.asBytes
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
 
 class BmpStructureReaderTest {
 
@@ -37,16 +35,6 @@ class BmpStructureReaderTest {
         // Pixel data: 1 pixel (3 bytes) + 1 pad byte = 4 bytes
         val pixel = byteArrayOf(0xFF.toByte(), 0x00, 0x00, 0x00)
         return header + dib + pixel
-    }
-
-    @Test
-    fun canReadAcceptsValidBmp() {
-        assertTrue(reader.canRead(minimalBmp().asBytes()))
-    }
-
-    @Test
-    fun canReadRejectsGarbage() {
-        assertFalse(reader.canRead(ByteArray(16).asBytes()))
     }
 
     @Test

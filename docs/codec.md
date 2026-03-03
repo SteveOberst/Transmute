@@ -1,74 +1,101 @@
-# `Transmute.codec`
+# Codec
 
-`Transmute.codec` is the codec facade: **decode**, **encode**, format detection, and range decode (audio/video).
+`Transmute.codec` gives direct, one-shot access to decode, encode, format detection, structure decoding, and metadata decoding — without building a transmuter or running a full pipeline.
 
-It is a lightweight accessor that provides access to decode, encode, and format detection.
+## ImageCodec / AudioCodec / VideoCodec
 
-The static `Transmute.codec` delegates to `Transmute.Default`. For plugin-based setups,
-use an instance:
+Each domain codec is accessible as a property:
 
 ```kotlin
-val transmute = Transmute {
-    plugins { install(GStreamer) }
+Transmute.codec.image  // ImageCodec
+Transmute.codec.audio  // AudioCodec
+Transmute.codec.video  // VideoCodec
+```
+
+Each codec can:
+- Detect format from bytes
+- Decode bytes to an IR
+- Encode an IR to bytes
+- Return the default decoder/encoder for that domain
+
+```kotlin
+// Format detection
+val format: ImageFormat = Transmute.codec.image.detectFormat(bytes)
+val format: AudioFormat = Transmute.codec.audio.detectFormat(bytes)
+val format: VideoFormat = Transmute.codec.video.detectFormat(bytes)
+
+// Decode
+val decoded: Decoded<ImageFormat, ImageIR> = Transmute.codec.image.decode(bytes)
+val decoded: Decoded<AudioFormat, AudioIR> = Transmute.codec.audio.decode(bytes)
+
+// Encode
+val encoded: EncodedBytes<ImageFormat> = Transmute.codec.image.encode(decoded, CanonicalImageEncodeOptions())
+```
+
+## Structure decoding
+
+```kotlin
+// Decode to high-level typed structure
+val structure: MediaStructure = Transmute.codec.decodeStructure(bytes, ImageFormat.Png)
+val structure: MediaStructure = Transmute.codec.decodeStructure(source, AudioFormat.Flac)
+
+// Decode to low-level binary structure
+val raw: RawMediaStructure = Transmute.codec.decodeRawStructure(bytes, VideoFormat.Mp4)
+
+// Check support
+val hasStructure: Boolean = Transmute.codec.hasStructureDecoder(ImageFormat.Heif)
+val hasRaw: Boolean      = Transmute.codec.hasRawStructureDecoder(AudioFormat.Mp3)
+```
+
+## Metadata decoding
+
+```kotlin
+// Decode all metadata blocks
+val metadata: List<MediaMetadata> = Transmute.codec.decodeMetadata(bytes, ImageFormat.Jpeg)
+val metadata = Transmute.codec.decodeMetadata(source, AudioFormat.Mp3)
+
+// Returns empty list if no metadata decoder is registered (does not throw)
+val metadata = Transmute.codec.decodeMetadata(bytes, ImageFormat.Gif) // → emptyList()
+
+// Check support
+val hasMetadata: Boolean = Transmute.codec.hasMetadataDecoder(format)
+```
+
+## One-shot dispatch
+
+For simple re-encoding without transforms or format selection:
+
+```kotlin
+// Dispatch on TransmuteType — uses default decode/encode pipeline
+val resultBytes: ByteArray = Transmute.transmute(TransmuteType.Image, inputBytes)
+val resultBytes: ByteArray = Transmute.transmute(TransmuteType.Audio, inputBytes)
+val resultBytes: ByteArray = Transmute.transmute(TransmuteType.Video, inputBytes)
+```
+
+This is the quickest path but provides no control over output format or transforms. Use the transmuter builders (`Transmute.image { }`) for anything more complex.
+
+## EncodedBytes
+
+The result type of encode operations:
+
+```kotlin
+data class EncodedBytes<F : MediaFormat<*, *>>(
+    val format: F,    // the format that was actually written
+    val bytes: Bytes, // the encoded data
+)
+
+val encoded: EncodedBytes<ImageFormat.Jpeg> = ...
+val rawBytes: ByteArray = encoded.bytes.data
+val format: ImageFormat.Jpeg = encoded.format
+```
+
+For dynamic-output transmuters the format is `ImageFormat` (the erased supertype):
+
+```kotlin
+val encoded: EncodedBytes<ImageFormat> = Transmute.image { }.transmute(source)
+when (encoded.format) {
+    is ImageFormat.Jpeg -> handleJpeg(encoded.bytes.data)
+    is ImageFormat.Png  -> handlePng(encoded.bytes.data)
+    else -> {}
 }
-val codec = transmute.codec
 ```
-
-See [plugins.md](plugins.md) for the full plugin system documentation.
-
-If you want to build and reuse the *default* codec pipelines directly, each domain exposes:
-
-- `defaultDecoder()` / `defaultEncoder()` (configured with canonical options)
-- `decoder { ... }` / `encoder { ... }` (build a custom Bytes-in decoder or IR-in encoder pipeline)
-
-You can also embed these pipelines into a transmuter stage:
-
-```kotlin
-val codec = Transmute.codec
-
-val t = Transmute.image.custom.from<java.awt.image.BufferedImage> {
-    decode {
-      pipeline(initial = BufferedImageToBytesHandler("png") + codec.image.defaultDecoder().pipeline)
-    }
-    encode {
-      pipeline(initial = codec.image.defaultEncoder().pipeline + EncodedBytesToBufferedImageHandler())
-    }
-  }
-```
-
-## Example
-
-```kotlin
-suspend fun codecExample(bytes: ByteArray) {
-  val codec = Transmute.codec
-
-  // Decode with per-call options
-  val decoded =
-    codec.image.decode(
-      source = bytes.asBytes(),
-      options =
-        CanonicalImageDecodeOptions(
-          acceptedInputFormats = setOf(ImageFormat.Jpeg, ImageFormat.Png),
-        ),
-    )
-
-  // Encode with per-call options
-  val out =
-    codec.image.encode(
-      decoded = decoded,
-      options = JpegEncodeOptions(quality = 0.9f, metadataPolicy = dev.transmute.codec.MetadataPolicy.PRESERVE),
-    )
-
-  val outBytes = out.bytes.data
-}
-```
-
-## Range decode (audio/video)
-
-Audio/video decode options support `decodeRange`, which is a `DecodeRange` request.
-
-Built-in implementations include:
-- `TimeRangeMs(startMs, endMsExclusive)` (all domains)
-- `FrameIndexRange(startFrameIndex, endFrameIndexExclusive, frameRate)` (typically video; converted to a time range)
-
-If the active decoder cannot satisfy the requested range efficiently, it throws `UnsupportedOperationException` (never silently ignores the request).

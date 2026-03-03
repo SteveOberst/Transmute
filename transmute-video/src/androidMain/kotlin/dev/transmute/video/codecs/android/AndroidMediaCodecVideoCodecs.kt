@@ -6,6 +6,7 @@ import android.media.MediaDataSource
 import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.media.MediaMuxer
+import dev.transmute.io.TSource
 import dev.transmute.audio.AudioSamples
 import dev.transmute.model.core.Bytes
 import dev.transmute.common.PipelineContext
@@ -610,23 +611,8 @@ internal class AndroidMp4Codec : VideoCodec {
   override val decodableFormats: Set<VideoFormat> = setOf(VideoFormat.Mp4)
   override val encodableFormats: Set<VideoFormat> = setOf(VideoFormat.Mp4)
 
-  override fun sniff(data: Bytes): VideoFormat? {
-    val bytes = data.data
-    if (bytes.size < 12) return null
-    if (bytes[4] != 0x66.toByte() || bytes[5] != 0x74.toByte() ||
-      bytes[6] != 0x79.toByte() || bytes[7] != 0x70.toByte()) return null
-    val brand = (8 until 12).map { bytes[it].toInt().toChar() }.joinToString("")
-    return when {
-      brand.startsWith("mp4") || brand == "isom" || brand == "M4V " ||
-        brand == "avc1" || brand == "iso2" || brand == "iso5" ||
-        brand == "iso6" || brand == "mmp4" -> VideoFormat.Mp4
-      brand.startsWith("3gp") || brand.startsWith("3g2") -> VideoFormat.Mp4
-      else -> null
-    }
-  }
-
-  override suspend fun decode(source: Bytes, options: VideoDecodeOptions, context: PipelineContext): VideoIR {
-    val bytes = source.data
+  override suspend fun decode(source: TSource, options: VideoDecodeOptions, context: PipelineContext): VideoIR {
+    val bytes = source.readAll()
     val timeRange = options.decodeRange?.timeframe()
     val (frames, audioInfo) = decodeVideoWithMediaCodec(bytes, timeRange)
     require(frames.isNotEmpty()) { "No video frames decoded" }
@@ -671,18 +657,9 @@ internal class AndroidMovCodec : VideoCodec {
   override val decodableFormats: Set<VideoFormat> = setOf(VideoFormat.Mov)
   override val encodableFormats: Set<VideoFormat> = setOf(VideoFormat.Mov)
 
-  override fun sniff(data: Bytes): VideoFormat? {
-    val bytes = data.data
-    if (bytes.size < 12) return null
-    if (bytes[4] != 0x66.toByte() || bytes[5] != 0x74.toByte() ||
-      bytes[6] != 0x79.toByte() || bytes[7] != 0x70.toByte()) return null
-    val brand = (8 until 12).map { bytes[it].toInt().toChar() }.joinToString("")
-    return if (brand == "qt  ") VideoFormat.Mov else null
-  }
-
-  override suspend fun decode(source: Bytes, options: VideoDecodeOptions, context: PipelineContext): VideoIR {
+  override suspend fun decode(source: TSource, options: VideoDecodeOptions, context: PipelineContext): VideoIR {
     // MOV and MP4 share the same container on Android
-    val bytes = source.data
+    val bytes = source.readAll()
     val timeRange = options.decodeRange?.timeframe()
     val (frames, audioInfo) = decodeVideoWithMediaCodec(bytes, timeRange)
     require(frames.isNotEmpty()) { "No video frames decoded" }
@@ -726,21 +703,8 @@ internal class AndroidMovCodec : VideoCodec {
 internal class AndroidWebmDecoder : dev.transmute.video.VideoDecoder {
   override val supportedFormats: Set<VideoFormat> = setOf(VideoFormat.Webm)
 
-  override fun sniff(data: Bytes): VideoFormat? {
-    val bytes = data.data
-    if (bytes.size < 4) return null
-    if (bytes[0] != 0x1A.toByte() || bytes[1] != 0x45.toByte() ||
-      bytes[2] != 0xDF.toByte() || bytes[3] != 0xA3.toByte()) return null
-    if (bytes.size >= 40) {
-      val content = bytes.copyOfRange(0, minOf(bytes.size, 64)).decodeToString()
-      if (content.contains("matroska")) return null // MKV, not WebM
-      if (content.contains("webm")) return VideoFormat.Webm
-    }
-    return VideoFormat.Webm
-  }
-
-  override suspend fun decode(source: Bytes, options: VideoDecodeOptions, context: PipelineContext): VideoIR {
-    val bytes = source.data
+  override suspend fun decode(source: TSource, options: VideoDecodeOptions, context: PipelineContext): VideoIR {
+    val bytes = source.readAll()
     val timeRange = options.decodeRange?.timeframe()
     val (frames, audioInfo) = decodeVideoWithMediaCodec(bytes, timeRange)
     require(frames.isNotEmpty()) { "No video frames decoded from WebM" }

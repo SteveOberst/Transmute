@@ -8,7 +8,7 @@ Interactive web UI for the [Transmute](../README.md) media processing library. U
 ┌──────────────────────┐       ┌──────────────────────┐
 │   Next.js Frontend   │──────▶│   Ktor API Server    │
 │  (React + HeroUI)    │ REST  │  (Netty, port 8080)  │
-│  static export → out │◀──────│                       │
+│  static export -> out │◀──────│                       │
 │  port 3000 (dev)     │  WS   │  Transmute instance   │
 └──────────────────────┘       │  GStreamer plugin      │
                                └──────────────────────┘

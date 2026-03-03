@@ -3,8 +3,6 @@ package dev.transmute.structure.audio
 import dev.transmute.model.core.asBytes
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 class AacStructureReaderTest {
 
@@ -28,21 +26,6 @@ class AacStructureReaderTest {
             0x50.toByte(), 0x80.toByte(),  // profile/freq/channel
             0x00, 0x1C.toByte(), 0x00,      // frame length embedded
         )
-    }
-
-    @Test
-    fun canReadAcceptsAdts() {
-        assertTrue(reader.canRead(minimalAac().asBytes()))
-    }
-
-    @Test
-    fun canReadRejectsGarbage() {
-        assertFalse(reader.canRead(ByteArray(16).asBytes()))
-    }
-
-    @Test
-    fun canReadRejectsTooShort() {
-        assertFalse(reader.canRead(ByteArray(1).asBytes()))
     }
 
     @Test

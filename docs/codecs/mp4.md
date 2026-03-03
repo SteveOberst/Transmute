@@ -1,49 +1,88 @@
-# MP4 (H.264)
+# MP4
 
-MP4 is the most widely-used video container format, typically containing H.264 (AVC) video and AAC audio. It offers excellent compatibility across all devices and platforms.
+`VideoFormat.Mp4` — MPEG-4 Part 14
 
-## Platform Support
+| Property | Value |
+|----------|-------|
+| Enum value | `VideoFormat.Mp4` |
+| MIME type | `video/mp4` |
+| Extension | `.mp4` |
+| Container | ISOBMFF |
+| Metadata | `ItunesMetadata` |
+| Structure | `Mp4Structure` |
 
-| Platform | Decode | Encode | Engine                                     |
-|----------|--------|--------|--------------------------------------------|
-| Android  | ✅      | ✅      | MediaCodec                                 |
-| Desktop  | ✅      | ✅      | GStreamer (requires `transmute-gstreamer`) |
-| iOS      | ✅      | ✅      | AVFoundation / AVAssetWriter               |
+## Platform support
 
-## Usage
+| Platform | Decode | Encode |
+|----------|--------|--------|
+| Android | ✅ built-in (MediaCodec) | ✅ built-in |
+| Desktop (JVM) | ⚠️ GStreamer plugin | ⚠️ GStreamer plugin |
+| iOS | ✅ built-in | ✅ built-in |
 
-```kotlin
-// Convert video to MP4
-suspend fun convertToMp4(inputBytes: ByteArray): ByteArray =
-  Transmute.video {
-    encode { options { outputFormat = OutputFormat.Exact(VideoFormat.Mp4) } }
-  }.transmute(inputBytes.asBytes()).bytes.data
+On Desktop, MP4 requires the [GStreamer plugin](../plugins.md).
 
-// Decode MP4 to another format (re-encode to WebM)
-suspend fun convertToWebm(mp4Bytes: ByteArray): ByteArray =
-  Transmute.video {
-    encode { options { outputFormat = OutputFormat.Exact(VideoFormat.Webm) } }
-  }.transmute(mp4Bytes.asBytes()).bytes.data
-```
-
-## Structure Reading
-
-MP4 files can be parsed into an `Mp4` structure that mirrors the ISO BMFF box layout:
+## Desktop plugin setup
 
 ```kotlin
-val mp4: Mp4 = Transmute.structure.read(mp4Bytes.asBytes(), VideoFormat.Mp4)
-
-// Round-trip
-val raw = Transmute.structure.write(mp4)
+val transmute = Transmute {
+    plugins {
+        install(GStreamerPlugin) {
+            domains(MediaDomain.VIDEO)
+        }
+    }
+}
 ```
 
-The reader walks `ftyp`, `moov`, `mdat`, and all nested boxes. Common inspection targets include
-`moov.trak[0].mdia.hdlr` (handler type) and `moov.mvhd` (movie header / duration). See `docs/structures.md`.
+## Encode options
 
-## Notes
-- Android uses hardware-accelerated MediaCodec for H.264.
-- Desktop requires the optional `transmute-gstreamer` module with GStreamer installed.
-- iOS uses AVFoundation with hardware H.264 encode/decode.
-- The safest choice for maximum cross-platform and cross-device compatibility.
-- Supports H.264 (AVC) video codec with AAC audio by default.
-- Streaming-friendly with proper moov atom placement (faststart).
+MP4 uses `CanonicalVideoEncodeOptions` — there are currently no format-specific encoding knobs (bitrate, codec profile, etc.).
+
+```kotlin
+encode {
+    options {
+        metadataPolicy = MetadataPolicy.PRESERVE   // default: STRIP_ALL
+        outputFormat   = OutputFormat.Exact(VideoFormat.Mp4)
+    }
+}
+```
+
+## Basic usage
+
+```kotlin
+val transmuter = Transmute.video.to(VideoFormat.Mp4) {
+    encode { options { metadataPolicy = MetadataPolicy.PRESERVE } }
+}
+val mp4Bytes = transmuter.transmute(inputBytes)
+```
+
+## Transforms
+
+```kotlin
+val transmuter = Transmute.video.to(VideoFormat.Mp4) {
+    decode { pipeline { trim(startMs = 0L, endMs = 30_000L) } }
+    encode {
+        pipeline {
+            resize(width = 1280, height = 720)
+            frameRate(30f)
+        }
+    }
+}
+```
+
+## Inspection and thumbnails
+
+```kotlin
+val inspection = Transmute.inspect.inspect(mp4Bytes)
+
+// Extract first frame as JPEG
+val thumb = Transmute.inspect.video.thumbnailFirstFrame(mp4Bytes)
+```
+
+> On Desktop, thumbnail extraction requires the GStreamer plugin.
+
+## Related
+
+- [Codec API](../codec.md)
+- [Plugins](../plugins.md)
+- [MOV](mov.md)
+- [Video transforms](../transforms/README.md)

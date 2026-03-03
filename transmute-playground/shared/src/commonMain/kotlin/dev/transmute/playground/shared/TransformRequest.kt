@@ -19,7 +19,7 @@ data class TransformRequest(
 @Serializable
 data class TransformStep(
     val transformId: String,
-    val parameters: Map<String, String> = emptyMap(),
+    val parameters: Map<String, String?> = emptyMap(),
 )
 
 /**

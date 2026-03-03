@@ -1,64 +1,62 @@
 # Documentation
 
-Transmute is designed as a small, stable top-level API (`Transmute`) backed by:
-
-- `Transmute.codec` for one-shot decode/encode
-- `Transmute.inspect` for format detection and inspection
-- `Transmute.structure` for reading/writing raw file structures (headers, chunks, atoms)
-- Transmuters (`Transmute.image { ... }`, `Transmute.audio { ... }`, `Transmute.video { ... }`) for decode -> transforms -> encode
-- Instance-based API with plugin system: `Transmute { plugins { install(GStreamer) } }`
-- Suspending I/O via `TSource`, `TSink`, `TChannel` — non-blocking on every platform
-
-## Most Common Tasks
-
-- Convert + transform: `docs/examples.md`
-- Custom decode/encode pipelines (typed handler chains): `docs/pipelines.md`
-- One-shot decode/encode: `docs/codec.md`
-- Format detection + scoped extraction (video thumbnail/audio): `docs/inspect.md`, `docs/format-detection.md`
-- Read/write file structures without decoding pixel/sample data: `docs/structures.md`
-- Instance-based API & plugins: `docs/plugins.md`
+This directory contains the full Transmute documentation.
 
 ## Getting Started
 
-- `README.md` (overview + quick start)
-- `docs/examples.md`
-- `docs/pipelines.md`
+- Start with the [project README](../README.md) for a quick-start overview and setup instructions.
+- [examples.md](examples.md) — Practical conversion and transformation examples for all three domains.
 
-## Codec + Inspect
+## Core Concepts
 
-- `docs/codec.md`
-- `docs/inspect.md`
-- `docs/format-detection.md`
+| File | Contents |
+|------|----------|
+| [examples.md](examples.md) | Common conversion recipes: image, audio, video |
+| [pipelines.md](pipelines.md) | How the decode → transform → encode pipeline works; customising stages |
+| [codec.md](codec.md) | One-shot decode/encode via `Transmute.codec` without building a transmuter |
+| [inspect.md](inspect.md) | Format detection, metadata extraction, structure reading, video thumbnails |
+| [format-detection.md](format-detection.md) | Deep dive on automatic format detection logic |
+| [structures.md](structures.md) | Parsing and round-tripping raw file structures (chunks, atoms, headers) |
 
-## Structure
+## Extension Points
 
-- `docs/structures.md` (parsing files into typed structures)
+| File | Contents |
+|------|----------|
+| [plugins.md](plugins.md) | Instance-based API and the plugin system |
+| [extending.md](extending.md) | Writing custom codecs, transforms, structure decoders, and plugins |
+| [logging.md](logging.md) | Global and per-operation logging configuration |
 
-## Codecs + Transforms
+## Format Reference
 
-- `docs/codecs/README.md`
-- `docs/transforms/README.md` (complete index of all 27 transforms with DSL names and links)
+| File | Contents |
+|------|----------|
+| [codecs/README.md](codecs/README.md) | All supported formats with platform availability matrix |
+| [codecs/jpeg.md](codecs/jpeg.md) | JPEG |
+| [codecs/png.md](codecs/png.md) | PNG |
+| [codecs/webp.md](codecs/webp.md) | WebP |
+| [codecs/heif.md](codecs/heif.md) | HEIF |
+| [codecs/avif.md](codecs/avif.md) | AVIF |
+| [codecs/gif.md](codecs/gif.md) | GIF |
+| [codecs/bmp.md](codecs/bmp.md) | BMP |
+| [codecs/tiff.md](codecs/tiff.md) | TIFF |
+| [codecs/mp3.md](codecs/mp3.md) | MP3 |
+| [codecs/aac.md](codecs/aac.md) | AAC |
+| [codecs/wav.md](codecs/wav.md) | WAV |
+| [codecs/ogg.md](codecs/ogg.md) | OGG |
+| [codecs/flac.md](codecs/flac.md) | FLAC |
+| [codecs/m4a.md](codecs/m4a.md) | M4A |
+| [codecs/opus.md](codecs/opus.md) | Opus |
+| [codecs/mp4.md](codecs/mp4.md) | MP4 |
+| [codecs/webm.md](codecs/webm.md) | WebM |
+| [codecs/mov.md](codecs/mov.md) | MOV |
+| [codecs/avi.md](codecs/avi.md) | AVI |
+| [codecs/mkv.md](codecs/mkv.md) | MKV |
 
-## Operations
+## Transform Reference
 
-- `docs/logging.md`
-- `docs/extending.md` (custom codecs, transforms & structure readers)
-- `docs/plugins.md` (instance-based API & plugin system)
-- `docs/gstreamer.md` (optional GStreamer integration for advanced codecs)
-
-## Modules
-
-Each `transmute-*` directory has its own README:
-
-| Module | Purpose |
-|--------|---------|
-| [transmute-api](../transmute-api/README.md) | Public API facade — main entry point |
-| [transmute-codec](../transmute-codec/README.md) | Codec abstraction layer & pipeline system |
-| [transmute-common](../transmute-common/README.md) | Shared infrastructure (context, logging) |
-| [transmute-audio](../transmute-audio/README.md) | Audio formats, codecs, transforms |
-| [transmute-image](../transmute-image/README.md) | Image formats, codecs, transforms |
-| [transmute-video](../transmute-video/README.md) | Video formats, codecs, transforms |
-| [transmute-structure](../transmute-structure/README.md) | Concrete structure readers (20 formats) |
-| [transmute-model](../transmute-model/README.md) | Data model layer (core, identify, structure, view, stream, metadata, diagnostics) |
-| [transmute-filesystem](../transmute-filesystem/README.md) | Cross-platform filesystem abstraction |
-| [transmute-gstreamer](../transmute-plugins/gstreamer/README.md) | Optional GStreamer integration plugin |
+| File | Contents |
+|------|----------|
+| [transforms/README.md](transforms/README.md) | Complete index of all 27 transforms with parameters |
+| [transforms/image/](transforms/image/) | Image transforms (scale, resize, crop, rotate, …) |
+| [transforms/audio/](transforms/audio/) | Audio transforms (normalize, trim, fade, …) |
+| [transforms/video/](transforms/video/) | Video transforms (trim, resize, frameRate, …) |

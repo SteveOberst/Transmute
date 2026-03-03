@@ -61,3 +61,31 @@ fun List<IsoBmffBox>.findBox(type: String): IsoBmffBox? =
 /** Parse the `ftyp` box data, or `null` if no ftyp box is present. */
 fun List<IsoBmffBox>.parseFtyp(): FtypData? =
     findBox("ftyp")?.data?.data?.let { FtypData.fromBytes(it) }
+
+// ----------------------------------------------------------------
+//  Common ISO BMFF box accessors (shared by all ISO BMFF formats)
+// ----------------------------------------------------------------
+
+/** The `ftyp` box (required by ISO BMFF spec). */
+val List<IsoBmffBox>.ftypBox: IsoBmffBox? get() = findBox("ftyp")
+
+/** Parsed `ftyp` data. */
+val List<IsoBmffBox>.ftyp: FtypData? get() = parseFtyp()
+
+/** Major brand from the `ftyp` box. */
+val List<IsoBmffBox>.majorBrand: Brand? get() = ftyp?.majorBrand
+
+/** Minor version from the `ftyp` box. */
+val List<IsoBmffBox>.minorVersion: UInt? get() = ftyp?.minorVersion
+
+/** Compatible brands from the `ftyp` box. */
+val List<IsoBmffBox>.compatibleBrands: List<Brand> get() = ftyp?.compatibleBrands ?: emptyList()
+
+/** The `mdat` (media data) box, or `null`. */
+val List<IsoBmffBox>.mdatBox: IsoBmffBox? get() = findBox("mdat")
+
+/** The `moov` (movie metadata) box, or `null`. */
+val List<IsoBmffBox>.moovBox: IsoBmffBox? get() = findBox("moov")
+
+/** The `meta` box, or `null`. */
+val List<IsoBmffBox>.metaBox: IsoBmffBox? get() = findBox("meta")

@@ -15,7 +15,7 @@ round-tripped: read from raw bytes and written back to produce valid files.
 | Type | Purpose |
 |------|---------|
 | `MediaStructure` | Marker interface — every format model implements this + `BinarySerializable` |
-| `StructureReader<S>` | Interface to parse `Bytes` → `S : MediaStructure` |
+| `StructureReader<S>` | Interface to parse `Bytes` -> `S : MediaStructure` |
 | `StructureReaders` | Global registry of readers, with `read()` and `readAuto()` |
 | `StructureSink` / `BytesSink` | Output abstractions for writing structures |
 | `StructureReadException` | Thrown on parse failure |

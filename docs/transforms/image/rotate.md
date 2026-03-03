@@ -1,36 +1,46 @@
-# Rotate
+# Image: rotate
 
-Rotate an image by an explicit number of degrees clockwise.
+Rotate clockwise by 90°, 180°, or 270°.
 
-Supported angles: 90°, 180°, 270°. Rotation is a pure pixel shuffle — no interpolation, no quality loss. The orientation field is reset to `NORMAL` in the output.
-
-## Parameters
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| degrees | Int | 90 | Rotation in degrees clockwise: 90, 180, or 270 |
-
-## Usage
-
-### DSL
+## Factory
 
 ```kotlin
-// 90 deg clockwise (default)
-Transmute.image { rotate() }.transmute(bytes.asBytes()).bytes.data
-
-// 180 deg (upside-down)
-Transmute.image { rotate(180) }.transmute(bytes.asBytes()).bytes.data
+Transformers.image().rotate(degrees: Int = 90)
 ```
 
-### Pipeline
+| Parameter | Type | Required | Default | Allowed values |
+|-----------|------|----------|---------|---------------|
+| `degrees` | `Int` | | `90` | `90`, `180`, `270` |
+
+## Behaviour
+
+- Rotation is always clockwise.
+- Canvas dimensions are swapped for 90° and 270° (portrait ↔ landscape).
+- Only 90°, 180°, and 270° are supported; other values are rejected.
+
+## DSL usage
 
 ```kotlin
-transform { add(Transformers.image().rotate()) }      // 90 deg CW (default)
-transform { add(Transformers.image().rotate(180)) }   // 180 deg
+val transmuter = Transmute.image {
+    decode {
+        pipeline {
+            rotate(degrees = 90)   // 90° clockwise
+        }
+    }
+}
 ```
 
-## Notes
+## Common use-case: fix EXIF orientation
 
-- Valid values: 90, 180, 270. Any other value throws `IllegalArgumentException`.
-- 90° and 270° swap the image width and height; 180° preserves dimensions.
-- The `orientation` field of the output IR is always set to `NORMAL`.
+Many cameras embed an EXIF orientation tag instead of physically rotating pixels. Extract that tag from the inspection result and apply the matching rotation:
+
+```kotlin
+val inspection = Transmute.inspect.inspect(bytes)
+// determine rotation from inspection.metadata ExifMetadata.orientation
+// then build a transmuter with the matching rotate() call
+```
+
+## Related
+
+- [flip](flip.md)
+- [Transforms overview](README.md)

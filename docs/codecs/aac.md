@@ -1,46 +1,67 @@
 # AAC
 
-AAC (Advanced Audio Coding) is a modern lossy audio codec that provides better quality than MP3 at similar bitrates. It's the default audio codec used in MP4/M4A containers.
+`AudioFormat.Aac` — Advanced Audio Coding
 
-## Platform Support
+| Property | Value |
+|----------|-------|
+| Enum value | `AudioFormat.Aac` |
+| MIME type | `audio/aac` |
+| Extension | `.aac` |
+| Container | ADTS stream / raw AAC |
+| Metadata | `ItunesMetadata` |
+| Structure | `AacStructure` |
 
-| Platform | Decode | Encode | Engine                                     |
-|----------|--------|--------|--------------------------------------------|
-| Android  | ✅      | ✅      | MediaCodec                                 |
-| Desktop  | ✅      | ✅      | GStreamer (requires `transmute-gstreamer`) |
-| iOS      | ✅      | ✅      | AVFoundation                               |
+## Platform support
 
-## Usage
+| Platform | Decode | Encode |
+|----------|--------|--------|
+| Android | ✅ built-in (MediaCodec) | ✅ built-in |
+| Desktop (JVM) | ⚠️ GStreamer plugin | ⚠️ GStreamer plugin |
+| iOS | ✅ built-in | ✅ built-in |
 
-```kotlin
-// Convert audio to AAC
-suspend fun convertToAac(inputBytes: ByteArray): ByteArray =
-  Transmute.audio {
-    encode { options { outputFormat = OutputFormat.Exact(AudioFormat.Aac) } }
-  }.transmute(inputBytes.asBytes()).bytes.data
+On Desktop, AAC requires the [GStreamer plugin](../plugins.md).
 
-// Decode AAC (re-encode to WAV)
-suspend fun decodeToWav(aacBytes: ByteArray): ByteArray =
-  Transmute.audio {
-    encode { options { outputFormat = OutputFormat.Exact(AudioFormat.Wav) } }
-  }.transmute(aacBytes.asBytes()).bytes.data
-```
-
-## Structure Reading
-
-AAC files in ADTS format can be parsed into an `Aac` structure that captures the ADTS frame headers:
+## Desktop plugin setup
 
 ```kotlin
-val aac: Aac = Transmute.structure.read(aacBytes.asBytes(), AudioFormat.Aac)
-
-// Round-trip
-val raw = Transmute.structure.write(aac)
+val transmute = Transmute {
+    plugins {
+        install(GStreamerPlugin) {
+            domains(MediaDomain.AUDIO) // or MediaDomain.ALL
+        }
+    }
+}
 ```
 
-The reader validates the 12-bit ADTS sync word (0xFFF) and parses per-frame header fields
-(profile, sample rate index, channel config, frame length). See `docs/structures.md`.
+## Encode options
 
-## Notes
-- Supported natively on Android and iOS.
-- Typically used inside MP4/M4A containers.
-- Desktop requires the optional `transmute-gstreamer` module with GStreamer installed.
+AAC uses `CanonicalAudioEncodeOptions` — there are currently no format-specific encoding knobs.
+
+```kotlin
+encode {
+    options {
+        metadataPolicy = MetadataPolicy.PRESERVE   // default: STRIP_ALL
+        outputFormat   = OutputFormat.Exact(AudioFormat.Aac)
+    }
+}
+```
+
+## Basic usage
+
+```kotlin
+val transmuter = Transmute.audio.to(AudioFormat.Aac)
+val aacBytes = transmuter.transmute(inputBytes)
+```
+
+## Inspection
+
+```kotlin
+val structure = Transmute.inspect.structure(aacBytes) // AacStructure
+val inspection = Transmute.inspect.inspect(aacBytes)
+```
+
+## Related
+
+- [Codec API](../codec.md)
+- [Plugins](../plugins.md)
+- [Structures](../structures.md)
