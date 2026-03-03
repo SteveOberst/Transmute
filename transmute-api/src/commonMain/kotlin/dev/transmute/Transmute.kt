@@ -170,6 +170,7 @@ class Transmute private constructor(
           imageCodecs.rawStructureDecoders.register(ImageFormat.Tiff, tiffRaw)
           imageCodecs.rawStructureDecoders.register(ImageFormat.Webp, webpRaw)
           imageCodecs.rawStructureDecoders.register(ImageFormat.Heif, heifRaw)
+          imageCodecs.rawStructureDecoders.register(ImageFormat.Heic, heicRaw)
           imageCodecs.rawStructureDecoders.register(ImageFormat.Avif, avifRaw)
           audioCodecs.rawStructureDecoders.register(AudioFormat.Wav,  wavRaw)
           audioCodecs.rawStructureDecoders.register(AudioFormat.Mp3,  mp3Raw)
@@ -191,6 +192,7 @@ class Transmute private constructor(
           imageCodecs.structureDecoders.register(ImageFormat.Tiff, tiff)
           imageCodecs.structureDecoders.register(ImageFormat.Webp, webp)
           imageCodecs.structureDecoders.register(ImageFormat.Heif, heif)
+          imageCodecs.structureDecoders.register(ImageFormat.Heic, heic)
           imageCodecs.structureDecoders.register(ImageFormat.Avif, avif)
           audioCodecs.structureDecoders.register(AudioFormat.Wav,  wav)
           audioCodecs.structureDecoders.register(AudioFormat.Mp3,  mp3)
@@ -234,6 +236,7 @@ class Transmute private constructor(
       imageCodecs.metadataDecoders.register(ImageFormat.Png,  DefaultMetadataDecoders.png)
       imageCodecs.metadataDecoders.register(ImageFormat.Webp, DefaultMetadataDecoders.webp)
       imageCodecs.metadataDecoders.register(ImageFormat.Heif, DefaultMetadataDecoders.heif)
+      imageCodecs.metadataDecoders.register(ImageFormat.Heic, DefaultMetadataDecoders.heic)
       imageCodecs.metadataDecoders.register(ImageFormat.Avif, DefaultMetadataDecoders.avif)
 
       // Register built-in metadata decoders - audio

@@ -44,6 +44,8 @@ object DefaultStructureDecoders {
     val tiffRaw = rawDecoderFor(ImageFormat.Tiff, DefaultStructureReaders.tiff)
     val webpRaw = rawDecoderFor(ImageFormat.Webp, DefaultStructureReaders.webp)
     val heifRaw = rawDecoderFor(ImageFormat.Heif, DefaultStructureReaders.heif)
+    /** HEIC uses the same ISO BMFF container as HEIF; the [HeifStructureReader][dev.transmute.structure.image.HeifStructureReader] handles both. */
+    val heicRaw = rawDecoderFor(ImageFormat.Heic, DefaultStructureReaders.heif)
     val avifRaw = rawDecoderFor(ImageFormat.Avif, DefaultStructureReaders.avif)
 
     // -- Image structure decoders (bytes -> *Structure) ------------------------
@@ -55,6 +57,8 @@ object DefaultStructureDecoders {
     val tiff = structureDecoderFor(ImageFormat.Tiff, DefaultStructureReaders.tiff) { toImageStructure() }
     val webp = structureDecoderFor(ImageFormat.Webp, DefaultStructureReaders.webp) { toImageStructure() }
     val heif = structureDecoderFor(ImageFormat.Heif, DefaultStructureReaders.heif) { toImageStructure() }
+    /** HEIC uses the same ISO BMFF container as HEIF; the [HeifStructureReader][dev.transmute.structure.image.HeifStructureReader] handles both. */
+    val heic = structureDecoderFor(ImageFormat.Heic, DefaultStructureReaders.heif) { toImageStructure() }
     val avif = structureDecoderFor(ImageFormat.Avif, DefaultStructureReaders.avif) { toImageStructure() }
 
     // -- Audio raw decoders (bytes -> *Raw) ------------------------------------
@@ -97,7 +101,7 @@ object DefaultStructureDecoders {
 
     /** All image structure decoders, in recommended priority order. */
     val allImageDecoders: List<MediaDecoder<ImageFormat, MediaStructure, NoDecodeOptions>> =
-        listOf(png, jpeg, bmp, gif, tiff, webp, heif, avif)
+        listOf(png, jpeg, bmp, gif, tiff, webp, heif, heic, avif)
 
     /** All audio structure decoders, in recommended priority order. */
     val allAudioDecoders: List<MediaDecoder<AudioFormat, MediaStructure, NoDecodeOptions>> =
@@ -109,7 +113,7 @@ object DefaultStructureDecoders {
 
     /** All image raw decoders, in recommended priority order. */
     val allImageRawDecoders: List<MediaDecoder<ImageFormat, RawMediaStructure, NoDecodeOptions>> =
-        listOf(pngRaw, jpegRaw, bmpRaw, gifRaw, tiffRaw, webpRaw, heifRaw, avifRaw)
+        listOf(pngRaw, jpegRaw, bmpRaw, gifRaw, tiffRaw, webpRaw, heifRaw, heicRaw, avifRaw)
 
     /** All audio raw decoders, in recommended priority order. */
     val allAudioRawDecoders: List<MediaDecoder<AudioFormat, RawMediaStructure, NoDecodeOptions>> =

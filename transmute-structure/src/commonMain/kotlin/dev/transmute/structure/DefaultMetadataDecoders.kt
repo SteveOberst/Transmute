@@ -44,6 +44,10 @@ object DefaultMetadataDecoders {
     val heif: MediaDecoder<ImageFormat, List<MediaMetadata>, NoDecodeOptions> =
         metadataDecoderFor(ImageFormat.Heif, DefaultStructureReaders.heif) { extractMetadata() }
 
+    /** HEIC uses the same ISO BMFF container as HEIF; the same reader extracts EXIF/XMP metadata from both. */
+    val heic: MediaDecoder<ImageFormat, List<MediaMetadata>, NoDecodeOptions> =
+        metadataDecoderFor(ImageFormat.Heic, DefaultStructureReaders.heif) { extractMetadata() }
+
     val avif: MediaDecoder<ImageFormat, List<MediaMetadata>, NoDecodeOptions> =
         metadataDecoderFor(ImageFormat.Avif, DefaultStructureReaders.avif) { extractMetadata() }
 
@@ -90,7 +94,7 @@ object DefaultMetadataDecoders {
     // -- Domain lists ---------------------------------------------------------
 
     val allImageDecoders: List<MediaDecoder<ImageFormat, List<MediaMetadata>, NoDecodeOptions>> =
-        listOf(jpeg, tiff, png, webp, heif, avif)
+        listOf(jpeg, tiff, png, webp, heif, heic, avif)
 
     val allAudioDecoders: List<MediaDecoder<AudioFormat, List<MediaMetadata>, NoDecodeOptions>> =
         listOf(mp3, flac, oggAudio, opus, wav, m4a, aac)
