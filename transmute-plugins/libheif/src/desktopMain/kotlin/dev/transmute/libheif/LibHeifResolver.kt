@@ -11,7 +11,7 @@ import java.io.File
  *   1. Extracted bundled binaries from JAR resources
  *   2. System PATH as fallback
  *   3. Platform-specific defaults:
- *      - **Windows:** MSYS2 (`C:\msys64`), vcpkg, Chocolatey, Scoop
+ *      - **Windows:** vcpkg, Chocolatey, Scoop, MSYS2 (`C:\msys64`)
  *      - **macOS:** Homebrew (`/opt/homebrew/bin`), MacPorts (`/opt/local/bin`)
  *      - **Linux:** `/usr/bin`, `/usr/local/bin`, `/opt/local/bin`
  *
@@ -151,7 +151,6 @@ internal object LibHeifResolver {
                     resolveFromDir(repairedBinDir.absolutePath, diag, "bundled extraction (repaired)")
                 }
 
-                // If it still fails on Windows, fall back to auto-provisioning (MSYS2).
                 if (_decoderPath != null && !testBinary(_decoderPath!!)) {
                     diag.appendLine("[libheif] Bundled repair did not yield a working decoder")
                     _decoderPath = null
@@ -286,7 +285,7 @@ internal object LibHeifResolver {
     /**
      * Dispatches to platform-specific default path searches based on the OS.
      *
-     * On Windows, probes MSYS2, vcpkg, Chocolatey and Scoop install locations.
+     * On Windows, probes vcpkg, Chocolatey, Scoop, and MSYS2 install locations.
      * On macOS, probes Homebrew and MacPorts.
      * On Linux, probes `/usr/bin`, `/usr/local/bin`, `/opt/local/bin`.
      */
@@ -300,23 +299,7 @@ internal object LibHeifResolver {
     }
 
     private fun resolveFromWindowsDefaults(diag: StringBuilder) {
-        // MSYS2 installations (most common source of libheif CLI on Windows)
-        val msys2Roots = listOfNotNull(
-            System.getenv("MSYS2_ROOT"),
-            "C:\\msys64",
-            "C:\\msys32",
-        )
-        for (root in msys2Roots) {
-            for (env in listOf("ucrt64", "mingw64", "clang64")) {
-                val dir = "$root\\$env\\bin"
-                if (File(dir).isDirectory) {
-                    resolveFromDir(dir, diag, "MSYS2: $root\\$env")
-                    if (_decoderPath != null) return
-                }
-            }
-        }
-
-        // vcpkg installations
+        // vcpkg installations (VCPKG_ROOT env var or well-known default paths)
         val vcpkgRoot = System.getenv("VCPKG_ROOT")
         if (vcpkgRoot != null) {
             resolveFromDir("$vcpkgRoot\\installed\\x64-windows\\tools\\libheif", diag, "vcpkg tools")
@@ -339,11 +322,27 @@ internal object LibHeifResolver {
             if (_decoderPath != null) return
         }
 
+        // MSYS2 installations (legacy / manual installs)
+        val msys2Roots = listOfNotNull(
+            System.getenv("MSYS2_ROOT"),
+            "C:\\msys64",
+            "C:\\msys32",
+        )
+        for (root in msys2Roots) {
+            for (env in listOf("ucrt64", "mingw64", "clang64")) {
+                val dir = "$root\\$env\\bin"
+                if (File(dir).isDirectory) {
+                    resolveFromDir(dir, diag, "MSYS2: $root\\$env")
+                    if (_decoderPath != null) return
+                }
+            }
+        }
+
         diag.appendLine(
-            "[libheif] Not found in Windows default paths (MSYS2, vcpkg, Chocolatey, Scoop).\n" +
+            "[libheif] Not found in Windows default paths (vcpkg, Chocolatey, Scoop, MSYS2).\n" +
                 "  Install libheif via one of:\n" +
-                "    - MSYS2: pacman -S mingw-w64-ucrt-x86_64-libheif\n" +
-                "    - vcpkg: vcpkg install libheif[core]:x64-windows\n" +
+                "    - vcpkg (recommended): vcpkg install libheif[tools,aom,dav1d,rav1e,hevc,x265] --triplet x64-windows\n" +
+                "      Install guide: https://learn.microsoft.com/en-us/vcpkg/get_started/get-started\n" +
                 "    - Or place heif-dec.exe / heif-enc.exe on your system PATH",
         )
     }

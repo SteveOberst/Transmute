@@ -103,7 +103,7 @@ internal object LibHeifBundleExtractor {
             return binDir
         }
 
-        // JAR resources not available -- try runtime auto-provisioning (Windows only; MSYS2 CDN)
+        // JAR resources not available -- try runtime auto-provisioning via vcpkg (Windows only)
         if (platform.startsWith("windows")) {
             diag.appendLine("[libheif] Bundled: JAR resources not available, attempting runtime auto-provisioning...")
             val provisionedBinDir = LibHeifAutoProvisioner.provision(diag)

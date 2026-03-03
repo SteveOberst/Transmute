@@ -66,7 +66,7 @@ tasks.register("dev") {
                         }
                         .distinct()
                     for (pid in pids) {
-                        println("  ▸ Killing stale process on port $port (PID $pid)")
+                        println("  > Killing stale process on port $port (PID $pid)")
                         ProcessBuilder("taskkill", "/F", "/T", "/PID", pid.toString())
                             .redirectErrorStream(true).start().waitFor()
                     }
@@ -77,7 +77,7 @@ tasks.register("dev") {
                         .mapNotNull { it.trim().toLongOrNull() }
                     lsof.waitFor()
                     for (pid in pids) {
-                        println("  ▸ Killing stale process on port $port (PID $pid)")
+                        println("  > Killing stale process on port $port (PID $pid)")
                         ProcessHandle.of(pid).ifPresent { it.destroyForcibly() }
                     }
                 }
@@ -167,9 +167,9 @@ tasks.register("dev") {
         streamPrefixed("[server]   ", backend)
 
             println()
-            println("  ▸ Frontend: http://localhost:3000")
-            println("  ▸ Backend:  http://localhost:8080")
-            println("  ▸ Press Ctrl+C to stop both")
+            println("  > Frontend: http://localhost:3000")
+            println("  > Backend:  http://localhost:8080")
+            println("  > Press Ctrl+C to stop both")
             println()
 
         // Block until either process exits.
@@ -184,7 +184,7 @@ tasks.register("dev") {
         } catch (e: InterruptedException) {
             Thread.currentThread().interrupt()
         } finally {
-            println("\n  ▸ Shutting down...")
+            println("\n  > Shutting down...")
             runCatching { destroyTree(frontend) }
             runCatching { destroyTree(backend) }
         }

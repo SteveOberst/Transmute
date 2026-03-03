@@ -51,7 +51,7 @@ val httpClient: HttpClient by lazy {
  */
 fun downloadGst(url: String, dest: File, logger: org.gradle.api.logging.Logger) {
     if (dest.exists() && dest.length() > 0) {
-        logger.lifecycle("  ↳ already cached: ${dest.name}")
+        logger.lifecycle("  -> already cached: ${dest.name}")
         return
     }
     dest.parentFile.mkdirs()
@@ -60,7 +60,7 @@ fun downloadGst(url: String, dest: File, logger: org.gradle.api.logging.Logger) 
         .header("User-Agent", "Gradle-GStreamer-Staging/1.0 (${System.getProperty("os.name")}; +https://transmute.dev)")
         .GET()
         .build()
-    logger.lifecycle("  ↳ GET $url")
+    logger.lifecycle("  -> GET $url")
     val resp = httpClient.send(request, HttpResponse.BodyHandlers.ofFile(tmp.toPath()))
     check(resp.statusCode() in 200..299) {
         tmp.delete()
@@ -86,7 +86,7 @@ fun verifyChecksum(file: File, expectedHex: String, logger: org.gradle.api.loggi
     check(actual == expected) {
         "SHA-256 mismatch for ${file.name}\n  expected: $expected\n  actual:   $actual"
     }
-    logger.lifecycle("  ↳ checksum OK ($expected)")
+    logger.lifecycle("  -> checksum OK ($expected)")
 }
 
 // ---------------------------------------------------------------------------
@@ -249,7 +249,7 @@ tasks.register("stageGStreamerDesktopWindows") {
             writeDesktopManifest(platformDir)
             marker.writeText(gstVersion)
             logger.lifecycle(
-                "GStreamer Desktop: Windows staged — " +
+                "GStreamer Desktop: Windows staged -- " +
                     "${File(platformDir, "bin").listFiles()?.size ?: 0} files in bin/",
             )
         } finally {

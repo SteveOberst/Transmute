@@ -179,7 +179,7 @@ tasks.matching { it.name == "desktopTest" }.configureEach {
 
 // When desktopTest is skipped its binary results directory won't exist,
 // which causes the KMP `allTests` aggregate TestReport to fail.
-// Skip allTests entirely when GStreamer isn't usable — the only desktop
+// Skip allTests entirely when GStreamer isn't usable -- the only desktop
 // tests in this module require GStreamer.
 tasks.matching { it.name == "allTests" }.configureEach {
     onlyIf { gstreamerDesktopUsable }

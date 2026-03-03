@@ -49,8 +49,9 @@ kotlin {
             // Staged libheif binaries are bundled into the desktop JAR as classpath resources.
             // Run `./gradlew :transmute-plugins:libheif:stageLibHeifDesktop` (once per version,
             // per platform) to populate build/libheif-desktop/ before building a distribution.
-            // For local development, install libheif via your system package manager instead —
-            // the resolver auto-detects MSYS2, Homebrew, vcpkg, and system PATH installations.
+            // Windows: requires vcpkg (VCPKG_ROOT or PATH). macOS: requires `brew install libheif`.
+            // For local development without staging, use installFrom() or useSystemInstallation()
+            // in your Transmute config to point at an existing libheif installation.
             resources.srcDir(layout.buildDirectory.dir("libheif-desktop"))
         }
         val desktopTest by getting
