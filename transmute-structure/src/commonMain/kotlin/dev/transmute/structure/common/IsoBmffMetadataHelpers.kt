@@ -192,15 +192,17 @@ internal fun findHeifExifBytes(
     val ilocBox = metaChildren.firstOrNull { it.type.value == "iloc" } ?: return null
     val (offset, length) = findItemLocation(ilocBox, exifItemId) ?: return null
 
-    // Read Exif bytes from mdat
+    // Read Exif bytes from mdat.
+    // iloc construction_method=0 stores absolute file offsets; translate to mdat-payload-relative.
     val mdatBox = topLevelBoxes.firstOrNull { it.type.value == "mdat" } ?: return null
-    val mdatData = mdatBox.data.data
+    val mdatPayloadStart = computeBoxPayloadStart(topLevelBoxes, "mdat")
+    val mdatRelOffset = if (mdatPayloadStart >= 0) offset - mdatPayloadStart else offset
 
-    // The iloc offset can be relative to the start of mdat's payload
-    // or to the start of the file. We try mdat-relative first.
-    val exifData = extractExifBytesFromMdat(mdatData, offset.toInt(), length.toInt()) ?: return null
+    val exifData = extractExifBytesFromMdat(mdatBox.data.data, mdatRelOffset.toInt(), length.toInt())
+        ?: extractExifBytesFromMdat(mdatBox.data.data, offset.toInt(), length.toInt()) // fallback: try raw offset
+        ?: return null
 
-    // HEIF Exif items: the first 4 bytes are a BE uint32 Tiff header offset
+    // HEIF Exif items: the first 4 bytes are a BE uint32 giving the offset to the TIFF header
     if (exifData.size < 4) return null
     val tiffOffset = ((exifData[0].toInt() and 0xFF) shl 24) or
             ((exifData[1].toInt() and 0xFF) shl 16) or
@@ -233,7 +235,11 @@ internal fun findHeifXmpBytes(topLevelBoxes: List<IsoBmffBox>): ByteArray? {
     val (offset, length) = findItemLocation(ilocBox, xmpItemId) ?: return null
 
     val mdatBox = topLevelBoxes.firstOrNull { it.type.value == "mdat" } ?: return null
-    return extractExifBytesFromMdat(mdatBox.data.data, offset.toInt(), length.toInt())
+    val mdatPayloadStart = computeBoxPayloadStart(topLevelBoxes, "mdat")
+    val mdatRelOffset = if (mdatPayloadStart >= 0) offset - mdatPayloadStart else offset
+
+    return extractExifBytesFromMdat(mdatBox.data.data, mdatRelOffset.toInt(), length.toInt())
+        ?: extractExifBytesFromMdat(mdatBox.data.data, offset.toInt(), length.toInt()) // fallback
 }
 
 // -- iinf (Item Information) parsing ------------------------------------------
@@ -258,8 +264,8 @@ private fun findItemIdByType(iinfBox: IsoBmffBox, itemType: String): Int? {
     if (d.size < 6) return null
 
     val version = d[0].toInt() and 0xFF
-    // Parse child infe boxes from the iinf payload
-    val headerSize = if (version == 0) 6 else 6 // version(1) + flags(3) + count(2)
+    // version(1) + flags(3) = 4 bytes; entry_count is 16-bit for v0, 32-bit for v1+
+    val headerSize = if (version == 0) 6 else 8
     val infeBoxes = d.parseIsoBmffBoxes(offset = headerSize)
 
     for (infe in infeBoxes) {
@@ -275,7 +281,7 @@ private fun findMimeItemId(iinfBox: IsoBmffBox, contentType: String): Int? {
     if (d.size < 6) return null
 
     val version = d[0].toInt() and 0xFF
-    val headerSize = if (version == 0) 6 else 6
+    val headerSize = if (version == 0) 6 else 8
     val infeBoxes = d.parseIsoBmffBoxes(offset = headerSize)
 
     for (infe in infeBoxes) {
@@ -440,22 +446,36 @@ private fun readBE32Iloc(d: ByteArray, off: Int): Long {
 }
 
 /**
- * Extract bytes from mdat given an offset and length.
+ * Extract bytes from an mdat payload given an mdat-relative [offset] and [length].
  *
- * The offset from iloc may be absolute (from file start) or relative to
- * mdat start. Since we only have the mdat payload, we treat it as relative.
- * If the offset is too large (likely absolute), we return null.
+ * A [length] of 0 is treated as "to end of mdat", matching the iloc convention
+ * where length=0 means the extent continues to the end of the item.
  */
 private fun extractExifBytesFromMdat(mdat: ByteArray, offset: Int, length: Int): ByteArray? {
-    // Try direct offset first (relative to mdat payload)
-    if (offset >= 0 && offset + length <= mdat.size) {
-        return mdat.copyOfRange(offset, offset + length)
+    if (offset < 0) return null
+    if (length == 0) {
+        // Extent continues to end of payload
+        return if (offset < mdat.size) mdat.copyOfRange(offset, mdat.size) else null
     }
-    // If length is 0 (extends to end), take from offset to end
-    if (length == 0 && offset >= 0 && offset < mdat.size) {
-        return mdat.copyOfRange(offset, mdat.size)
+    return if (offset + length <= mdat.size) mdat.copyOfRange(offset, offset + length) else null
+}
+
+/**
+ * Compute the file offset at which the named box's payload begins.
+ *
+ * Iterates [topLevelBoxes] accumulating on-disk sizes (header + payload)
+ * so that absolute [iloc] offsets can be translated to mdat-relative offsets.
+ *
+ * Returns -1 when [targetType] is not present in [topLevelBoxes].
+ */
+private fun computeBoxPayloadStart(topLevelBoxes: List<IsoBmffBox>, targetType: String): Long {
+    var filePos = 0L
+    for (box in topLevelBoxes) {
+        val hdrSize = if (box.largeSize != null) 16L else 8L
+        if (box.type.value == targetType) return filePos + hdrSize
+        filePos += hdrSize + box.data.size.toLong()
     }
-    return null
+    return -1L
 }
 
 // ===============================================================================
