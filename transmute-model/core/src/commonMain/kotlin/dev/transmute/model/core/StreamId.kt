@@ -8,5 +8,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 @JvmInline
 value class StreamId(val value: Int) {
-    override fun toString(): String = "StreamId($value)"
+  override fun toString(): String = "StreamId($value)"
 }

@@ -52,11 +52,7 @@ object AudioTestHelpers {
   /**
    * Generates silence AudioIR for testing.
    */
-  fun silence(
-    durationMs: Long = 1000,
-    sampleRate: Int = 44100,
-    channelCount: Int = 1,
-  ): AudioIR {
+  fun silence(durationMs: Long = 1000, sampleRate: Int = 44100, channelCount: Int = 1): AudioIR {
     val totalSamples = ((durationMs * sampleRate * channelCount) / 1000).toInt()
     return AudioIR(
       samples = AudioSamples(FloatArray(totalSamples), sampleRate, channelCount),
@@ -69,9 +65,7 @@ object AudioTestHelpers {
   /**
    * Calculates the peak amplitude of an AudioIR.
    */
-  fun peakAmplitude(ir: AudioIR): Float {
-    return ir.samples.data.maxOfOrNull { kotlin.math.abs(it) } ?: 0f
-  }
+  fun peakAmplitude(ir: AudioIR): Float = ir.samples.data.maxOfOrNull { kotlin.math.abs(it) } ?: 0f
 
   /**
    * Calculates RMS (root mean square) of an AudioIR.

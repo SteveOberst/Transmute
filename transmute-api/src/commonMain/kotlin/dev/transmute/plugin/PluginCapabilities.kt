@@ -29,37 +29,44 @@ package dev.transmute.plugin
  * @property description Optional human-readable summary of what the plugin provides.
  */
 data class PluginCapabilities(
-    val pluginId: PluginId,
-    val formats: Set<String> = emptySet(),
-    val domains: Set<String> = emptySet(),
-    val transforms: Set<String> = emptySet(),
-    val description: String = "",
+  val pluginId: PluginId,
+  val formats: Set<String> = emptySet(),
+  val domains: Set<String> = emptySet(),
+  val transforms: Set<String> = emptySet(),
+  val description: String = "",
 ) {
-    companion object {
-        /** DSL builder for [PluginCapabilities]. */
-        fun of(pluginId: PluginId, block: Builder.() -> Unit): PluginCapabilities =
-            Builder(pluginId).apply(block).build()
+  companion object {
+    /** DSL builder for [PluginCapabilities]. */
+    fun of(pluginId: PluginId, block: Builder.() -> Unit): PluginCapabilities = Builder(pluginId).apply(block).build()
+  }
+
+  class Builder(private val pluginId: PluginId) {
+    private val formats = mutableSetOf<String>()
+    private val domains = mutableSetOf<String>()
+    private val transforms = mutableSetOf<String>()
+    private var description = ""
+
+    fun formats(vararg names: String) {
+      formats += names
+    }
+    fun domains(vararg names: String) {
+      domains += names
+    }
+    fun transforms(vararg ids: String) {
+      transforms += ids
+    }
+    fun description(text: String) {
+      description = text
     }
 
-    class Builder(private val pluginId: PluginId) {
-        private val formats = mutableSetOf<String>()
-        private val domains = mutableSetOf<String>()
-        private val transforms = mutableSetOf<String>()
-        private var description = ""
-
-        fun formats(vararg names: String) { formats += names }
-        fun domains(vararg names: String) { domains += names }
-        fun transforms(vararg ids: String) { transforms += ids }
-        fun description(text: String) { description = text }
-
-        fun build() = PluginCapabilities(
-            pluginId = pluginId,
-            formats = formats.toSet(),
-            domains = domains.toSet(),
-            transforms = transforms.toSet(),
-            description = description,
-        )
-    }
+    fun build() = PluginCapabilities(
+      pluginId = pluginId,
+      formats = formats.toSet(),
+      domains = domains.toSet(),
+      transforms = transforms.toSet(),
+      description = description,
+    )
+  }
 }
 
 /**
@@ -70,10 +77,10 @@ data class PluginCapabilities(
  * known plugins and what each one contributes.
  */
 interface PluginCapabilityDeclaration {
-    /**
-     * Static declaration of what this plugin provides.
-     *
-     * Must be computable without side-effects and without an active [TransmuteScope].
-     */
-    val declaredCapabilities: PluginCapabilities
+  /**
+   * Static declaration of what this plugin provides.
+   *
+   * Must be computable without side-effects and without an active [TransmuteScope].
+   */
+  val declaredCapabilities: PluginCapabilities
 }

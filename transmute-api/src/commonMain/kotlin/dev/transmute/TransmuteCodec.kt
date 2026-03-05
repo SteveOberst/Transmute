@@ -8,24 +8,17 @@ import dev.transmute.audio.AudioFormat
 import dev.transmute.audio.AudioFormatDetector
 import dev.transmute.audio.AudioIR
 import dev.transmute.audio.AudioRegistries
-import dev.transmute.audio.MutableAudioDecoderRegistry
-import dev.transmute.audio.MutableAudioEncoderRegistry
 import dev.transmute.audio.CanonicalAudioDecodeOptions
 import dev.transmute.audio.CanonicalAudioEncodeOptions
-import dev.transmute.io.TSource
-import dev.transmute.model.core.Bytes
-import dev.transmute.model.core.DecodeOptions
+import dev.transmute.audio.MutableAudioDecoderRegistry
+import dev.transmute.audio.MutableAudioEncoderRegistry
 import dev.transmute.codec.MediaDecoder
 import dev.transmute.codec.MediaEncoder
-import dev.transmute.model.core.EncodeOptions
-import dev.transmute.model.core.MediaFormat
-import dev.transmute.model.core.NoDecodeOptions
-import dev.transmute.model.core.NoEncodeOptions
-import dev.transmute.common.PipelineContext
 import dev.transmute.codec.pipeline.DecodePipeline
 import dev.transmute.codec.pipeline.Decoded
 import dev.transmute.codec.pipeline.EncodePipeline
 import dev.transmute.codec.pipeline.EncodedBytes
+import dev.transmute.common.PipelineContext
 import dev.transmute.image.CanonicalImageDecodeOptions
 import dev.transmute.image.CanonicalImageEncodeOptions
 import dev.transmute.image.ImageDecodeOptions
@@ -38,8 +31,21 @@ import dev.transmute.image.ImageIR
 import dev.transmute.image.ImageRegistries
 import dev.transmute.image.MutableImageDecoderRegistry
 import dev.transmute.image.MutableImageEncoderRegistry
+import dev.transmute.io.TSource
+import dev.transmute.model.core.Bytes
+import dev.transmute.model.core.DecodeOptions
+import dev.transmute.model.core.EncodeOptions
+import dev.transmute.model.core.MediaFormat
+import dev.transmute.model.core.MediaMetadata
+import dev.transmute.model.core.MediaStructure
+import dev.transmute.model.core.NoDecodeOptions
+import dev.transmute.model.core.NoEncodeOptions
+import dev.transmute.model.core.RawMediaStructure
+import dev.transmute.model.core.asBytes
 import dev.transmute.video.CanonicalVideoDecodeOptions
 import dev.transmute.video.CanonicalVideoEncodeOptions
+import dev.transmute.video.MutableVideoDecoderRegistry
+import dev.transmute.video.MutableVideoEncoderRegistry
 import dev.transmute.video.VideoDecodeOptions
 import dev.transmute.video.VideoDecoderRegistry
 import dev.transmute.video.VideoEncodeOptions
@@ -48,12 +54,6 @@ import dev.transmute.video.VideoFormat
 import dev.transmute.video.VideoFormatDetector
 import dev.transmute.video.VideoIR
 import dev.transmute.video.VideoRegistries
-import dev.transmute.video.MutableVideoDecoderRegistry
-import dev.transmute.video.MutableVideoEncoderRegistry
-import dev.transmute.model.core.MediaMetadata
-import dev.transmute.model.core.MediaStructure
-import dev.transmute.model.core.RawMediaStructure
-import dev.transmute.model.core.asBytes
 
 class TransmuteCodec internal constructor(
   imageDecoderRegistry: ImageDecoderRegistry? = null,
@@ -191,12 +191,7 @@ data class ConfiguredEncoder<F : MediaFormat<*, *>, IN, OPTS : EncodeOptions>(
 ) : MediaEncoder<F, IN, OPTS> {
   override val encodableFormats: Set<F> get() = encodableFormatsProvider()
 
-  override suspend fun encode(
-    ir: IN,
-    format: F,
-    options: OPTS,
-    context: PipelineContext,
-  ): Bytes {
+  override suspend fun encode(ir: IN, format: F, options: OPTS, context: PipelineContext): Bytes {
     val out = pipeline.run(ir, context.copy(encodeOptions = options))
     require(out.format == format) { "Encoded format ${out.format} does not match requested format=$format" }
     return out.bytes
@@ -236,12 +231,11 @@ class ImageCodec internal constructor(
 
   suspend fun detectFormat(source: TSource): ImageFormat = detectFormat(source.readAll().asBytes())
 
-  fun defaultDecoder(): ConfiguredDecoder<ImageFormat, Decoded<ImageFormat, ImageIR>, ImageDecodeOptions> =
-    ConfiguredDecoder(
-      options = CanonicalImageDecodeOptions(),
-      pipeline = defaultDecodePipeline,
-      decodableFormatsProvider = ::resolveDecodableFormats,
-    )
+  fun defaultDecoder(): ConfiguredDecoder<ImageFormat, Decoded<ImageFormat, ImageIR>, ImageDecodeOptions> = ConfiguredDecoder(
+    options = CanonicalImageDecodeOptions(),
+    pipeline = defaultDecodePipeline,
+    decodableFormatsProvider = ::resolveDecodableFormats,
+  )
 
   fun decoder(
     block: DecodeStage<TSource, Decoded<ImageFormat, ImageIR>, ImageDecodeOptions>.() -> Unit,
@@ -256,12 +250,11 @@ class ImageCodec internal constructor(
     )
   }
 
-  fun defaultEncoder(): ConfiguredEncoder<ImageFormat, Decoded<ImageFormat, ImageIR>, ImageEncodeOptions> =
-    ConfiguredEncoder(
-      options = CanonicalImageEncodeOptions(),
-      pipeline = defaultEncodePipeline,
-      encodableFormatsProvider = ::resolveEncodableFormats,
-    )
+  fun defaultEncoder(): ConfiguredEncoder<ImageFormat, Decoded<ImageFormat, ImageIR>, ImageEncodeOptions> = ConfiguredEncoder(
+    options = CanonicalImageEncodeOptions(),
+    pipeline = defaultEncodePipeline,
+    encodableFormatsProvider = ::resolveEncodableFormats,
+  )
 
   fun encoder(
     block: EncodeStage<Decoded<ImageFormat, ImageIR>, EncodedBytes<ImageFormat>, ImageEncodeOptions>.() -> Unit,
@@ -277,10 +270,7 @@ class ImageCodec internal constructor(
     )
   }
 
-  suspend fun decode(
-    source: TSource,
-    options: ImageDecodeOptions = CanonicalImageDecodeOptions(),
-  ): Decoded<ImageFormat, ImageIR> {
+  suspend fun decode(source: TSource, options: ImageDecodeOptions = CanonicalImageDecodeOptions()): Decoded<ImageFormat, ImageIR> {
     val ctx = createContext(loggerOverride = null, decodeOptions = options, encodeOptions = NoEncodeOptions)
     return defaultDecodePipeline.run(source, ctx)
   }
@@ -327,12 +317,11 @@ class AudioCodec internal constructor(
 
   suspend fun detectFormat(source: TSource): AudioFormat = detectFormat(source.readAll().asBytes())
 
-  fun defaultDecoder(): ConfiguredDecoder<AudioFormat, Decoded<AudioFormat, AudioIR>, AudioDecodeOptions> =
-    ConfiguredDecoder(
-      options = CanonicalAudioDecodeOptions(),
-      pipeline = defaultDecodePipeline,
-      decodableFormatsProvider = ::resolveDecodableFormats,
-    )
+  fun defaultDecoder(): ConfiguredDecoder<AudioFormat, Decoded<AudioFormat, AudioIR>, AudioDecodeOptions> = ConfiguredDecoder(
+    options = CanonicalAudioDecodeOptions(),
+    pipeline = defaultDecodePipeline,
+    decodableFormatsProvider = ::resolveDecodableFormats,
+  )
 
   fun decoder(
     block: DecodeStage<TSource, Decoded<AudioFormat, AudioIR>, AudioDecodeOptions>.() -> Unit,
@@ -347,12 +336,11 @@ class AudioCodec internal constructor(
     )
   }
 
-  fun defaultEncoder(): ConfiguredEncoder<AudioFormat, Decoded<AudioFormat, AudioIR>, AudioEncodeOptions> =
-    ConfiguredEncoder(
-      options = CanonicalAudioEncodeOptions(),
-      pipeline = defaultEncodePipeline,
-      encodableFormatsProvider = ::resolveEncodableFormats,
-    )
+  fun defaultEncoder(): ConfiguredEncoder<AudioFormat, Decoded<AudioFormat, AudioIR>, AudioEncodeOptions> = ConfiguredEncoder(
+    options = CanonicalAudioEncodeOptions(),
+    pipeline = defaultEncodePipeline,
+    encodableFormatsProvider = ::resolveEncodableFormats,
+  )
 
   fun encoder(
     block: EncodeStage<Decoded<AudioFormat, AudioIR>, EncodedBytes<AudioFormat>, AudioEncodeOptions>.() -> Unit,
@@ -368,10 +356,7 @@ class AudioCodec internal constructor(
     )
   }
 
-  suspend fun decode(
-    source: TSource,
-    options: AudioDecodeOptions = CanonicalAudioDecodeOptions(),
-  ): Decoded<AudioFormat, AudioIR> {
+  suspend fun decode(source: TSource, options: AudioDecodeOptions = CanonicalAudioDecodeOptions()): Decoded<AudioFormat, AudioIR> {
     val ctx = createContext(loggerOverride = null, decodeOptions = options, encodeOptions = NoEncodeOptions)
     return defaultDecodePipeline.run(source, ctx)
   }
@@ -418,12 +403,11 @@ class VideoCodec internal constructor(
 
   suspend fun detectFormat(source: TSource): VideoFormat = detectFormat(source.readAll().asBytes())
 
-  fun defaultDecoder(): ConfiguredDecoder<VideoFormat, Decoded<VideoFormat, VideoIR>, VideoDecodeOptions> =
-    ConfiguredDecoder(
-      options = CanonicalVideoDecodeOptions(),
-      pipeline = defaultDecodePipeline,
-      decodableFormatsProvider = ::resolveDecodableFormats,
-    )
+  fun defaultDecoder(): ConfiguredDecoder<VideoFormat, Decoded<VideoFormat, VideoIR>, VideoDecodeOptions> = ConfiguredDecoder(
+    options = CanonicalVideoDecodeOptions(),
+    pipeline = defaultDecodePipeline,
+    decodableFormatsProvider = ::resolveDecodableFormats,
+  )
 
   fun decoder(
     block: DecodeStage<TSource, Decoded<VideoFormat, VideoIR>, VideoDecodeOptions>.() -> Unit,
@@ -438,12 +422,11 @@ class VideoCodec internal constructor(
     )
   }
 
-  fun defaultEncoder(): ConfiguredEncoder<VideoFormat, Decoded<VideoFormat, VideoIR>, VideoEncodeOptions> =
-    ConfiguredEncoder(
-      options = CanonicalVideoEncodeOptions(),
-      pipeline = defaultEncodePipeline,
-      encodableFormatsProvider = ::resolveEncodableFormats,
-    )
+  fun defaultEncoder(): ConfiguredEncoder<VideoFormat, Decoded<VideoFormat, VideoIR>, VideoEncodeOptions> = ConfiguredEncoder(
+    options = CanonicalVideoEncodeOptions(),
+    pipeline = defaultEncodePipeline,
+    encodableFormatsProvider = ::resolveEncodableFormats,
+  )
 
   fun encoder(
     block: EncodeStage<Decoded<VideoFormat, VideoIR>, EncodedBytes<VideoFormat>, VideoEncodeOptions>.() -> Unit,
@@ -459,10 +442,7 @@ class VideoCodec internal constructor(
     )
   }
 
-  suspend fun decode(
-    source: TSource,
-    options: VideoDecodeOptions = CanonicalVideoDecodeOptions(),
-  ): Decoded<VideoFormat, VideoIR> {
+  suspend fun decode(source: TSource, options: VideoDecodeOptions = CanonicalVideoDecodeOptions()): Decoded<VideoFormat, VideoIR> {
     val ctx = createContext(loggerOverride = null, decodeOptions = options, encodeOptions = NoEncodeOptions)
     return defaultDecodePipeline.run(source, ctx)
   }

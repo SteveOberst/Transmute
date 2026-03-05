@@ -1,8 +1,8 @@
 package dev.transmute.video
 
-import dev.transmute.model.core.EncodeOptions
 import dev.transmute.codec.MetadataPolicy
 import dev.transmute.codec.OutputFormat
+import dev.transmute.model.core.EncodeOptions
 
 /**
  * Sealed hierarchy of video encoding options.

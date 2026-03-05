@@ -20,69 +20,59 @@ import dev.transmute.video.VideoRegistries
  */
 object GStreamerCodecInstaller {
 
-    /** `true` when a usable GStreamer installation has been detected on this platform. */
-    val available: Boolean get() = isGStreamerAvailable()
+  /** `true` when a usable GStreamer installation has been detected on this platform. */
+  val available: Boolean get() = isGStreamerAvailable()
 
-    /**
-     * Register GStreamer as a supplementary codec provider for **all** registries.
-     *
-     * GStreamer codecs will be installed automatically during each registry's
-     * `installDefaults()`, filling any codec gaps left by platform-native codecs.
-     *
-     * Call this **once** at application startup, before the first codec operation:
-     * ```kotlin
-     * GStreamerCodecInstaller.registerAsSupplementary()
-     * ```
-     */
-    fun registerAsSupplementary() {
-        AudioRegistries.addSupplementaryInstaller { d, e -> installGstAudioCodecs(d, e) }
-        VideoRegistries.addSupplementaryInstaller { d, e -> installGstVideoCodecs(d, e, PluginFeaturesConfig()) }
-    }
+  /**
+   * Register GStreamer as a supplementary codec provider for **all** registries.
+   *
+   * GStreamer codecs will be installed automatically during each registry's
+   * `installDefaults()`, filling any codec gaps left by platform-native codecs.
+   *
+   * Call this **once** at application startup, before the first codec operation:
+   * ```kotlin
+   * GStreamerCodecInstaller.registerAsSupplementary()
+   * ```
+   */
+  fun registerAsSupplementary() {
+    AudioRegistries.addSupplementaryInstaller { d, e -> installGstAudioCodecs(d, e) }
+    VideoRegistries.addSupplementaryInstaller { d, e -> installGstVideoCodecs(d, e, PluginFeaturesConfig()) }
+  }
 
-    /**
-     * Register GStreamer audio codecs: AAC, M4A, Opus (full codec),
-     * plus FLAC and OGG/Vorbis encoders.
-     */
-    fun installAudioCodecs(
-        decoders: MutableAudioDecoderRegistry,
-        encoders: MutableAudioEncoderRegistry,
-    ) = installGstAudioCodecs(decoders, encoders)
+  /**
+   * Register GStreamer audio codecs: AAC, M4A, Opus (full codec),
+   * plus FLAC and OGG/Vorbis encoders.
+   */
+  fun installAudioCodecs(decoders: MutableAudioDecoderRegistry, encoders: MutableAudioEncoderRegistry) =
+    installGstAudioCodecs(decoders, encoders)
 
-    /**
-     * Register GStreamer video codecs: MP4, MOV, WebM, AVI, MKV.
-     *
-     * All video codecs are registered; use the feature-aware overload for
-     * fine-grained control (e.g. disabling AVI).
-     */
-    fun installVideoCodecs(
-        decoders: MutableVideoDecoderRegistry,
-        encoders: MutableVideoEncoderRegistry,
-    ) = installGstVideoCodecs(decoders, encoders, PluginFeaturesConfig())
+  /**
+   * Register GStreamer video codecs: MP4, MOV, WebM, AVI, MKV.
+   *
+   * All video codecs are registered; use the feature-aware overload for
+   * fine-grained control (e.g. disabling AVI).
+   */
+  fun installVideoCodecs(decoders: MutableVideoDecoderRegistry, encoders: MutableVideoEncoderRegistry) =
+    installGstVideoCodecs(decoders, encoders, PluginFeaturesConfig())
 
-    /**
-     * Register GStreamer video codecs with feature-toggle control.
-     *
-     * When [GStreamerFeature.LegacyAvi] is disabled in [features],
-     * the AVI codec is not registered.
-     */
-    fun installVideoCodecs(
-        decoders: MutableVideoDecoderRegistry,
-        encoders: MutableVideoEncoderRegistry,
-        features: PluginFeaturesConfig,
-    ) = installGstVideoCodecs(decoders, encoders, features)
+  /**
+   * Register GStreamer video codecs with feature-toggle control.
+   *
+   * When [GStreamerFeature.LegacyAvi] is disabled in [features],
+   * the AVI codec is not registered.
+   */
+  fun installVideoCodecs(decoders: MutableVideoDecoderRegistry, encoders: MutableVideoEncoderRegistry, features: PluginFeaturesConfig) =
+    installGstVideoCodecs(decoders, encoders, features)
 }
 
 internal expect fun isGStreamerAvailable(): Boolean
 
-internal expect fun installGstAudioCodecs(
-    decoders: MutableAudioDecoderRegistry,
-    encoders: MutableAudioEncoderRegistry,
-)
+internal expect fun installGstAudioCodecs(decoders: MutableAudioDecoderRegistry, encoders: MutableAudioEncoderRegistry)
 
 internal expect fun installGstVideoCodecs(
-    decoders: MutableVideoDecoderRegistry,
-    encoders: MutableVideoEncoderRegistry,
-    features: PluginFeaturesConfig,
+  decoders: MutableVideoDecoderRegistry,
+  encoders: MutableVideoEncoderRegistry,
+  features: PluginFeaturesConfig,
 )
 
 /**
@@ -92,9 +82,7 @@ internal expect fun installGstVideoCodecs(
  * mode (bundled, custom, or system). On Android/iOS this is a no-op
  * (the native SDKs handle discovery internally).
  */
-internal expect fun configureResolver(
-    installation: GStreamerInstallation,
-)
+internal expect fun configureResolver(installation: GStreamerInstallation)
 
 /**
  * Returns diagnostic information from the GStreamer resolver.

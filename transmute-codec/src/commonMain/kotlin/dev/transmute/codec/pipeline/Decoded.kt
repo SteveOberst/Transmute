@@ -7,7 +7,4 @@ import dev.transmute.model.core.MediaFormat
  *
  * This keeps runtime format selection explicit without storing it in the context.
  */
-data class Decoded<F : MediaFormat<*, *>, IR>(
-  val format: F,
-  val ir: IR,
-)
+data class Decoded<F : MediaFormat<*, *>, IR>(val format: F, val ir: IR)

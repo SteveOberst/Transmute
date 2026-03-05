@@ -57,7 +57,7 @@ FLAC decode, OGG decode, BMP, PNG, JPEG, WebP, GIF, and TIFF natively.
 Enable GStreamer codecs via the plugin system:
 
 ```kotlin
-// All features (audio, video, image) are enabled by default
+// All features (audio, video) are enabled by default
 val transmute = Transmute {
     plugins {
         install(GStreamer)
@@ -69,11 +69,12 @@ val slim = Transmute {
     plugins {
         install(GStreamer) {
             disable(GStreamerFeature.LegacyAvi)      // skip legacy AVI
-            disable(GStreamerFeature.ImageEncoding)  // skip HEIF/AVIF encoding
         }
     }
 }
 ```
+
+For HEIF/HEIC/AVIF image codecs on Desktop, use the `transmute-plugins:libheif` plugin.
 
 To use a custom (pre-existing) GStreamer installation instead of the bundled one:
 

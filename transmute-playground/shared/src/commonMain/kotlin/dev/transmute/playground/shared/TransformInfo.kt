@@ -9,10 +9,10 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class TransformInfo(
-    val id: String,
-    val domain: MediaDomainDto,
-    val description: String,
-    val parameters: List<ParameterSchema> = emptyList(),
+  val id: String,
+  val domain: MediaDomainDto,
+  val description: String,
+  val parameters: List<ParameterSchema> = emptyList(),
 )
 
 /**
@@ -20,12 +20,12 @@ data class TransformInfo(
  */
 @Serializable
 data class ParameterSchema(
-    val name: String,
-    val type: ParameterType,
-    val required: Boolean = false,
-    val default: String? = null,
-    val min: String? = null,
-    val max: String? = null,
-    val enumValues: List<String>? = null,
-    val description: String = "",
+  val name: String,
+  val type: ParameterType,
+  val required: Boolean = false,
+  val default: String? = null,
+  val min: String? = null,
+  val max: String? = null,
+  val enumValues: List<String>? = null,
+  val description: String = "",
 )

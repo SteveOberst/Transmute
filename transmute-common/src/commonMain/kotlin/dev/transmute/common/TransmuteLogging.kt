@@ -89,8 +89,11 @@ object TransmuteLogging {
    */
   fun configure(level: LogLevel, output: TransmuteLogger = PrintLogger) {
     _level = level
-    _logger = if (level == LogLevel.OFF) TransmuteLogger.Noop
-              else LevelFilterLogger(level, output)
+    _logger = if (level == LogLevel.OFF) {
+      TransmuteLogger.Noop
+    } else {
+      LevelFilterLogger(level, output)
+    }
   }
 
   /** Reset to default logging state. */
@@ -109,9 +112,11 @@ object TransmuteLogging {
    * }.transmute(bytes)
    * ```
    */
-  fun printLogger(level: LogLevel): TransmuteLogger =
-    if (level == LogLevel.OFF) TransmuteLogger.Noop
-    else LevelFilterLogger(level, PrintLogger)
+  fun printLogger(level: LogLevel): TransmuteLogger = if (level == LogLevel.OFF) {
+    TransmuteLogger.Noop
+  } else {
+    LevelFilterLogger(level, PrintLogger)
+  }
 }
 
 /**
@@ -121,9 +126,15 @@ object TransmuteLogging {
  * Throwable stack traces are appended on error.
  */
 object PrintLogger : TransmuteLogger {
-  override fun debug(message: String) { println("[transmute:DEBUG] $message") }
-  override fun info(message: String)  { println("[transmute:INFO]  $message") }
-  override fun warn(message: String)  { println("[transmute:WARN]  $message") }
+  override fun debug(message: String) {
+    println("[transmute:DEBUG] $message")
+  }
+  override fun info(message: String) {
+    println("[transmute:INFO]  $message")
+  }
+  override fun warn(message: String) {
+    println("[transmute:WARN]  $message")
+  }
   override fun error(message: String, throwable: Throwable?) {
     println("[transmute:ERROR] $message")
     throwable?.let { println(it.stackTraceToString()) }
@@ -133,13 +144,16 @@ object PrintLogger : TransmuteLogger {
 /**
  * Decorator that suppresses messages below [minLevel].
  */
-internal class LevelFilterLogger(
-    private val minLevel: LogLevel,
-    private val delegate: TransmuteLogger,
-) : TransmuteLogger {
-  override fun debug(message: String) { if (minLevel <= LogLevel.DEBUG) delegate.debug(message) }
-  override fun info(message: String)  { if (minLevel <= LogLevel.INFO)  delegate.info(message) }
-  override fun warn(message: String)  { if (minLevel <= LogLevel.WARN)  delegate.warn(message) }
+internal class LevelFilterLogger(private val minLevel: LogLevel, private val delegate: TransmuteLogger) : TransmuteLogger {
+  override fun debug(message: String) {
+    if (minLevel <= LogLevel.DEBUG) delegate.debug(message)
+  }
+  override fun info(message: String) {
+    if (minLevel <= LogLevel.INFO) delegate.info(message)
+  }
+  override fun warn(message: String) {
+    if (minLevel <= LogLevel.WARN) delegate.warn(message)
+  }
   override fun error(message: String, throwable: Throwable?) {
     if (minLevel <= LogLevel.ERROR) delegate.error(message, throwable)
   }

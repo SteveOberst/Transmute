@@ -1,13 +1,13 @@
 package dev.transmute.image
 
-import kotlin.concurrent.Volatile
-import dev.transmute.io.TSource
 import dev.transmute.codec.MediaCodec
 import dev.transmute.codec.MediaDecoder
 import dev.transmute.codec.MediaEncoder
 import dev.transmute.common.PipelineContext
 import dev.transmute.image.codecs.bmp.BmpImageDecoder
 import dev.transmute.image.codecs.bmp.BmpImageEncoder
+import dev.transmute.io.TSource
+import kotlin.concurrent.Volatile
 
 /**
  * Mutable registry for [ImageDecoder] instances.
@@ -72,12 +72,8 @@ class MutableImageEncoderRegistry : ImageEncoderRegistry {
   fun register(encoder: MediaEncoder<ImageFormat, ImageIR, ImageEncodeOptions>) {
     val wrapper = object : ImageEncoder {
       override val supportedFormats = encoder.encodableFormats
-      override suspend fun encode(
-        ir: ImageIR,
-        format: ImageFormat,
-        options: ImageEncodeOptions,
-        context: PipelineContext,
-      ) = encoder.encode(ir, format, options, context)
+      override suspend fun encode(ir: ImageIR, format: ImageFormat, options: ImageEncodeOptions, context: PipelineContext) =
+        encoder.encode(ir, format, options, context)
     }
     register(wrapper)
   }
@@ -91,12 +87,8 @@ class MutableImageEncoderRegistry : ImageEncoderRegistry {
     for (format in codec.encodableFormats) {
       encoders[format] = object : ImageEncoder {
         override val supportedFormats = codec.encodableFormats
-        override suspend fun encode(
-          ir: ImageIR,
-          format: ImageFormat,
-          options: ImageEncodeOptions,
-          context: PipelineContext,
-        ) = codec.encode(ir, format, options, context)
+        override suspend fun encode(ir: ImageIR, format: ImageFormat, options: ImageEncodeOptions, context: PipelineContext) =
+          codec.encode(ir, format, options, context)
       }
     }
   }
@@ -141,9 +133,7 @@ object ImageRegistries {
    * after platform-native codecs.  This is the primary mechanism for optional
    * modules (e.g. `transmute-gstreamer`) to fill codec gaps automatically.
    */
-  fun addSupplementaryInstaller(
-    installer: (MutableImageDecoderRegistry, MutableImageEncoderRegistry) -> Unit,
-  ) {
+  fun addSupplementaryInstaller(installer: (MutableImageDecoderRegistry, MutableImageEncoderRegistry) -> Unit) {
     supplementaryInstallers.add(installer)
   }
 
@@ -200,7 +190,4 @@ object ImageRegistries {
   }
 }
 
-expect fun installPlatformImageCodecs(
-  decoders: MutableImageDecoderRegistry,
-  encoders: MutableImageEncoderRegistry,
-)
+expect fun installPlatformImageCodecs(decoders: MutableImageDecoderRegistry, encoders: MutableImageEncoderRegistry)

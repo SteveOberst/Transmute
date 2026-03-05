@@ -40,44 +40,44 @@ import dev.transmute.structure.video.WebmStructureReader
  */
 object DefaultStructureReaders {
 
-    // -- Image --
-    val png  = PngStructureReader()
-    val jpeg = JpegStructureReader()
-    val bmp  = BmpStructureReader()
-    val gif  = GifStructureReader()
-    val tiff = TiffStructureReader()
-    val webp = WebpStructureReader()
-    val heif = HeifStructureReader()
-    val avif = AvifStructureReader()
+  // -- Image --
+  val png = PngStructureReader()
+  val jpeg = JpegStructureReader()
+  val bmp = BmpStructureReader()
+  val gif = GifStructureReader()
+  val tiff = TiffStructureReader()
+  val webp = WebpStructureReader()
+  val heif = HeifStructureReader()
+  val avif = AvifStructureReader()
 
-    // -- Audio --
-    val wav     = WavStructureReader()
-    val mp3     = Mp3StructureReader()
-    val flac    = FlacStructureReader()
-    val aac     = AacStructureReader()
-    val m4a     = M4aStructureReader()
-    val oggAudio = OggAudioStructureReader()
-    val opus    = OpusStructureReader()
+  // -- Audio --
+  val wav = WavStructureReader()
+  val mp3 = Mp3StructureReader()
+  val flac = FlacStructureReader()
+  val aac = AacStructureReader()
+  val m4a = M4aStructureReader()
+  val oggAudio = OggAudioStructureReader()
+  val opus = OpusStructureReader()
 
-    // -- Video --
-    val mp4  = Mp4StructureReader()
-    val mov  = MovStructureReader()
-    val webm = WebmStructureReader()
-    val mkv  = MkvStructureReader()
-    val avi  = AviStructureReader()
+  // -- Video --
+  val mp4 = Mp4StructureReader()
+  val mov = MovStructureReader()
+  val webm = WebmStructureReader()
+  val mkv = MkvStructureReader()
+  val avi = AviStructureReader()
 
-    /**
-     * The full list of built-in readers, in recommended priority order.
-     *
-     * The order is: image readers first (fast magic-byte checks),
-     * then audio, then video.
-     */
-    val all = listOf(
-        // Image
-        png, jpeg, bmp, gif, tiff, webp, heif, avif,
-        // Audio
-        wav, mp3, flac, aac, m4a, oggAudio, opus,
-        // Video
-        mp4, mov, webm, mkv, avi,
-    )
+  /**
+   * The full list of built-in readers, in recommended priority order.
+   *
+   * The order is: image readers first (fast magic-byte checks),
+   * then audio, then video.
+   */
+  val all = listOf(
+    // Image
+    png, jpeg, bmp, gif, tiff, webp, heif, avif,
+    // Audio
+    wav, mp3, flac, aac, m4a, oggAudio, opus,
+    // Video
+    mp4, mov, webm, mkv, avi,
+  )
 }

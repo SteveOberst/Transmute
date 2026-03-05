@@ -11,15 +11,10 @@ import kotlinx.serialization.Serializable
  * EBML leaf payload bytes are not inlined; [dataSizeBytes] records their size.
  */
 @Serializable
-data class EbmlElementTree(
-    val id: EbmlId,
-    val dataSizeBytes: Long,
-    val children: List<EbmlElementTree> = emptyList(),
-)
+data class EbmlElementTree(val id: EbmlId, val dataSizeBytes: Long, val children: List<EbmlElementTree> = emptyList())
 
-fun EbmlElement.toTree(): EbmlElementTree =
-    EbmlElementTree(
-        id = id,
-        dataSizeBytes = data.size.toLong(),
-        children = children.map { it.toTree() },
-    )
+fun EbmlElement.toTree(): EbmlElementTree = EbmlElementTree(
+  id = id,
+  dataSizeBytes = data.size.toLong(),
+  children = children.map { it.toTree() },
+)

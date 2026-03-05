@@ -20,10 +20,10 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class WavChunkSummary(
-    /** 4-character ASCII chunk ID. */
-    val id: String,
-    /** Payload size in bytes (the RIFF `size` field, excluding the 8-byte header). */
-    val dataSizeBytes: Long,
+  /** 4-character ASCII chunk ID. */
+  val id: String,
+  /** Payload size in bytes (the RIFF `size` field, excluding the 8-byte header). */
+  val dataSizeBytes: Long,
 )
 
 /**
@@ -43,25 +43,24 @@ data class WavChunkSummary(
  */
 @Serializable
 data class WavStructure(
-    /** Parsed `fmt ` chunk - audio format, sample rate, channels, bit depth, and extensions. */
-    val fmtChunk: WavFmtChunk?,
-    /** Payload size of the `data` chunk (raw PCM / IEEE-float samples) in bytes. */
-    val dataChunkBytes: Long,
-    /** Full recursive RIFF chunk hierarchy (payload bytes excluded). */
-    val riff: RiffChunkTree,
-    /** All RIFF sub-chunks other than `fmt ` and `data`, in file order. */
-    val otherChunks: List<WavChunkSummary>,
+  /** Parsed `fmt ` chunk - audio format, sample rate, channels, bit depth, and extensions. */
+  val fmtChunk: WavFmtChunk?,
+  /** Payload size of the `data` chunk (raw PCM / IEEE-float samples) in bytes. */
+  val dataChunkBytes: Long,
+  /** Full recursive RIFF chunk hierarchy (payload bytes excluded). */
+  val riff: RiffChunkTree,
+  /** All RIFF sub-chunks other than `fmt ` and `data`, in file order. */
+  val otherChunks: List<WavChunkSummary>,
 ) : MediaStructure
 
 /**
  * Parse this [dev.transmute.model.structure.audio.types.WavRaw] into a [WavStructure].
  */
-fun WavRaw.toStructure(): WavStructure =
-    WavStructure(
-        fmtChunk = fmt,
-        dataChunkBytes = dataChunk?.size?.toLong() ?: 0L,
-        riff = riff.toTree(),
-        otherChunks = chunks
-            .filter { it.id.value != "fmt " && it.id.value != "data" }
-            .map { WavChunkSummary(it.id.value, it.size.toLong()) },
-    )
+fun WavRaw.toStructure(): WavStructure = WavStructure(
+  fmtChunk = fmt,
+  dataChunkBytes = dataChunk?.size?.toLong() ?: 0L,
+  riff = riff.toTree(),
+  otherChunks = chunks
+    .filter { it.id.value != "fmt " && it.id.value != "data" }
+    .map { WavChunkSummary(it.id.value, it.size.toLong()) },
+)

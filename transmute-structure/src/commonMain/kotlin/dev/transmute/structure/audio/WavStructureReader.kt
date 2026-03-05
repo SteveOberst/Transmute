@@ -17,8 +17,8 @@ import dev.transmute.structure.common.parseRiffContainer
  */
 class WavStructureReader : StructureReader<WavRaw> {
 
-    override fun read(source: Bytes): WavRaw {
-        val riff = parseRiffContainer(source.data, expectedFormType = "WAVE", formatName = "WAV")
-        return WavRaw(riff = riff)
-    }
+  override fun read(source: Bytes): WavRaw {
+    val riff = parseRiffContainer(source.data, expectedFormType = "WAVE", formatName = "WAV")
+    return WavRaw(riff = riff)
+  }
 }

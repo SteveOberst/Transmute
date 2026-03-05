@@ -56,47 +56,47 @@ import dev.transmute.plugin.PluginFeature
  */
 object LibHeifFeature {
 
-    /**
-     * HEIF, HEIC, and AVIF image decoding via libheif.
-     *
-     * When enabled, a [LibHeifImageDecoder] is registered for all three
-     * ISO BMFF-based image formats. The decoder converts to PNG via
-     * `heif-dec` / `heif-convert`, then reads the PNG via ImageIO.
-     *
-     * **Licensing:** decoding uses libde265 (LGPL-3.0) for HEIF/HEIC and
-     * libaom / libdav1d (BSD-2-Clause) for AVIF. No GPL components are required
-     * for decoding.
-     */
-    val ImageCodecs = PluginFeature(
-        id = "image-codecs",
-        description = "HEIF, HEIC, AVIF decode/encode via libheif",
-        defaultEnabled = true,
-    )
+  /**
+   * HEIF, HEIC, and AVIF image decoding via libheif.
+   *
+   * When enabled, a [LibHeifImageDecoder] is registered for all three
+   * ISO BMFF-based image formats. The decoder converts to PNG via
+   * `heif-dec` / `heif-convert`, then reads the PNG via ImageIO.
+   *
+   * **Licensing:** decoding uses libde265 (LGPL-3.0) for HEIF/HEIC and
+   * libaom / libdav1d (BSD-2-Clause) for AVIF. No GPL components are required
+   * for decoding.
+   */
+  val ImageCodecs = PluginFeature(
+    id = "image-codecs",
+    description = "HEIF, HEIC, AVIF decode/encode via libheif",
+    defaultEnabled = true,
+  )
 
-    /**
-     * HEIF/HEIC/AVIF encoding via libheif (`heif-enc`).
-     *
-     * Disabling this feature still allows HEIF/AVIF *decoding* -- only
-     * the encoder registration is skipped. Useful when only read access
-     * to HEIF files is needed.
-     *
-     * **Licensing -- important:** HEIF/HEIC *encoding* uses x265 by default,
-     * which is licensed under **GPL-2.0** (or a paid commercial license).
-     * Distributing an application that bundles x265 requires GPL-2.0 compliance
-     * unless you hold a commercial x265 license.
-     * AVIF encoding (via libaom / rav1e) is BSD-licensed and unaffected.
-     *
-     * See the [LibHeifFeature] class KDoc for the full licensing breakdown.
-     */
-    val ImageEncoding = PluginFeature(
-        id = "image-encoding",
-        description = "HEIF/HEIC/AVIF encoding via heif-enc",
-        defaultEnabled = true,
-    )
+  /**
+   * HEIF/HEIC/AVIF encoding via libheif (`heif-enc`).
+   *
+   * Disabling this feature still allows HEIF/AVIF *decoding* -- only
+   * the encoder registration is skipped. Useful when only read access
+   * to HEIF files is needed.
+   *
+   * **Licensing -- important:** HEIF/HEIC *encoding* uses x265 by default,
+   * which is licensed under **GPL-2.0** (or a paid commercial license).
+   * Distributing an application that bundles x265 requires GPL-2.0 compliance
+   * unless you hold a commercial x265 license.
+   * AVIF encoding (via libaom / rav1e) is BSD-licensed and unaffected.
+   *
+   * See the [LibHeifFeature] class KDoc for the full licensing breakdown.
+   */
+  val ImageEncoding = PluginFeature(
+    id = "image-encoding",
+    description = "HEIF/HEIC/AVIF encoding via heif-enc",
+    defaultEnabled = true,
+  )
 
-    /** All features supported by the libheif plugin. */
-    val ALL: Set<PluginFeature> = setOf(
-        ImageCodecs,
-        ImageEncoding,
-    )
+  /** All features supported by the libheif plugin. */
+  val ALL: Set<PluginFeature> = setOf(
+    ImageCodecs,
+    ImageEncoding,
+  )
 }

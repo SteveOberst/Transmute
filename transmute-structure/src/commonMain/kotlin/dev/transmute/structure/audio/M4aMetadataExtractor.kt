@@ -17,5 +17,5 @@ import dev.transmute.structure.common.extractItunesMetadata
  * item list (`ilst`) box.
  */
 fun M4aRaw.extractMetadata(): List<MediaMetadata> = buildList {
-    extractItunesMetadata(boxes)?.let(::add)
+  extractItunesMetadata(boxes)?.let(::add)
 }

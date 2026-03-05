@@ -25,18 +25,18 @@ import dev.transmute.MediaStructureRegistrationScope
  * ```
  */
 class TransmuteScope(
-    /** All codec registries (IR decoders/encoders + structure decoders + metadata decoders) grouped by domain. */
-    val codecs: CodecRegistry,
-    /** Type-safe service registry for cross-plugin collaboration. */
-    val services: ServiceRegistry,
-    /** Structured diagnostics channel for this plugin. */
-    val diagnostics: PluginDiagnostics = PluginDiagnostics(PluginId("unknown")),
-    /** Per-plugin logger, automatically tagged with the plugin's key. */
-    val logger: PluginLogger = PluginLogger(PluginId("unknown")),
-    /** Feature toggles set by the user via `configure { features { } }`. */
-    val features: PluginFeaturesConfig = PluginFeaturesConfig(),
-    /** Scoped access to [dev.transmute.model.core.MediaStructureRegistry] for JSON-structure type registration. */
-    val mediaStructures: MediaStructureRegistrationScope = MediaStructureRegistrationScope(),
-    /** Scoped access to [dev.transmute.model.core.MediaMetadataRegistry] for JSON-metadata type registration. */
-    val mediaMetadata: MediaMetadataRegistrationScope = MediaMetadataRegistrationScope(),
+  /** All codec registries (IR decoders/encoders + structure decoders + metadata decoders) grouped by domain. */
+  val codecs: CodecRegistry,
+  /** Type-safe service registry for cross-plugin collaboration. */
+  val services: ServiceRegistry,
+  /** Structured diagnostics channel for this plugin. */
+  val diagnostics: PluginDiagnostics = PluginDiagnostics(PluginId("unknown")),
+  /** Per-plugin logger, automatically tagged with the plugin's key. */
+  val logger: PluginLogger = PluginLogger(PluginId("unknown")),
+  /** Feature toggles set by the user via `configure { features { } }`. */
+  val features: PluginFeaturesConfig = PluginFeaturesConfig(),
+  /** Scoped access to [dev.transmute.model.core.MediaStructureRegistry] for JSON-structure type registration. */
+  val mediaStructures: MediaStructureRegistrationScope = MediaStructureRegistrationScope(),
+  /** Scoped access to [dev.transmute.model.core.MediaMetadataRegistry] for JSON-metadata type registration. */
+  val mediaMetadata: MediaMetadataRegistrationScope = MediaMetadataRegistrationScope(),
 )

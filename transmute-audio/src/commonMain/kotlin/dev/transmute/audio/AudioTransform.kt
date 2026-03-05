@@ -11,12 +11,12 @@ import dev.transmute.codec.pipeline.Transform
  * `when` dispatch in the transmuter.
  */
 interface AudioTransform : Transform<AudioIR> {
-    /**
-     * Returns `true` if this transform would produce any change on an audio
-     * track described by [hint].
-     *
-     * Conservative: if [hint] properties are `null` (unknown), the transform
-     * should return `true` (assume it applies).
-     */
-    fun wouldTransform(hint: AudioHint): Boolean
+  /**
+   * Returns `true` if this transform would produce any change on an audio
+   * track described by [hint].
+   *
+   * Conservative: if [hint] properties are `null` (unknown), the transform
+   * should return `true` (assume it applies).
+   */
+  fun wouldTransform(hint: AudioHint): Boolean
 }

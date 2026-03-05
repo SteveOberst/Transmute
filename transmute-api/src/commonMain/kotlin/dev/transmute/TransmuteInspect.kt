@@ -1,31 +1,29 @@
 package dev.transmute
 
 import dev.transmute.audio.AudioFormat
-import dev.transmute.common.MediaDomain
 import dev.transmute.codec.DecodeRange
+import dev.transmute.codec.TimeRangeMs
+import dev.transmute.codec.pipeline.Decoded
+import dev.transmute.codec.pipeline.EncodedBytes
+import dev.transmute.common.MediaDomain
+import dev.transmute.image.AlphaSemantics
+import dev.transmute.image.ColorInfo
+import dev.transmute.image.ImageEncodeOptions
+import dev.transmute.image.ImageFormat
+import dev.transmute.image.ImageIR
+import dev.transmute.image.PngEncodeOptions
 import dev.transmute.io.TSource
 import dev.transmute.model.core.Bytes
 import dev.transmute.model.core.MediaFormat
 import dev.transmute.model.core.MediaMetadata
 import dev.transmute.model.core.MediaStructure
 import dev.transmute.model.core.RawMediaStructure
-import dev.transmute.codec.TimeRangeMs
 import dev.transmute.model.core.UnknownFormat
 import dev.transmute.model.core.asBytes
-import dev.transmute.codec.pipeline.Decoded
-import dev.transmute.codec.pipeline.EncodedBytes
-import dev.transmute.image.AlphaSemantics
-import dev.transmute.image.ColorInfo
-import dev.transmute.image.ImageFormat
-import dev.transmute.image.ImageEncodeOptions
-import dev.transmute.image.ImageIR
-import dev.transmute.image.PngEncodeOptions
 import dev.transmute.video.CanonicalVideoDecodeOptions
 import dev.transmute.video.VideoFormat
 
-class TransmuteInspect internal constructor(
-  private val codec: TransmuteCodec,
-) {
+class TransmuteInspect internal constructor(private val codec: TransmuteCodec) {
   val image: InspectImage = InspectImage(codec)
   val audio: InspectAudio = InspectAudio(codec)
   val video: InspectVideo = InspectVideo(codec)
@@ -114,29 +112,22 @@ class TransmuteInspect internal constructor(
     inspect(source.readAll().asBytes(), options)
 
   /** High-level inspection for [bytes]. */
-  suspend fun inspect(bytes: ByteArray, options: InspectOptions = InspectOptions()): MediaInspection =
-    inspect(bytes.asBytes(), options)
+  suspend fun inspect(bytes: ByteArray, options: InspectOptions = InspectOptions()): MediaInspection = inspect(bytes.asBytes(), options)
 }
 
-class InspectImage internal constructor(
-  private val codec: TransmuteCodec,
-) {
+class InspectImage internal constructor(private val codec: TransmuteCodec) {
   suspend fun detectFormat(source: TSource): ImageFormat = detectFormat(source.readAll().asBytes())
   fun detectFormat(source: Bytes): ImageFormat = codec.image.detectFormat(source)
   fun detectFormat(source: ByteArray): ImageFormat = detectFormat(source.asBytes())
 }
 
-class InspectAudio internal constructor(
-  private val codec: TransmuteCodec,
-) {
+class InspectAudio internal constructor(private val codec: TransmuteCodec) {
   suspend fun detectFormat(source: TSource): AudioFormat = detectFormat(source.readAll().asBytes())
   fun detectFormat(source: Bytes): AudioFormat = codec.audio.detectFormat(source)
   fun detectFormat(source: ByteArray): AudioFormat = detectFormat(source.asBytes())
 }
 
-class InspectVideo internal constructor(
-  private val codec: TransmuteCodec,
-) {
+class InspectVideo internal constructor(private val codec: TransmuteCodec) {
   suspend fun detectFormat(source: TSource): VideoFormat = detectFormat(source.readAll().asBytes())
   fun detectFormat(source: Bytes): VideoFormat = codec.video.detectFormat(source)
   fun detectFormat(source: ByteArray): VideoFormat = detectFormat(source.asBytes())
@@ -186,10 +177,11 @@ class InspectVideo internal constructor(
   ): EncodedBytes<ImageFormat> = thumbnailFirstFrame(source.asBytes(), imageEncodeOptions, decodeRange)
 }
 
-private fun isBmff(bytes: Bytes): Boolean =
-  bytes.size >= 8 &&
-    bytes.data[4] == 0x66.toByte() && bytes.data[5] == 0x74.toByte() &&
-    bytes.data[6] == 0x79.toByte() && bytes.data[7] == 0x70.toByte()
+private fun isBmff(bytes: Bytes): Boolean = bytes.size >= 8 &&
+  bytes.data[4] == 0x66.toByte() &&
+  bytes.data[5] == 0x74.toByte() &&
+  bytes.data[6] == 0x79.toByte() &&
+  bytes.data[7] == 0x70.toByte()
 
 private fun bmffMajorBrand(bytes: Bytes): String? {
   if (!isBmff(bytes) || bytes.size < 12) return null

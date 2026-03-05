@@ -27,32 +27,30 @@ import kotlinx.serialization.modules.SerializersModule
  */
 object BinarySerializer : BinaryFormat {
 
-    override val serializersModule: SerializersModule = EmptySerializersModule()
+  override val serializersModule: SerializersModule = EmptySerializersModule()
 
-    /**
-     * Encodes [value] to its canonical binary representation.
-     *
-     * @throws IllegalArgumentException if [value] does not implement [BinarySerializable].
-     */
-    override fun <T> encodeToByteArray(serializer: SerializationStrategy<T>, value: T): ByteArray {
-        require(value is BinarySerializable) {
-            "BinarySerializer only supports types that implement BinarySerializable, " +
-                    "got ${value!!::class.simpleName}"
-        }
-        return value.toBytes().data
+  /**
+   * Encodes [value] to its canonical binary representation.
+   *
+   * @throws IllegalArgumentException if [value] does not implement [BinarySerializable].
+   */
+  override fun <T> encodeToByteArray(serializer: SerializationStrategy<T>, value: T): ByteArray {
+    require(value is BinarySerializable) {
+      "BinarySerializer only supports types that implement BinarySerializable, " +
+        "got ${value!!::class.simpleName}"
     }
+    return value.toBytes().data
+  }
 
-    /**
-     * Decoding from raw bytes is not supported by [BinarySerializer].
-     *
-     * Use format-specific parsers to construct model instances from binary data.
-     *
-     * @throws UnsupportedOperationException always.
-     */
-    override fun <T> decodeFromByteArray(deserializer: DeserializationStrategy<T>, bytes: ByteArray): T {
-        throw UnsupportedOperationException(
-            "BinarySerializer does not support decoding. " +
-                    "Use format-specific parsers to construct model instances from binary data."
-        )
-    }
+  /**
+   * Decoding from raw bytes is not supported by [BinarySerializer].
+   *
+   * Use format-specific parsers to construct model instances from binary data.
+   *
+   * @throws UnsupportedOperationException always.
+   */
+  override fun <T> decodeFromByteArray(deserializer: DeserializationStrategy<T>, bytes: ByteArray): T = throw UnsupportedOperationException(
+    "BinarySerializer does not support decoding. " +
+      "Use format-specific parsers to construct model instances from binary data.",
+  )
 }

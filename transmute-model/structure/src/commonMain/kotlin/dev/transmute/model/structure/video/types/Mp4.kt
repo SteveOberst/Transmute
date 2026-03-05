@@ -3,6 +3,7 @@
 package dev.transmute.model.structure.video.types
 
 import dev.transmute.model.core.Bytes
+import dev.transmute.model.core.RawMediaStructure
 import dev.transmute.model.core.concatToBytes
 import dev.transmute.model.identify.Brand
 import dev.transmute.model.structure.common.FtypData
@@ -14,7 +15,6 @@ import dev.transmute.model.structure.common.majorBrand
 import dev.transmute.model.structure.common.mdatBox
 import dev.transmute.model.structure.common.minorVersion
 import dev.transmute.model.structure.common.moovBox
-import dev.transmute.model.core.RawMediaStructure
 import kotlinx.serialization.Serializable
 
 // --- MP4 file - complete on-disk representation ---
@@ -29,13 +29,13 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class Mp4Raw(
-    /** All top-level ISO BMFF boxes in file order. */
-    val boxes: List<IsoBmffBox>,
+  /** All top-level ISO BMFF boxes in file order. */
+  val boxes: List<IsoBmffBox>,
 ) : RawMediaStructure {
 
-    // --- Binary serialization ---
+  // --- Binary serialization ---
 
-    override fun toBytes(): Bytes = boxes.concatToBytes()
+  override fun toBytes(): Bytes = boxes.concatToBytes()
 }
 
 // --- Typed extension accessors (delegated to shared List<IsoBmffBox> extensions) ---
@@ -50,4 +50,4 @@ val Mp4Raw.mdatBox: IsoBmffBox? get() = boxes.mdatBox
 
 /** The `free` / `skip` boxes (padding). */
 val Mp4Raw.freeBoxes: List<IsoBmffBox>
-    get() = boxes.filter { it.type.value == "free" || it.type.value == "skip" }
+  get() = boxes.filter { it.type.value == "free" || it.type.value == "skip" }

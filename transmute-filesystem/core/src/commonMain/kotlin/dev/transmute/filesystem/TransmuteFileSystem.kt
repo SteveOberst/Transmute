@@ -35,100 +35,100 @@ package dev.transmute.filesystem
  */
 interface TransmuteFileSystem {
 
-    // -- Metadata -----------------------------------------------
+  // -- Metadata -----------------------------------------------
 
-    /**
-     * Check whether [path] exists.
-     */
-    fun exists(path: TPath): Boolean
+  /**
+   * Check whether [path] exists.
+   */
+  fun exists(path: TPath): Boolean
 
-    /**
-     * Retrieve metadata for [path].
-     *
-     * @throws FileNotFoundException if the path does not exist.
-     */
-    fun metadata(path: TPath): FileMetadata
+  /**
+   * Retrieve metadata for [path].
+   *
+   * @throws FileNotFoundException if the path does not exist.
+   */
+  fun metadata(path: TPath): FileMetadata
 
-    /**
-     * Retrieve metadata for [path], or `null` if it does not exist.
-     */
-    fun metadataOrNull(path: TPath): FileMetadata?
+  /**
+   * Retrieve metadata for [path], or `null` if it does not exist.
+   */
+  fun metadataOrNull(path: TPath): FileMetadata?
 
-    // -- Bulk read / write --------------------------------------
+  // -- Bulk read / write --------------------------------------
 
-    /**
-     * Read the entire file at [path] into a [ByteArray].
-     *
-     * @throws FileNotFoundException if the path does not exist.
-     */
-    fun read(path: TPath): ByteArray
+  /**
+   * Read the entire file at [path] into a [ByteArray].
+   *
+   * @throws FileNotFoundException if the path does not exist.
+   */
+  fun read(path: TPath): ByteArray
 
-    /**
-     * Write [data] to [path] according to [mode].
-     */
-    fun write(path: TPath, data: ByteArray, mode: WriteMode = WriteMode.Overwrite)
+  /**
+   * Write [data] to [path] according to [mode].
+   */
+  fun write(path: TPath, data: ByteArray, mode: WriteMode = WriteMode.Overwrite)
 
-    // -- Streaming / random-access ------------------------------
+  // -- Streaming / random-access ------------------------------
 
-    /**
-     * Open [path] for random-access reading.
-     *
-     * The caller is responsible for closing the returned [ReadHandle].
-     *
-     * @throws FileNotFoundException if the path does not exist.
-     */
-    fun openRead(path: TPath): ReadHandle
+  /**
+   * Open [path] for random-access reading.
+   *
+   * The caller is responsible for closing the returned [ReadHandle].
+   *
+   * @throws FileNotFoundException if the path does not exist.
+   */
+  fun openRead(path: TPath): ReadHandle
 
-    /**
-     * Open [path] for writing.
-     *
-     * The caller is responsible for closing the returned [WriteHandle].
-     */
-    fun openWrite(path: TPath, mode: WriteMode = WriteMode.Overwrite): WriteHandle
+  /**
+   * Open [path] for writing.
+   *
+   * The caller is responsible for closing the returned [WriteHandle].
+   */
+  fun openWrite(path: TPath, mode: WriteMode = WriteMode.Overwrite): WriteHandle
 
-    // -- Directory operations -----------------------------------
+  // -- Directory operations -----------------------------------
 
-    /**
-     * List the immediate children of the directory at [path].
-     *
-     * @throws FileNotFoundException if the path does not exist.
-     * @throws NotDirectoryException if the path is not a directory.
-     */
-    fun list(path: TPath): List<TPath>
+  /**
+   * List the immediate children of the directory at [path].
+   *
+   * @throws FileNotFoundException if the path does not exist.
+   * @throws NotDirectoryException if the path is not a directory.
+   */
+  fun list(path: TPath): List<TPath>
 
-    /**
-     * Create a directory at [path].
-     *
-     * When [recursive] is `true`, all missing parent directories are
-     * created as well (like `mkdir -p`).
-     */
-    fun createDirectory(path: TPath, recursive: Boolean = false)
+  /**
+   * Create a directory at [path].
+   *
+   * When [recursive] is `true`, all missing parent directories are
+   * created as well (like `mkdir -p`).
+   */
+  fun createDirectory(path: TPath, recursive: Boolean = false)
 
-    // -- Delete -------------------------------------------------
+  // -- Delete -------------------------------------------------
 
-    /**
-     * Delete the file or directory at [path].
-     *
-     * When [recursive] is `true` and [path] is a directory, all
-     * contents are deleted first.
-     */
-    fun delete(path: TPath, recursive: Boolean = false)
+  /**
+   * Delete the file or directory at [path].
+   *
+   * When [recursive] is `true` and [path] is a directory, all
+   * contents are deleted first.
+   */
+  fun delete(path: TPath, recursive: Boolean = false)
 
-    // -- Copy / Move --------------------------------------------
+  // -- Copy / Move --------------------------------------------
 
-    /**
-     * Copy [source] to [target].
-     *
-     * If [overwrite] is `false` and [target] already exists, the
-     * operation fails.
-     */
-    fun copy(source: TPath, target: TPath, overwrite: Boolean = false)
+  /**
+   * Copy [source] to [target].
+   *
+   * If [overwrite] is `false` and [target] already exists, the
+   * operation fails.
+   */
+  fun copy(source: TPath, target: TPath, overwrite: Boolean = false)
 
-    /**
-     * Move (rename) [source] to [target].
-     *
-     * If [overwrite] is `false` and [target] already exists, the
-     * operation fails.
-     */
-    fun move(source: TPath, target: TPath, overwrite: Boolean = false)
+  /**
+   * Move (rename) [source] to [target].
+   *
+   * If [overwrite] is `false` and [target] already exists, the
+   * operation fails.
+   */
+  fun move(source: TPath, target: TPath, overwrite: Boolean = false)
 }

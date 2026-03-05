@@ -17,9 +17,7 @@ object AudioFormatDetector {
    * @param bytes At least 12 bytes from the start of the file for reliable detection.
    * @return The detected format, or [AudioFormat.Unknown] if not recognized.
    */
-  fun detect(bytes: Bytes): AudioFormat {
-    return detectBuiltIn(bytes) ?: AudioFormat.Unknown
-  }
+  fun detect(bytes: Bytes): AudioFormat = detectBuiltIn(bytes) ?: AudioFormat.Unknown
 
   /**
    * Magic-byte checks covering all supported audio formats.
@@ -32,9 +30,13 @@ object AudioFormatDetector {
 
     // FLAC: "fLaC"
     if (data.size >= 4 &&
-      data[0] == 0x66.toByte() && data[1] == 0x4C.toByte() &&
-      data[2] == 0x61.toByte() && data[3] == 0x43.toByte()
-    ) return AudioFormat.Flac
+      data[0] == 0x66.toByte() &&
+      data[1] == 0x4C.toByte() &&
+      data[2] == 0x61.toByte() &&
+      data[3] == 0x43.toByte()
+    ) {
+      return AudioFormat.Flac
+    }
 
     // OGG / OPUS: "OggS" + optional "OpusHead"
     if (MagicBytes.isOgg(data)) {
@@ -63,8 +65,12 @@ object AudioFormatDetector {
 
     // MP3: ID3 tag or MPEG frame sync (checked after AAC to avoid ADTS false positives)
     if (data.size >= 3 &&
-      data[0] == 0x49.toByte() && data[1] == 0x44.toByte() && data[2] == 0x33.toByte()
-    ) return AudioFormat.Mp3
+      data[0] == 0x49.toByte() &&
+      data[1] == 0x44.toByte() &&
+      data[2] == 0x33.toByte()
+    ) {
+      return AudioFormat.Mp3
+    }
     if (data.size >= 2) {
       val b0 = data[0].toInt() and 0xFF
       val b1 = data[1].toInt() and 0xFF

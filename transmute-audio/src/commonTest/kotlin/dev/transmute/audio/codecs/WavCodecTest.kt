@@ -1,16 +1,16 @@
 package dev.transmute.audio.codecs
 
+import dev.transmute.audio.AudioFormat
+import dev.transmute.audio.AudioTestHelpers.peakAmplitude
 import dev.transmute.audio.AudioTestHelpers.sineWave
 import dev.transmute.audio.AudioTestHelpers.testContext
-import dev.transmute.audio.AudioTestHelpers.peakAmplitude
-import dev.transmute.audio.AudioFormat
-import kotlinx.coroutines.test.runTest
+import dev.transmute.audio.CanonicalAudioDecodeOptions
+import dev.transmute.audio.CanonicalAudioEncodeOptions
 import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import dev.transmute.audio.CanonicalAudioEncodeOptions
-import dev.transmute.audio.CanonicalAudioDecodeOptions
+import kotlinx.coroutines.test.runTest
 
 class WavCodecTest {
 

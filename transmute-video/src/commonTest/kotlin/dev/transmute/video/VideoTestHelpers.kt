@@ -49,7 +49,9 @@ object VideoTestHelpers {
         samples = AudioSamples(FloatArray(samples), sampleRate, channels),
         sampleStream = null,
       )
-    } else null
+    } else {
+      null
+    }
 
     return VideoIR(
       videoTrack = videoTrack,
@@ -94,10 +96,10 @@ internal class SyntheticFrameStream(
     for (y in 0 until h) {
       for (x in 0 until w) {
         val idx = (y * w + x) * 4
-        data[idx] = ((x + offset) % 256).toByte()     // R
+        data[idx] = ((x + offset) % 256).toByte() // R
         data[idx + 1] = ((y + offset) % 256).toByte() // G
         data[idx + 2] = ((x + y + offset) % 256).toByte() // B
-        data[idx + 3] = 0xFF.toByte()                 // A
+        data[idx + 3] = 0xFF.toByte() // A
       }
     }
     return data

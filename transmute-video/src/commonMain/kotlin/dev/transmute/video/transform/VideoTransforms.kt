@@ -1,7 +1,7 @@
 package dev.transmute.video.transform
 
-import dev.transmute.common.PipelineContext
 import dev.transmute.codec.pipeline.TransformId
+import dev.transmute.common.PipelineContext
 import dev.transmute.image.ByteArrayPixelBuffer
 import dev.transmute.video.FrameStream
 import dev.transmute.video.VideoFrame
@@ -18,23 +18,19 @@ import dev.transmute.video.VideoTransform
  * @param startMs Start time in milliseconds.
  * @param endMs End time in milliseconds (null = end of video).
  */
-class VideoTrimTransform(
-  val startMs: Long,
-  val endMs: Long? = null,
-) : VideoTransform {
+class VideoTrimTransform(val startMs: Long, val endMs: Long? = null) : VideoTransform {
   override fun wouldTransform(hint: VideoHint): Boolean = true // always trims
 
   override val id = TransformId("video.trim")
 
   override suspend fun apply(ir: VideoIR, context: PipelineContext): VideoIR {
-
     val actualEnd = endMs ?: ir.durationMs
     val newDuration = actualEnd - startMs
 
     return ir.copy(
       durationMs = newDuration.coerceAtLeast(0),
       videoTrack = ir.videoTrack.copy(
-        frames = TrimmedFrameStream(ir.videoTrack.frames, startMs, actualEnd)
+        frames = TrimmedFrameStream(ir.videoTrack.frames, startMs, actualEnd),
       ),
       metadata = ir.metadata.copy(
         durationMs = newDuration.coerceAtLeast(0),
@@ -46,11 +42,7 @@ class VideoTrimTransform(
 /**
  * Frame stream wrapper that filters frames within a time range.
  */
-private class TrimmedFrameStream(
-  private val source: FrameStream,
-  private val startMs: Long,
-  private val endMs: Long,
-) : FrameStream {
+private class TrimmedFrameStream(private val source: FrameStream, private val startMs: Long, private val endMs: Long) : FrameStream {
   override val frameCount: Long = source.frameCount // Approximation
 
   private var started = false
@@ -60,10 +52,10 @@ private class TrimmedFrameStream(
   override suspend fun nextFrame(): VideoFrame? {
     while (true) {
       val frame = source.nextFrame() ?: return null
-      
+
       if (frame.timestampMs < startMs) continue
       if (frame.timestampMs > endMs) return null
-      
+
       // Adjust timestamp relative to new start
       return frame.copy(timestampMs = frame.timestampMs - startMs)
     }
@@ -79,18 +71,15 @@ private class TrimmedFrameStream(
  * @param maxWidth Maximum width in pixels.
  * @param maxHeight Maximum height in pixels.
  */
-class VideoResizeTransform(
-  val maxWidth: Int,
-  val maxHeight: Int,
-) : VideoTransform {
-  override fun wouldTransform(hint: VideoHint): Boolean =
-    hint.width == null || hint.height == null ||
-      hint.width > maxWidth || hint.height > maxHeight
+class VideoResizeTransform(val maxWidth: Int, val maxHeight: Int) : VideoTransform {
+  override fun wouldTransform(hint: VideoHint): Boolean = hint.width == null ||
+    hint.height == null ||
+    hint.width > maxWidth ||
+    hint.height > maxHeight
 
   override val id = TransformId("video.resize")
 
   override suspend fun apply(ir: VideoIR, context: PipelineContext): VideoIR {
-
     val track = ir.videoTrack
     val aspectRatio = track.width.toDouble() / track.height
 
@@ -100,7 +89,7 @@ class VideoResizeTransform(
       val widthRatio = maxWidth.toDouble() / track.width
       val heightRatio = maxHeight.toDouble() / track.height
       val scale = minOf(widthRatio, heightRatio)
-      
+
       (track.width * scale).toInt() to (track.height * scale).toInt()
     }
 
@@ -108,8 +97,8 @@ class VideoResizeTransform(
       videoTrack = track.copy(
         width = newWidth,
         height = newHeight,
-        frames = ResizedFrameStream(track.frames, newWidth, newHeight)
-      )
+        frames = ResizedFrameStream(track.frames, newWidth, newHeight),
+      ),
     )
   }
 }
@@ -117,18 +106,15 @@ class VideoResizeTransform(
 /**
  * Frame stream wrapper that marks frames for resizing.
  */
-private class ResizedFrameStream(
-  private val source: FrameStream,
-  private val targetWidth: Int,
-  private val targetHeight: Int,
-) : FrameStream {
+private class ResizedFrameStream(private val source: FrameStream, private val targetWidth: Int, private val targetHeight: Int) :
+  FrameStream {
   override val frameCount: Long = source.frameCount
 
   override fun close() = source.close()
 
   override suspend fun nextFrame(): VideoFrame? {
     val frame = source.nextFrame() ?: return null
-    
+
     // Simple nearest-neighbor resize for now
     // Real implementation would use bilinear/bicubic interpolation
     val scaled = scaleFrame(frame, targetWidth, targetHeight)
@@ -151,7 +137,7 @@ private class ResizedFrameStream(
       for (x in 0 until width) {
         val srcX = (x * xRatio).toInt().coerceIn(0, srcWidth - 1)
         val srcY = (y * yRatio).toInt().coerceIn(0, srcHeight - 1)
-        
+
         val srcIdx = (srcY * srcWidth + srcX) * bytesPerPixel
         val dstIdx = (y * width + x) * bytesPerPixel
 
@@ -178,33 +164,24 @@ private class ResizedFrameStream(
  *
  * @param targetFps Target frames per second.
  */
-class VideoFrameRateTransform(
-  val targetFps: Double,
-) : VideoTransform {
-  override fun wouldTransform(hint: VideoHint): Boolean =
-    hint.frameRate == null || hint.frameRate > targetFps
+class VideoFrameRateTransform(val targetFps: Double) : VideoTransform {
+  override fun wouldTransform(hint: VideoHint): Boolean = hint.frameRate == null || hint.frameRate > targetFps
 
   override val id = TransformId("video.framerate")
 
-  override suspend fun apply(ir: VideoIR, context: PipelineContext): VideoIR {
-
-    return ir.copy(
-      videoTrack = ir.videoTrack.copy(
-        frameRate = targetFps,
-        frames = FrameRateAdjustedStream(ir.videoTrack.frames, ir.videoTrack.frameRate, targetFps)
-      )
-    )
-  }
+  override suspend fun apply(ir: VideoIR, context: PipelineContext): VideoIR = ir.copy(
+    videoTrack = ir.videoTrack.copy(
+      frameRate = targetFps,
+      frames = FrameRateAdjustedStream(ir.videoTrack.frames, ir.videoTrack.frameRate, targetFps),
+    ),
+  )
 }
 
 /**
  * Frame stream that adjusts frame timing for different frame rates.
  */
-private class FrameRateAdjustedStream(
-  private val source: FrameStream,
-  private val sourceFps: Double,
-  private val targetFps: Double,
-) : FrameStream {
+private class FrameRateAdjustedStream(private val source: FrameStream, private val sourceFps: Double, private val targetFps: Double) :
+  FrameStream {
   override val frameCount: Long = ((source.frameCount * targetFps) / sourceFps).toLong()
 
   private var frameIndex = 0L
@@ -214,7 +191,7 @@ private class FrameRateAdjustedStream(
 
   override suspend fun nextFrame(): VideoFrame? {
     val targetTimestamp = (frameIndex * 1000.0 / targetFps).toLong()
-    
+
     // Advance source until we have a frame at or past target timestamp
     while (lastFrame == null || (lastFrame?.timestampMs ?: 0) < targetTimestamp) {
       val next = source.nextFrame()
@@ -240,7 +217,5 @@ class VideoRemoveAudioTransform : VideoTransform {
 
   override val id = TransformId("video.removeAudio")
 
-  override suspend fun apply(ir: VideoIR, context: PipelineContext): VideoIR {
-    return ir.copy(audioTrack = null)
-  }
+  override suspend fun apply(ir: VideoIR, context: PipelineContext): VideoIR = ir.copy(audioTrack = null)
 }

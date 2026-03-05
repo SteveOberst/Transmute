@@ -1,38 +1,45 @@
-# HEIF / HEIC
+# HEIF/HEIC
 
-| Property | HEIF | HEIC |
-|----------|------|------|
-| Constant | `ImageFormat.Heif` | `ImageFormat.Heic` |
-| MIME type | `image/heif` | `image/heic` |
-| Extension | `heif` | `heic` |
-| Container | ISOBMFF | ISOBMFF |
+HEIF/HEIC are modern image formats used heavily in Apple ecosystems. They offer excellent compression efficiency while maintaining high visual quality.
 
-HEIC is the Apple variant of HEIF. Both share the same container family (`ContainerFamily.Heif`) and are handled by the same codec.
+## Platform Support
 
-## Platform availability
+| Platform | Decode | Encode | Engine                                     |
+|----------|--------|--------|--------------------------------------------|
+| Android  | ✅      | ❌      | BitmapFactory (decode only)                |
+| Desktop  | ✅      | ✅      | libheif (requires `transmute-libheif`)     |
+| iOS      | ✅      | ✅      | CoreGraphics (CGImage)                     |
 
-| Platform | Decode | Encode |
-|----------|--------|--------|
-| Android  | ✓ | ✓ |
-| Desktop  | plugin (GStreamer or libheif) | plugin |
-| iOS      | ✓ | ✓ |
-
-On Desktop, install the GStreamer plugin (`transmute-plugins:gstreamer`) or the self-contained libheif plugin (`transmute-plugins:libheif`).
-
-## Encode options
+## Usage
 
 ```kotlin
-HeifEncodeOptions(
-    quality: Float = 0.80f,                 // 0.0 – 1.0
-    metadataPolicy: MetadataPolicy = STRIP_ALL,
-    format: ImageFormat = ImageFormat.Heif, // or ImageFormat.Heic
-)
+// Convert any image to HEIF (Desktop/iOS)
+suspend fun convertToHeif(inputBytes: ByteArray): ByteArray =
+  Transmute.image {
+    encode { options(HeifEncodeOptions(format = ImageFormat.Heif, quality = 0.8f)) }
+  }.transmute(inputBytes.asBytes()).bytes.data
+
+// Decode HEIF (re-encode to JPEG)
+suspend fun decodeToJpeg(heifBytes: ByteArray): ByteArray =
+  Transmute.image {
+    encode { options(JpegEncodeOptions(quality = 0.85f)) }
+  }.transmute(heifBytes.asBytes()).bytes.data
 ```
 
-## Metadata support
+## Structure Reading
 
-HEIF/HEIC files may carry: `ExifMetadata`, `XmpMetadata`.
+HEIF/HEIC files can be parsed into a `Heif` structure that mirrors the ISO BMFF box layout:
 
-## Structure support
+```kotlin
+val heif: Heif = Transmute.structure.read(heifBytes.asBytes(), ImageFormat.Heif)
 
-`HeifStructure` — ISOBMFF box list.
+// Round-trip
+val raw = Transmute.structure.write(heif)
+```
+
+The reader walks the `ftyp`, `meta`, `mdat`, and `moov`/`hdlr` boxes, capturing all atoms at top-level
+resolution. See `docs/structures.md`.
+
+## Notes but encode support is limited.
+- Desktop requires the optional `transmute-libheif` module.
+- iOS offers strong native HEIF/HEIC support.

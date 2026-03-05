@@ -51,4 +51,3 @@ sealed interface VideoFormat : MediaFormat<VideoDecodeOptions, VideoEncodeOption
     val all: Set<VideoFormat> = setOf(Mp4, Webm, Mov, Avi, Mkv)
   }
 }
-

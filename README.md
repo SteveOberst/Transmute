@@ -11,8 +11,8 @@ Kotlin Multiplatform media conversion, compression, and transformation — image
 - Single `commonMain` API for image, audio, and video across Android, Desktop (JVM), and iOS
 - Instance-based API with plugin system — create isolated `Transmute` instances with custom codec configurations
 - Platform-native codecs by default — no external dependencies for common formats
-- Optional `transmute-plugins:gstreamer` fills platform gaps (HEIF/AVIF on Desktop, Opus/OGG on iOS, video on Desktop, etc.)
-- Optional `transmute-plugins:libheif` for bundled HEIF/AVIF support on Desktop without a system GStreamer install
+- Optional `transmute-plugins:gstreamer` fills platform gaps (Opus/OGG on iOS, MP4/MOV/WebM/AVI/MKV on Desktop, etc.)
+- Optional `transmute-plugins:libheif` for HEIF/HEIC/AVIF codec support on Desktop (without requiring a system GStreamer install)
 - Pure-Kotlin WAV and BMP codecs that work on all platforms without native dependencies
 - Pipeline-based decode → transform → encode: swap or extend individual stages without touching the rest
 - 27 transforms across all three domains (scale, crop, rotate, blur, normalize, trim, fade, gain, speed, compressor, etc.)

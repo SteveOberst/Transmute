@@ -19,23 +19,22 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class OggAudioStructure(
-    /** Parsed Vorbis identification header (codec parameters). */
-    val vorbisIdentification: VorbisIdentification?,
-    /** Number of distinct logical Ogg streams in the file. */
-    val streamCount: Int,
-    /** Total number of Ogg pages in the file. */
-    val pageCount: Int,
-    /** All Ogg pages in file order (payload bytes excluded). */
-    val pages: List<OggPageSummary>,
+  /** Parsed Vorbis identification header (codec parameters). */
+  val vorbisIdentification: VorbisIdentification?,
+  /** Number of distinct logical Ogg streams in the file. */
+  val streamCount: Int,
+  /** Total number of Ogg pages in the file. */
+  val pageCount: Int,
+  /** All Ogg pages in file order (payload bytes excluded). */
+  val pages: List<OggPageSummary>,
 ) : MediaStructure
 
 /**
  * Parse this [dev.transmute.model.structure.audio.types.OggAudioRaw] into an [OggAudioStructure].
  */
-fun OggAudioRaw.toStructure(): OggAudioStructure =
-    OggAudioStructure(
-        vorbisIdentification = vorbisIdentification,
-        streamCount = streamSerialNumbers.size,
-        pageCount = pages.size,
-        pages = pages.map { it.toSummary() },
-    )
+fun OggAudioRaw.toStructure(): OggAudioStructure = OggAudioStructure(
+  vorbisIdentification = vorbisIdentification,
+  streamCount = streamSerialNumbers.size,
+  pageCount = pages.size,
+  pages = pages.map { it.toSummary() },
+)

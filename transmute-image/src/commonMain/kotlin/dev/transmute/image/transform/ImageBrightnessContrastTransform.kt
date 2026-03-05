@@ -1,12 +1,12 @@
 package dev.transmute.image.transform
 
+import dev.transmute.codec.pipeline.TransformId
 import dev.transmute.common.PipelineContext
 import dev.transmute.image.ByteArrayPixelBuffer
-import dev.transmute.image.ImageIR
-import dev.transmute.image.PixelFormat
 import dev.transmute.image.ImageHint
+import dev.transmute.image.ImageIR
 import dev.transmute.image.ImageTransform
-import dev.transmute.codec.pipeline.TransformId
+import dev.transmute.image.PixelFormat
 
 /**
  * Adjusts brightness and contrast of an [ImageIR].
@@ -22,10 +22,7 @@ import dev.transmute.codec.pipeline.TransformId
  * @param brightness Offset added to each channel (255 .. +255). 0 = no change.
  * @param contrast   Multiplier applied around mid-grey (0.0 .. 3.0). 1.0 = no change.
  */
-class ImageBrightnessContrastTransform(
-  val brightness: Float = 0f,
-  val contrast: Float = 1f,
-) : ImageTransform {
+class ImageBrightnessContrastTransform(val brightness: Float = 0f, val contrast: Float = 1f) : ImageTransform {
 
   override fun wouldTransform(hint: ImageHint): Boolean = brightness != 0f || contrast != 1f
 

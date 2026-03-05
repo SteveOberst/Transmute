@@ -13,5 +13,5 @@ import dev.transmute.structure.common.extractMatroskaTags
  * - **Matroska Tags** - TITLE, ARTIST, ALBUM, DATE_RELEASED, GENRE, etc.
  */
 fun WebmRaw.extractMetadata(): List<MediaMetadata> = buildList {
-    extractMatroskaTags(elements)?.let(::add)
+  extractMatroskaTags(elements)?.let(::add)
 }

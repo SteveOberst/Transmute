@@ -24,21 +24,18 @@ import dev.transmute.model.core.RawMediaStructure
  */
 interface StructureReader<out S : RawMediaStructure> {
 
-    /**
-     * Parse [source] into a typed structure.
-     *
-     * The correct reader should be selected beforehand via format
-     * detection (see `FormatDetector`). Implementations may still
-     * throw [StructureReadException] if the bytes are malformed or
-     * do not match the expected format.
-     */
-    fun read(source: Bytes): S
+  /**
+   * Parse [source] into a typed structure.
+   *
+   * The correct reader should be selected beforehand via format
+   * detection (see `FormatDetector`). Implementations may still
+   * throw [StructureReadException] if the bytes are malformed or
+   * do not match the expected format.
+   */
+  fun read(source: Bytes): S
 }
 
 /**
  * Thrown when a [StructureReader] cannot parse the supplied bytes.
  */
-class StructureReadException(
-    message: String,
-    cause: Throwable? = null,
-) : RuntimeException(message, cause)
+class StructureReadException(message: String, cause: Throwable? = null) : RuntimeException(message, cause)

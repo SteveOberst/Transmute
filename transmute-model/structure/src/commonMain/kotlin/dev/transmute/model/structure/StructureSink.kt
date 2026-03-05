@@ -23,35 +23,35 @@ import dev.transmute.model.core.RawMediaStructure
  * backends.
  */
 interface StructureSink {
-    /** Write [structure] to this sink. */
-    suspend fun write(structure: RawMediaStructure)
+  /** Write [structure] to this sink. */
+  suspend fun write(structure: RawMediaStructure)
 
-    /** Flush any buffered data. No-op for non-buffered sinks. */
-    suspend fun flush() {}
+  /** Flush any buffered data. No-op for non-buffered sinks. */
+  suspend fun flush() {}
 
-    /** Release any resources held by this sink. */
-    suspend fun close() {}
+  /** Release any resources held by this sink. */
+  suspend fun close() {}
 }
 
 /**
  * Simple in-memory sink that collects the serialised bytes.
  */
 class BytesSink : StructureSink {
-    private var result: Bytes? = null
+  private var result: Bytes? = null
 
-    override suspend fun write(structure: RawMediaStructure) {
-        result = structure.toBytes()
-    }
+  override suspend fun write(structure: RawMediaStructure) {
+    result = structure.toBytes()
+  }
 
-    /**
-     * Returns the bytes written to this sink.
-     *
-     * @throws IllegalStateException if [write] has not been called.
-     */
-    fun collect(): Bytes = result ?: error("No structure has been written to this sink")
+  /**
+   * Returns the bytes written to this sink.
+   *
+   * @throws IllegalStateException if [write] has not been called.
+   */
+  fun collect(): Bytes = result ?: error("No structure has been written to this sink")
 
-    /**
-     * Returns the bytes written, or `null` if [write] has not been called.
-     */
-    fun collectOrNull(): Bytes? = result
+  /**
+   * Returns the bytes written, or `null` if [write] has not been called.
+   */
+  fun collectOrNull(): Bytes? = result
 }

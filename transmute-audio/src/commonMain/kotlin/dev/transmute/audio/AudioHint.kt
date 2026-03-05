@@ -21,14 +21,14 @@ package dev.transmute.audio
  * ```
  */
 data class AudioHint(
-    /** Track duration in milliseconds, or `null` if unknown. */
-    val durationMs: Long? = null,
-    /** Sample rate in Hz (e.g. 44100, 48000), or `null` if unknown. */
-    val sampleRate: Int? = null,
-    /** Number of audio channels (e.g. 1 = mono, 2 = stereo), or `null` if unknown. */
-    val channelCount: Int? = null,
-    /** Detected or declared format, or `null` if unknown. */
-    val format: AudioFormat? = null,
-    /** Encoded file size in bytes, or `null` if unknown. */
-    val sizeBytes: Long? = null,
+  /** Track duration in milliseconds, or `null` if unknown. */
+  val durationMs: Long? = null,
+  /** Sample rate in Hz (e.g. 44100, 48000), or `null` if unknown. */
+  val sampleRate: Int? = null,
+  /** Number of audio channels (e.g. 1 = mono, 2 = stereo), or `null` if unknown. */
+  val channelCount: Int? = null,
+  /** Detected or declared format, or `null` if unknown. */
+  val format: AudioFormat? = null,
+  /** Encoded file size in bytes, or `null` if unknown. */
+  val sizeBytes: Long? = null,
 )

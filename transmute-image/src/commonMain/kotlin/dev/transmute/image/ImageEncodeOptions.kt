@@ -1,8 +1,8 @@
 package dev.transmute.image
 
-import dev.transmute.model.core.EncodeOptions
 import dev.transmute.codec.MetadataPolicy
 import dev.transmute.codec.OutputFormat
+import dev.transmute.model.core.EncodeOptions
 
 /**
  * Sealed hierarchy of image encoding options.
@@ -50,10 +50,8 @@ sealed interface ImageEncodeOptions : EncodeOptions {
  * @property quality Compression quality in `[0, 1]`. 0.85 balances visual
  *   quality against file size for most photographic content.
  */
-data class JpegEncodeOptions(
-  val quality: Float = 0.85f,
-  override val metadataPolicy: MetadataPolicy = MetadataPolicy.STRIP_ALL,
-) : ImageEncodeOptions {
+data class JpegEncodeOptions(val quality: Float = 0.85f, override val metadataPolicy: MetadataPolicy = MetadataPolicy.STRIP_ALL) :
+  ImageEncodeOptions {
   override val outputFormat: OutputFormat<ImageFormat> = OutputFormat.Exact(ImageFormat.Jpeg)
 
   init {
@@ -68,10 +66,8 @@ data class JpegEncodeOptions(
  *
  * @property compressionLevel zlib compression level 0-9 (0 = none, 9 = max).
  */
-data class PngEncodeOptions(
-  val compressionLevel: Int = 6,
-  override val metadataPolicy: MetadataPolicy = MetadataPolicy.STRIP_ALL,
-) : ImageEncodeOptions {
+data class PngEncodeOptions(val compressionLevel: Int = 6, override val metadataPolicy: MetadataPolicy = MetadataPolicy.STRIP_ALL) :
+  ImageEncodeOptions {
   override val outputFormat: OutputFormat<ImageFormat> = OutputFormat.Exact(ImageFormat.Png)
 
   init {

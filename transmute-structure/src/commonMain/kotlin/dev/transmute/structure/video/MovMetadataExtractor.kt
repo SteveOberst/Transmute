@@ -16,5 +16,5 @@ import dev.transmute.structure.common.extractItunesMetadata
  * may contain iTunes-style metadata in the item list (`ilst`) box.
  */
 fun MovRaw.extractMetadata(): List<MediaMetadata> = buildList {
-    extractItunesMetadata(boxes)?.let(::add)
+  extractItunesMetadata(boxes)?.let(::add)
 }

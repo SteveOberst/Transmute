@@ -26,17 +26,16 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class MkvStructure(
-    /** Parsed EBML header metadata (DocType, version, read-version). */
-    val headerData: EbmlHeaderData?,
-    /** All top-level EBML elements in file order (EBML Header + Segment + ...). Payload bytes excluded. */
-    val elements: List<EbmlElementTree>,
+  /** Parsed EBML header metadata (DocType, version, read-version). */
+  val headerData: EbmlHeaderData?,
+  /** All top-level EBML elements in file order (EBML Header + Segment + ...). Payload bytes excluded. */
+  val elements: List<EbmlElementTree>,
 ) : MediaStructure
 
 /**
  * Parse this [dev.transmute.model.structure.video.types.MkvRaw] into a [MkvStructure].
  */
-fun MkvRaw.toStructure(): MkvStructure =
-    MkvStructure(
-        headerData = headerData,
-        elements = elements.map { it.toTree() },
-    )
+fun MkvRaw.toStructure(): MkvStructure = MkvStructure(
+  headerData = headerData,
+  elements = elements.map { it.toTree() },
+)

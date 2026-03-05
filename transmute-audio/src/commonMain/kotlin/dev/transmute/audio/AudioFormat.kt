@@ -63,4 +63,3 @@ sealed interface AudioFormat : MediaFormat<AudioDecodeOptions, AudioEncodeOption
     val all: Set<AudioFormat> = setOf(Mp3, Aac, Wav, Ogg, Flac, M4a, Opus)
   }
 }
-

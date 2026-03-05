@@ -1,7 +1,10 @@
 ﻿package dev.transmute.image.codecs.bmp
 
 import dev.transmute.image.ByteArrayPixelBuffer
+import dev.transmute.image.CanonicalImageDecodeOptions
+import dev.transmute.image.CanonicalImageEncodeOptions
 import dev.transmute.image.ImageFormat
+import dev.transmute.image.ImageIR
 import dev.transmute.image.ImageTestHelpers
 import dev.transmute.image.ImageTestHelpers.horizontalGradient
 import dev.transmute.image.ImageTestHelpers.meanAbsoluteError
@@ -9,14 +12,11 @@ import dev.transmute.image.ImageTestHelpers.peakDifference
 import dev.transmute.image.ImageTestHelpers.pixelAt
 import dev.transmute.image.ImageTestHelpers.solidColor
 import dev.transmute.image.ImageTestHelpers.testContext
-import dev.transmute.image.ImageIR
 import dev.transmute.image.PixelFormat
-import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import dev.transmute.image.CanonicalImageEncodeOptions
-import dev.transmute.image.CanonicalImageDecodeOptions
+import kotlinx.coroutines.test.runTest
 
 /**
  * Platform integration tests for the pure-Kotlin BMP codec.
@@ -109,8 +109,8 @@ class BmpCodecRoundtripTest {
       val original = solidColor(w, h, 128, 128, 128)
       val encoded = encoder.encode(original, ImageFormat.Bmp, CanonicalImageEncodeOptions(), ctx)
       val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
-      assertEquals(w, decoded.width, "BMP: width not preserved for ${w}x${h}")
-      assertEquals(h, decoded.height, "BMP: height not preserved for ${w}x${h}")
+      assertEquals(w, decoded.width, "BMP: width not preserved for ${w}x$h")
+      assertEquals(h, decoded.height, "BMP: height not preserved for ${w}x$h")
     }
   }
 
@@ -119,7 +119,9 @@ class BmpCodecRoundtripTest {
   @Test
   fun roundTripCheckerboardIsLossless() = runTest {
     val original = ImageTestHelpers.checkerboard(
-      64, 64, blockSize = 8,
+      64,
+      64,
+      blockSize = 8,
       colorA = intArrayOf(255, 0, 0, 255),
       colorB = intArrayOf(0, 0, 255, 255),
     )
@@ -130,7 +132,7 @@ class BmpCodecRoundtripTest {
     assertEquals(64, decoded.height, "BMP: checkerboard height mismatch")
 
     // Check block centers
-    val redBlock = pixelAt(decoded, 4, 4)   // center of first (red) block
+    val redBlock = pixelAt(decoded, 4, 4) // center of first (red) block
     assertEquals(255, redBlock[0], "BMP: red block R channel")
     assertEquals(0, redBlock[1], "BMP: red block G channel")
     assertEquals(0, redBlock[2], "BMP: red block B channel")
@@ -146,9 +148,14 @@ class BmpCodecRoundtripTest {
   @Test
   fun roundTripMeanAbsoluteErrorIsZero() = runTest {
     val original = horizontalGradient(
-      128, 32,
-      startR = 10, startG = 50, startB = 200,
-      endR = 245, endG = 200, endB = 10,
+      128,
+      32,
+      startR = 10,
+      startG = 50,
+      startB = 200,
+      endR = 245,
+      endG = 200,
+      endB = 10,
     )
     val encoded = encoder.encode(original, ImageFormat.Bmp, CanonicalImageEncodeOptions(), ctx)
     val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)

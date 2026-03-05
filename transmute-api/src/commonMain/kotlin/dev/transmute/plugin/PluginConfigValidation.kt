@@ -28,14 +28,14 @@ package dev.transmute.plugin
  */
 interface PluginConfigValidation<C : Any> {
 
-    /**
-     * Validates [config] and returns a (possibly empty) list of problems.
-     *
-     * - [ConfigProblem.Severity.ERROR]: the framework will abort installation.
-     * - [ConfigProblem.Severity.WARNING]: the framework logs and continues.
-     * - [ConfigProblem.Severity.INFO]: informational; always logged.
-     */
-    fun validate(config: C): List<ConfigProblem> = emptyList()
+  /**
+   * Validates [config] and returns a (possibly empty) list of problems.
+   *
+   * - [ConfigProblem.Severity.ERROR]: the framework will abort installation.
+   * - [ConfigProblem.Severity.WARNING]: the framework logs and continues.
+   * - [ConfigProblem.Severity.INFO]: informational; always logged.
+   */
+  fun validate(config: C): List<ConfigProblem> = emptyList()
 }
 
 /**
@@ -45,22 +45,16 @@ interface PluginConfigValidation<C : Any> {
  * @property message  Human-readable description of the problem.
  * @property severity How the framework should react to this problem.
  */
-data class ConfigProblem(
-    val field: String,
-    val message: String,
-    val severity: Severity = Severity.ERROR,
-) {
-    enum class Severity { ERROR, WARNING, INFO }
+data class ConfigProblem(val field: String, val message: String, val severity: Severity = Severity.ERROR) {
+  enum class Severity { ERROR, WARNING, INFO }
 }
 
 /**
  * Thrown by the Transmute framework when one or more [ConfigProblem.Severity.ERROR]-level
  * problems are reported during plugin config validation.
  */
-class PluginConfigException(
-    pluginId: PluginId,
-    val problems: List<ConfigProblem>,
-) : IllegalArgumentException(
+class PluginConfigException(pluginId: PluginId, val problems: List<ConfigProblem>) :
+  IllegalArgumentException(
     "Plugin '${pluginId.id}' configuration is invalid:\n" +
-        problems.joinToString("\n") { "  [${it.severity}] ${it.field}: ${it.message}" },
-)
+      problems.joinToString("\n") { "  [${it.severity}] ${it.field}: ${it.message}" },
+  )

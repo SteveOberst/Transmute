@@ -17,19 +17,19 @@ import kotlin.test.assertEquals
  */
 class StructureDecoderFactoriesTest {
 
-    // -- rawDecoderFor ---------------------------------------------------------
+  // -- rawDecoderFor ---------------------------------------------------------
 
-    @Test
-    fun rawDecoderForReportsCorrectDecodableFormats() {
-        val decoder = rawDecoderFor(AudioFormat.Wav, WavStructureReader())
-        assertEquals(setOf(AudioFormat.Wav), decoder.decodableFormats)
-    }
+  @Test
+  fun rawDecoderForReportsCorrectDecodableFormats() {
+    val decoder = rawDecoderFor(AudioFormat.Wav, WavStructureReader())
+    assertEquals(setOf(AudioFormat.Wav), decoder.decodableFormats)
+  }
 
-    // -- structureDecoderFor ---------------------------------------------------
+  // -- structureDecoderFor ---------------------------------------------------
 
-    @Test
-    fun structureDecoderForReportsCorrectDecodableFormats() {
-        val decoder = structureDecoderFor(ImageFormat.Png, PngStructureReader()) { toStructure() }
-        assertEquals(setOf(ImageFormat.Png), decoder.decodableFormats)
-    }
+  @Test
+  fun structureDecoderForReportsCorrectDecodableFormats() {
+    val decoder = structureDecoderFor(ImageFormat.Png, PngStructureReader()) { toStructure() }
+    assertEquals(setOf(ImageFormat.Png), decoder.decodableFormats)
+  }
 }

@@ -4,14 +4,14 @@ import dev.transmute.audio.AudioIR
 import dev.transmute.audio.AudioSamples
 import dev.transmute.audio.AudioTestHelpers.peakAmplitude
 import dev.transmute.audio.AudioTestHelpers.rms
-import dev.transmute.audio.AudioTestHelpers.sineWave
 import dev.transmute.audio.AudioTestHelpers.silence
+import dev.transmute.audio.AudioTestHelpers.sineWave
 import dev.transmute.audio.AudioTestHelpers.testContext
-import kotlinx.coroutines.test.runTest
 import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlinx.coroutines.test.runTest
 
 class AudioNormalizeTransformTest {
 
@@ -296,7 +296,7 @@ class AudioSpeedTransformTest {
     // Output should be roughly half the input length (20%).
     assertTrue(
       outputFrames in (inputFrames / 3)..(inputFrames * 3 / 4),
-      "Expected ~half frames: input=$inputFrames, output=$outputFrames"
+      "Expected ~half frames: input=$inputFrames, output=$outputFrames",
     )
     assertTrue(result.durationMs < audio.durationMs, "Duration should be shorter")
   }
@@ -311,7 +311,7 @@ class AudioSpeedTransformTest {
 
     assertTrue(
       outputFrames > inputFrames,
-      "Expected more frames: input=$inputFrames, output=$outputFrames"
+      "Expected more frames: input=$inputFrames, output=$outputFrames",
     )
     assertTrue(result.durationMs > audio.durationMs, "Duration should be longer")
   }
@@ -372,7 +372,7 @@ class AudioSilenceTrimTransformTest {
     // Output should be shorter - leading silence removed.
     assertTrue(
       result.samples.data.size < audio.samples.data.size,
-      "Should have fewer samples after trimming leading silence"
+      "Should have fewer samples after trimming leading silence",
     )
     // First sample of result should be non-silent.
     assertTrue(abs(result.samples.data[0]) > 0.001f, "First sample should be non-silent")
@@ -399,7 +399,7 @@ class AudioSilenceTrimTransformTest {
 
     assertTrue(
       result.samples.data.size < audio.samples.data.size,
-      "Should have fewer samples after trimming trailing silence"
+      "Should have fewer samples after trimming trailing silence",
     )
   }
 
@@ -453,13 +453,16 @@ class AudioCompressorTransformTest {
     val inputPeak = peakAmplitude(audio)
 
     val result = AudioCompressorTransform(
-      thresholdDb = -6f, ratio = 4f, attackMs = 1f, releaseMs = 10f,
+      thresholdDb = -6f,
+      ratio = 4f,
+      attackMs = 1f,
+      releaseMs = 10f,
     ).apply(audio, context)
     val outputPeak = peakAmplitude(result)
 
     assertTrue(
       outputPeak < inputPeak,
-      "Peak should be reduced: input=$inputPeak -> output=$outputPeak"
+      "Peak should be reduced: input=$inputPeak -> output=$outputPeak",
     )
   }
 
@@ -469,14 +472,15 @@ class AudioCompressorTransformTest {
     val inputRms = rms(audio)
 
     val result = AudioCompressorTransform(
-      thresholdDb = -6f, ratio = 4f,
+      thresholdDb = -6f,
+      ratio = 4f,
     ).apply(audio, context)
     val outputRms = rms(result)
 
     // Soft audio should be essentially unchanged (within 10%).
     assertTrue(
       abs(outputRms - inputRms) / (inputRms + 1e-9f) < 0.1f,
-      "Soft audio should be mostly unchanged: input=$inputRms, output=$outputRms"
+      "Soft audio should be mostly unchanged: input=$inputRms, output=$outputRms",
     )
   }
 
@@ -485,7 +489,9 @@ class AudioCompressorTransformTest {
     val audio = sineWave(durationMs = 300, sampleRate = 8000, amplitude = 0.95f)
 
     val result = AudioCompressorTransform(
-      thresholdDb = -10f, ratio = 8f, makeupGainDb = 6f,
+      thresholdDb = -10f,
+      ratio = 8f,
+      makeupGainDb = 6f,
     ).apply(audio, context)
 
     val peak = peakAmplitude(result)
@@ -497,7 +503,8 @@ class AudioCompressorTransformTest {
     val audio = sineWave(durationMs = 500, sampleRate = 8000)
 
     val result = AudioCompressorTransform(
-      thresholdDb = -20f, ratio = 4f,
+      thresholdDb = -20f,
+      ratio = 4f,
     ).apply(audio, context)
 
     assertEquals(audio.samples.data.size, result.samples.data.size)
@@ -536,7 +543,7 @@ class AudioChannelMapTransformTest {
     val frames = 100
     val data = FloatArray(frames * 2)
     for (f in 0 until frames) {
-      data[f * 2] = 1.0f      // L = 1.0
+      data[f * 2] = 1.0f // L = 1.0
       data[f * 2 + 1] = -1.0f // R = -1.0
     }
 

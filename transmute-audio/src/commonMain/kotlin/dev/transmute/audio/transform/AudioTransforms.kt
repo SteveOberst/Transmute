@@ -4,8 +4,8 @@ import dev.transmute.audio.AudioHint
 import dev.transmute.audio.AudioIR
 import dev.transmute.audio.AudioSamples
 import dev.transmute.audio.AudioTransform
-import dev.transmute.common.PipelineContext
 import dev.transmute.codec.pipeline.TransformId
+import dev.transmute.common.PipelineContext
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.pow
@@ -16,15 +16,12 @@ import kotlin.math.roundToInt
  *
  * @param targetPeak Peak amplitude to normalize to (0.0 to 1.0). Default is 0.95 to avoid clipping.
  */
-class AudioNormalizeTransform(
-  val targetPeak: Float = 0.95f,
-) : AudioTransform {
+class AudioNormalizeTransform(val targetPeak: Float = 0.95f) : AudioTransform {
   override val id = TransformId("audio.normalize")
 
   override fun wouldTransform(hint: AudioHint): Boolean = true // conservative: peak is not in hint
 
   override suspend fun apply(ir: AudioIR, context: PipelineContext): AudioIR {
-
     val samples = ir.samples.data
     val currentPeak = samples.maxOfOrNull { abs(it) } ?: 0f
 
@@ -40,7 +37,7 @@ class AudioNormalizeTransform(
         data = normalized,
         sampleRate = ir.sampleRate,
         channelCount = ir.channelCount,
-      )
+      ),
     )
   }
 }
@@ -50,16 +47,12 @@ class AudioNormalizeTransform(
  *
  * @param targetSampleRate The target sample rate in Hz.
  */
-class AudioResampleTransform(
-  val targetSampleRate: Int,
-) : AudioTransform {
+class AudioResampleTransform(val targetSampleRate: Int) : AudioTransform {
   override val id = TransformId("audio.resample")
 
-  override fun wouldTransform(hint: AudioHint): Boolean =
-    hint.sampleRate == null || hint.sampleRate != targetSampleRate
+  override fun wouldTransform(hint: AudioHint): Boolean = hint.sampleRate == null || hint.sampleRate != targetSampleRate
 
   override suspend fun apply(ir: AudioIR, context: PipelineContext): AudioIR {
-
     if (ir.sampleRate == targetSampleRate) {
       return ir
     }
@@ -108,16 +101,12 @@ class AudioResampleTransform(
  * @param fadeInMs Duration of fade in from silence (0 to disable).
  * @param fadeOutMs Duration of fade out to silence (0 to disable).
  */
-class AudioFadeTransform(
-  val fadeInMs: Long = 0,
-  val fadeOutMs: Long = 0,
-) : AudioTransform {
+class AudioFadeTransform(val fadeInMs: Long = 0, val fadeOutMs: Long = 0) : AudioTransform {
   override val id = TransformId("audio.fade")
 
   override fun wouldTransform(hint: AudioHint): Boolean = fadeInMs > 0 || fadeOutMs > 0
 
   override suspend fun apply(ir: AudioIR, context: PipelineContext): AudioIR {
-
     if (fadeInMs <= 0 && fadeOutMs <= 0) {
       return ir
     }
@@ -151,7 +140,7 @@ class AudioFadeTransform(
         data = samples,
         sampleRate = sampleRate,
         channelCount = channelCount,
-      )
+      ),
     )
   }
 }
@@ -162,16 +151,12 @@ class AudioFadeTransform(
  * @param startMs Start time in milliseconds.
  * @param endMs End time in milliseconds (null = end of audio).
  */
-class AudioTrimTransform(
-  val startMs: Long,
-  val endMs: Long? = null,
-) : AudioTransform {
+class AudioTrimTransform(val startMs: Long, val endMs: Long? = null) : AudioTransform {
   override val id = TransformId("audio.trim")
 
   override fun wouldTransform(hint: AudioHint): Boolean = true // always trims
 
   override suspend fun apply(ir: AudioIR, context: PipelineContext): AudioIR {
-
     val samples = ir.samples.data
     val channelCount = ir.channelCount
     val sampleRate = ir.sampleRate
@@ -206,15 +191,12 @@ class AudioTrimTransform(
  *
  * @param gainDb Gain in decibels (positive = louder, negative = quieter).
  */
-class AudioGainTransform(
-  val gainDb: Float,
-) : AudioTransform {
+class AudioGainTransform(val gainDb: Float) : AudioTransform {
   override val id = TransformId("audio.gain")
 
   override fun wouldTransform(hint: AudioHint): Boolean = gainDb != 0f
 
   override suspend fun apply(ir: AudioIR, context: PipelineContext): AudioIR {
-
     if (gainDb == 0f) {
       return ir
     }
@@ -228,7 +210,7 @@ class AudioGainTransform(
         data = adjusted,
         sampleRate = ir.sampleRate,
         channelCount = ir.channelCount,
-      )
+      ),
     )
   }
 }
@@ -239,11 +221,9 @@ class AudioGainTransform(
 class AudioMonoTransform : AudioTransform {
   override val id = TransformId("audio.mono")
 
-  override fun wouldTransform(hint: AudioHint): Boolean =
-    hint.channelCount == null || hint.channelCount != 1
+  override fun wouldTransform(hint: AudioHint): Boolean = hint.channelCount == null || hint.channelCount != 1
 
   override suspend fun apply(ir: AudioIR, context: PipelineContext): AudioIR {
-
     if (ir.channelCount == 1) {
       return ir
     }
@@ -281,7 +261,6 @@ class AudioReverseTransform : AudioTransform {
   override fun wouldTransform(hint: AudioHint): Boolean = true // always reverses
 
   override suspend fun apply(ir: AudioIR, context: PipelineContext): AudioIR {
-
     val samples = ir.samples.data
     val channelCount = ir.channelCount
     val frameCount = samples.size / channelCount
@@ -299,7 +278,7 @@ class AudioReverseTransform : AudioTransform {
         data = reversed,
         sampleRate = ir.sampleRate,
         channelCount = channelCount,
-      )
+      ),
     )
   }
 }

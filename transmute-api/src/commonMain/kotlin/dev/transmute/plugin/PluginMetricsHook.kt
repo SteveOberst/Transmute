@@ -29,14 +29,14 @@ package dev.transmute.plugin
  */
 interface PluginMetricsRecorder {
 
-    /**
-     * Returns a metrics hook instance this plugin wants to receive callbacks on,
-     * or `null` if no metrics are desired.
-     *
-     * Called once per [Transmute][dev.transmute.transmute] instance construction.
-     * The returned hook will be invoked on the calling coroutine's thread.
-     */
-    fun createMetricsHook(): MetricsHook? = null
+  /**
+   * Returns a metrics hook instance this plugin wants to receive callbacks on,
+   * or `null` if no metrics are desired.
+   *
+   * Called once per [Transmute][dev.transmute.transmute] instance construction.
+   * The returned hook will be invoked on the calling coroutine's thread.
+   */
+  fun createMetricsHook(): MetricsHook? = null
 }
 
 /**
@@ -47,30 +47,30 @@ interface PluginMetricsRecorder {
  */
 interface MetricsHook {
 
-    /**
-     * Called after a successful encode operation.
-     *
-     * @param pluginId   Plugin that performed the encode.
-     * @param format     Output format extension (e.g. `"png"`, `"mp3"`).
-     * @param durationMs Wall-clock time of the encode in milliseconds.
-     */
-    fun onEncode(pluginId: PluginId, format: String, durationMs: Long) {}
+  /**
+   * Called after a successful encode operation.
+   *
+   * @param pluginId   Plugin that performed the encode.
+   * @param format     Output format extension (e.g. `"png"`, `"mp3"`).
+   * @param durationMs Wall-clock time of the encode in milliseconds.
+   */
+  fun onEncode(pluginId: PluginId, format: String, durationMs: Long) {}
 
-    /**
-     * Called after a successful decode operation.
-     *
-     * @param pluginId   Plugin that performed the decode.
-     * @param format     Input format extension (e.g. `"jpeg"`, `"wav"`).
-     * @param durationMs Wall-clock time of the decode in milliseconds.
-     */
-    fun onDecode(pluginId: PluginId, format: String, durationMs: Long) {}
+  /**
+   * Called after a successful decode operation.
+   *
+   * @param pluginId   Plugin that performed the decode.
+   * @param format     Input format extension (e.g. `"jpeg"`, `"wav"`).
+   * @param durationMs Wall-clock time of the decode in milliseconds.
+   */
+  fun onDecode(pluginId: PluginId, format: String, durationMs: Long) {}
 
-    /**
-     * Called when an encode or decode operation fails with an exception.
-     *
-     * @param pluginId Plugin that encountered the error.
-     * @param format   Format being processed at the time of the error.
-     * @param error    The exception that was thrown.
-     */
-    fun onError(pluginId: PluginId, format: String, error: Throwable) {}
+  /**
+   * Called when an encode or decode operation fails with an exception.
+   *
+   * @param pluginId Plugin that encountered the error.
+   * @param format   Format being processed at the time of the error.
+   * @param error    The exception that was thrown.
+   */
+  fun onError(pluginId: PluginId, format: String, error: Throwable) {}
 }

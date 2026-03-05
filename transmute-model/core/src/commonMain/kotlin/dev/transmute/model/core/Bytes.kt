@@ -12,10 +12,10 @@ import kotlinx.serialization.encoding.Encoder
  * Serializer for [Bytes] that delegates to the platform `ByteArray` serializer.
  */
 object BytesSerializer : KSerializer<Bytes> {
-    private val delegate = ByteArraySerializer()
-    override val descriptor: SerialDescriptor = delegate.descriptor
-    override fun serialize(encoder: Encoder, value: Bytes) = delegate.serialize(encoder, value.data)
-    override fun deserialize(decoder: Decoder): Bytes = Bytes(delegate.deserialize(decoder))
+  private val delegate = ByteArraySerializer()
+  override val descriptor: SerialDescriptor = delegate.descriptor
+  override fun serialize(encoder: Encoder, value: Bytes) = delegate.serialize(encoder, value.data)
+  override fun deserialize(decoder: Decoder): Bytes = Bytes(delegate.deserialize(decoder))
 }
 
 /**
@@ -29,33 +29,33 @@ object BytesSerializer : KSerializer<Bytes> {
 @Serializable(with = BytesSerializer::class)
 class Bytes(val data: ByteArray) : TSource {
 
-    // -- data-container surface -------------------------------------------
+  // -- data-container surface -------------------------------------------
 
-    val size: Int get() = data.size
-    fun isEmpty(): Boolean = data.isEmpty()
-    fun isNotEmpty(): Boolean = data.isNotEmpty()
-    operator fun get(index: Int): Byte = data[index]
+  val size: Int get() = data.size
+  fun isEmpty(): Boolean = data.isEmpty()
+  fun isNotEmpty(): Boolean = data.isNotEmpty()
+  operator fun get(index: Int): Byte = data[index]
 
-    // -- TSource implementation -------------------------------------------
+  // -- TSource implementation -------------------------------------------
 
-    private var position = 0
+  private var position = 0
 
-    override suspend fun read(buffer: ByteArray, offset: Int, length: Int): Int {
-        if (position >= data.size) return -1
-        val available = minOf(length, data.size - position)
-        data.copyInto(buffer, destinationOffset = offset, startIndex = position, endIndex = position + available)
-        position += available
-        return available
-    }
+  override suspend fun read(buffer: ByteArray, offset: Int, length: Int): Int {
+    if (position >= data.size) return -1
+    val available = minOf(length, data.size - position)
+    data.copyInto(buffer, destinationOffset = offset, startIndex = position, endIndex = position + available)
+    position += available
+    return available
+  }
 
-    override suspend fun readAll(): ByteArray {
-        if (position >= data.size) return ByteArray(0)
-        val remaining = data.copyOfRange(position, data.size)
-        position = data.size
-        return remaining
-    }
+  override suspend fun readAll(): ByteArray {
+    if (position >= data.size) return ByteArray(0)
+    val remaining = data.copyOfRange(position, data.size)
+    position = data.size
+    return remaining
+  }
 
-    override fun close() { /* no-op */ }
+  override fun close() { /* no-op */ }
 }
 
 fun ByteArray.asBytes(): Bytes = Bytes(this)
@@ -68,10 +68,13 @@ fun ByteArray.asBytes(): Bytes = Bytes(this)
  * concat loops across every format.
  */
 fun List<BinarySerializable>.concatToBytes(): Bytes {
-    val parts = map { it.toBytes().data }
-    val total = parts.sumOf { it.size }
-    val out = ByteArray(total)
-    var pos = 0
-    for (part in parts) { part.copyInto(out, pos); pos += part.size }
-    return Bytes(out)
+  val parts = map { it.toBytes().data }
+  val total = parts.sumOf { it.size }
+  val out = ByteArray(total)
+  var pos = 0
+  for (part in parts) {
+    part.copyInto(out, pos)
+    pos += part.size
+  }
+  return Bytes(out)
 }

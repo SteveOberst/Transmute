@@ -12,23 +12,23 @@ import kotlinx.coroutines.sync.withLock
  * coroutines sharing this source will not corrupt the read cursor.
  */
 class ByteArraySource(private val data: ByteArray) : TSource {
-    private val mutex = Mutex()
-    private var position = 0
+  private val mutex = Mutex()
+  private var position = 0
 
-    override suspend fun read(buffer: ByteArray, offset: Int, length: Int): Int = mutex.withLock {
-        if (position >= data.size) return@withLock -1
-        val available = minOf(length, data.size - position)
-        data.copyInto(buffer, destinationOffset = offset, startIndex = position, endIndex = position + available)
-        position += available
-        available
-    }
+  override suspend fun read(buffer: ByteArray, offset: Int, length: Int): Int = mutex.withLock {
+    if (position >= data.size) return@withLock -1
+    val available = minOf(length, data.size - position)
+    data.copyInto(buffer, destinationOffset = offset, startIndex = position, endIndex = position + available)
+    position += available
+    available
+  }
 
-    override suspend fun readAll(): ByteArray = mutex.withLock {
-        if (position >= data.size) return@withLock ByteArray(0)
-        val remaining = data.copyOfRange(position, data.size)
-        position = data.size
-        remaining
-    }
+  override suspend fun readAll(): ByteArray = mutex.withLock {
+    if (position >= data.size) return@withLock ByteArray(0)
+    val remaining = data.copyOfRange(position, data.size)
+    position = data.size
+    remaining
+  }
 
-    override fun close() { /* no-op */ }
+  override fun close() { /* no-op */ }
 }

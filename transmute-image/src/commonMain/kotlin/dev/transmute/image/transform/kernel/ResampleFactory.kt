@@ -1,8 +1,8 @@
 package dev.transmute.image.transform.kernel
 
-import dev.transmute.image.transform.kernel.impl.BilinearKernel
 import dev.transmute.image.transform.kernel.impl.BicubicCatmullRomKernel
 import dev.transmute.image.transform.kernel.impl.BicubicMitchellKernel
+import dev.transmute.image.transform.kernel.impl.BilinearKernel
 import dev.transmute.image.transform.kernel.impl.BoxKernel
 import dev.transmute.image.transform.kernel.impl.Lanczos3Kernel
 import dev.transmute.image.transform.kernel.impl.NearestKernel
@@ -22,6 +22,5 @@ object ResampleFactory {
   )
 
   /** Returns the [ResampleKernel] for the given [filter]. */
-  fun kernelFor(filter: ResampleFilter): ResampleKernel =
-    kernels[filter] ?: error("No kernel registered for $filter")
+  fun kernelFor(filter: ResampleFilter): ResampleKernel = kernels[filter] ?: error("No kernel registered for $filter")
 }

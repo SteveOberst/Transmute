@@ -19,18 +19,18 @@ fun TPath.asChannel(fs: TransmuteFileSystem, mode: WriteMode = WriteMode.Overwri
 
 /** Create a [TSource] for this path using [ctx.fileSystem]. */
 fun TPath.asSource(ctx: TransmuteContext): TSource {
-    val fs = ctx.fileSystem ?: error("No TransmuteFileSystem configured on this TransmuteContext")
-    return fs.source(this)
+  val fs = ctx.fileSystem ?: error("No TransmuteFileSystem configured on this TransmuteContext")
+  return fs.source(this)
 }
 
 /** Create a [TSink] for this path using [ctx.fileSystem]. */
 fun TPath.asSink(ctx: TransmuteContext, mode: WriteMode = WriteMode.Overwrite): TSink {
-    val fs = ctx.fileSystem ?: error("No TransmuteFileSystem configured on this TransmuteContext")
-    return fs.sink(this, mode)
+  val fs = ctx.fileSystem ?: error("No TransmuteFileSystem configured on this TransmuteContext")
+  return fs.sink(this, mode)
 }
 
 /** Create a [TChannel] for this path using [ctx.fileSystem]. */
 fun TPath.asChannel(ctx: TransmuteContext, mode: WriteMode = WriteMode.Overwrite): TChannel {
-    val fs = ctx.fileSystem ?: error("No TransmuteFileSystem configured on this TransmuteContext")
-    return fs.channel(this, mode)
+  val fs = ctx.fileSystem ?: error("No TransmuteFileSystem configured on this TransmuteContext")
+  return fs.channel(this, mode)
 }

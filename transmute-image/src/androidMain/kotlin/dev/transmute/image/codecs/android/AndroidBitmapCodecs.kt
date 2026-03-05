@@ -2,11 +2,11 @@ package dev.transmute.image.codecs.android
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import dev.transmute.io.TSource
 import dev.transmute.common.PipelineContext
+import dev.transmute.image.*
+import dev.transmute.io.TSource
 import dev.transmute.model.core.Bytes
 import dev.transmute.model.core.asBytes
-import dev.transmute.image.*
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 import kotlin.math.roundToInt
@@ -57,9 +57,9 @@ class AndroidBitmapImageDecoder : ImageDecoder {
     val out = ByteArray(bgra.size)
     var i = 0
     while (i < bgra.size) {
-      out[i]     = bgra[i + 2] // R
+      out[i] = bgra[i + 2] // R
       out[i + 1] = bgra[i + 1] // G
-      out[i + 2] = bgra[i]     // B
+      out[i + 2] = bgra[i] // B
       out[i + 3] = bgra[i + 3] // A
       i += 4
     }
@@ -74,12 +74,7 @@ class AndroidBitmapImageEncoder : ImageEncoder {
     ImageFormat.Webp,
   )
 
-  override suspend fun encode(
-    ir: ImageIR,
-    format: ImageFormat,
-    options: ImageEncodeOptions,
-    context: PipelineContext,
-  ): Bytes {
+  override suspend fun encode(ir: ImageIR, format: ImageFormat, options: ImageEncodeOptions, context: PipelineContext): Bytes {
     val buffer = ir.buffer as? ByteArrayPixelBuffer
       ?: error("AndroidBitmapImageEncoder requires ByteArrayPixelBuffer")
     require(ir.pixelFormat == PixelFormat.RGBA_8888) { "Only RGBA_8888 is supported" }
@@ -128,15 +123,12 @@ class AndroidBitmapImageEncoder : ImageEncoder {
     val out = ByteArray(rgba.size)
     var i = 0
     while (i < rgba.size) {
-      out[i]     = rgba[i + 2] // B
+      out[i] = rgba[i + 2] // B
       out[i + 1] = rgba[i + 1] // G
-      out[i + 2] = rgba[i]     // R
+      out[i + 2] = rgba[i] // R
       out[i + 3] = rgba[i + 3] // A
       i += 4
     }
     return out
   }
 }
-
-
-

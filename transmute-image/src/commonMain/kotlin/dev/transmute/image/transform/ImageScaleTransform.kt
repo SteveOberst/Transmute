@@ -1,12 +1,12 @@
 ﻿package dev.transmute.image.transform
 
+import dev.transmute.codec.pipeline.TransformId
 import dev.transmute.common.PipelineContext
 import dev.transmute.image.ByteArrayPixelBuffer
 import dev.transmute.image.ImageHint
 import dev.transmute.image.ImageIR
 import dev.transmute.image.ImageTransform
 import dev.transmute.image.PixelFormat
-import dev.transmute.codec.pipeline.TransformId
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -21,26 +21,24 @@ import kotlin.math.roundToInt
  * If the image already fits within the target bounds, it is returned
  * unchanged (no upscaling).
  */
-class ImageScaleTransform(
-  val maxWidth: Int,
-  val maxHeight: Int,
-) : ImageTransform {
+class ImageScaleTransform(val maxWidth: Int, val maxHeight: Int) : ImageTransform {
 
-  override fun wouldTransform(hint: ImageHint): Boolean =
-    hint.width == null || hint.height == null ||
-      hint.width > maxWidth || hint.height > maxHeight
+  override fun wouldTransform(hint: ImageHint): Boolean = hint.width == null ||
+    hint.height == null ||
+    hint.width > maxWidth ||
+    hint.height > maxHeight
 
   override val id: TransformId = TransformId("image-scale")
 
   override suspend fun apply(ir: ImageIR, context: PipelineContext): ImageIR {
     // Don't upscale - only downscale.
     if (ir.width <= maxWidth && ir.height <= maxHeight) {
-      context.logger.debug("ImageScaleTransform: image ${ir.width}x${ir.height} already fits within ${maxWidth}x${maxHeight} - skipping")
+      context.logger.debug("ImageScaleTransform: image ${ir.width}x${ir.height} already fits within ${maxWidth}x$maxHeight - skipping")
       return ir
     }
 
     val (targetW, targetH) = fitDimensions(ir.width, ir.height, maxWidth, maxHeight)
-    context.logger.info("ImageScaleTransform: ${ir.width}x${ir.height} -> ${targetW}x${targetH}")
+    context.logger.info("ImageScaleTransform: ${ir.width}x${ir.height} -> ${targetW}x$targetH")
 
     val srcBuffer = ir.buffer as? ByteArrayPixelBuffer
       ?: error("ImageScaleTransform requires ByteArrayPixelBuffer, got ${ir.buffer::class.simpleName}")

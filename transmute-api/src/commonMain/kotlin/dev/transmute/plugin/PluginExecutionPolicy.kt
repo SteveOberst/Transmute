@@ -22,12 +22,12 @@
  * that wrap codec calls.
  */
 interface PluginExecutionPolicy {
-    /**
-     * The execution policy this plugin requires.
-     *
-     * Defaults to [ExecutionPolicy.Default] (no constraints).
-     */
-    val executionPolicy: ExecutionPolicy get() = ExecutionPolicy.Default
+  /**
+   * The execution policy this plugin requires.
+   *
+   * Defaults to [ExecutionPolicy.Default] (no constraints).
+   */
+  val executionPolicy: ExecutionPolicy get() = ExecutionPolicy.Default
 }
 
 /**
@@ -35,26 +35,28 @@ interface PluginExecutionPolicy {
  */
 sealed class ExecutionPolicy {
 
-    /**
-     * No special constraints - the runtime may call codec operations from any
-     * thread or coroutine context it chooses.
-     */
-    data object Default : ExecutionPolicy()
+  /**
+   * No special constraints - the runtime may call codec operations from any
+   * thread or coroutine context it chooses.
+   */
+  data object Default : ExecutionPolicy()
 
-    /**
-     * The plugin's codec operations **must** run sequentially on a single thread.
-     *
-     * Use this for native libraries that maintain thread-local or global mutable state.
-     */
-    data object SingleThreaded : ExecutionPolicy()
+  /**
+   * The plugin's codec operations **must** run sequentially on a single thread.
+   *
+   * Use this for native libraries that maintain thread-local or global mutable state.
+   */
+  data object SingleThreaded : ExecutionPolicy()
 
-    /**
-     * The plugin's codec operations may run concurrently, but no more than [limit]
-     * operations at the same time.
-     *
-     * @param limit Maximum number of simultaneous codec operations. Must be >= 1.
-     */
-    data class MaxParallelism(val limit: Int) : ExecutionPolicy() {
-        init { require(limit >= 1) { "MaxParallelism limit must be >= 1, got $limit" } }
+  /**
+   * The plugin's codec operations may run concurrently, but no more than [limit]
+   * operations at the same time.
+   *
+   * @param limit Maximum number of simultaneous codec operations. Must be >= 1.
+   */
+  data class MaxParallelism(val limit: Int) : ExecutionPolicy() {
+    init {
+      require(limit >= 1) { "MaxParallelism limit must be >= 1, got $limit" }
     }
+  }
 }

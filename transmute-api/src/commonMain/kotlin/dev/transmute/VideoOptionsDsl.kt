@@ -31,4 +31,3 @@ fun <IN, OUT> DecodeStage<IN, OUT, VideoDecodeOptions>.options(
     else -> CanonicalVideoDecodeOptions(acceptedInputFormats = mutator.acceptedInputFormats.toSet())
   }
 }
-

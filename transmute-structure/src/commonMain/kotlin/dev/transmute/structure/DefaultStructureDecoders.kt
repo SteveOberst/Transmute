@@ -35,91 +35,93 @@ import dev.transmute.video.VideoFormat
  */
 object DefaultStructureDecoders {
 
-    // -- Image raw decoders (bytes -> *Raw) ------------------------------------
+  // -- Image raw decoders (bytes -> *Raw) ------------------------------------
 
-    val pngRaw  = rawDecoderFor(ImageFormat.Png,  DefaultStructureReaders.png)
-    val jpegRaw = rawDecoderFor(ImageFormat.Jpeg, DefaultStructureReaders.jpeg)
-    val bmpRaw  = rawDecoderFor(ImageFormat.Bmp,  DefaultStructureReaders.bmp)
-    val gifRaw  = rawDecoderFor(ImageFormat.Gif,  DefaultStructureReaders.gif)
-    val tiffRaw = rawDecoderFor(ImageFormat.Tiff, DefaultStructureReaders.tiff)
-    val webpRaw = rawDecoderFor(ImageFormat.Webp, DefaultStructureReaders.webp)
-    val heifRaw = rawDecoderFor(ImageFormat.Heif, DefaultStructureReaders.heif)
-    /** HEIC uses the same ISO BMFF container as HEIF; the [HeifStructureReader][dev.transmute.structure.image.HeifStructureReader] handles both. */
-    val heicRaw = rawDecoderFor(ImageFormat.Heic, DefaultStructureReaders.heif)
-    val avifRaw = rawDecoderFor(ImageFormat.Avif, DefaultStructureReaders.avif)
+  val pngRaw = rawDecoderFor(ImageFormat.Png, DefaultStructureReaders.png)
+  val jpegRaw = rawDecoderFor(ImageFormat.Jpeg, DefaultStructureReaders.jpeg)
+  val bmpRaw = rawDecoderFor(ImageFormat.Bmp, DefaultStructureReaders.bmp)
+  val gifRaw = rawDecoderFor(ImageFormat.Gif, DefaultStructureReaders.gif)
+  val tiffRaw = rawDecoderFor(ImageFormat.Tiff, DefaultStructureReaders.tiff)
+  val webpRaw = rawDecoderFor(ImageFormat.Webp, DefaultStructureReaders.webp)
+  val heifRaw = rawDecoderFor(ImageFormat.Heif, DefaultStructureReaders.heif)
 
-    // -- Image structure decoders (bytes -> *Structure) ------------------------
+  /** HEIC uses the same ISO BMFF container as HEIF; the [HeifStructureReader][dev.transmute.structure.image.HeifStructureReader] handles both. */
+  val heicRaw = rawDecoderFor(ImageFormat.Heic, DefaultStructureReaders.heif)
+  val avifRaw = rawDecoderFor(ImageFormat.Avif, DefaultStructureReaders.avif)
 
-    val png  = structureDecoderFor(ImageFormat.Png,  DefaultStructureReaders.png)  { toImageStructure() }
-    val jpeg = structureDecoderFor(ImageFormat.Jpeg, DefaultStructureReaders.jpeg) { toImageStructure() }
-    val bmp  = structureDecoderFor(ImageFormat.Bmp,  DefaultStructureReaders.bmp)  { toImageStructure() }
-    val gif  = structureDecoderFor(ImageFormat.Gif,  DefaultStructureReaders.gif)  { toImageStructure() }
-    val tiff = structureDecoderFor(ImageFormat.Tiff, DefaultStructureReaders.tiff) { toImageStructure() }
-    val webp = structureDecoderFor(ImageFormat.Webp, DefaultStructureReaders.webp) { toImageStructure() }
-    val heif = structureDecoderFor(ImageFormat.Heif, DefaultStructureReaders.heif) { toImageStructure() }
-    /** HEIC uses the same ISO BMFF container as HEIF; the [HeifStructureReader][dev.transmute.structure.image.HeifStructureReader] handles both. */
-    val heic = structureDecoderFor(ImageFormat.Heic, DefaultStructureReaders.heif) { toImageStructure() }
-    val avif = structureDecoderFor(ImageFormat.Avif, DefaultStructureReaders.avif) { toImageStructure() }
+  // -- Image structure decoders (bytes -> *Structure) ------------------------
 
-    // -- Audio raw decoders (bytes -> *Raw) ------------------------------------
+  val png = structureDecoderFor(ImageFormat.Png, DefaultStructureReaders.png) { toImageStructure() }
+  val jpeg = structureDecoderFor(ImageFormat.Jpeg, DefaultStructureReaders.jpeg) { toImageStructure() }
+  val bmp = structureDecoderFor(ImageFormat.Bmp, DefaultStructureReaders.bmp) { toImageStructure() }
+  val gif = structureDecoderFor(ImageFormat.Gif, DefaultStructureReaders.gif) { toImageStructure() }
+  val tiff = structureDecoderFor(ImageFormat.Tiff, DefaultStructureReaders.tiff) { toImageStructure() }
+  val webp = structureDecoderFor(ImageFormat.Webp, DefaultStructureReaders.webp) { toImageStructure() }
+  val heif = structureDecoderFor(ImageFormat.Heif, DefaultStructureReaders.heif) { toImageStructure() }
 
-    val wavRaw      = rawDecoderFor(AudioFormat.Wav,  DefaultStructureReaders.wav)
-    val mp3Raw      = rawDecoderFor(AudioFormat.Mp3,  DefaultStructureReaders.mp3)
-    val flacRaw     = rawDecoderFor(AudioFormat.Flac, DefaultStructureReaders.flac)
-    val aacRaw      = rawDecoderFor(AudioFormat.Aac,  DefaultStructureReaders.aac)
-    val m4aRaw      = rawDecoderFor(AudioFormat.M4a,  DefaultStructureReaders.m4a)
-    val oggAudioRaw = rawDecoderFor(AudioFormat.Ogg,  DefaultStructureReaders.oggAudio)
-    val opusRaw     = rawDecoderFor(AudioFormat.Opus, DefaultStructureReaders.opus)
+  /** HEIC uses the same ISO BMFF container as HEIF; the [HeifStructureReader][dev.transmute.structure.image.HeifStructureReader] handles both. */
+  val heic = structureDecoderFor(ImageFormat.Heic, DefaultStructureReaders.heif) { toImageStructure() }
+  val avif = structureDecoderFor(ImageFormat.Avif, DefaultStructureReaders.avif) { toImageStructure() }
 
-    // -- Audio structure decoders (bytes -> *Structure) ------------------------
+  // -- Audio raw decoders (bytes -> *Raw) ------------------------------------
 
-    val wav      = structureDecoderFor(AudioFormat.Wav,  DefaultStructureReaders.wav)      { toAudioStructure() }
-    val mp3      = structureDecoderFor(AudioFormat.Mp3,  DefaultStructureReaders.mp3)      { toAudioStructure() }
-    val flac     = structureDecoderFor(AudioFormat.Flac, DefaultStructureReaders.flac)     { toAudioStructure() }
-    val aac      = structureDecoderFor(AudioFormat.Aac,  DefaultStructureReaders.aac)      { toAudioStructure() }
-    val m4a      = structureDecoderFor(AudioFormat.M4a,  DefaultStructureReaders.m4a)      { toAudioStructure() }
-    val oggAudio = structureDecoderFor(AudioFormat.Ogg,  DefaultStructureReaders.oggAudio) { toAudioStructure() }
-    val opus     = structureDecoderFor(AudioFormat.Opus, DefaultStructureReaders.opus)     { toAudioStructure() }
+  val wavRaw = rawDecoderFor(AudioFormat.Wav, DefaultStructureReaders.wav)
+  val mp3Raw = rawDecoderFor(AudioFormat.Mp3, DefaultStructureReaders.mp3)
+  val flacRaw = rawDecoderFor(AudioFormat.Flac, DefaultStructureReaders.flac)
+  val aacRaw = rawDecoderFor(AudioFormat.Aac, DefaultStructureReaders.aac)
+  val m4aRaw = rawDecoderFor(AudioFormat.M4a, DefaultStructureReaders.m4a)
+  val oggAudioRaw = rawDecoderFor(AudioFormat.Ogg, DefaultStructureReaders.oggAudio)
+  val opusRaw = rawDecoderFor(AudioFormat.Opus, DefaultStructureReaders.opus)
 
-    // -- Video raw decoders (bytes -> *Raw) ------------------------------------
+  // -- Audio structure decoders (bytes -> *Structure) ------------------------
 
-    val mp4Raw  = rawDecoderFor(VideoFormat.Mp4,  DefaultStructureReaders.mp4)
-    val movRaw  = rawDecoderFor(VideoFormat.Mov,  DefaultStructureReaders.mov)
-    val webmRaw = rawDecoderFor(VideoFormat.Webm, DefaultStructureReaders.webm)
-    val mkvRaw  = rawDecoderFor(VideoFormat.Mkv,  DefaultStructureReaders.mkv)
-    val aviRaw  = rawDecoderFor(VideoFormat.Avi,  DefaultStructureReaders.avi)
+  val wav = structureDecoderFor(AudioFormat.Wav, DefaultStructureReaders.wav) { toAudioStructure() }
+  val mp3 = structureDecoderFor(AudioFormat.Mp3, DefaultStructureReaders.mp3) { toAudioStructure() }
+  val flac = structureDecoderFor(AudioFormat.Flac, DefaultStructureReaders.flac) { toAudioStructure() }
+  val aac = structureDecoderFor(AudioFormat.Aac, DefaultStructureReaders.aac) { toAudioStructure() }
+  val m4a = structureDecoderFor(AudioFormat.M4a, DefaultStructureReaders.m4a) { toAudioStructure() }
+  val oggAudio = structureDecoderFor(AudioFormat.Ogg, DefaultStructureReaders.oggAudio) { toAudioStructure() }
+  val opus = structureDecoderFor(AudioFormat.Opus, DefaultStructureReaders.opus) { toAudioStructure() }
 
-    // -- Video structure decoders (bytes -> *Structure) ------------------------
+  // -- Video raw decoders (bytes -> *Raw) ------------------------------------
 
-    val mp4  = structureDecoderFor(VideoFormat.Mp4,  DefaultStructureReaders.mp4)  { toVideoStructure() }
-    val mov  = structureDecoderFor(VideoFormat.Mov,  DefaultStructureReaders.mov)  { toVideoStructure() }
-    val webm = structureDecoderFor(VideoFormat.Webm, DefaultStructureReaders.webm) { toVideoStructure() }
-    val mkv  = structureDecoderFor(VideoFormat.Mkv,  DefaultStructureReaders.mkv)  { toVideoStructure() }
-    val avi  = structureDecoderFor(VideoFormat.Avi,  DefaultStructureReaders.avi)  { toVideoStructure() }
+  val mp4Raw = rawDecoderFor(VideoFormat.Mp4, DefaultStructureReaders.mp4)
+  val movRaw = rawDecoderFor(VideoFormat.Mov, DefaultStructureReaders.mov)
+  val webmRaw = rawDecoderFor(VideoFormat.Webm, DefaultStructureReaders.webm)
+  val mkvRaw = rawDecoderFor(VideoFormat.Mkv, DefaultStructureReaders.mkv)
+  val aviRaw = rawDecoderFor(VideoFormat.Avi, DefaultStructureReaders.avi)
 
-    // -- Domain lists ---------------------------------------------------------
+  // -- Video structure decoders (bytes -> *Structure) ------------------------
 
-    /** All image structure decoders, in recommended priority order. */
-    val allImageDecoders: List<MediaDecoder<ImageFormat, MediaStructure, NoDecodeOptions>> =
-        listOf(png, jpeg, bmp, gif, tiff, webp, heif, heic, avif)
+  val mp4 = structureDecoderFor(VideoFormat.Mp4, DefaultStructureReaders.mp4) { toVideoStructure() }
+  val mov = structureDecoderFor(VideoFormat.Mov, DefaultStructureReaders.mov) { toVideoStructure() }
+  val webm = structureDecoderFor(VideoFormat.Webm, DefaultStructureReaders.webm) { toVideoStructure() }
+  val mkv = structureDecoderFor(VideoFormat.Mkv, DefaultStructureReaders.mkv) { toVideoStructure() }
+  val avi = structureDecoderFor(VideoFormat.Avi, DefaultStructureReaders.avi) { toVideoStructure() }
 
-    /** All audio structure decoders, in recommended priority order. */
-    val allAudioDecoders: List<MediaDecoder<AudioFormat, MediaStructure, NoDecodeOptions>> =
-        listOf(wav, mp3, flac, aac, m4a, oggAudio, opus)
+  // -- Domain lists ---------------------------------------------------------
 
-    /** All video structure decoders, in recommended priority order. */
-    val allVideoDecoders: List<MediaDecoder<VideoFormat, MediaStructure, NoDecodeOptions>> =
-        listOf(mp4, mov, webm, mkv, avi)
+  /** All image structure decoders, in recommended priority order. */
+  val allImageDecoders: List<MediaDecoder<ImageFormat, MediaStructure, NoDecodeOptions>> =
+    listOf(png, jpeg, bmp, gif, tiff, webp, heif, heic, avif)
 
-    /** All image raw decoders, in recommended priority order. */
-    val allImageRawDecoders: List<MediaDecoder<ImageFormat, RawMediaStructure, NoDecodeOptions>> =
-        listOf(pngRaw, jpegRaw, bmpRaw, gifRaw, tiffRaw, webpRaw, heifRaw, heicRaw, avifRaw)
+  /** All audio structure decoders, in recommended priority order. */
+  val allAudioDecoders: List<MediaDecoder<AudioFormat, MediaStructure, NoDecodeOptions>> =
+    listOf(wav, mp3, flac, aac, m4a, oggAudio, opus)
 
-    /** All audio raw decoders, in recommended priority order. */
-    val allAudioRawDecoders: List<MediaDecoder<AudioFormat, RawMediaStructure, NoDecodeOptions>> =
-        listOf(wavRaw, mp3Raw, flacRaw, aacRaw, m4aRaw, oggAudioRaw, opusRaw)
+  /** All video structure decoders, in recommended priority order. */
+  val allVideoDecoders: List<MediaDecoder<VideoFormat, MediaStructure, NoDecodeOptions>> =
+    listOf(mp4, mov, webm, mkv, avi)
 
-    /** All video raw decoders, in recommended priority order. */
-    val allVideoRawDecoders: List<MediaDecoder<VideoFormat, RawMediaStructure, NoDecodeOptions>> =
-        listOf(mp4Raw, movRaw, webmRaw, mkvRaw, aviRaw)
+  /** All image raw decoders, in recommended priority order. */
+  val allImageRawDecoders: List<MediaDecoder<ImageFormat, RawMediaStructure, NoDecodeOptions>> =
+    listOf(pngRaw, jpegRaw, bmpRaw, gifRaw, tiffRaw, webpRaw, heifRaw, heicRaw, avifRaw)
+
+  /** All audio raw decoders, in recommended priority order. */
+  val allAudioRawDecoders: List<MediaDecoder<AudioFormat, RawMediaStructure, NoDecodeOptions>> =
+    listOf(wavRaw, mp3Raw, flacRaw, aacRaw, m4aRaw, oggAudioRaw, opusRaw)
+
+  /** All video raw decoders, in recommended priority order. */
+  val allVideoRawDecoders: List<MediaDecoder<VideoFormat, RawMediaStructure, NoDecodeOptions>> =
+    listOf(mp4Raw, movRaw, webmRaw, mkvRaw, aviRaw)
 }

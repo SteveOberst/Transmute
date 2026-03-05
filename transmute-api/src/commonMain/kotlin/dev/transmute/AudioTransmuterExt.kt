@@ -18,9 +18,7 @@ fun <IN, OUT> DynamicAudioTransmuterBuilder<IN, OUT>.normalize(targetPeak: Float
   transform { add(AudioNormalizeTransform(targetPeak)) }
 }
 
-fun <IN, OUT : AudioFormat> AudioTransmuterBuilder<IN, OUT>.normalize(
-  targetPeak: Float = 0.95f,
-): AudioTransmuterBuilder<IN, OUT> = apply {
+fun <IN, OUT : AudioFormat> AudioTransmuterBuilder<IN, OUT>.normalize(targetPeak: Float = 0.95f): AudioTransmuterBuilder<IN, OUT> = apply {
   transform { add(AudioNormalizeTransform(targetPeak)) }
 }
 
@@ -29,16 +27,15 @@ fun <IN, OUT> DynamicAudioTransmuterBuilder<IN, OUT>.resample(targetSampleRate: 
   transform { add(AudioResampleTransform(targetSampleRate)) }
 }
 
-fun <IN, OUT : AudioFormat> AudioTransmuterBuilder<IN, OUT>.resample(
-  targetSampleRate: Int,
-): AudioTransmuterBuilder<IN, OUT> = apply {
+fun <IN, OUT : AudioFormat> AudioTransmuterBuilder<IN, OUT>.resample(targetSampleRate: Int): AudioTransmuterBuilder<IN, OUT> = apply {
   transform { add(AudioResampleTransform(targetSampleRate)) }
 }
 
 /** Apply fade-in / fade-out envelopes (milliseconds). */
-fun <IN, OUT> DynamicAudioTransmuterBuilder<IN, OUT>.fade(fadeInMs: Long = 0, fadeOutMs: Long = 0): DynamicAudioTransmuterBuilder<IN, OUT> = apply {
-  transform { add(AudioFadeTransform(fadeInMs, fadeOutMs)) }
-}
+fun <IN, OUT> DynamicAudioTransmuterBuilder<IN, OUT>.fade(fadeInMs: Long = 0, fadeOutMs: Long = 0): DynamicAudioTransmuterBuilder<IN, OUT> =
+  apply {
+    transform { add(AudioFadeTransform(fadeInMs, fadeOutMs)) }
+  }
 
 fun <IN, OUT : AudioFormat> AudioTransmuterBuilder<IN, OUT>.fade(
   fadeInMs: Long = 0,
@@ -48,16 +45,15 @@ fun <IN, OUT : AudioFormat> AudioTransmuterBuilder<IN, OUT>.fade(
 }
 
 /** Trim to time range (milliseconds). [endMs] = null -> end of audio. */
-fun <IN, OUT> DynamicAudioTransmuterBuilder<IN, OUT>.trim(startMs: Long, endMs: Long? = null): DynamicAudioTransmuterBuilder<IN, OUT> = apply {
-  transform { add(AudioTrimTransform(startMs, endMs)) }
-}
+fun <IN, OUT> DynamicAudioTransmuterBuilder<IN, OUT>.trim(startMs: Long, endMs: Long? = null): DynamicAudioTransmuterBuilder<IN, OUT> =
+  apply {
+    transform { add(AudioTrimTransform(startMs, endMs)) }
+  }
 
-fun <IN, OUT : AudioFormat> AudioTransmuterBuilder<IN, OUT>.trim(
-  startMs: Long,
-  endMs: Long? = null,
-): AudioTransmuterBuilder<IN, OUT> = apply {
-  transform { add(AudioTrimTransform(startMs, endMs)) }
-}
+fun <IN, OUT : AudioFormat> AudioTransmuterBuilder<IN, OUT>.trim(startMs: Long, endMs: Long? = null): AudioTransmuterBuilder<IN, OUT> =
+  apply {
+    transform { add(AudioTrimTransform(startMs, endMs)) }
+  }
 
 /** Apply volume gain in decibels (+dB louder, dB quieter). */
 fun <IN, OUT> DynamicAudioTransmuterBuilder<IN, OUT>.gain(db: Float): DynamicAudioTransmuterBuilder<IN, OUT> = apply {
@@ -140,8 +136,6 @@ fun <IN, OUT> DynamicAudioTransmuterBuilder<IN, OUT>.channelMap(mapping: IntArra
   transform { add(AudioChannelMapTransform(mapping)) }
 }
 
-fun <IN, OUT : AudioFormat> AudioTransmuterBuilder<IN, OUT>.channelMap(
-  mapping: IntArray,
-): AudioTransmuterBuilder<IN, OUT> = apply {
+fun <IN, OUT : AudioFormat> AudioTransmuterBuilder<IN, OUT>.channelMap(mapping: IntArray): AudioTransmuterBuilder<IN, OUT> = apply {
   transform { add(AudioChannelMapTransform(mapping)) }
 }

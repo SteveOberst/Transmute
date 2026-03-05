@@ -7,10 +7,7 @@ import dev.transmute.audio.codecs.android.AndroidMp3Codec
 import dev.transmute.audio.codecs.android.AndroidOggDecoder
 import dev.transmute.audio.codecs.android.AndroidOpusCodec
 
-actual fun installPlatformAudioCodecs(
-  decoders: MutableAudioDecoderRegistry,
-  encoders: MutableAudioEncoderRegistry,
-) {
+actual fun installPlatformAudioCodecs(decoders: MutableAudioDecoderRegistry, encoders: MutableAudioEncoderRegistry) {
   // Decode-only formats (no Android encoder available).
   decoders.register(AndroidOggDecoder())
 

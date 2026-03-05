@@ -16,17 +16,16 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class AacStructure(
-    /** Parsed first ADTS frame header (codec parameters). */
-    val firstFrame: AdtsFrameHeader?,
-    /** Total file size in bytes. */
-    val dataSizeBytes: Long,
+  /** Parsed first ADTS frame header (codec parameters). */
+  val firstFrame: AdtsFrameHeader?,
+  /** Total file size in bytes. */
+  val dataSizeBytes: Long,
 ) : MediaStructure
 
 /**
  * Parse this [dev.transmute.model.structure.audio.types.AacRaw] into an [AacStructure].
  */
-fun AacRaw.toStructure(): AacStructure =
-    AacStructure(
-        firstFrame = firstFrameHeader,
-        dataSizeBytes = data.size.toLong(),
-    )
+fun AacRaw.toStructure(): AacStructure = AacStructure(
+  firstFrame = firstFrameHeader,
+  dataSizeBytes = data.size.toLong(),
+)

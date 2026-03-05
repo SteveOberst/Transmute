@@ -19,10 +19,10 @@ package dev.transmute
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.RUNTIME)
 annotation class TransformDescriptor(
-    /** Stable ID used in API requests (e.g. "scale", "resize"). */
-    val id: String,
-    /** Human-readable description shown in the UI. */
-    val description: String,
+  /** Stable ID used in API requests (e.g. "scale", "resize"). */
+  val id: String,
+  /** Human-readable description shown in the UI. */
+  val description: String,
 )
 
 /**
@@ -42,10 +42,10 @@ annotation class TransformDescriptor(
 @Target(AnnotationTarget.VALUE_PARAMETER)
 @Retention(AnnotationRetention.RUNTIME)
 annotation class Param(
-    val description: String = "",
-    val required: Boolean = false,
-    val default: String = "",
-    val min: String = "",
-    val max: String = "",
-    val enumValues: String = "",
+  val description: String = "",
+  val required: Boolean = false,
+  val default: String = "",
+  val min: String = "",
+  val max: String = "",
+  val enumValues: String = "",
 )

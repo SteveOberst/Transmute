@@ -1,12 +1,12 @@
 ﻿package dev.transmute.image.transform
 
+import dev.transmute.codec.pipeline.TransformId
 import dev.transmute.common.PipelineContext
 import dev.transmute.image.ByteArrayPixelBuffer
-import dev.transmute.image.ImageIR
-import dev.transmute.image.PixelFormat
 import dev.transmute.image.ImageHint
+import dev.transmute.image.ImageIR
 import dev.transmute.image.ImageTransform
-import dev.transmute.codec.pipeline.TransformId
+import dev.transmute.image.PixelFormat
 
 /**
  * Applies a box blur to an [ImageIR].
@@ -22,9 +22,7 @@ import dev.transmute.codec.pipeline.TransformId
  *
  * @param radius Blur radius in pixels. 1 = 3x3 kernel, 2 = 5x5, etc.
  */
-class ImageBlurTransform(
-  val radius: Int = 1,
-) : ImageTransform {
+class ImageBlurTransform(val radius: Int = 1) : ImageTransform {
 
   override fun wouldTransform(hint: ImageHint): Boolean = radius > 0
 
@@ -62,9 +60,7 @@ class ImageBlurTransform(
      * Sliding-window horizontal blur. For each row, maintains a running
      * sum per channel so each pixel costs O(1) additions.
      */
-    internal fun horizontalPass(
-      src: ByteArray, w: Int, h: Int, stride: Int, bpp: Int, channels: Int, r: Int,
-    ): ByteArray {
+    internal fun horizontalPass(src: ByteArray, w: Int, h: Int, stride: Int, bpp: Int, channels: Int, r: Int): ByteArray {
       val dst = src.copyOf()
       val span = 2 * r + 1
 
@@ -105,9 +101,7 @@ class ImageBlurTransform(
     /**
      * Sliding-window vertical blur - identical strategy, transposed.
      */
-    internal fun verticalPass(
-      src: ByteArray, w: Int, h: Int, stride: Int, bpp: Int, channels: Int, r: Int,
-    ): ByteArray {
+    internal fun verticalPass(src: ByteArray, w: Int, h: Int, stride: Int, bpp: Int, channels: Int, r: Int): ByteArray {
       val dst = src.copyOf()
       val span = 2 * r + 1
 

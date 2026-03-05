@@ -11,9 +11,9 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class InspectResult(
-    val domain: MediaDomainDto,
-    val format: String,
-    val fileSize: Long,
-    val structure: MediaStructure? = null,
-    val metadata: List<MediaMetadata> = emptyList(),
+  val domain: MediaDomainDto,
+  val format: String,
+  val fileSize: Long,
+  val structure: MediaStructure? = null,
+  val metadata: List<MediaMetadata> = emptyList(),
 )

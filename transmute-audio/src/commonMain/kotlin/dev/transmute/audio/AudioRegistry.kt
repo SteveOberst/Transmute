@@ -1,13 +1,13 @@
 package dev.transmute.audio
 
-import kotlin.concurrent.Volatile
 import dev.transmute.audio.codecs.WavDecoder
 import dev.transmute.audio.codecs.WavEncoder
-import dev.transmute.io.TSource
 import dev.transmute.codec.MediaCodec
 import dev.transmute.codec.MediaDecoder
 import dev.transmute.codec.MediaEncoder
 import dev.transmute.common.PipelineContext
+import dev.transmute.io.TSource
+import kotlin.concurrent.Volatile
 
 /**
  * Mutable registry for [AudioDecoder] instances.
@@ -69,12 +69,8 @@ class MutableAudioEncoderRegistry : AudioEncoderRegistry {
   fun register(encoder: MediaEncoder<AudioFormat, AudioIR, AudioEncodeOptions>) {
     val wrapper = object : AudioEncoder {
       override val supportedFormats = encoder.encodableFormats
-      override suspend fun encode(
-        ir: AudioIR,
-        format: AudioFormat,
-        options: AudioEncodeOptions,
-        context: PipelineContext,
-      ) = encoder.encode(ir, format, options, context)
+      override suspend fun encode(ir: AudioIR, format: AudioFormat, options: AudioEncodeOptions, context: PipelineContext) =
+        encoder.encode(ir, format, options, context)
     }
     register(wrapper)
   }
@@ -84,12 +80,8 @@ class MutableAudioEncoderRegistry : AudioEncoderRegistry {
     for (format in codec.encodableFormats) {
       encoders[format] = object : AudioEncoder {
         override val supportedFormats = codec.encodableFormats
-        override suspend fun encode(
-          ir: AudioIR,
-          format: AudioFormat,
-          options: AudioEncodeOptions,
-          context: PipelineContext,
-        ) = codec.encode(ir, format, options, context)
+        override suspend fun encode(ir: AudioIR, format: AudioFormat, options: AudioEncodeOptions, context: PipelineContext) =
+          codec.encode(ir, format, options, context)
       }
     }
   }
@@ -132,9 +124,7 @@ object AudioRegistries {
    * after platform-native codecs.  This is the primary mechanism for optional
    * modules (e.g. `transmute-gstreamer`) to fill codec gaps automatically.
    */
-  fun addSupplementaryInstaller(
-    installer: (MutableAudioDecoderRegistry, MutableAudioEncoderRegistry) -> Unit,
-  ) {
+  fun addSupplementaryInstaller(installer: (MutableAudioDecoderRegistry, MutableAudioEncoderRegistry) -> Unit) {
     supplementaryInstallers.add(installer)
   }
 
@@ -188,7 +178,4 @@ object AudioRegistries {
   }
 }
 
-expect fun installPlatformAudioCodecs(
-  decoders: MutableAudioDecoderRegistry,
-  encoders: MutableAudioEncoderRegistry,
-)
+expect fun installPlatformAudioCodecs(decoders: MutableAudioDecoderRegistry, encoders: MutableAudioEncoderRegistry)

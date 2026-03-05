@@ -1,11 +1,11 @@
 ﻿package dev.transmute.image.transform
 
+import dev.transmute.codec.pipeline.TransformId
 import dev.transmute.common.PipelineContext
 import dev.transmute.image.ByteArrayPixelBuffer
-import dev.transmute.image.ImageIR
 import dev.transmute.image.ImageHint
+import dev.transmute.image.ImageIR
 import dev.transmute.image.ImageTransform
-import dev.transmute.codec.pipeline.TransformId
 
 /**
  * Crops an [ImageIR] to a sub-region defined by [x], [y], [cropWidth], [cropHeight].
@@ -15,12 +15,7 @@ import dev.transmute.codec.pipeline.TransformId
  *
  * Operates on [ByteArrayPixelBuffer] with any [PixelFormat].
  */
-class ImageCropTransform(
-  val x: Int,
-  val y: Int,
-  val cropWidth: Int,
-  val cropHeight: Int,
-) : ImageTransform {
+class ImageCropTransform(val x: Int, val y: Int, val cropWidth: Int, val cropHeight: Int) : ImageTransform {
 
   override fun wouldTransform(hint: ImageHint): Boolean = true // always crops
 
@@ -46,7 +41,7 @@ class ImageCropTransform(
       return ir
     }
 
-    context.logger.info("ImageCropTransform: cropping to ($cx,$cy) ${cw}x${ch} from ${ir.width}x${ir.height}")
+    context.logger.info("ImageCropTransform: cropping to ($cx,$cy) ${cw}x$ch from ${ir.width}x${ir.height}")
 
     val bpp = ir.pixelFormat.bytesPerPixel
     val srcData = srcBuffer.data

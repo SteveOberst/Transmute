@@ -23,23 +23,22 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class OpusStructure(
-    /** Parsed OpusHead identification header. */
-    val opusIdentification: OpusIdentification?,
-    /** Number of distinct logical Ogg streams in the file. */
-    val streamCount: Int,
-    /** Total number of Ogg pages in the file. */
-    val pageCount: Int,
-    /** All Ogg pages in file order (payload bytes excluded). */
-    val pages: List<OggPageSummary>,
+  /** Parsed OpusHead identification header. */
+  val opusIdentification: OpusIdentification?,
+  /** Number of distinct logical Ogg streams in the file. */
+  val streamCount: Int,
+  /** Total number of Ogg pages in the file. */
+  val pageCount: Int,
+  /** All Ogg pages in file order (payload bytes excluded). */
+  val pages: List<OggPageSummary>,
 ) : MediaStructure
 
 /**
  * Parse this [dev.transmute.model.structure.audio.types.OpusRaw] into an [OpusStructure].
  */
-fun OpusRaw.toStructure(): OpusStructure =
-    OpusStructure(
-        opusIdentification = opusIdentification,
-        streamCount = streamSerialNumbers.size,
-        pageCount = pages.size,
-        pages = pages.map { it.toSummary() },
-    )
+fun OpusRaw.toStructure(): OpusStructure = OpusStructure(
+  opusIdentification = opusIdentification,
+  streamCount = streamSerialNumbers.size,
+  pageCount = pages.size,
+  pages = pages.map { it.toSummary() },
+)

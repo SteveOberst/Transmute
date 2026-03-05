@@ -31,4 +31,3 @@ fun <IN, OUT> DecodeStage<IN, OUT, AudioDecodeOptions>.options(
     else -> CanonicalAudioDecodeOptions(acceptedInputFormats = mutator.acceptedInputFormats.toSet())
   }
 }
-

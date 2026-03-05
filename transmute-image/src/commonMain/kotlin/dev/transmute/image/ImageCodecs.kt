@@ -1,9 +1,9 @@
 package dev.transmute.image
 
-import dev.transmute.io.TSource
 import dev.transmute.codec.pipeline.Decoded
 import dev.transmute.codec.pipeline.EncodedBytes
 import dev.transmute.codec.pipeline.PipelineHandler
+import dev.transmute.io.TSource
 
 /**
  * Convenience entry points for the default decode/encode handlers.
@@ -28,4 +28,3 @@ object ImageCodecs {
       ImageFixedEncodeHandler(output)
   }
 }
-

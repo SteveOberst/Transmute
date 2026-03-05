@@ -60,7 +60,9 @@ data class ColorInfo(
     if (iccProfileBytes != null) {
       if (other.iccProfileBytes == null) return false
       if (!iccProfileBytes.contentEquals(other.iccProfileBytes)) return false
-    } else if (other.iccProfileBytes != null) return false
+    } else if (other.iccProfileBytes != null) {
+      return false
+    }
     return true
   }
 
@@ -77,10 +79,13 @@ enum class TransferFunction { SRGB, LINEAR, PQ, HLG }
 enum class Orientation {
   /** No rotation needed - pixels are stored top-left first. */
   NORMAL,
+
   /** 90 deg clockwise (EXIF 6 - common for portrait photos on iOS). */
   ROTATE_90,
+
   /** 180 deg (EXIF 3 - upside-down). */
   ROTATE_180,
+
   /** 270 deg clockwise / 90 deg counter-clockwise (EXIF 8). */
   ROTATE_270,
 }

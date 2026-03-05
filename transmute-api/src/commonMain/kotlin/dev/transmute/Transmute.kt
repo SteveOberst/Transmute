@@ -2,18 +2,31 @@ package dev.transmute
 
 import dev.transmute.audio.*
 import dev.transmute.codec.pipeline.*
-import dev.transmute.io.TSource
-import dev.transmute.model.core.Bytes
-import dev.transmute.model.core.DecodeOptions
-import dev.transmute.model.core.EncodeOptions
-import dev.transmute.model.core.MediaFormat
-import dev.transmute.model.core.RawMediaStructure
 import dev.transmute.common.PipelineContext
 import dev.transmute.common.TransmuteContext
 import dev.transmute.common.TransmuteLogger
 import dev.transmute.common.TransmuteLogging
-import dev.transmute.model.core.asBytes
 import dev.transmute.image.*
+import dev.transmute.io.TSource
+import dev.transmute.model.core.DecodeOptions
+import dev.transmute.model.core.EncodeOptions
+import dev.transmute.model.core.MediaFormat
+import dev.transmute.model.core.MediaMetadataRegistry
+import dev.transmute.model.core.MediaStructureRegistry
+import dev.transmute.model.core.asBytes
+import dev.transmute.model.metadata.exif.ExifMetadata
+import dev.transmute.model.metadata.icc.IccProfileMetadata
+import dev.transmute.model.metadata.id3.Id3v1Metadata
+import dev.transmute.model.metadata.id3.Id3v2Metadata
+import dev.transmute.model.metadata.itunes.ItunesMetadata
+import dev.transmute.model.metadata.matroska.MatroskaTagMetadata
+import dev.transmute.model.metadata.png.PngTextMetadata
+import dev.transmute.model.metadata.riff.RiffInfoMetadata
+import dev.transmute.model.metadata.vorbis.VorbisCommentMetadata
+import dev.transmute.model.metadata.xmp.XmpMetadata
+import dev.transmute.model.structure.audio.*
+import dev.transmute.model.structure.image.*
+import dev.transmute.model.structure.video.*
 import dev.transmute.plugin.AggregateDiagnostics
 import dev.transmute.plugin.InstalledPluginInfo
 import dev.transmute.plugin.PluginInstallation
@@ -24,27 +37,12 @@ import dev.transmute.plugin.installPlatformAudioDefaults
 import dev.transmute.plugin.installPlatformImageDefaults
 import dev.transmute.plugin.installPlatformVideoDefaults
 import dev.transmute.plugin.sortPluginInstallations
-import dev.transmute.video.*
-import dev.transmute.structure.DefaultStructureDecoders
 import dev.transmute.structure.DefaultMetadataDecoders
-import dev.transmute.structure.image.*
+import dev.transmute.structure.DefaultStructureDecoders
 import dev.transmute.structure.audio.*
+import dev.transmute.structure.image.*
 import dev.transmute.structure.video.*
-import dev.transmute.model.core.MediaStructureRegistry
-import dev.transmute.model.core.MediaMetadataRegistry
-import dev.transmute.model.structure.image.*
-import dev.transmute.model.structure.audio.*
-import dev.transmute.model.structure.video.*
-import dev.transmute.model.metadata.exif.ExifMetadata
-import dev.transmute.model.metadata.xmp.XmpMetadata
-import dev.transmute.model.metadata.icc.IccProfileMetadata
-import dev.transmute.model.metadata.id3.Id3v1Metadata
-import dev.transmute.model.metadata.id3.Id3v2Metadata
-import dev.transmute.model.metadata.png.PngTextMetadata
-import dev.transmute.model.metadata.vorbis.VorbisCommentMetadata
-import dev.transmute.model.metadata.riff.RiffInfoMetadata
-import dev.transmute.model.metadata.itunes.ItunesMetadata
-import dev.transmute.model.metadata.matroska.MatroskaTagMetadata
+import dev.transmute.video.*
 
 typealias DynamicImageTransmuter = ImageTransmuter<TSource, EncodedBytes<ImageFormat>>
 typealias DynamicAudioTransmuter = AudioTransmuter<TSource, EncodedBytes<AudioFormat>>
@@ -70,11 +68,7 @@ interface Transmuter<IN, OUT> {
 }
 
 /** Convert [source] and copy the resulting bytes into [buffer]. Returns bytes written. */
-suspend fun <IN, F : MediaFormat<*, *>> Transmuter<IN, EncodedBytes<F>>.transmute(
-  source: IN,
-  buffer: ByteArray,
-  offset: Int = 0,
-): Int {
+suspend fun <IN, F : MediaFormat<*, *>> Transmuter<IN, EncodedBytes<F>>.transmute(source: IN, buffer: ByteArray, offset: Int = 0): Int {
   val bytes = transmute(source).bytes.data
   require(offset >= 0 && offset <= buffer.size) { "offset out of bounds" }
   require(bytes.size <= buffer.size - offset) {
@@ -163,109 +157,109 @@ class Transmute private constructor(
 
       // Register built-in structure decoders (raw + full) via DefaultStructureDecoders
       with(DefaultStructureDecoders) {
-          imageCodecs.rawStructureDecoders.register(ImageFormat.Png,  pngRaw)
-          imageCodecs.rawStructureDecoders.register(ImageFormat.Jpeg, jpegRaw)
-          imageCodecs.rawStructureDecoders.register(ImageFormat.Bmp,  bmpRaw)
-          imageCodecs.rawStructureDecoders.register(ImageFormat.Gif,  gifRaw)
-          imageCodecs.rawStructureDecoders.register(ImageFormat.Tiff, tiffRaw)
-          imageCodecs.rawStructureDecoders.register(ImageFormat.Webp, webpRaw)
-          imageCodecs.rawStructureDecoders.register(ImageFormat.Heif, heifRaw)
-          imageCodecs.rawStructureDecoders.register(ImageFormat.Heic, heicRaw)
-          imageCodecs.rawStructureDecoders.register(ImageFormat.Avif, avifRaw)
-          audioCodecs.rawStructureDecoders.register(AudioFormat.Wav,  wavRaw)
-          audioCodecs.rawStructureDecoders.register(AudioFormat.Mp3,  mp3Raw)
-          audioCodecs.rawStructureDecoders.register(AudioFormat.Flac, flacRaw)
-          audioCodecs.rawStructureDecoders.register(AudioFormat.Aac,  aacRaw)
-          audioCodecs.rawStructureDecoders.register(AudioFormat.M4a,  m4aRaw)
-          audioCodecs.rawStructureDecoders.register(AudioFormat.Ogg,  oggAudioRaw)
-          audioCodecs.rawStructureDecoders.register(AudioFormat.Opus, opusRaw)
-          videoCodecs.rawStructureDecoders.register(VideoFormat.Mp4,  mp4Raw)
-          videoCodecs.rawStructureDecoders.register(VideoFormat.Mov,  movRaw)
-          videoCodecs.rawStructureDecoders.register(VideoFormat.Webm, webmRaw)
-          videoCodecs.rawStructureDecoders.register(VideoFormat.Mkv,  mkvRaw)
-          videoCodecs.rawStructureDecoders.register(VideoFormat.Avi,  aviRaw)
+        imageCodecs.rawStructureDecoders.register(ImageFormat.Png, pngRaw)
+        imageCodecs.rawStructureDecoders.register(ImageFormat.Jpeg, jpegRaw)
+        imageCodecs.rawStructureDecoders.register(ImageFormat.Bmp, bmpRaw)
+        imageCodecs.rawStructureDecoders.register(ImageFormat.Gif, gifRaw)
+        imageCodecs.rawStructureDecoders.register(ImageFormat.Tiff, tiffRaw)
+        imageCodecs.rawStructureDecoders.register(ImageFormat.Webp, webpRaw)
+        imageCodecs.rawStructureDecoders.register(ImageFormat.Heif, heifRaw)
+        imageCodecs.rawStructureDecoders.register(ImageFormat.Heic, heicRaw)
+        imageCodecs.rawStructureDecoders.register(ImageFormat.Avif, avifRaw)
+        audioCodecs.rawStructureDecoders.register(AudioFormat.Wav, wavRaw)
+        audioCodecs.rawStructureDecoders.register(AudioFormat.Mp3, mp3Raw)
+        audioCodecs.rawStructureDecoders.register(AudioFormat.Flac, flacRaw)
+        audioCodecs.rawStructureDecoders.register(AudioFormat.Aac, aacRaw)
+        audioCodecs.rawStructureDecoders.register(AudioFormat.M4a, m4aRaw)
+        audioCodecs.rawStructureDecoders.register(AudioFormat.Ogg, oggAudioRaw)
+        audioCodecs.rawStructureDecoders.register(AudioFormat.Opus, opusRaw)
+        videoCodecs.rawStructureDecoders.register(VideoFormat.Mp4, mp4Raw)
+        videoCodecs.rawStructureDecoders.register(VideoFormat.Mov, movRaw)
+        videoCodecs.rawStructureDecoders.register(VideoFormat.Webm, webmRaw)
+        videoCodecs.rawStructureDecoders.register(VideoFormat.Mkv, mkvRaw)
+        videoCodecs.rawStructureDecoders.register(VideoFormat.Avi, aviRaw)
 
-          imageCodecs.structureDecoders.register(ImageFormat.Png,  png)
-          imageCodecs.structureDecoders.register(ImageFormat.Jpeg, jpeg)
-          imageCodecs.structureDecoders.register(ImageFormat.Bmp,  bmp)
-          imageCodecs.structureDecoders.register(ImageFormat.Gif,  gif)
-          imageCodecs.structureDecoders.register(ImageFormat.Tiff, tiff)
-          imageCodecs.structureDecoders.register(ImageFormat.Webp, webp)
-          imageCodecs.structureDecoders.register(ImageFormat.Heif, heif)
-          imageCodecs.structureDecoders.register(ImageFormat.Heic, heic)
-          imageCodecs.structureDecoders.register(ImageFormat.Avif, avif)
-          audioCodecs.structureDecoders.register(AudioFormat.Wav,  wav)
-          audioCodecs.structureDecoders.register(AudioFormat.Mp3,  mp3)
-          audioCodecs.structureDecoders.register(AudioFormat.Flac, flac)
-          audioCodecs.structureDecoders.register(AudioFormat.Aac,  aac)
-          audioCodecs.structureDecoders.register(AudioFormat.M4a,  m4a)
-          audioCodecs.structureDecoders.register(AudioFormat.Ogg,  oggAudio)
-          audioCodecs.structureDecoders.register(AudioFormat.Opus, opus)
-          videoCodecs.structureDecoders.register(VideoFormat.Mp4,  mp4)
-          videoCodecs.structureDecoders.register(VideoFormat.Mov,  mov)
-          videoCodecs.structureDecoders.register(VideoFormat.Webm, webm)
-          videoCodecs.structureDecoders.register(VideoFormat.Mkv,  mkv)
-          videoCodecs.structureDecoders.register(VideoFormat.Avi,  avi)
+        imageCodecs.structureDecoders.register(ImageFormat.Png, png)
+        imageCodecs.structureDecoders.register(ImageFormat.Jpeg, jpeg)
+        imageCodecs.structureDecoders.register(ImageFormat.Bmp, bmp)
+        imageCodecs.structureDecoders.register(ImageFormat.Gif, gif)
+        imageCodecs.structureDecoders.register(ImageFormat.Tiff, tiff)
+        imageCodecs.structureDecoders.register(ImageFormat.Webp, webp)
+        imageCodecs.structureDecoders.register(ImageFormat.Heif, heif)
+        imageCodecs.structureDecoders.register(ImageFormat.Heic, heic)
+        imageCodecs.structureDecoders.register(ImageFormat.Avif, avif)
+        audioCodecs.structureDecoders.register(AudioFormat.Wav, wav)
+        audioCodecs.structureDecoders.register(AudioFormat.Mp3, mp3)
+        audioCodecs.structureDecoders.register(AudioFormat.Flac, flac)
+        audioCodecs.structureDecoders.register(AudioFormat.Aac, aac)
+        audioCodecs.structureDecoders.register(AudioFormat.M4a, m4a)
+        audioCodecs.structureDecoders.register(AudioFormat.Ogg, oggAudio)
+        audioCodecs.structureDecoders.register(AudioFormat.Opus, opus)
+        videoCodecs.structureDecoders.register(VideoFormat.Mp4, mp4)
+        videoCodecs.structureDecoders.register(VideoFormat.Mov, mov)
+        videoCodecs.structureDecoders.register(VideoFormat.Webm, webm)
+        videoCodecs.structureDecoders.register(VideoFormat.Mkv, mkv)
+        videoCodecs.structureDecoders.register(VideoFormat.Avi, avi)
       }
 
       // Register built-in MediaStructure types into the global serialization registry
-      MediaStructureRegistry.register<PngStructure>("transmute.png",       PngStructure.serializer())
-      MediaStructureRegistry.register<JpegStructure>("transmute.jpeg",     JpegStructure.serializer())
-      MediaStructureRegistry.register<BmpStructure>("transmute.bmp",       BmpStructure.serializer())
-      MediaStructureRegistry.register<GifStructure>("transmute.gif",       GifStructure.serializer())
-      MediaStructureRegistry.register<TiffStructure>("transmute.tiff",     TiffStructure.serializer())
-      MediaStructureRegistry.register<WebpStructure>("transmute.webp",     WebpStructure.serializer())
-      MediaStructureRegistry.register<HeifStructure>("transmute.heif",     HeifStructure.serializer())
-      MediaStructureRegistry.register<AvifStructure>("transmute.avif",     AvifStructure.serializer())
-      MediaStructureRegistry.register<WavStructure>("transmute.wav",       WavStructure.serializer())
-      MediaStructureRegistry.register<Mp3Structure>("transmute.mp3",       Mp3Structure.serializer())
-      MediaStructureRegistry.register<FlacStructure>("transmute.flac",     FlacStructure.serializer())
-      MediaStructureRegistry.register<AacStructure>("transmute.aac",       AacStructure.serializer())
-      MediaStructureRegistry.register<M4aStructure>("transmute.m4a",       M4aStructure.serializer())
-      MediaStructureRegistry.register<OggAudioStructure>("transmute.ogg",  OggAudioStructure.serializer())
-      MediaStructureRegistry.register<OpusStructure>("transmute.opus",     OpusStructure.serializer())
-      MediaStructureRegistry.register<Mp4Structure>("transmute.mp4",       Mp4Structure.serializer())
-      MediaStructureRegistry.register<MovStructure>("transmute.mov",       MovStructure.serializer())
-      MediaStructureRegistry.register<WebmStructure>("transmute.webm",     WebmStructure.serializer())
-      MediaStructureRegistry.register<MkvStructure>("transmute.mkv",       MkvStructure.serializer())
-      MediaStructureRegistry.register<AviStructure>("transmute.avi",       AviStructure.serializer())
+      MediaStructureRegistry.register<PngStructure>("transmute.png", PngStructure.serializer())
+      MediaStructureRegistry.register<JpegStructure>("transmute.jpeg", JpegStructure.serializer())
+      MediaStructureRegistry.register<BmpStructure>("transmute.bmp", BmpStructure.serializer())
+      MediaStructureRegistry.register<GifStructure>("transmute.gif", GifStructure.serializer())
+      MediaStructureRegistry.register<TiffStructure>("transmute.tiff", TiffStructure.serializer())
+      MediaStructureRegistry.register<WebpStructure>("transmute.webp", WebpStructure.serializer())
+      MediaStructureRegistry.register<HeifStructure>("transmute.heif", HeifStructure.serializer())
+      MediaStructureRegistry.register<AvifStructure>("transmute.avif", AvifStructure.serializer())
+      MediaStructureRegistry.register<WavStructure>("transmute.wav", WavStructure.serializer())
+      MediaStructureRegistry.register<Mp3Structure>("transmute.mp3", Mp3Structure.serializer())
+      MediaStructureRegistry.register<FlacStructure>("transmute.flac", FlacStructure.serializer())
+      MediaStructureRegistry.register<AacStructure>("transmute.aac", AacStructure.serializer())
+      MediaStructureRegistry.register<M4aStructure>("transmute.m4a", M4aStructure.serializer())
+      MediaStructureRegistry.register<OggAudioStructure>("transmute.ogg", OggAudioStructure.serializer())
+      MediaStructureRegistry.register<OpusStructure>("transmute.opus", OpusStructure.serializer())
+      MediaStructureRegistry.register<Mp4Structure>("transmute.mp4", Mp4Structure.serializer())
+      MediaStructureRegistry.register<MovStructure>("transmute.mov", MovStructure.serializer())
+      MediaStructureRegistry.register<WebmStructure>("transmute.webm", WebmStructure.serializer())
+      MediaStructureRegistry.register<MkvStructure>("transmute.mkv", MkvStructure.serializer())
+      MediaStructureRegistry.register<AviStructure>("transmute.avi", AviStructure.serializer())
 
       // Register built-in metadata decoders - image
       imageCodecs.metadataDecoders.register(ImageFormat.Jpeg, DefaultMetadataDecoders.jpeg)
       imageCodecs.metadataDecoders.register(ImageFormat.Tiff, DefaultMetadataDecoders.tiff)
-      imageCodecs.metadataDecoders.register(ImageFormat.Png,  DefaultMetadataDecoders.png)
+      imageCodecs.metadataDecoders.register(ImageFormat.Png, DefaultMetadataDecoders.png)
       imageCodecs.metadataDecoders.register(ImageFormat.Webp, DefaultMetadataDecoders.webp)
       imageCodecs.metadataDecoders.register(ImageFormat.Heif, DefaultMetadataDecoders.heif)
       imageCodecs.metadataDecoders.register(ImageFormat.Heic, DefaultMetadataDecoders.heic)
       imageCodecs.metadataDecoders.register(ImageFormat.Avif, DefaultMetadataDecoders.avif)
 
       // Register built-in metadata decoders - audio
-      audioCodecs.metadataDecoders.register(AudioFormat.Mp3,  DefaultMetadataDecoders.mp3)
+      audioCodecs.metadataDecoders.register(AudioFormat.Mp3, DefaultMetadataDecoders.mp3)
       audioCodecs.metadataDecoders.register(AudioFormat.Flac, DefaultMetadataDecoders.flac)
-      audioCodecs.metadataDecoders.register(AudioFormat.Ogg,  DefaultMetadataDecoders.oggAudio)
+      audioCodecs.metadataDecoders.register(AudioFormat.Ogg, DefaultMetadataDecoders.oggAudio)
       audioCodecs.metadataDecoders.register(AudioFormat.Opus, DefaultMetadataDecoders.opus)
-      audioCodecs.metadataDecoders.register(AudioFormat.Wav,  DefaultMetadataDecoders.wav)
-      audioCodecs.metadataDecoders.register(AudioFormat.M4a,  DefaultMetadataDecoders.m4a)
-      audioCodecs.metadataDecoders.register(AudioFormat.Aac,  DefaultMetadataDecoders.aac)
+      audioCodecs.metadataDecoders.register(AudioFormat.Wav, DefaultMetadataDecoders.wav)
+      audioCodecs.metadataDecoders.register(AudioFormat.M4a, DefaultMetadataDecoders.m4a)
+      audioCodecs.metadataDecoders.register(AudioFormat.Aac, DefaultMetadataDecoders.aac)
 
       // Register built-in metadata decoders - video
-      videoCodecs.metadataDecoders.register(VideoFormat.Mp4,  DefaultMetadataDecoders.mp4)
-      videoCodecs.metadataDecoders.register(VideoFormat.Mov,  DefaultMetadataDecoders.mov)
-      videoCodecs.metadataDecoders.register(VideoFormat.Avi,  DefaultMetadataDecoders.avi)
+      videoCodecs.metadataDecoders.register(VideoFormat.Mp4, DefaultMetadataDecoders.mp4)
+      videoCodecs.metadataDecoders.register(VideoFormat.Mov, DefaultMetadataDecoders.mov)
+      videoCodecs.metadataDecoders.register(VideoFormat.Avi, DefaultMetadataDecoders.avi)
       videoCodecs.metadataDecoders.register(VideoFormat.Webm, DefaultMetadataDecoders.webm)
-      videoCodecs.metadataDecoders.register(VideoFormat.Mkv,  DefaultMetadataDecoders.mkv)
+      videoCodecs.metadataDecoders.register(VideoFormat.Mkv, DefaultMetadataDecoders.mkv)
 
       // Register built-in MediaMetadata types into the global serialization registry
-      MediaMetadataRegistry.register<ExifMetadata>("transmute.exif",                   ExifMetadata.serializer())
-      MediaMetadataRegistry.register<XmpMetadata>("transmute.xmp",                     XmpMetadata.serializer())
-      MediaMetadataRegistry.register<IccProfileMetadata>("transmute.icc",               IccProfileMetadata.serializer())
-      MediaMetadataRegistry.register<Id3v1Metadata>("transmute.id3v1",                  Id3v1Metadata.serializer())
-      MediaMetadataRegistry.register<Id3v2Metadata>("transmute.id3v2",                  Id3v2Metadata.serializer())
-      MediaMetadataRegistry.register<PngTextMetadata>("transmute.png-text",             PngTextMetadata.serializer())
+      MediaMetadataRegistry.register<ExifMetadata>("transmute.exif", ExifMetadata.serializer())
+      MediaMetadataRegistry.register<XmpMetadata>("transmute.xmp", XmpMetadata.serializer())
+      MediaMetadataRegistry.register<IccProfileMetadata>("transmute.icc", IccProfileMetadata.serializer())
+      MediaMetadataRegistry.register<Id3v1Metadata>("transmute.id3v1", Id3v1Metadata.serializer())
+      MediaMetadataRegistry.register<Id3v2Metadata>("transmute.id3v2", Id3v2Metadata.serializer())
+      MediaMetadataRegistry.register<PngTextMetadata>("transmute.png-text", PngTextMetadata.serializer())
       MediaMetadataRegistry.register<VorbisCommentMetadata>("transmute.vorbis-comment", VorbisCommentMetadata.serializer())
-      MediaMetadataRegistry.register<RiffInfoMetadata>("transmute.riff-info",           RiffInfoMetadata.serializer())
-      MediaMetadataRegistry.register<ItunesMetadata>("transmute.itunes",                ItunesMetadata.serializer())
-      MediaMetadataRegistry.register<MatroskaTagMetadata>("transmute.matroska-tags",     MatroskaTagMetadata.serializer())
+      MediaMetadataRegistry.register<RiffInfoMetadata>("transmute.riff-info", RiffInfoMetadata.serializer())
+      MediaMetadataRegistry.register<ItunesMetadata>("transmute.itunes", ItunesMetadata.serializer())
+      MediaMetadataRegistry.register<MatroskaTagMetadata>("transmute.matroska-tags", MatroskaTagMetadata.serializer())
 
       // Sort plugins by dependency/ordering constraints
       val sorted = sortPluginInstallations(pluginInstallations)
@@ -316,14 +310,9 @@ class Transmute private constructor(
     }
   }
 
-  class PluginBlock internal constructor(
-    private val installations: MutableList<PluginInstallation<*>>,
-  ) {
+  class PluginBlock internal constructor(private val installations: MutableList<PluginInstallation<*>>) {
     /** Install a plugin with optional configuration. */
-    fun <C : Any> install(
-      plugin: TransmutePlugin<C>,
-      block: C.() -> Unit = {},
-    ) {
+    fun <C : Any> install(plugin: TransmutePlugin<C>, block: C.() -> Unit = {}) {
       installations.add(PluginInstallation(plugin, block))
     }
   }
@@ -345,8 +334,7 @@ class Transmute private constructor(
     val audio: TransmuteAudio get() = Default.audio
     val video: TransmuteVideo get() = Default.video
 
-    suspend fun transmute(type: TransmuteType, source: ByteArray): ByteArray =
-      Default.transmute(type, source)
+    suspend fun transmute(type: TransmuteType, source: ByteArray): ByteArray = Default.transmute(type, source)
   }
 }
 
@@ -369,8 +357,7 @@ class Transmute private constructor(
  * }
  * ```
  */
-fun transmute(block: Transmute.Builder.() -> Unit = {}): Transmute =
-  Transmute.Builder().apply(block).build()
+fun transmute(block: Transmute.Builder.() -> Unit = {}): Transmute = Transmute.Builder().apply(block).build()
 
 class DynamicImageTransmuterBuilder<IN, OUT> internal constructor(
   private val defaultDecodePipeline: (() -> DecodePipeline<IN, Decoded<ImageFormat, ImageIR>>)? = null,
@@ -403,8 +390,9 @@ class DynamicImageTransmuterBuilder<IN, OUT> internal constructor(
   /**
    * Configure the encode pipeline (ImageIR -> encode -> EncodedBytes).
    */
-  fun encode(block: EncodeStage<Decoded<ImageFormat, ImageIR>, OUT, ImageEncodeOptions>.() -> Unit): DynamicImageTransmuterBuilder<IN, OUT> =
-    apply { encodeStage.block() }
+  fun encode(
+    block: EncodeStage<Decoded<ImageFormat, ImageIR>, OUT, ImageEncodeOptions>.() -> Unit,
+  ): DynamicImageTransmuterBuilder<IN, OUT> = apply { encodeStage.block() }
 
   fun build(): ImageTransmuter<IN, OUT> {
     val decode = decodeStage.pipeline
@@ -455,8 +443,9 @@ class ImageTransmuterBuilder<IN, OUT_FORMAT : ImageFormat> internal constructor(
     apply { decodeStage.block() }
 
   /** Fixed output enables type-safe post-encode handlers via the `OUT` format type. */
-  fun encode(block: EncodeStage<Decoded<ImageFormat, ImageIR>, EncodedBytes<OUT_FORMAT>, ImageEncodeOptions>.() -> Unit): ImageTransmuterBuilder<IN, OUT_FORMAT> =
-    apply { encodeStage.block() }
+  fun encode(
+    block: EncodeStage<Decoded<ImageFormat, ImageIR>, EncodedBytes<OUT_FORMAT>, ImageEncodeOptions>.() -> Unit,
+  ): ImageTransmuterBuilder<IN, OUT_FORMAT> = apply { encodeStage.block() }
 
   fun build(): ImageTransmuter<IN, EncodedBytes<OUT_FORMAT>> {
     val decode = decodeStage.pipeline
@@ -482,18 +471,16 @@ class ImageTransmuterBuilder<IN, OUT_FORMAT : ImageFormat> internal constructor(
 }
 
 class ImageTransmuter<IN, OUT> internal constructor(
-    private val transmuteContext: TransmuteContext? = null,
-    private val loggerOverride: TransmuteLogger?,
-    private val transforms: List<Transform<ImageIR>>,
-    private val decodePipeline: DecodePipeline<IN, Decoded<ImageFormat, ImageIR>>,
-    private val encodePipeline: EncodePipeline<Decoded<ImageFormat, ImageIR>, OUT>,
-    private val decodeOptions: ImageDecodeOptions,
-    private val encodeOptions: ImageEncodeOptions,
+  private val transmuteContext: TransmuteContext? = null,
+  private val loggerOverride: TransmuteLogger?,
+  private val transforms: List<Transform<ImageIR>>,
+  private val decodePipeline: DecodePipeline<IN, Decoded<ImageFormat, ImageIR>>,
+  private val encodePipeline: EncodePipeline<Decoded<ImageFormat, ImageIR>, OUT>,
+  private val decodeOptions: ImageDecodeOptions,
+  private val encodeOptions: ImageEncodeOptions,
 ) : Transmuter<IN, OUT> {
 
-  fun wouldTransmute(hint: ImageHint): Boolean {
-    return transforms.any { (it as? ImageTransform)?.wouldTransform(hint) ?: true }
-  }
+  fun wouldTransmute(hint: ImageHint): Boolean = transforms.any { (it as? ImageTransform)?.wouldTransform(hint) ?: true }
 
   override suspend fun transmute(source: IN): OUT {
     val context = createContext(
@@ -542,8 +529,9 @@ class DynamicAudioTransmuterBuilder<IN, OUT> internal constructor(
   fun decode(block: DecodeStage<IN, Decoded<AudioFormat, AudioIR>, AudioDecodeOptions>.() -> Unit): DynamicAudioTransmuterBuilder<IN, OUT> =
     apply { decodeStage.block() }
 
-  fun encode(block: EncodeStage<Decoded<AudioFormat, AudioIR>, OUT, AudioEncodeOptions>.() -> Unit): DynamicAudioTransmuterBuilder<IN, OUT> =
-    apply { encodeStage.block() }
+  fun encode(
+    block: EncodeStage<Decoded<AudioFormat, AudioIR>, OUT, AudioEncodeOptions>.() -> Unit,
+  ): DynamicAudioTransmuterBuilder<IN, OUT> = apply { encodeStage.block() }
 
   fun build(): AudioTransmuter<IN, OUT> {
     val decode = decodeStage.pipeline
@@ -588,8 +576,9 @@ class AudioTransmuterBuilder<IN, OUT : AudioFormat> internal constructor(
   fun decode(block: DecodeStage<IN, Decoded<AudioFormat, AudioIR>, AudioDecodeOptions>.() -> Unit): AudioTransmuterBuilder<IN, OUT> =
     apply { decodeStage.block() }
 
-  fun encode(block: EncodeStage<Decoded<AudioFormat, AudioIR>, EncodedBytes<OUT>, AudioEncodeOptions>.() -> Unit): AudioTransmuterBuilder<IN, OUT> =
-    apply { encodeStage.block() }
+  fun encode(
+    block: EncodeStage<Decoded<AudioFormat, AudioIR>, EncodedBytes<OUT>, AudioEncodeOptions>.() -> Unit,
+  ): AudioTransmuterBuilder<IN, OUT> = apply { encodeStage.block() }
 
   fun build(): AudioTransmuter<IN, EncodedBytes<OUT>> {
     val decode = decodeStage.pipeline
@@ -615,18 +604,16 @@ class AudioTransmuterBuilder<IN, OUT : AudioFormat> internal constructor(
 }
 
 class AudioTransmuter<IN, OUT> internal constructor(
-    private val transmuteContext: TransmuteContext? = null,
-    private val loggerOverride: TransmuteLogger?,
-    private val transforms: List<Transform<AudioIR>>,
-    private val decodePipeline: DecodePipeline<IN, Decoded<AudioFormat, AudioIR>>,
-    private val encodePipeline: EncodePipeline<Decoded<AudioFormat, AudioIR>, OUT>,
-    private val decodeOptions: AudioDecodeOptions,
-    private val encodeOptions: AudioEncodeOptions,
+  private val transmuteContext: TransmuteContext? = null,
+  private val loggerOverride: TransmuteLogger?,
+  private val transforms: List<Transform<AudioIR>>,
+  private val decodePipeline: DecodePipeline<IN, Decoded<AudioFormat, AudioIR>>,
+  private val encodePipeline: EncodePipeline<Decoded<AudioFormat, AudioIR>, OUT>,
+  private val decodeOptions: AudioDecodeOptions,
+  private val encodeOptions: AudioEncodeOptions,
 ) : Transmuter<IN, OUT> {
 
-  fun wouldTransmute(hint: AudioHint): Boolean {
-    return transforms.any { (it as? AudioTransform)?.wouldTransform(hint) ?: true }
-  }
+  fun wouldTransmute(hint: AudioHint): Boolean = transforms.any { (it as? AudioTransform)?.wouldTransform(hint) ?: true }
 
   override suspend fun transmute(source: IN): OUT {
     val context = createContext(
@@ -675,8 +662,9 @@ class DynamicVideoTransmuterBuilder<IN, OUT> internal constructor(
   fun decode(block: DecodeStage<IN, Decoded<VideoFormat, VideoIR>, VideoDecodeOptions>.() -> Unit): DynamicVideoTransmuterBuilder<IN, OUT> =
     apply { decodeStage.block() }
 
-  fun encode(block: EncodeStage<Decoded<VideoFormat, VideoIR>, OUT, VideoEncodeOptions>.() -> Unit): DynamicVideoTransmuterBuilder<IN, OUT> =
-    apply { encodeStage.block() }
+  fun encode(
+    block: EncodeStage<Decoded<VideoFormat, VideoIR>, OUT, VideoEncodeOptions>.() -> Unit,
+  ): DynamicVideoTransmuterBuilder<IN, OUT> = apply { encodeStage.block() }
 
   fun build(): VideoTransmuter<IN, OUT> {
     val decode = decodeStage.pipeline
@@ -721,8 +709,9 @@ class VideoTransmuterBuilder<IN, OUT : VideoFormat> internal constructor(
   fun decode(block: DecodeStage<IN, Decoded<VideoFormat, VideoIR>, VideoDecodeOptions>.() -> Unit): VideoTransmuterBuilder<IN, OUT> =
     apply { decodeStage.block() }
 
-  fun encode(block: EncodeStage<Decoded<VideoFormat, VideoIR>, EncodedBytes<OUT>, VideoEncodeOptions>.() -> Unit): VideoTransmuterBuilder<IN, OUT> =
-    apply { encodeStage.block() }
+  fun encode(
+    block: EncodeStage<Decoded<VideoFormat, VideoIR>, EncodedBytes<OUT>, VideoEncodeOptions>.() -> Unit,
+  ): VideoTransmuterBuilder<IN, OUT> = apply { encodeStage.block() }
 
   fun build(): VideoTransmuter<IN, EncodedBytes<OUT>> {
     val decode = decodeStage.pipeline
@@ -748,18 +737,16 @@ class VideoTransmuterBuilder<IN, OUT : VideoFormat> internal constructor(
 }
 
 class VideoTransmuter<IN, OUT> internal constructor(
-    private val transmuteContext: TransmuteContext? = null,
-    private val loggerOverride: TransmuteLogger?,
-    private val transforms: List<Transform<VideoIR>>,
-    private val decodePipeline: DecodePipeline<IN, Decoded<VideoFormat, VideoIR>>,
-    private val encodePipeline: EncodePipeline<Decoded<VideoFormat, VideoIR>, OUT>,
-    private val decodeOptions: VideoDecodeOptions,
-    private val encodeOptions: VideoEncodeOptions,
+  private val transmuteContext: TransmuteContext? = null,
+  private val loggerOverride: TransmuteLogger?,
+  private val transforms: List<Transform<VideoIR>>,
+  private val decodePipeline: DecodePipeline<IN, Decoded<VideoFormat, VideoIR>>,
+  private val encodePipeline: EncodePipeline<Decoded<VideoFormat, VideoIR>, OUT>,
+  private val decodeOptions: VideoDecodeOptions,
+  private val encodeOptions: VideoEncodeOptions,
 ) : Transmuter<IN, OUT> {
 
-  fun wouldTransmute(hint: VideoHint): Boolean {
-    return transforms.any { (it as? VideoTransform)?.wouldTransform(hint) ?: true }
-  }
+  fun wouldTransmute(hint: VideoHint): Boolean = transforms.any { (it as? VideoTransform)?.wouldTransform(hint) ?: true }
 
   override suspend fun transmute(source: IN): OUT {
     val context = createContext(
@@ -787,61 +774,55 @@ class VideoTransmuter<IN, OUT> internal constructor(
 
 internal fun defaultImageBytesDecodePipeline(
   decoders: ImageDecoderRegistry? = null,
-): DecodePipeline<TSource, Decoded<ImageFormat, ImageIR>> =
-  PipelineBuilder.start<TSource>()
-    .then(if (decoders != null) ImageDecodeHandler(decoders = decoders) else ImageDecodeHandler())
-    .build()
+): DecodePipeline<TSource, Decoded<ImageFormat, ImageIR>> = PipelineBuilder.start<TSource>()
+  .then(if (decoders != null) ImageDecodeHandler(decoders = decoders) else ImageDecodeHandler())
+  .build()
 
 internal fun defaultAudioBytesDecodePipeline(
   decoders: AudioDecoderRegistry? = null,
-): DecodePipeline<TSource, Decoded<AudioFormat, AudioIR>> =
-  PipelineBuilder.start<TSource>()
-    .then(if (decoders != null) AudioDecodeHandler(decoders = decoders) else AudioDecodeHandler())
-    .build()
+): DecodePipeline<TSource, Decoded<AudioFormat, AudioIR>> = PipelineBuilder.start<TSource>()
+  .then(if (decoders != null) AudioDecodeHandler(decoders = decoders) else AudioDecodeHandler())
+  .build()
 
 internal fun defaultVideoBytesDecodePipeline(
   decoders: VideoDecoderRegistry? = null,
-): DecodePipeline<TSource, Decoded<VideoFormat, VideoIR>> =
-  PipelineBuilder.start<TSource>()
-    .then(if (decoders != null) VideoDecodeHandler(decoders = decoders) else VideoDecodeHandler())
-    .build()
+): DecodePipeline<TSource, Decoded<VideoFormat, VideoIR>> = PipelineBuilder.start<TSource>()
+  .then(if (decoders != null) VideoDecodeHandler(decoders = decoders) else VideoDecodeHandler())
+  .build()
 
 internal fun defaultDynamicImageEncodePipeline(
   encoders: ImageEncoderRegistry? = null,
-): EncodePipeline<Decoded<ImageFormat, ImageIR>, EncodedBytes<ImageFormat>> =
-  PipelineBuilder.start<Decoded<ImageFormat, ImageIR>>()
-    .then(if (encoders != null) ImageDynamicEncodeHandler(encoders = encoders) else ImageDynamicEncodeHandler())
-    .build()
+): EncodePipeline<Decoded<ImageFormat, ImageIR>, EncodedBytes<ImageFormat>> = PipelineBuilder.start<Decoded<ImageFormat, ImageIR>>()
+  .then(if (encoders != null) ImageDynamicEncodeHandler(encoders = encoders) else ImageDynamicEncodeHandler())
+  .build()
 
 internal fun defaultDynamicAudioEncodePipeline(
   encoders: AudioEncoderRegistry? = null,
-): EncodePipeline<Decoded<AudioFormat, AudioIR>, EncodedBytes<AudioFormat>> =
-  PipelineBuilder.start<Decoded<AudioFormat, AudioIR>>()
-    .then(if (encoders != null) AudioDynamicEncodeHandler(encoders = encoders) else AudioDynamicEncodeHandler())
-    .build()
+): EncodePipeline<Decoded<AudioFormat, AudioIR>, EncodedBytes<AudioFormat>> = PipelineBuilder.start<Decoded<AudioFormat, AudioIR>>()
+  .then(if (encoders != null) AudioDynamicEncodeHandler(encoders = encoders) else AudioDynamicEncodeHandler())
+  .build()
 
 internal fun defaultDynamicVideoEncodePipeline(
   encoders: VideoEncoderRegistry? = null,
-): EncodePipeline<Decoded<VideoFormat, VideoIR>, EncodedBytes<VideoFormat>> =
-  PipelineBuilder.start<Decoded<VideoFormat, VideoIR>>()
-    .then(if (encoders != null) VideoDynamicEncodeHandler(encoders = encoders) else VideoDynamicEncodeHandler())
-    .build()
+): EncodePipeline<Decoded<VideoFormat, VideoIR>, EncodedBytes<VideoFormat>> = PipelineBuilder.start<Decoded<VideoFormat, VideoIR>>()
+  .then(if (encoders != null) VideoDynamicEncodeHandler(encoders = encoders) else VideoDynamicEncodeHandler())
+  .build()
 
 internal fun createContext(
-    loggerOverride: TransmuteLogger?,
-    decodeOptions: DecodeOptions,
-    encodeOptions: EncodeOptions,
-    transmuteContext: TransmuteContext? = null,
+  loggerOverride: TransmuteLogger?,
+  decodeOptions: DecodeOptions,
+  encodeOptions: EncodeOptions,
+  transmuteContext: TransmuteContext? = null,
 ): PipelineContext = if (transmuteContext != null) {
-    transmuteContext.pipelineContext(
-        decodeOptions = decodeOptions,
-        encodeOptions = encodeOptions,
-        logger = loggerOverride ?: transmuteContext.logger,
-    )
+  transmuteContext.pipelineContext(
+    decodeOptions = decodeOptions,
+    encodeOptions = encodeOptions,
+    logger = loggerOverride ?: transmuteContext.logger,
+  )
 } else {
-    PipelineContext(
-        logger = loggerOverride ?: TransmuteLogging.logger,
-        decodeOptions = decodeOptions,
-        encodeOptions = encodeOptions,
-    )
+  PipelineContext(
+    logger = loggerOverride ?: TransmuteLogging.logger,
+    decodeOptions = decodeOptions,
+    encodeOptions = encodeOptions,
+  )
 }

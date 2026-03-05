@@ -7,13 +7,13 @@ package dev.transmute.filesystem
  */
 interface WriteHandle : AutoCloseable {
 
-    /**
-     * Write [length] bytes from [buffer] starting at [offset].
-     */
-    fun write(buffer: ByteArray, offset: Int = 0, length: Int = buffer.size - offset)
+  /**
+   * Write [length] bytes from [buffer] starting at [offset].
+   */
+  fun write(buffer: ByteArray, offset: Int = 0, length: Int = buffer.size - offset)
 
-    /**
-     * Flush any buffered data to the underlying storage.
-     */
-    fun flush()
+  /**
+   * Flush any buffered data to the underlying storage.
+   */
+  fun flush()
 }

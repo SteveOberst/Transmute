@@ -21,16 +21,16 @@ import de.sciss.jump3r.mp3.Version
 import de.sciss.jump3r.mpg.Common
 import de.sciss.jump3r.mpg.Interface
 import de.sciss.jump3r.mpg.MPGLib
-import dev.transmute.io.TSource
 import dev.transmute.audio.AudioCodec
-import dev.transmute.audio.AudioDecoder
 import dev.transmute.audio.AudioDecodeOptions
+import dev.transmute.audio.AudioDecoder
 import dev.transmute.audio.AudioEncodeOptions
 import dev.transmute.audio.AudioFormat
 import dev.transmute.audio.AudioIR
 import dev.transmute.audio.AudioSamples
-import dev.transmute.model.core.Bytes
 import dev.transmute.common.PipelineContext
+import dev.transmute.io.TSource
+import dev.transmute.model.core.Bytes
 import dev.transmute.model.core.asBytes
 import java.io.File
 import java.nio.ByteOrder
@@ -56,11 +56,7 @@ private class ByteArrayMediaDataSource(private val bytes: ByteArray) : MediaData
  * Decodes any audio format supported by Android's [MediaCodec] pipeline
  * into an [AudioIR] of interleaved float samples.
  */
-private suspend fun decodeWithMediaCodec(
-  source: ByteArray,
-  options: AudioDecodeOptions,
-  context: PipelineContext,
-): AudioIR {
+private suspend fun decodeWithMediaCodec(source: ByteArray, options: AudioDecodeOptions, context: PipelineContext): AudioIR {
   val extractor = MediaExtractor()
   val dataSource = ByteArrayMediaDataSource(source)
 
@@ -240,10 +236,20 @@ private fun buildAdtsHeader(frameLength: Int, sampleRate: Int, channelCount: Int
   val totalLength = frameLength + 7
 
   val freqIndex = when (sampleRate) {
-    96000 -> 0; 88200 -> 1; 64000 -> 2; 48000 -> 3
-    44100 -> 4; 32000 -> 5; 24000 -> 6; 22050 -> 7
-    16000 -> 8; 12000 -> 9; 11025 -> 10; 8000 -> 11
-    7350 -> 12; else -> 4
+    96000 -> 0
+    88200 -> 1
+    64000 -> 2
+    48000 -> 3
+    44100 -> 4
+    32000 -> 5
+    24000 -> 6
+    22050 -> 7
+    16000 -> 8
+    12000 -> 9
+    11025 -> 10
+    8000 -> 11
+    7350 -> 12
+    else -> 4
   }
 
   val header = ByteArray(7)
@@ -262,9 +268,7 @@ private fun buildAdtsHeader(frameLength: Int, sampleRate: Int, channelCount: Int
 // Decode-only codecs - formats where Android has no encoder.
 // ---------------------------------------------------------------------------
 
-internal abstract class AndroidMediaCodecAudioDecoder(
-  private val format: AudioFormat,
-) : AudioDecoder {
+internal abstract class AndroidMediaCodecAudioDecoder(private val format: AudioFormat) : AudioDecoder {
 
   override val supportedFormats: Set<AudioFormat> = setOf(format)
 
@@ -280,12 +284,7 @@ internal class AndroidMp3Codec : AudioCodec {
   override suspend fun decode(source: TSource, options: AudioDecodeOptions, context: PipelineContext): AudioIR =
     decodeWithMediaCodec(source.readAll(), options, context)
 
-  override suspend fun encode(
-    ir: AudioIR,
-    format: AudioFormat,
-    options: AudioEncodeOptions,
-    context: PipelineContext,
-  ): Bytes {
+  override suspend fun encode(ir: AudioIR, format: AudioFormat, options: AudioEncodeOptions, context: PipelineContext): Bytes {
     require(format == AudioFormat.Mp3) { "Unsupported format $format" }
     val samples = ir.samples.data
     val channels = ir.channelCount
@@ -353,7 +352,13 @@ internal class AndroidMp3Codec : AudioCodec {
       val out = ByteArrayOutputStream(mp3BufSize)
 
       val written = lame.lame_encode_buffer_int(
-        gfp, left, right, frameCount, mp3Buf, 0, mp3BufSize,
+        gfp,
+        left,
+        right,
+        frameCount,
+        mp3Buf,
+        0,
+        mp3BufSize,
       )
       if (written > 0) out.write(mp3Buf.copyOf(written))
 
@@ -387,12 +392,7 @@ internal class AndroidFlacCodec : AudioCodec {
   override suspend fun decode(source: TSource, options: AudioDecodeOptions, context: PipelineContext): AudioIR =
     decodeWithMediaCodec(source.readAll(), options, context)
 
-  override suspend fun encode(
-    ir: AudioIR,
-    format: AudioFormat,
-    options: AudioEncodeOptions,
-    context: PipelineContext,
-  ): Bytes {
+  override suspend fun encode(ir: AudioIR, format: AudioFormat, options: AudioEncodeOptions, context: PipelineContext): Bytes {
     require(format == AudioFormat.Flac) { "Unsupported format $format" }
     val pcmBytes = floatToPcm16(ir.samples.data)
 
@@ -481,12 +481,7 @@ internal class AndroidOpusCodec : AudioCodec {
   override suspend fun decode(source: TSource, options: AudioDecodeOptions, context: PipelineContext): AudioIR =
     decodeWithMediaCodec(source.readAll(), options, context)
 
-  override suspend fun encode(
-    ir: AudioIR,
-    format: AudioFormat,
-    options: AudioEncodeOptions,
-    context: PipelineContext,
-  ): Bytes {
+  override suspend fun encode(ir: AudioIR, format: AudioFormat, options: AudioEncodeOptions, context: PipelineContext): Bytes {
     require(format == AudioFormat.Opus) { "Unsupported format $format" }
     require(canEncode) {
       "OPUS encoding requires Android API 29+ (current: ${Build.VERSION.SDK_INT})"
@@ -602,12 +597,7 @@ internal class AndroidAacCodec : AudioCodec {
   override suspend fun decode(source: TSource, options: AudioDecodeOptions, context: PipelineContext): AudioIR =
     decodeWithMediaCodec(source.readAll(), options, context)
 
-  override suspend fun encode(
-    ir: AudioIR,
-    format: AudioFormat,
-    options: AudioEncodeOptions,
-    context: PipelineContext,
-  ): Bytes {
+  override suspend fun encode(ir: AudioIR, format: AudioFormat, options: AudioEncodeOptions, context: PipelineContext): Bytes {
     require(format == AudioFormat.Aac) { "Unsupported format $format" }
     val pcmBytes = floatToPcm16(ir.samples.data)
 
@@ -693,12 +683,7 @@ internal class AndroidM4aCodec : AudioCodec {
   override suspend fun decode(source: TSource, options: AudioDecodeOptions, context: PipelineContext): AudioIR =
     decodeWithMediaCodec(source.readAll(), options, context)
 
-  override suspend fun encode(
-    ir: AudioIR,
-    format: AudioFormat,
-    options: AudioEncodeOptions,
-    context: PipelineContext,
-  ): Bytes {
+  override suspend fun encode(ir: AudioIR, format: AudioFormat, options: AudioEncodeOptions, context: PipelineContext): Bytes {
     require(format == AudioFormat.M4a) { "Unsupported format $format" }
     val pcmBytes = floatToPcm16(ir.samples.data)
 
@@ -845,4 +830,3 @@ private class ByteArrayOutputStream(initialCapacity: Int = 4096) {
 
   fun toByteArray(): ByteArray = data.copyOf(size)
 }
-

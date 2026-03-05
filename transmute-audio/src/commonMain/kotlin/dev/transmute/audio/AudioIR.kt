@@ -25,11 +25,7 @@ interface SampleStream : Closeable {
 }
 
 /** In-memory audio sample buffer. */
-data class AudioSamples(
-  val data: FloatArray,
-  val sampleRate: Int,
-  val channelCount: Int,
-) {
+data class AudioSamples(val data: FloatArray, val sampleRate: Int, val channelCount: Int) {
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
     if (other !is AudioSamples) return false

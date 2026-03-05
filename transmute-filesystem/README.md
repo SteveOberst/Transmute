@@ -6,10 +6,10 @@ Cross-platform filesystem abstraction layer.
 
 Provides a platform-agnostic filesystem interface with two submodules:
 
-| Submodule | Purpose |
-|-----------|---------|
+| Submodule     | Purpose                                          |
+|---------------|--------------------------------------------------|
 | [core](core/) | Pure interface module — no external dependencies |
-| [okio](okio/) | Okio-backed implementation for all KMP targets |
+| [okio](okio/) | Okio-backed implementation for all KMP targets   |
 
 ## Quick Start
 

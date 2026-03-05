@@ -33,6 +33,7 @@ include(
     ":transmute-audio",
     ":transmute-video",
     ":transmute-image",
+    ":transmute-testing",
     ":transmute-plugins",
     ":transmute-plugins:catalog",
     ":transmute-plugins:gstreamer",

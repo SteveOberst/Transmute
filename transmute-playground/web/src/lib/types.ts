@@ -66,6 +66,17 @@ export interface InspectResult {
   fileSize: number
   structure?: MediaStructure
   metadata?: MediaMetadata[]
+<<<<<<< Updated upstream
+}
+
+/** JSON envelope for decoded metadata (EXIF, XMP, ICC, ID3, etc.) */
+export interface MediaMetadata {
+  /** Type discriminator, e.g. "transmute.exif" */
+  type: string
+  /** Metadata-type-specific fields - arbitrary nested JSON */
+  value: Record<string, unknown>
+=======
+>>>>>>> Stashed changes
 }
 
 /** JSON envelope for a decoded media file structure */

@@ -13,7 +13,6 @@ import {
   fetchTransforms,
   executeTransform,
   fileUrl,
-  previewUrl,
 } from '@/lib/api'
 import { formatBytes } from '@/lib/utils'
 import { useToast } from '@/components/Toast'
@@ -26,7 +25,7 @@ import type {
 } from '@/lib/types'
 import type { HistoryEntry } from '@/lib/editorTypes'
 
-// --- Canvas media renderer ----------------------------------------------------
+// ─── Canvas media renderer ────────────────────────────────────────────────────
 
 function CanvasMedia({ src, domain }: { src: string; domain: MediaDomain }) {
   if (domain === 'AUDIO') {
@@ -112,12 +111,12 @@ export default function TransformPage() {
   const canDownload = history.length > 0 && headHandle !== null
 
   const compareAvailable = useMemo(() => {
-    if (previewHandle) return true // committed -> draft
+    if (previewHandle) return true // committed → draft
     if (!originalHandle || !committedHandle) return false
-    return originalHandle !== committedHandle // original -> committed
+    return originalHandle !== committedHandle // original → committed
   }, [previewHandle, originalHandle, committedHandle])
 
-  // -- On mount -------------------------------------------------------------
+  // ── On mount ─────────────────────────────────────────────────────────────
   useEffect(() => {
     fetchFormats().then(setFormats).catch(() => {})
     fetchTransforms().then(setTransforms).catch(() => {})
@@ -143,7 +142,7 @@ export default function TransformPage() {
     }
   }, [])
 
-  // -- File drop ------------------------------------------------------------
+  // ── File drop ────────────────────────────────────────────────────────────
   const handleFile = useCallback(
     async (dropped: File) => {
       setFile(dropped)
@@ -179,7 +178,7 @@ export default function TransformPage() {
     [toast],
   )
 
-  // -- Tool selection --------------------------------------------------------
+  // ── Tool selection ────────────────────────────────────────────────────────
   const handleSelectTool = useCallback(
     (tool: TransformInfo) => {
       if (activeTool?.id === tool.id) {
@@ -199,7 +198,7 @@ export default function TransformPage() {
     [activeTool],
   )
 
-  // -- Live preview (debounced) ----------------------------------------------
+  // ── Live preview (debounced) ──────────────────────────────────────────────
   useEffect(() => {
     if (!activeTool || !currentHandle) return
     if (!activeParamState.ok) {
@@ -233,7 +232,7 @@ export default function TransformPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTool, activeParams, currentHandle, outputFormat, activeParamState.ok])
 
-  // -- Apply -----------------------------------------------------------------
+  // ── Apply ─────────────────────────────────────────────────────────────────
   const handleApply = useCallback(async () => {
     if (!activeTool || !currentHandle) return
     if (!activeParamState.ok) return
@@ -268,7 +267,7 @@ export default function TransformPage() {
     }
   }, [activeTool, activeParams, currentHandle, outputFormat, toast, activeParamState.ok])
 
-  // -- Reset params to defaults ----------------------------------------------
+  // ── Reset params to defaults ──────────────────────────────────────────────
   const handleReset = useCallback(() => {
     if (!activeTool) return
     const defaults: Record<string, string> = {}
@@ -279,7 +278,7 @@ export default function TransformPage() {
     setPreviewHandle(null)
   }, [activeTool])
 
-  // -- Undo ------------------------------------------------------------------
+  // ── Undo ──────────────────────────────────────────────────────────────────
   const handleUndo = useCallback(() => {
     setHistory((prev) => {
       if (prev.length === 0) return prev
@@ -293,7 +292,7 @@ export default function TransformPage() {
     setCompareMode(false)
   }, [])
 
-  // -- Clear everything ------------------------------------------------------
+  // ── Clear everything ──────────────────────────────────────────────────────
   const reset = useCallback(() => {
     setFile(null)
     setHandle(null)
@@ -312,7 +311,7 @@ export default function TransformPage() {
     }
   }, [])
 
-  // -- Keyboard shortcuts ----------------------------------------------------
+  // ── Keyboard shortcuts ────────────────────────────────────────────────────
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null
@@ -349,7 +348,7 @@ export default function TransformPage() {
     return () => window.removeEventListener('keydown', onKey)
   }, [compareAvailable, canDownload, headHandle, handleUndo])
 
-  // -- Compare drag ----------------------------------------------------------
+  // ── Compare drag ──────────────────────────────────────────────────────────
   const onCompareDragStart = useCallback(() => { compareDragging.current = true }, [])
   const onCompareDrag = useCallback((e: React.PointerEvent) => {
     if (!compareDragging.current || !compareContainerRef.current) return
@@ -359,43 +358,34 @@ export default function TransformPage() {
   }, [])
   const onCompareDragEnd = useCallback(() => { compareDragging.current = false }, [])
 
-  // -- Source URLs -----------------------------------------------------------
-  // For IMAGE domain, use previewUrl() which transcodes HEIC/HEIF/AVIF to
-  // JPEG server-side so the browser can render them.  For audio/video, use
-  // the raw fileUrl().
-  const mediaUrl = (handle: string) =>
-    domain === 'IMAGE' ? previewUrl(handle) : fileUrl(handle)
-
+  // ── Source URLs ───────────────────────────────────────────────────────────
   const singleSrc = previewHandle
-    ? mediaUrl(previewHandle)
+    ? fileUrl(previewHandle)
     : committedHandle
-      ? mediaUrl(committedHandle)
+      ? fileUrl(committedHandle)
       : localOriginalUrl
 
   const { beforeSrc, afterSrc } = useMemo(() => {
-    const mu = (h: string) => domain === 'IMAGE' ? previewUrl(h) : fileUrl(h)
-
-    // Draft compare: committed -> preview
+    // Draft compare: committed → preview
     if (previewHandle && committedHandle) {
       return {
-        beforeSrc: mu(committedHandle),
-        afterSrc: mu(previewHandle),
+        beforeSrc: fileUrl(committedHandle),
+        afterSrc: fileUrl(previewHandle),
       }
     }
 
-    // Result compare: original -> committed
+    // Result compare: original → committed
     if (originalHandle && committedHandle && originalHandle !== committedHandle) {
       return {
-        beforeSrc: mu(originalHandle),
-        afterSrc: mu(committedHandle),
+        beforeSrc: fileUrl(originalHandle),
+        afterSrc: fileUrl(committedHandle),
       }
     }
 
     // Fallback (no compare available)
-    const src = committedHandle ? mu(committedHandle) : localOriginalUrl
+    const src = committedHandle ? fileUrl(committedHandle) : localOriginalUrl
     return { beforeSrc: src, afterSrc: src }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [previewHandle, committedHandle, originalHandle, localOriginalUrl, domain])
+  }, [previewHandle, committedHandle, originalHandle, localOriginalUrl])
 
   const compareLabels = useMemo(() => {
     if (previewHandle) return { before: 'current', after: 'draft' }
@@ -405,14 +395,14 @@ export default function TransformPage() {
     return { before: 'before', after: 'after' }
   }, [previewHandle, originalHandle, committedHandle])
 
-  // -- Render ----------------------------------------------------------------
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="h-dvh flex flex-col overflow-hidden">
       <Navbar />
 
       <div className="flex flex-col flex-1 overflow-hidden min-h-0">
         <AnimatePresence mode="wait">
-          {/* -- Empty state ----------------------------------------------- */}
+          {/* ── Empty state ─────────────────────────────────────────────── */}
           {!localOriginalUrl ? (
             <motion.div
               key="empty"
@@ -433,7 +423,7 @@ export default function TransformPage() {
               </div>
             </motion.div>
           ) : (
-            /* -- Editor layout -------------------------------------------- */
+            /* ── Editor layout ──────────────────────────────────────────── */
             <motion.div
               key="editor"
               initial={{ opacity: 0 }}
@@ -442,7 +432,7 @@ export default function TransformPage() {
               transition={{ duration: 0.15 }}
               className="flex-1 flex overflow-hidden min-h-0"
             >
-              {/* -- Left: Tool Palette ------------------------------------ */}
+              {/* ── Left: Tool Palette ──────────────────────────────────── */}
               <div className="w-[185px] shrink-0 border-r border-[var(--surface-3)]/50 bg-[var(--surface-1)] flex flex-col overflow-hidden">
                 <div className="shrink-0 px-3 pt-3 pb-2 border-b border-[var(--surface-3)]/30">
                   <span className="text-[8px] font-mono uppercase tracking-[0.2em] text-[#28283a]">
@@ -466,7 +456,7 @@ export default function TransformPage() {
                 )}
               </div>
 
-              {/* -- Centre: Canvas ---------------------------------------- */}
+              {/* ── Centre: Canvas ──────────────────────────────────────── */}
               <div className="flex-1 flex flex-col overflow-hidden min-w-0">
                 {/* Info + toolbar */}
                 <div className="shrink-0 flex items-center gap-2 px-3 pt-2 pb-2 border-b border-[var(--surface-3)]/30 bg-[var(--surface-1)]">
@@ -647,7 +637,7 @@ export default function TransformPage() {
                 </div>
               </div>
 
-              {/* -- Right: Tool Options + History ------------------------- */}
+              {/* ── Right: Tool Options + History ───────────────────────── */}
               <div className="w-[250px] shrink-0 border-l border-[var(--surface-3)]/50 bg-[var(--surface-1)] flex flex-col overflow-hidden">
                 <div className="shrink-0 px-3 pt-3 pb-2 border-b border-[var(--surface-3)]/30">
                   <AnimatePresence mode="wait">

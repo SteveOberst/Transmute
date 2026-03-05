@@ -1,12 +1,12 @@
 package dev.transmute.image.transform
 
+import dev.transmute.codec.pipeline.TransformId
 import dev.transmute.common.PipelineContext
 import dev.transmute.image.ByteArrayPixelBuffer
-import dev.transmute.image.ImageIR
-import dev.transmute.image.PixelFormat
 import dev.transmute.image.ImageHint
+import dev.transmute.image.ImageIR
 import dev.transmute.image.ImageTransform
-import dev.transmute.codec.pipeline.TransformId
+import dev.transmute.image.PixelFormat
 
 /**
  * Adjusts the opacity (alpha channel) of an [ImageIR].
@@ -17,9 +17,7 @@ import dev.transmute.codec.pipeline.TransformId
  *
  * @param opacity Multiplier for the alpha channel (0.0 = fully transparent, 1.0 = unchanged).
  */
-class ImageOpacityTransform(
-  val opacity: Float,
-) : ImageTransform {
+class ImageOpacityTransform(val opacity: Float) : ImageTransform {
 
   override fun wouldTransform(hint: ImageHint): Boolean = opacity != 1f
 

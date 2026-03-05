@@ -12,10 +12,7 @@ import dev.transmute.video.*
  * Populates [decoders] and [encoders] with the platform-native image codecs
  * plus cross-platform fallbacks (BMP).
  */
-internal fun installPlatformImageDefaults(
-  decoders: MutableImageDecoderRegistry,
-  encoders: MutableImageEncoderRegistry,
-) {
+internal fun installPlatformImageDefaults(decoders: MutableImageDecoderRegistry, encoders: MutableImageEncoderRegistry) {
   installPlatformImageCodecs(decoders, encoders)
 
   // Cross-platform fallback codecs
@@ -31,10 +28,7 @@ internal fun installPlatformImageDefaults(
  * Populates [decoders] and [encoders] with the platform-native audio codecs
  * plus cross-platform fallbacks (WAV).
  */
-internal fun installPlatformAudioDefaults(
-  decoders: MutableAudioDecoderRegistry,
-  encoders: MutableAudioEncoderRegistry,
-) {
+internal fun installPlatformAudioDefaults(decoders: MutableAudioDecoderRegistry, encoders: MutableAudioEncoderRegistry) {
   // Pure-Kotlin WAV codec works on every target
   decoders.register(WavDecoder())
   encoders.register(WavEncoder())
@@ -45,9 +39,6 @@ internal fun installPlatformAudioDefaults(
 /**
  * Populates [decoders] and [encoders] with the platform-native video codecs.
  */
-internal fun installPlatformVideoDefaults(
-  decoders: MutableVideoDecoderRegistry,
-  encoders: MutableVideoEncoderRegistry,
-) {
+internal fun installPlatformVideoDefaults(decoders: MutableVideoDecoderRegistry, encoders: MutableVideoEncoderRegistry) {
   installPlatformVideoCodecs(decoders, encoders)
 }

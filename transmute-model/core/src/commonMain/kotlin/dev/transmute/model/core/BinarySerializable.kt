@@ -12,6 +12,6 @@ package dev.transmute.model.core
  * it produces the corresponding fragment of the binary format.
  */
 interface BinarySerializable {
-    /** Encode this value to its canonical binary representation. */
-    fun toBytes(): Bytes
+  /** Encode this value to its canonical binary representation. */
+  fun toBytes(): Bytes
 }

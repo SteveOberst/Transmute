@@ -22,10 +22,10 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class WebpChunkSummary(
-    /** 4-character ASCII chunk ID. */
-    val id: String,
-    /** Payload size in bytes (excludes the 8-byte chunk header). */
-    val dataSizeBytes: UInt,
+  /** 4-character ASCII chunk ID. */
+  val id: String,
+  /** Payload size in bytes (excludes the 8-byte chunk header). */
+  val dataSizeBytes: UInt,
 )
 
 /**
@@ -44,26 +44,25 @@ data class WebpChunkSummary(
  */
 @Serializable
 data class WebpStructure(
-    /** Encoding variant inferred from the first sub-chunk ID. */
-    val format: WebpFormat,
-    /** `true` when an alpha channel is present (`ALPH` chunk or `VP8X.alphaFlag`). */
-    val hasAlpha: Boolean,
-    /** `true` when the file is an animated WebP (`ANIM` + `ANMF` chunks). */
-    val hasAnimation: Boolean,
-    /** Full recursive RIFF chunk hierarchy (payload bytes excluded). */
-    val riff: RiffChunkTree,
-    /** All RIFF sub-chunks in file order (payload data excluded). */
-    val chunks: List<WebpChunkSummary>,
+  /** Encoding variant inferred from the first sub-chunk ID. */
+  val format: WebpFormat,
+  /** `true` when an alpha channel is present (`ALPH` chunk or `VP8X.alphaFlag`). */
+  val hasAlpha: Boolean,
+  /** `true` when the file is an animated WebP (`ANIM` + `ANMF` chunks). */
+  val hasAnimation: Boolean,
+  /** Full recursive RIFF chunk hierarchy (payload bytes excluded). */
+  val riff: RiffChunkTree,
+  /** All RIFF sub-chunks in file order (payload data excluded). */
+  val chunks: List<WebpChunkSummary>,
 ) : MediaStructure
 
 /**
  * Parse this [dev.transmute.model.structure.image.types.WebpRaw] into a [WebpStructure].
  */
-fun WebpRaw.toStructure(): WebpStructure =
-    WebpStructure(
-        format = format,
-        hasAlpha = hasAlpha,
-        hasAnimation = hasAnimation,
-        riff = riff.toTree(),
-        chunks = chunks.map { WebpChunkSummary(it.id.value, it.size) },
-    )
+fun WebpRaw.toStructure(): WebpStructure = WebpStructure(
+  format = format,
+  hasAlpha = hasAlpha,
+  hasAnimation = hasAnimation,
+  riff = riff.toTree(),
+  chunks = chunks.map { WebpChunkSummary(it.id.value, it.size) },
+)

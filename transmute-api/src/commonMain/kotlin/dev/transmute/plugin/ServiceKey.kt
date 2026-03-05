@@ -21,7 +21,7 @@ package dev.transmute.plugin
  * @param id a unique identifier (reverse-domain style recommended)
  */
 class ServiceKey<T : Any>(val id: String) {
-    override fun equals(other: Any?): Boolean = other is ServiceKey<*> && other.id == id
-    override fun hashCode(): Int = id.hashCode()
-    override fun toString(): String = "ServiceKey($id)"
+  override fun equals(other: Any?): Boolean = other is ServiceKey<*> && other.id == id
+  override fun hashCode(): Int = id.hashCode()
+  override fun toString(): String = "ServiceKey($id)"
 }

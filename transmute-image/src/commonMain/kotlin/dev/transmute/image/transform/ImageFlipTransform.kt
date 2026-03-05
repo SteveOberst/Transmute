@@ -1,11 +1,11 @@
 ﻿package dev.transmute.image.transform
 
+import dev.transmute.codec.pipeline.TransformId
 import dev.transmute.common.PipelineContext
 import dev.transmute.image.ByteArrayPixelBuffer
-import dev.transmute.image.ImageIR
 import dev.transmute.image.ImageHint
+import dev.transmute.image.ImageIR
 import dev.transmute.image.ImageTransform
-import dev.transmute.codec.pipeline.TransformId
 
 /**
  * Flips an [ImageIR] horizontally, vertically, or both.
@@ -17,10 +17,7 @@ import dev.transmute.codec.pipeline.TransformId
  * @param horizontal Mirror left  right.
  * @param vertical Mirror top  bottom.
  */
-class ImageFlipTransform(
-  val horizontal: Boolean = false,
-  val vertical: Boolean = false,
-) : ImageTransform {
+class ImageFlipTransform(val horizontal: Boolean = false, val vertical: Boolean = false) : ImageTransform {
 
   override fun wouldTransform(hint: ImageHint): Boolean = horizontal || vertical
 

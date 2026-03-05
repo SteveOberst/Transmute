@@ -41,9 +41,10 @@ fun <IN, OUT : ImageFormat> ImageTransmuterBuilder<IN, OUT>.resize(
 }
 
 /** Crop to the sub-region starting at ([x], [y]) with the given [width] and [height]. */
-fun <IN, OUT> DynamicImageTransmuterBuilder<IN, OUT>.crop(x: Int, y: Int, width: Int, height: Int): DynamicImageTransmuterBuilder<IN, OUT> = apply {
-  transform { add(ImageCropTransform(x, y, width, height)) }
-}
+fun <IN, OUT> DynamicImageTransmuterBuilder<IN, OUT>.crop(x: Int, y: Int, width: Int, height: Int): DynamicImageTransmuterBuilder<IN, OUT> =
+  apply {
+    transform { add(ImageCropTransform(x, y, width, height)) }
+  }
 
 /** Crop to the sub-region starting at ([x], [y]) with the given [width] and [height]. */
 fun <IN, OUT : ImageFormat> ImageTransmuterBuilder<IN, OUT>.crop(
@@ -76,7 +77,10 @@ fun <IN, OUT : ImageFormat> ImageTransmuterBuilder<IN, OUT>.grayscale(): ImageTr
 }
 
 /** Flip horizontally and/or vertically. */
-fun <IN, OUT> DynamicImageTransmuterBuilder<IN, OUT>.flip(horizontal: Boolean = false, vertical: Boolean = false): DynamicImageTransmuterBuilder<IN, OUT> = apply {
+fun <IN, OUT> DynamicImageTransmuterBuilder<IN, OUT>.flip(
+  horizontal: Boolean = false,
+  vertical: Boolean = false,
+): DynamicImageTransmuterBuilder<IN, OUT> = apply {
   transform { add(ImageFlipTransform(horizontal, vertical)) }
 }
 
@@ -89,7 +93,10 @@ fun <IN, OUT : ImageFormat> ImageTransmuterBuilder<IN, OUT>.flip(
 }
 
 /** Adjust brightness (255..+255) and/or contrast (0..3). */
-fun <IN, OUT> DynamicImageTransmuterBuilder<IN, OUT>.brightnessContrast(brightness: Float = 0f, contrast: Float = 1f): DynamicImageTransmuterBuilder<IN, OUT> = apply {
+fun <IN, OUT> DynamicImageTransmuterBuilder<IN, OUT>.brightnessContrast(
+  brightness: Float = 0f,
+  contrast: Float = 1f,
+): DynamicImageTransmuterBuilder<IN, OUT> = apply {
   transform { add(ImageBrightnessContrastTransform(brightness, contrast)) }
 }
 

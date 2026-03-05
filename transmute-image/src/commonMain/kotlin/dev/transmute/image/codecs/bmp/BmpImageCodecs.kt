@@ -1,9 +1,9 @@
 package dev.transmute.image.codecs.bmp
 
-import dev.transmute.io.TSource
-import dev.transmute.model.core.Bytes
 import dev.transmute.common.PipelineContext
 import dev.transmute.image.*
+import dev.transmute.io.TSource
+import dev.transmute.model.core.Bytes
 
 /**
  * Minimal, pure-Kotlin BMP (Windows Bitmap) decoder/encoder.
@@ -44,7 +44,7 @@ class BmpImageDecoder : ImageDecoder {
     val compression = leInt(bytes, 30)
     require(compression == 0) { "Unsupported BMP compression: $compression" }
 
-    require(width > 0 && height > 0) { "Invalid BMP dimensions: ${width}x${height}" }
+    require(width > 0 && height > 0) { "Invalid BMP dimensions: ${width}x$height" }
     require(pixelOffset in 0..bytes.size) { "Invalid BMP pixel data offset" }
 
     val bytesPerPixel = bpp / 8
@@ -87,28 +87,19 @@ class BmpImageDecoder : ImageDecoder {
     )
   }
 
-  private fun leInt(bytes: ByteArray, offset: Int): Int {
-    return (bytes[offset].toInt() and 0xFF) or
-      ((bytes[offset + 1].toInt() and 0xFF) shl 8) or
-      ((bytes[offset + 2].toInt() and 0xFF) shl 16) or
-      ((bytes[offset + 3].toInt() and 0xFF) shl 24)
-  }
+  private fun leInt(bytes: ByteArray, offset: Int): Int = (bytes[offset].toInt() and 0xFF) or
+    ((bytes[offset + 1].toInt() and 0xFF) shl 8) or
+    ((bytes[offset + 2].toInt() and 0xFF) shl 16) or
+    ((bytes[offset + 3].toInt() and 0xFF) shl 24)
 
-  private fun leShort(bytes: ByteArray, offset: Int): Int {
-    return (bytes[offset].toInt() and 0xFF) or
-      ((bytes[offset + 1].toInt() and 0xFF) shl 8)
-  }
+  private fun leShort(bytes: ByteArray, offset: Int): Int = (bytes[offset].toInt() and 0xFF) or
+    ((bytes[offset + 1].toInt() and 0xFF) shl 8)
 }
 
 class BmpImageEncoder : ImageEncoder {
   override val supportedFormats: Set<ImageFormat> = setOf(ImageFormat.Bmp)
 
-  override suspend fun encode(
-    ir: ImageIR,
-    format: ImageFormat,
-    options: ImageEncodeOptions,
-    context: PipelineContext,
-  ): Bytes {
+  override suspend fun encode(ir: ImageIR, format: ImageFormat, options: ImageEncodeOptions, context: PipelineContext): Bytes {
     val buffer = ir.buffer as? ByteArrayPixelBuffer
       ?: error("BmpImageEncoder requires ByteArrayPixelBuffer")
     require(ir.pixelFormat == PixelFormat.RGBA_8888) { "Only RGBA_8888 is supported" }

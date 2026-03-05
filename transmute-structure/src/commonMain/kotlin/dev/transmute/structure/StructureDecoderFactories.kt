@@ -1,8 +1,8 @@
 package dev.transmute.structure
 
-import dev.transmute.io.TSource
 import dev.transmute.codec.MediaDecoder
 import dev.transmute.common.PipelineContext
+import dev.transmute.io.TSource
 import dev.transmute.model.core.Bytes
 import dev.transmute.model.core.MediaFormat
 import dev.transmute.model.core.MediaMetadata
@@ -22,14 +22,14 @@ import dev.transmute.model.structure.StructureReader
  * ```
  */
 fun <F : MediaFormat<*, *>, R : RawMediaStructure> rawDecoderFor(
-    format: F,
-    reader: StructureReader<R>,
+  format: F,
+  reader: StructureReader<R>,
 ): MediaDecoder<F, R, NoDecodeOptions> = object : MediaDecoder<F, R, NoDecodeOptions> {
-    override val decodableFormats: Set<F> = setOf(format)
-    override suspend fun decode(source: TSource, options: NoDecodeOptions, context: PipelineContext): R {
-        val bytes = if (source is Bytes) source else Bytes(source.readAll())
-        return reader.read(bytes)
-    }
+  override val decodableFormats: Set<F> = setOf(format)
+  override suspend fun decode(source: TSource, options: NoDecodeOptions, context: PipelineContext): R {
+    val bytes = if (source is Bytes) source else Bytes(source.readAll())
+    return reader.read(bytes)
+  }
 }
 
 /**
@@ -43,15 +43,15 @@ fun <F : MediaFormat<*, *>, R : RawMediaStructure> rawDecoderFor(
  * ```
  */
 fun <F : MediaFormat<*, *>, R : RawMediaStructure, S : MediaStructure> structureDecoderFor(
-    format: F,
-    reader: StructureReader<R>,
-    toStructure: R.() -> S,
+  format: F,
+  reader: StructureReader<R>,
+  toStructure: R.() -> S,
 ): MediaDecoder<F, S, NoDecodeOptions> = object : MediaDecoder<F, S, NoDecodeOptions> {
-    override val decodableFormats: Set<F> = setOf(format)
-    override suspend fun decode(source: TSource, options: NoDecodeOptions, context: PipelineContext): S {
-        val bytes = if (source is Bytes) source else Bytes(source.readAll())
-        return reader.read(bytes).toStructure()
-    }
+  override val decodableFormats: Set<F> = setOf(format)
+  override suspend fun decode(source: TSource, options: NoDecodeOptions, context: PipelineContext): S {
+    val bytes = if (source is Bytes) source else Bytes(source.readAll())
+    return reader.read(bytes).toStructure()
+  }
 }
 
 /**
@@ -67,13 +67,13 @@ fun <F : MediaFormat<*, *>, R : RawMediaStructure, S : MediaStructure> structure
  * ```
  */
 fun <F : MediaFormat<*, *>, R : RawMediaStructure> metadataDecoderFor(
-    format: F,
-    reader: StructureReader<R>,
-    extract: R.() -> List<MediaMetadata>,
+  format: F,
+  reader: StructureReader<R>,
+  extract: R.() -> List<MediaMetadata>,
 ): MediaDecoder<F, List<MediaMetadata>, NoDecodeOptions> = object : MediaDecoder<F, List<MediaMetadata>, NoDecodeOptions> {
-    override val decodableFormats: Set<F> = setOf(format)
-    override suspend fun decode(source: TSource, options: NoDecodeOptions, context: PipelineContext): List<MediaMetadata> {
-        val bytes = if (source is Bytes) source else Bytes(source.readAll())
-        return reader.read(bytes).extract()
-    }
+  override val decodableFormats: Set<F> = setOf(format)
+  override suspend fun decode(source: TSource, options: NoDecodeOptions, context: PipelineContext): List<MediaMetadata> {
+    val bytes = if (source is Bytes) source else Bytes(source.readAll())
+    return reader.read(bytes).extract()
+  }
 }

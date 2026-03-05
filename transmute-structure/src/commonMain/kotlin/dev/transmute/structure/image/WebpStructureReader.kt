@@ -20,19 +20,19 @@ import dev.transmute.structure.common.readU32LE
  */
 class WebpStructureReader : StructureReader<WebpRaw> {
 
-    override fun read(source: Bytes): WebpRaw {
-        val d = source.data
+  override fun read(source: Bytes): WebpRaw {
+    val d = source.data
 
-        val fileSize = d.readU32LE(4)
-        val children = d.parseRiffChildren(offset = 12, end = minOf(8 + fileSize.toInt(), d.size))
+    val fileSize = d.readU32LE(4)
+    val children = d.parseRiffChildren(offset = 12, end = minOf(8 + fileSize.toInt(), d.size))
 
-        val riff = RiffChunk(
-            id = RiffChunkId("RIFF"),
-            size = fileSize,
-            formType = RiffChunkId("WEBP"),
-            children = children,
-        )
+    val riff = RiffChunk(
+      id = RiffChunkId("RIFF"),
+      size = fileSize,
+      formType = RiffChunkId("WEBP"),
+      children = children,
+    )
 
-        return WebpRaw(riff = riff)
-    }
+    return WebpRaw(riff = riff)
+  }
 }

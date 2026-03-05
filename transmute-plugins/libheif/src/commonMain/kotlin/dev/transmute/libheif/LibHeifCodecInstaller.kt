@@ -13,20 +13,20 @@ import dev.transmute.plugin.PluginFeaturesConfig
  */
 object LibHeifCodecInstaller {
 
-    /** `true` when a usable libheif installation has been detected on this platform. */
-    val available: Boolean get() = isLibHeifAvailable()
+  /** `true` when a usable libheif installation has been detected on this platform. */
+  val available: Boolean get() = isLibHeifAvailable()
 
-    /**
-     * Register libheif image codecs: HEIF, HEIC, AVIF decode and optionally encode.
-     *
-     * When [LibHeifFeature.ImageEncoding] is disabled in [features],
-     * only the decoder is registered -- the HEIF/AVIF encoder is skipped.
-     */
-    fun installImageCodecs(
-        decoders: MutableImageDecoderRegistry,
-        encoders: MutableImageEncoderRegistry,
-        features: PluginFeaturesConfig = PluginFeaturesConfig(),
-    ) = installLibHeifImageCodecs(decoders, encoders, features)
+  /**
+   * Register libheif image codecs: HEIF, HEIC, AVIF decode and optionally encode.
+   *
+   * When [LibHeifFeature.ImageEncoding] is disabled in [features],
+   * only the decoder is registered -- the HEIF/AVIF encoder is skipped.
+   */
+  fun installImageCodecs(
+    decoders: MutableImageDecoderRegistry,
+    encoders: MutableImageEncoderRegistry,
+    features: PluginFeaturesConfig = PluginFeaturesConfig(),
+  ) = installLibHeifImageCodecs(decoders, encoders, features)
 }
 
 /**
@@ -45,9 +45,9 @@ internal expect fun isLibHeifAvailable(): Boolean
  * [LibHeifImageEncoder]. On Android/iOS this is a no-op.
  */
 internal expect fun installLibHeifImageCodecs(
-    decoders: MutableImageDecoderRegistry,
-    encoders: MutableImageEncoderRegistry,
-    features: PluginFeaturesConfig,
+  decoders: MutableImageDecoderRegistry,
+  encoders: MutableImageEncoderRegistry,
+  features: PluginFeaturesConfig,
 )
 
 /**
@@ -56,9 +56,7 @@ internal expect fun installLibHeifImageCodecs(
  * On Desktop/JVM this configures [LibHeifResolver] with the installation
  * mode (bundled, custom, or system). On Android/iOS this is a no-op.
  */
-internal expect fun configureLibHeifResolver(
-    installation: LibHeifInstallation,
-)
+internal expect fun configureLibHeifResolver(installation: LibHeifInstallation)
 
 /**
  * Returns diagnostic information from the libheif resolver.

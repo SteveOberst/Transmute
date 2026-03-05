@@ -21,12 +21,12 @@ package dev.transmute.image
  * ```
  */
 data class ImageHint(
-    /** Width of the image in pixels, or `null` if unknown. */
-    val width: Int? = null,
-    /** Height of the image in pixels, or `null` if unknown. */
-    val height: Int? = null,
-    /** Detected or declared format, or `null` if unknown. */
-    val format: ImageFormat? = null,
-    /** Encoded file size in bytes, or `null` if unknown. */
-    val sizeBytes: Long? = null,
+  /** Width of the image in pixels, or `null` if unknown. */
+  val width: Int? = null,
+  /** Height of the image in pixels, or `null` if unknown. */
+  val height: Int? = null,
+  /** Detected or declared format, or `null` if unknown. */
+  val format: ImageFormat? = null,
+  /** Encoded file size in bytes, or `null` if unknown. */
+  val sizeBytes: Long? = null,
 )

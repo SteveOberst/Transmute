@@ -14,20 +14,20 @@
  */
 interface TSource : AutoCloseable {
 
-    /**
-     * Read up to [length] bytes into [buffer] starting at [offset].
-     *
-     * @return the number of bytes actually read, or `-1` at end-of-stream.
-     */
-    suspend fun read(buffer: ByteArray, offset: Int = 0, length: Int = buffer.size - offset): Int
+  /**
+   * Read up to [length] bytes into [buffer] starting at [offset].
+   *
+   * @return the number of bytes actually read, or `-1` at end-of-stream.
+   */
+  suspend fun read(buffer: ByteArray, offset: Int = 0, length: Int = buffer.size - offset): Int
 
-    /**
-     * Read all remaining bytes from this source.
-     */
-    suspend fun readAll(): ByteArray
+  /**
+   * Read all remaining bytes from this source.
+   */
+  suspend fun readAll(): ByteArray
 
-    /**
-     * Release any resources held by this source.
-     */
-    override fun close()
+  /**
+   * Release any resources held by this source.
+   */
+  override fun close()
 }

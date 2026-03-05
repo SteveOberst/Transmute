@@ -4,8 +4,8 @@ import dev.transmute.audio.AudioHint
 import dev.transmute.audio.AudioIR
 import dev.transmute.audio.AudioSamples
 import dev.transmute.audio.AudioTransform
-import dev.transmute.common.PipelineContext
 import dev.transmute.codec.pipeline.TransformId
+import dev.transmute.common.PipelineContext
 
 /**
  * Remaps audio channels - swap L/R, duplicate mono to stereo, or
@@ -23,14 +23,11 @@ import dev.transmute.codec.pipeline.TransformId
  *
  * @param mapping Output-to-source channel index mapping.
  */
-class AudioChannelMapTransform(
-  val mapping: IntArray,
-) : AudioTransform {
+class AudioChannelMapTransform(val mapping: IntArray) : AudioTransform {
 
-  override fun wouldTransform(hint: AudioHint): Boolean =
-    hint.channelCount == null ||
-      mapping.size != hint.channelCount ||
-      mapping.indices.any { mapping[it] != it }
+  override fun wouldTransform(hint: AudioHint): Boolean = hint.channelCount == null ||
+    mapping.size != hint.channelCount ||
+    mapping.indices.any { mapping[it] != it }
 
   override val id = TransformId("audio.channel-map")
 
@@ -44,7 +41,7 @@ class AudioChannelMapTransform(
     }
 
     context.logger.info(
-      "AudioChannelMapTransform: ${srcChannels}ch -> ${dstChannels}ch, mapping=${mapping.toList()}"
+      "AudioChannelMapTransform: ${srcChannels}ch -> ${dstChannels}ch, mapping=${mapping.toList()}",
     )
 
     val samples = ir.samples.data

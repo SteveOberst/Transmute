@@ -4,10 +4,7 @@ import dev.transmute.video.codecs.android.AndroidMovCodec
 import dev.transmute.video.codecs.android.AndroidMp4Codec
 import dev.transmute.video.codecs.android.AndroidWebmDecoder
 
-actual fun installPlatformVideoCodecs(
-  decoders: MutableVideoDecoderRegistry,
-  encoders: MutableVideoEncoderRegistry,
-) {
+actual fun installPlatformVideoCodecs(decoders: MutableVideoDecoderRegistry, encoders: MutableVideoEncoderRegistry) {
   // MP4 - full codec (H.264/AAC via MediaCodec + MediaMuxer)
   val mp4 = AndroidMp4Codec()
   decoders.register(mp4)

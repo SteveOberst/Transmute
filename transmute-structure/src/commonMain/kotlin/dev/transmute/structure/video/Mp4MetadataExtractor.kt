@@ -16,5 +16,5 @@ import dev.transmute.structure.common.extractItunesMetadata
  * including title, artist, album, year, genre, track number, etc.
  */
 fun Mp4Raw.extractMetadata(): List<MediaMetadata> = buildList {
-    extractItunesMetadata(boxes)?.let(::add)
+  extractItunesMetadata(boxes)?.let(::add)
 }

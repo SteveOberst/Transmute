@@ -11,12 +11,12 @@ import dev.transmute.codec.pipeline.Transform
  * `when` dispatch in the transmuter.
  */
 interface ImageTransform : Transform<ImageIR> {
-    /**
-     * Returns `true` if this transform would produce any change on an image
-     * described by [hint].
-     *
-     * Conservative: if [hint] properties are `null` (unknown), the transform
-     * should return `true` (assume it applies).
-     */
-    fun wouldTransform(hint: ImageHint): Boolean
+  /**
+   * Returns `true` if this transform would produce any change on an image
+   * described by [hint].
+   *
+   * Conservative: if [hint] properties are `null` (unknown), the transform
+   * should return `true` (assume it applies).
+   */
+  fun wouldTransform(hint: ImageHint): Boolean
 }

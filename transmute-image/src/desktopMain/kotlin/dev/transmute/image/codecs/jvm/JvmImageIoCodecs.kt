@@ -1,10 +1,10 @@
 package dev.transmute.image.codecs.jvm
 
+import dev.transmute.common.PipelineContext
+import dev.transmute.image.*
 import dev.transmute.io.TSource
 import dev.transmute.model.core.Bytes
-import dev.transmute.common.PipelineContext
 import dev.transmute.model.core.asBytes
-import dev.transmute.image.*
 import java.awt.Graphics2D
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferByte
@@ -23,8 +23,6 @@ class JvmImageIoDecoder : ImageDecoder {
     ImageFormat.Tiff,
     ImageFormat.Webp,
   )
-
-
 
   override suspend fun decode(source: TSource, options: ImageDecodeOptions, context: PipelineContext): ImageIR {
     val input = ByteArrayInputStream(source.readAll())
@@ -78,12 +76,7 @@ class JvmImageIoEncoder : ImageEncoder {
     ImageFormat.Webp,
   )
 
-  override suspend fun encode(
-    ir: ImageIR,
-    format: ImageFormat,
-    options: ImageEncodeOptions,
-    context: PipelineContext,
-  ): Bytes {
+  override suspend fun encode(ir: ImageIR, format: ImageFormat, options: ImageEncodeOptions, context: PipelineContext): Bytes {
     val buffer = ir.buffer as? ByteArrayPixelBuffer
       ?: error("JvmImageIoEncoder requires ByteArrayPixelBuffer")
     require(ir.pixelFormat == PixelFormat.RGBA_8888) { "Only RGBA_8888 is supported" }
@@ -112,12 +105,7 @@ class JvmImageIoEncoder : ImageEncoder {
     }
   }
 
-  private fun encodePng(
-    buffer: ByteArrayPixelBuffer,
-    width: Int,
-    height: Int,
-    stride: Int,
-  ): ByteArray {
+  private fun encodePng(buffer: ByteArrayPixelBuffer, width: Int, height: Int, stride: Int): ByteArray {
     val image = BufferedImage(width, height, BufferedImage.TYPE_4BYTE_ABGR)
     val abgr = rgbaToAbgr(buffer.data)
     val dest = (image.raster.dataBuffer as DataBufferByte).data
@@ -129,13 +117,7 @@ class JvmImageIoEncoder : ImageEncoder {
     return out.toByteArray()
   }
 
-  private fun encodeJpeg(
-    buffer: ByteArrayPixelBuffer,
-    width: Int,
-    height: Int,
-    stride: Int,
-    quality: Float,
-  ): ByteArray {
+  private fun encodeJpeg(buffer: ByteArrayPixelBuffer, width: Int, height: Int, stride: Int, quality: Float): ByteArray {
     val q = quality.coerceIn(0.0f, 1.0f)
 
     // JPEG doesn't support alpha; drop it into an RGB image.
@@ -174,13 +156,7 @@ class JvmImageIoEncoder : ImageEncoder {
    * WebP encode via TwelveMonkeys ImageIO plugin with lossy quality control.
    * Falls back to lossless if no writer supports compression params.
    */
-  private fun encodeWebp(
-    buffer: ByteArrayPixelBuffer,
-    width: Int,
-    height: Int,
-    stride: Int,
-    quality: Float,
-  ): ByteArray {
+  private fun encodeWebp(buffer: ByteArrayPixelBuffer, width: Int, height: Int, stride: Int, quality: Float): ByteArray {
     val q = quality.coerceIn(0.0f, 1.0f)
 
     // WebP supports alpha - use ABGR for full transparency support.

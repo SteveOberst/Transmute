@@ -1,11 +1,11 @@
 package dev.transmute.codec
 
+import dev.transmute.common.PipelineContext
 import dev.transmute.io.TSource
 import dev.transmute.model.core.Bytes
 import dev.transmute.model.core.DecodeOptions
 import dev.transmute.model.core.EncodeOptions
 import dev.transmute.model.core.MediaFormat
-import dev.transmute.common.PipelineContext
 
 /**
  * Base decoder interface. Knows which formats it can decode.
@@ -65,4 +65,6 @@ interface MediaEncoder<F : MediaFormat<*, *>, in IN, in O : EncodeOptions> {
  * @param D The [DecodeOptions] type accepted by this codec's decoder side.
  * @param O The [EncodeOptions] type accepted by this codec's encoder side.
  */
-interface MediaCodec<F : MediaFormat<*, *>, IR, in D : DecodeOptions, in O : EncodeOptions> : MediaDecoder<F, IR, D>, MediaEncoder<F, IR, O>
+interface MediaCodec<F : MediaFormat<*, *>, IR, in D : DecodeOptions, in O : EncodeOptions> :
+  MediaDecoder<F, IR, D>,
+  MediaEncoder<F, IR, O>

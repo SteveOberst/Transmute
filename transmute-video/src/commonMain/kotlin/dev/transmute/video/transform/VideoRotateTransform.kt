@@ -1,7 +1,7 @@
 ﻿package dev.transmute.video.transform
 
-import dev.transmute.common.PipelineContext
 import dev.transmute.codec.pipeline.TransformId
+import dev.transmute.common.PipelineContext
 import dev.transmute.image.ByteArrayPixelBuffer
 import dev.transmute.video.FrameStream
 import dev.transmute.video.VideoFrame
@@ -21,9 +21,7 @@ import dev.transmute.video.VideoTransform
  *
  * @param degrees Rotation angle. Must be 90, 180, or 270.
  */
-class VideoRotateTransform(
-  val degrees: Int,
-) : VideoTransform {
+class VideoRotateTransform(val degrees: Int) : VideoTransform {
 
   override fun wouldTransform(hint: VideoHint): Boolean = true // always applies rotation
 
@@ -34,7 +32,7 @@ class VideoRotateTransform(
   override val id = TransformId("video.rotate")
 
   override suspend fun apply(ir: VideoIR, context: PipelineContext): VideoIR {
-    context.logger.info("VideoRotateTransform: rotating ${degrees} deg CW")
+    context.logger.info("VideoRotateTransform: rotating $degrees deg CW")
 
     val track = ir.videoTrack
     val swapDimensions = degrees == 90 || degrees == 270
@@ -54,10 +52,7 @@ class VideoRotateTransform(
 /**
  * Frame stream wrapper that rotates each frame.
  */
-private class RotatedFrameStream(
-  private val source: FrameStream,
-  private val degrees: Int,
-) : FrameStream {
+private class RotatedFrameStream(private val source: FrameStream, private val degrees: Int) : FrameStream {
   override val frameCount: Long = source.frameCount
 
   override fun close() = source.close()

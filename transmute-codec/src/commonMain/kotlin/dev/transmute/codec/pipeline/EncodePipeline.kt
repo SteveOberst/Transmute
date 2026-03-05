@@ -4,10 +4,7 @@ import dev.transmute.model.core.Bytes
 import dev.transmute.model.core.MediaFormat
 
 /** Encoded bytes tagged with the resolved [format]. */
-data class EncodedBytes<F : MediaFormat<*, *>>(
-  val format: F,
-  val bytes: Bytes,
-) {
+data class EncodedBytes<F : MediaFormat<*, *>>(val format: F, val bytes: Bytes) {
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
     if (other !is EncodedBytes<*>) return false

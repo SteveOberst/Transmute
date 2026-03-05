@@ -1,13 +1,13 @@
 package dev.transmute.video
 
-import dev.transmute.io.TSource
-import dev.transmute.model.core.Bytes
 import dev.transmute.codec.OutputFormat
-import dev.transmute.common.PipelineContext
 import dev.transmute.codec.pipeline.Decoded
 import dev.transmute.codec.pipeline.EncodedBytes
-import dev.transmute.codec.pipeline.PipelineHandler
 import dev.transmute.codec.pipeline.PipelineBuilder
+import dev.transmute.codec.pipeline.PipelineHandler
+import dev.transmute.common.PipelineContext
+import dev.transmute.io.TSource
+import dev.transmute.model.core.Bytes
 
 /**
  * Video decode handler: detects format (unless constrained), validates accepted formats,
@@ -49,14 +49,10 @@ class VideoDecodeHandler(
  *
  * Reads [VideoEncodeOptions] from [PipelineContext.encodeOptions].
  */
-class VideoDynamicEncodeHandler(
-  private val encoders: VideoEncoderRegistry = VideoRegistries.encoders,
-) : PipelineHandler<Decoded<VideoFormat, VideoIR>, EncodedBytes<VideoFormat>> {
+class VideoDynamicEncodeHandler(private val encoders: VideoEncoderRegistry = VideoRegistries.encoders) :
+  PipelineHandler<Decoded<VideoFormat, VideoIR>, EncodedBytes<VideoFormat>> {
 
-  override suspend fun handle(
-    value: Decoded<VideoFormat, VideoIR>,
-    context: PipelineContext,
-  ): EncodedBytes<VideoFormat> {
+  override suspend fun handle(value: Decoded<VideoFormat, VideoIR>, context: PipelineContext): EncodedBytes<VideoFormat> {
     VideoRegistries.installDefaultsIfEmpty()
 
     val requested = (context.encodeOptions as? VideoEncodeOptions) ?: CanonicalVideoEncodeOptions()
@@ -144,25 +140,24 @@ fun <IN> PipelineBuilder<IN, Bytes>.then(
  * - explicit `encodeOptions.outputFormat`, else
  * - the input format from [Decoded.format] (ORIGINAL).
  */
-fun <IN> PipelineBuilder<IN, Decoded<VideoFormat, VideoIR>>.then(
-  encoder: VideoEncoder,
-): PipelineBuilder<IN, EncodedBytes<VideoFormat>> = then { decoded, ctx ->
-  val requested = (ctx.encodeOptions as? VideoEncodeOptions) ?: CanonicalVideoEncodeOptions()
-  val outFormat = when (val declared = requested.outputFormat) {
-    OutputFormat.ORIGINAL -> decoded.format
-    is OutputFormat.Exact -> declared.format
-  }
+fun <IN> PipelineBuilder<IN, Decoded<VideoFormat, VideoIR>>.then(encoder: VideoEncoder): PipelineBuilder<IN, EncodedBytes<VideoFormat>> =
+  then { decoded, ctx ->
+    val requested = (ctx.encodeOptions as? VideoEncodeOptions) ?: CanonicalVideoEncodeOptions()
+    val outFormat = when (val declared = requested.outputFormat) {
+      OutputFormat.ORIGINAL -> decoded.format
+      is OutputFormat.Exact -> declared.format
+    }
 
-  require(outFormat in encoder.supportedFormats) {
-    "Encoder ${encoder::class.simpleName} does not support format $outFormat (supported=${encoder.supportedFormats})"
-  }
+    require(outFormat in encoder.supportedFormats) {
+      "Encoder ${encoder::class.simpleName} does not support format $outFormat (supported=${encoder.supportedFormats})"
+    }
 
-  val stripped = when (requested.metadataPolicy) {
-    dev.transmute.codec.MetadataPolicy.PRESERVE -> decoded.ir
-    dev.transmute.codec.MetadataPolicy.STRIP_ALL -> decoded.ir.copy(metadata = VideoMetadata())
+    val stripped = when (requested.metadataPolicy) {
+      dev.transmute.codec.MetadataPolicy.PRESERVE -> decoded.ir
+      dev.transmute.codec.MetadataPolicy.STRIP_ALL -> decoded.ir.copy(metadata = VideoMetadata())
+    }
+    EncodedBytes(format = outFormat, bytes = encoder.encode(stripped, outFormat, requested, ctx))
   }
-  EncodedBytes(format = outFormat, bytes = encoder.encode(stripped, outFormat, requested, ctx))
-}
 
 /**
  * Adds a fixed-output encode step using a specific [VideoEncoder] and [output] tag.

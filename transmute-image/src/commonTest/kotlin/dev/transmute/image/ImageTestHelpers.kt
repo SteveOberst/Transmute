@@ -25,14 +25,7 @@ object ImageTestHelpers {
    * @return An [ImageIR] filled with the specified color, useful for
    * verifying that encoders/decoders preserve uniform regions.
    */
-  fun solidColor(
-    width: Int,
-    height: Int,
-    r: Int,
-    g: Int,
-    b: Int,
-    a: Int = 255,
-  ): ImageIR {
+  fun solidColor(width: Int, height: Int, r: Int, g: Int, b: Int, a: Int = 255): ImageIR {
     val bpp = 4
     val stride = width * bpp
     val data = ByteArray(height * stride)
@@ -66,8 +59,12 @@ object ImageTestHelpers {
   fun horizontalGradient(
     width: Int,
     height: Int,
-    startR: Int = 0, startG: Int = 0, startB: Int = 0,
-    endR: Int = 255, endG: Int = 255, endB: Int = 255,
+    startR: Int = 0,
+    startG: Int = 0,
+    startB: Int = 0,
+    endR: Int = 255,
+    endG: Int = 255,
+    endB: Int = 255,
   ): ImageIR {
     val bpp = 4
     val stride = width * bpp
@@ -226,6 +223,5 @@ object ImageTestHelpers {
     return ir.copy(buffer = ByteArrayPixelBuffer(buf))
   }
 
-  private fun lerp(start: Int, end: Int, t: Float): Int =
-    (start + (end - start) * t).toInt().coerceIn(0, 255)
+  private fun lerp(start: Int, end: Int, t: Float): Int = (start + (end - start) * t).toInt().coerceIn(0, 255)
 }

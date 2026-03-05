@@ -1,15 +1,13 @@
 package dev.transmute
 
-import dev.transmute.model.core.DecodeOptions
-import dev.transmute.model.core.EncodeOptions
 import dev.transmute.codec.pipeline.DecodePipeline
 import dev.transmute.codec.pipeline.EncodePipeline
 import dev.transmute.codec.pipeline.PipelineBuilder
 import dev.transmute.codec.pipeline.PipelineHandler
+import dev.transmute.model.core.DecodeOptions
+import dev.transmute.model.core.EncodeOptions
 
-class DecodeStage<IN, OUT, OPTS : DecodeOptions>(
-  defaultOptions: OPTS,
-) {
+class DecodeStage<IN, OUT, OPTS : DecodeOptions>(defaultOptions: OPTS) {
   var options: OPTS = defaultOptions
   var pipeline: DecodePipeline<IN, OUT>? = null
 
@@ -29,9 +27,7 @@ class DecodeStage<IN, OUT, OPTS : DecodeOptions>(
   }
 }
 
-class EncodeStage<IN, OUT, OPTS : EncodeOptions>(
-  defaultOptions: OPTS,
-) {
+class EncodeStage<IN, OUT, OPTS : EncodeOptions>(defaultOptions: OPTS) {
   var options: OPTS = defaultOptions
   var pipeline: EncodePipeline<IN, OUT>? = null
 
@@ -50,4 +46,3 @@ class EncodeStage<IN, OUT, OPTS : EncodeOptions>(
     pipeline = PipelineBuilder.start<IN>().startWith(initial).block().build()
   }
 }
-

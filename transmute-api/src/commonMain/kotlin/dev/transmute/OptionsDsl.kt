@@ -1,8 +1,8 @@
 package dev.transmute
 
-import dev.transmute.model.core.MediaFormat
 import dev.transmute.codec.MetadataPolicy
 import dev.transmute.codec.OutputFormat
+import dev.transmute.model.core.MediaFormat
 
 /**
  * Mutable view for domain-specific `encode { options { ... } }` blocks.
@@ -28,9 +28,6 @@ internal class DefaultEncodeOptionsMutator<F : MediaFormat<*, *>>(
   override var outputFormat: OutputFormat<F>,
 ) : EncodeOptionsMutator<F>
 
-internal class DefaultDecodeOptionsMutator<F : MediaFormat<*, *>>(
-  base: Set<F>,
-) : DecodeOptionsMutator<F> {
+internal class DefaultDecodeOptionsMutator<F : MediaFormat<*, *>>(base: Set<F>) : DecodeOptionsMutator<F> {
   override val acceptedInputFormats: MutableSet<F> = base.toMutableSet()
 }
-

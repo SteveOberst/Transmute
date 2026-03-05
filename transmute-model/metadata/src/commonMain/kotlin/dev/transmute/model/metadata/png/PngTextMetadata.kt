@@ -2,47 +2,72 @@
 
 package dev.transmute.model.metadata.png
 
+import dev.transmute.model.core.LanguageTag
+import dev.transmute.model.core.Latin1String
 import dev.transmute.model.core.MediaMetadata
+import dev.transmute.model.core.Utf8String
+import dev.transmute.model.metadata.common.PayloadRef
 import kotlinx.serialization.Serializable
 
 /**
- * PNG textual metadata aggregated from `tEXt`, `zTXt`, and `iTXt` chunks.
+ * PNG textual metadata as a loss-minimizing representation of the underlying chunks.
  *
- * Each entry records the keyword, the text value, and the source chunk type.
- * Compressed text (`zTXt`) payloads are inflated during extraction so the
- * value field contains the decompressed text.  Uncompressed (`tEXt`) and
- * international (`iTXt`) text is stored verbatim.
+ * Rather than flattening into a single bag of "entries", this preserves the chunk
+ * variants and their on-disk flags:
+ * - `tEXt` (uncompressed Latin-1)
+ * - `zTXt` (deflate-compressed Latin-1)
+ * - `iTXt` (international UTF-8, optionally compressed)
  *
- * Common keywords defined by the PNG specification:
- * `Title`, `Author`, `Description`, `Copyright`, `Creation Time`,
- * `Software`, `Disclaimer`, `Warning`, `Source`, `Comment`.
+ * Chunk bytes are not embedded; compressed payloads can be preserved using [PayloadRef]
+ * where the extractor can reference them.
  */
 @Serializable
 data class PngTextMetadata(
-    /** All text entries found in the file, in chunk order. */
-    val entries: List<PngTextEntry>,
+  /** Text chunks in chunk order. */
+  val chunks: List<PngTextChunk>,
+  /** Reference to the original set of text chunk payloads when available. */
+  val original: PayloadRef? = null,
 ) : MediaMetadata
 
 @Serializable
-data class PngTextEntry(
-    /** Keyword (1-79 Latin-1 characters). */
-    val keyword: String,
-    /** Text value (Latin-1 for tEXt, UTF-8 for iTXt). */
-    val text: String,
-    /** Source chunk type. */
-    val chunkType: PngTextChunkType,
-    /** Language tag (iTXt only). */
-    val language: String? = null,
-    /** Translated keyword (iTXt only). */
-    val translatedKeyword: String? = null,
-)
+sealed class PngTextChunk {
+  /** `tEXt`: keyword + null + text (Latin-1). */
+  @Serializable
+  data class Text(
+    val keyword: Latin1String,
+    val text: Latin1String,
+    val payload: PayloadRef? = null,
+  ) : PngTextChunk()
 
-@Serializable
-enum class PngTextChunkType {
-    /** Uncompressed Latin-1 text. */
-    TEXT,
-    /** Deflate-compressed Latin-1 text. */
-    ZTXT,
-    /** UTF-8 international text (optionally compressed). */
-    ITXT,
+  /** `zTXt`: keyword + null + compressionMethod + compressedText (Latin-1 after inflate). */
+  @Serializable
+  data class ZText(
+    val keyword: Latin1String,
+    val compressionMethod: UByte,
+    /** Compressed payload reference (after the compression-method byte). */
+    val compressedText: PayloadRef,
+    /** Inflated/decompressed text when decode succeeded. */
+    val text: Latin1String? = null,
+    /** Set when inflate/decode fails; payload is still preserved. */
+    val decodeError: String? = null,
+  ) : PngTextChunk()
+
+  /**
+   * `iTXt`: keyword + null + compressionFlag + compressionMethod + languageTag + null +
+   * translatedKeyword + null + (text or compressedText).
+   */
+  @Serializable
+  data class IText(
+    val keyword: Latin1String,
+    val compressed: Boolean,
+    val compressionMethod: UByte,
+    val languageTag: LanguageTag? = null,
+    val translatedKeyword: Utf8String? = null,
+    /** Decoded UTF-8 text when decode succeeded. */
+    val text: Utf8String? = null,
+    /** Compressed payload reference when [compressed] is true. */
+    val compressedText: PayloadRef? = null,
+    val decodeError: String? = null,
+  ) : PngTextChunk()
 }
+

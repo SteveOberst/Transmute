@@ -5,8 +5,8 @@ package dev.transmute.model.structure.audio.types
 import dev.transmute.model.core.Bytes
 import dev.transmute.model.core.Channels
 import dev.transmute.model.core.Hertz
-import dev.transmute.model.core.concatToBytes
 import dev.transmute.model.core.RawMediaStructure
+import dev.transmute.model.core.concatToBytes
 import dev.transmute.model.structure.common.OggPage
 import dev.transmute.model.structure.common.OggSerialNumber
 import kotlinx.serialization.Serializable
@@ -25,12 +25,12 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class OpusIdentification(
-    val version: Int,
-    val channels: UByte,
-    val preSkipSamples: UShort,
-    val inputSampleRate: UInt,
-    val outputGain: Short,
-    val channelMappingFamily: UByte,
+  val version: Int,
+  val channels: UByte,
+  val preSkipSamples: UShort,
+  val inputSampleRate: UInt,
+  val outputGain: Short,
+  val channelMappingFamily: UByte,
 )
 
 // --- Opus file - complete on-disk representation ---
@@ -43,57 +43,57 @@ data class OpusIdentification(
  */
 @Serializable
 data class OpusRaw(
-    /** All Ogg pages in file order. */
-    val pages: List<OggPage>,
+  /** All Ogg pages in file order. */
+  val pages: List<OggPage>,
 ) : RawMediaStructure {
 
-    // --- Binary serialization ---
+  // --- Binary serialization ---
 
-    override fun toBytes(): Bytes = pages.concatToBytes()
+  override fun toBytes(): Bytes = pages.concatToBytes()
 }
 
 // --- Typed extension accessors ---
 
 /** Distinct logical stream serial numbers. */
 val OpusRaw.streamSerialNumbers: List<OggSerialNumber>
-    get() = pages.map { it.serialNumber }.distinct()
+  get() = pages.map { it.serialNumber }.distinct()
 
 /** Parsed OpusHead identification header. */
 val OpusRaw.opusIdentification: OpusIdentification?
-    get() {
-        val bos = pages.firstOrNull { (it.headerType.toInt() and 0x02) != 0 } ?: return null
-        val d = bos.data.data
-        if (d.size < 19) return null
-        val magic = d.decodeToString(0, 8)
-        if (magic != "OpusHead") return null
-        fun u16(off: Int) = ((d[off].toUInt() and 0xFFu) or ((d[off+1].toUInt() and 0xFFu) shl 8)).toUShort()
-        fun u32(off: Int) = (d[off].toUInt() and 0xFFu) or ((d[off+1].toUInt() and 0xFFu) shl 8) or
-                ((d[off+2].toUInt() and 0xFFu) shl 16) or ((d[off+3].toUInt() and 0xFFu) shl 24)
-        return OpusIdentification(
-            version = d[8].toInt() and 0xFF,
-            channels = d[9].toUByte(),
-            preSkipSamples = u16(10),
-            inputSampleRate = u32(12),
-            outputGain = u16(16).toShort(),
-            channelMappingFamily = d[18].toUByte(),
-        )
-    }
+  get() {
+    val bos = pages.firstOrNull { (it.headerType.toInt() and 0x02) != 0 } ?: return null
+    val d = bos.data.data
+    if (d.size < 19) return null
+    val magic = d.decodeToString(0, 8)
+    if (magic != "OpusHead") return null
+    fun u16(off: Int) = ((d[off].toUInt() and 0xFFu) or ((d[off + 1].toUInt() and 0xFFu) shl 8)).toUShort()
+    fun u32(off: Int) = (d[off].toUInt() and 0xFFu) or ((d[off + 1].toUInt() and 0xFFu) shl 8) or
+      ((d[off + 2].toUInt() and 0xFFu) shl 16) or ((d[off + 3].toUInt() and 0xFFu) shl 24)
+    return OpusIdentification(
+      version = d[8].toInt() and 0xFF,
+      channels = d[9].toUByte(),
+      preSkipSamples = u16(10),
+      inputSampleRate = u32(12),
+      outputGain = u16(16).toShort(),
+      channelMappingFamily = d[18].toUByte(),
+    )
+  }
 
 /** Sample rate from OpusHead (input sample rate, or 48000 as Opus default). */
 val OpusRaw.sampleRate: Hertz
-    get() {
-        val rate = opusIdentification?.inputSampleRate?.toInt() ?: 48000
-        return Hertz(if (rate == 0) 48000 else rate)
-    }
+  get() {
+    val rate = opusIdentification?.inputSampleRate?.toInt() ?: 48000
+    return Hertz(if (rate == 0) 48000 else rate)
+  }
 
 /** Channel count from OpusHead. */
 val OpusRaw.channels: Channels?
-    get() = opusIdentification?.channels?.toInt()?.let { Channels(it) }
+  get() = opusIdentification?.channels?.toInt()?.let { Channels(it) }
 
 /** Pre-skip sample count. */
 val OpusRaw.preSkipSamples: Int
-    get() = opusIdentification?.preSkipSamples?.toInt() ?: 0
+  get() = opusIdentification?.preSkipSamples?.toInt() ?: 0
 
 /** Output gain in Q7.8 dB. */
 val OpusRaw.outputGain: Short
-    get() = opusIdentification?.outputGain ?: 0
+  get() = opusIdentification?.outputGain ?: 0

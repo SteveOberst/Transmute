@@ -19,8 +19,11 @@ fun <IN, OUT> EncodeStage<IN, OUT, ImageEncodeOptions>.options(
 
     else -> {
       val preservesFormat = mutator.outputFormat == current.outputFormat
-      if (preservesFormat) current.withMetadataPolicy(mutator.metadataPolicy)
-      else CanonicalImageEncodeOptions(metadataPolicy = mutator.metadataPolicy, outputFormat = mutator.outputFormat)
+      if (preservesFormat) {
+        current.withMetadataPolicy(mutator.metadataPolicy)
+      } else {
+        CanonicalImageEncodeOptions(metadataPolicy = mutator.metadataPolicy, outputFormat = mutator.outputFormat)
+      }
     }
   }
 }
@@ -36,4 +39,3 @@ fun <IN, OUT> DecodeStage<IN, OUT, ImageDecodeOptions>.options(
     else -> CanonicalImageDecodeOptions(acceptedInputFormats = mutator.acceptedInputFormats.toSet())
   }
 }
-

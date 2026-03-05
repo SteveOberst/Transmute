@@ -25,12 +25,12 @@ package dev.transmute.plugin
  * Plugins that do not implement this interface are treated as [RegistryPriority.DEFAULT].
  */
 interface PluginRegistryPriority {
-    /**
-     * The priority tier this plugin's codecs occupy in the codec registry.
-     *
-     * Defaults to [RegistryPriority.DEFAULT].
-     */
-    val registryPriority: RegistryPriority get() = RegistryPriority.DEFAULT
+  /**
+   * The priority tier this plugin's codecs occupy in the codec registry.
+   *
+   * Defaults to [RegistryPriority.DEFAULT].
+   */
+  val registryPriority: RegistryPriority get() = RegistryPriority.DEFAULT
 }
 
 /**
@@ -40,27 +40,27 @@ interface PluginRegistryPriority {
  */
 enum class RegistryPriority {
 
-    /**
-     * This plugin's codecs are preferred and will be tried **before** any
-     * [DEFAULT] or [FALLBACK] codecs for the same format.
-     *
-     * Typical use: hardware-accelerated or platform-native codecs.
-     */
-    PREFERRED,
+  /**
+   * This plugin's codecs are preferred and will be tried **before** any
+   * [DEFAULT] or [FALLBACK] codecs for the same format.
+   *
+   * Typical use: hardware-accelerated or platform-native codecs.
+   */
+  PREFERRED,
 
-    /**
-     * Standard priority - the codec is registered at the position determined
-     * by installation order within the same tier.
-     *
-     * This is the default for all plugins that do not implement [PluginRegistryPriority].
-     */
-    DEFAULT,
+  /**
+   * Standard priority - the codec is registered at the position determined
+   * by installation order within the same tier.
+   *
+   * This is the default for all plugins that do not implement [PluginRegistryPriority].
+   */
+  DEFAULT,
 
-    /**
-     * This plugin's codecs are used only when no [PREFERRED] or [DEFAULT] codec
-     * can handle the format.
-     *
-     * Typical use: pure-software reference implementations, slow-but-compatible fallbacks.
-     */
-    FALLBACK,
+  /**
+   * This plugin's codecs are used only when no [PREFERRED] or [DEFAULT] codec
+   * can handle the format.
+   *
+   * Typical use: pure-software reference implementations, slow-but-compatible fallbacks.
+   */
+  FALLBACK,
 }

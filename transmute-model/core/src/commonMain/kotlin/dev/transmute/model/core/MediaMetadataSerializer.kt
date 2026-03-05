@@ -8,6 +8,6 @@ package dev.transmute.model.core
  * for the shared generic machinery.
  */
 object MediaMetadataSerializer : TypedEnvelopeSerializer<MediaMetadata>(
-    "MediaMetadata",
-    MediaMetadataRegistry,
+  "MediaMetadata",
+  MediaMetadataRegistry,
 )

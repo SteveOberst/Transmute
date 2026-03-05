@@ -29,63 +29,58 @@ import dev.transmute.video.MutableVideoEncoderRegistry
 
 internal actual fun isGStreamerAvailable(): Boolean = GStreamerJni.available
 
-internal actual fun installGstAudioCodecs(
-    decoders: MutableAudioDecoderRegistry,
-    encoders: MutableAudioEncoderRegistry,
-) {
-    if (!GStreamerJni.available) return
+internal actual fun installGstAudioCodecs(decoders: MutableAudioDecoderRegistry, encoders: MutableAudioEncoderRegistry) {
+  if (!GStreamerJni.available) return
 
-    val aac = GstAndroidAacCodec()
-    decoders.register(aac)
-    encoders.register(aac)
+  val aac = GstAndroidAacCodec()
+  decoders.register(aac)
+  encoders.register(aac)
 
-    val m4a = GstAndroidM4aCodec()
-    decoders.register(m4a)
-    encoders.register(m4a)
+  val m4a = GstAndroidM4aCodec()
+  decoders.register(m4a)
+  encoders.register(m4a)
 
-    val opus = GstAndroidOpusCodec()
-    decoders.register(opus)
-    encoders.register(opus)
+  val opus = GstAndroidOpusCodec()
+  decoders.register(opus)
+  encoders.register(opus)
 
-    encoders.register(GstAndroidFlacEncoder())
-    encoders.register(GstAndroidOggVorbisEncoder())
+  encoders.register(GstAndroidFlacEncoder())
+  encoders.register(GstAndroidOggVorbisEncoder())
 }
 
 internal actual fun installGstVideoCodecs(
-    decoders: MutableVideoDecoderRegistry,
-    encoders: MutableVideoEncoderRegistry,
-    features: PluginFeaturesConfig,
+  decoders: MutableVideoDecoderRegistry,
+  encoders: MutableVideoEncoderRegistry,
+  features: PluginFeaturesConfig,
 ) {
-    if (!GStreamerJni.available) return
+  if (!GStreamerJni.available) return
 
-    val mp4 = GstAndroidMp4Codec()
-    decoders.register(mp4)
-    encoders.register(mp4)
+  val mp4 = GstAndroidMp4Codec()
+  decoders.register(mp4)
+  encoders.register(mp4)
 
-    val mov = GstAndroidMovCodec()
-    decoders.register(mov)
-    encoders.register(mov)
+  val mov = GstAndroidMovCodec()
+  decoders.register(mov)
+  encoders.register(mov)
 
-    val webm = GstAndroidWebmCodec()
-    decoders.register(webm)
-    encoders.register(webm)
+  val webm = GstAndroidWebmCodec()
+  decoders.register(webm)
+  encoders.register(webm)
 
-    // Only register AVI if the LegacyAvi feature is enabled
-    if (features.isEnabled(GStreamerFeature.LegacyAvi)) {
-        val avi = GstAndroidAviCodec()
-        decoders.register(avi)
-        encoders.register(avi)
-    }
+  // Only register AVI if the LegacyAvi feature is enabled
+  if (features.isEnabled(GStreamerFeature.LegacyAvi)) {
+    val avi = GstAndroidAviCodec()
+    decoders.register(avi)
+    encoders.register(avi)
+  }
 
-    val mkv = GstAndroidMkvCodec()
-    decoders.register(mkv)
-    encoders.register(mkv)
+  val mkv = GstAndroidMkvCodec()
+  decoders.register(mkv)
+  encoders.register(mkv)
 }
 
-internal actual fun configureResolver(
-    installation: GStreamerInstallation,
-) {
-    // No-op on Android - GStreamer is bundled via JNI (libgstreamer_bridge.so)
+internal actual fun configureResolver(installation: GStreamerInstallation) {
+  // No-op on Android - GStreamer is bundled via JNI (libgstreamer_bridge.so)
 }
 
 internal actual fun resolverDiagnostics(): String = ""

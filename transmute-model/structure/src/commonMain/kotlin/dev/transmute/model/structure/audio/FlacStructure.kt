@@ -14,12 +14,12 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class FlacMetadataBlockSummary(
-    /** Block type (STREAMINFO, PADDING, APPLICATION, SEEKTABLE, VORBIS_COMMENT, CUESHEET, PICTURE, ...). */
-    val type: FlacMetadataBlockType,
-    /** `true` when this is the last metadata block before the audio frames. */
-    val isLast: Boolean,
-    /** Payload size in bytes (does not include the 4-byte block header). */
-    val dataSizeBytes: Int,
+  /** Block type (STREAMINFO, PADDING, APPLICATION, SEEKTABLE, VORBIS_COMMENT, CUESHEET, PICTURE, ...). */
+  val type: FlacMetadataBlockType,
+  /** `true` when this is the last metadata block before the audio frames. */
+  val isLast: Boolean,
+  /** Payload size in bytes (does not include the 4-byte block header). */
+  val dataSizeBytes: Int,
 )
 
 /**
@@ -40,22 +40,21 @@ data class FlacMetadataBlockSummary(
  */
 @Serializable
 data class FlacStructure(
-    /** Parsed STREAMINFO block (always the first metadata block). */
-    val streamInfo: FlacStreamInfo?,
-    /** All metadata blocks in file order (type + size; payload excluded). */
-    val metadataBlocks: List<FlacMetadataBlockSummary>,
-    /** Total audio frame data size in bytes. */
-    val audioDataBytes: Long,
+  /** Parsed STREAMINFO block (always the first metadata block). */
+  val streamInfo: FlacStreamInfo?,
+  /** All metadata blocks in file order (type + size; payload excluded). */
+  val metadataBlocks: List<FlacMetadataBlockSummary>,
+  /** Total audio frame data size in bytes. */
+  val audioDataBytes: Long,
 ) : MediaStructure
 
 /**
  * Parse this [dev.transmute.model.structure.audio.types.FlacRaw] into a [FlacStructure].
  */
-fun FlacRaw.toStructure(): FlacStructure =
-    FlacStructure(
-        streamInfo = streamInfo,
-        metadataBlocks = metadataBlocks.map {
-            FlacMetadataBlockSummary(it.type, it.isLast, it.data.size)
-        },
-        audioDataBytes = audioData.size.toLong(),
-    )
+fun FlacRaw.toStructure(): FlacStructure = FlacStructure(
+  streamInfo = streamInfo,
+  metadataBlocks = metadataBlocks.map {
+    FlacMetadataBlockSummary(it.type, it.isLast, it.data.size)
+  },
+  audioDataBytes = audioData.size.toLong(),
+)

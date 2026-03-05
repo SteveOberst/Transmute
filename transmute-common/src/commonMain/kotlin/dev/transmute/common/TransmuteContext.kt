@@ -114,8 +114,7 @@ class TransmuteContext private constructor(
      * }
      * ```
      */
-    inline operator fun invoke(block: Builder.() -> Unit = {}): TransmuteContext =
-      Builder().apply(block).build()
+    inline operator fun invoke(block: Builder.() -> Unit = {}): TransmuteContext = Builder().apply(block).build()
 
     /**
      * Creates a default [TransmuteContext] that mirrors the current global
@@ -131,6 +130,5 @@ class TransmuteContext private constructor(
     )
   }
 
-  override fun toString(): String =
-    "TransmuteContext(logger=$logger, extras=${extras.keys})"
+  override fun toString(): String = "TransmuteContext(logger=$logger, extras=${extras.keys})"
 }

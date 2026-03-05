@@ -17,17 +17,16 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class AvifStructure(
-    /** Parsed `ftyp` box (brand + compatible brands). */
-    val ftyp: FtypData?,
-    /** Full recursive ISO BMFF box hierarchy (payload bytes excluded). */
-    val boxes: List<IsoBmffBoxTree>,
+  /** Parsed `ftyp` box (brand + compatible brands). */
+  val ftyp: FtypData?,
+  /** Full recursive ISO BMFF box hierarchy (payload bytes excluded). */
+  val boxes: List<IsoBmffBoxTree>,
 ) : MediaStructure
 
 /**
  * Parse this [dev.transmute.model.structure.image.types.AvifRaw] into an [AvifStructure].
  */
-fun AvifRaw.toStructure(): AvifStructure =
-    AvifStructure(
-        ftyp = ftyp,
-        boxes = boxes.map { it.toTree() },
-    )
+fun AvifRaw.toStructure(): AvifStructure = AvifStructure(
+  ftyp = ftyp,
+  boxes = boxes.map { it.toTree() },
+)

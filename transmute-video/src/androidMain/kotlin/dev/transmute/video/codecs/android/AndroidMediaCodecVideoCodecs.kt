@@ -6,24 +6,24 @@ import android.media.MediaDataSource
 import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.media.MediaMuxer
-import dev.transmute.io.TSource
 import dev.transmute.audio.AudioSamples
-import dev.transmute.model.core.Bytes
 import dev.transmute.common.PipelineContext
-import dev.transmute.model.core.asBytes
 import dev.transmute.image.ByteArrayPixelBuffer
 import dev.transmute.image.PixelFormat
+import dev.transmute.io.TSource
+import dev.transmute.model.core.Bytes
+import dev.transmute.model.core.asBytes
 import dev.transmute.video.AudioTrack
 import dev.transmute.video.ListFrameStream
 import dev.transmute.video.VideoCodec
-import dev.transmute.video.VideoFrame
+import dev.transmute.video.VideoDecodeOptions
+import dev.transmute.video.VideoEncodeOptions
 import dev.transmute.video.VideoFormat
+import dev.transmute.video.VideoFrame
 import dev.transmute.video.VideoIR
 import dev.transmute.video.VideoTrack
 import java.io.File
 import java.nio.ByteOrder
-import dev.transmute.video.VideoDecodeOptions
-import dev.transmute.video.VideoEncodeOptions
 
 // ---------------------------------------------------------------------------
 // ByteArray -> MediaDataSource helper (private, same pattern as audio module)
@@ -45,9 +45,14 @@ private class ByteArrayMediaDataSource(private val bytes: ByteArray) : MediaData
 // ---------------------------------------------------------------------------
 
 private fun yuvToRgba(
-  yPlane: ByteArray, uPlane: ByteArray, vPlane: ByteArray,
-  yRowStride: Int, uvRowStride: Int, uvPixelStride: Int,
-  width: Int, height: Int,
+  yPlane: ByteArray,
+  uPlane: ByteArray,
+  vPlane: ByteArray,
+  yRowStride: Int,
+  uvRowStride: Int,
+  uvPixelStride: Int,
+  width: Int,
+  height: Int,
 ): ByteArray {
   val rgba = ByteArray(width * height * 4)
   for (row in 0 until height) {
@@ -104,8 +109,8 @@ private fun rgbaToNv12(rgba: ByteArray, width: Int, height: Int): ByteArray {
 // ---------------------------------------------------------------------------
 
 private fun decodeVideoWithMediaCodec(
-    source: ByteArray,
-    timeRangeMs: dev.transmute.codec.TimeRangeMs?,
+  source: ByteArray,
+  timeRangeMs: dev.transmute.codec.TimeRangeMs?,
 ): Pair<List<VideoFrame>, Pair<Int, MediaFormat?>> {
   val extractor = MediaExtractor()
   val dataSource = ByteArrayMediaDataSource(source)
@@ -158,14 +163,14 @@ private fun decodeVideoWithMediaCodec(
               sawInputEos = true
             } else {
               val sampleSize = extractor.readSampleData(inputBuffer, 0)
-            if (sampleSize < 0) {
-              codec.queueInputBuffer(inputIndex, 0, 0, 0L, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
-              sawInputEos = true
-            } else {
-              val pts = extractor.sampleTime
-              codec.queueInputBuffer(inputIndex, 0, sampleSize, pts, 0)
-              extractor.advance()
-            }
+              if (sampleSize < 0) {
+                codec.queueInputBuffer(inputIndex, 0, 0, 0L, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
+                sawInputEos = true
+              } else {
+                val pts = extractor.sampleTime
+                codec.queueInputBuffer(inputIndex, 0, sampleSize, pts, 0)
+                extractor.advance()
+              }
             }
           }
         }
@@ -184,11 +189,14 @@ private fun decodeVideoWithMediaCodec(
                 image.planes[2].buffer.get(vPlane)
 
                 val rgbaData = yuvToRgba(
-                  yPlane, uPlane, vPlane,
+                  yPlane,
+                  uPlane,
+                  vPlane,
                   yRowStride = image.planes[0].rowStride,
                   uvRowStride = image.planes[1].rowStride,
                   uvPixelStride = image.planes[1].pixelStride,
-                  width = image.width, height = image.height,
+                  width = image.width,
+                  height = image.height,
                 )
 
                 val timestampMs = bufferInfo.presentationTimeUs / 1000
@@ -232,10 +240,7 @@ private fun decodeVideoWithMediaCodec(
   }
 }
 
-private fun decodeAudioWithMediaCodec(
-    source: ByteArray,
-    timeRangeMs: dev.transmute.codec.TimeRangeMs?,
-): AudioSamples? {
+private fun decodeAudioWithMediaCodec(source: ByteArray, timeRangeMs: dev.transmute.codec.TimeRangeMs?): AudioSamples? {
   val extractor = MediaExtractor()
   val dataSource = ByteArrayMediaDataSource(source)
 
@@ -370,7 +375,9 @@ private fun encodeVideoWithMediaCodec(
     // --- Audio encoder (optional) ---
     val audioCodec = if (ir.audioTrack != null && audioMime != null) {
       MediaCodec.createEncoderByType(audioMime)
-    } else null
+    } else {
+      null
+    }
 
     try {
       videoCodec.configure(vFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
@@ -433,7 +440,11 @@ private fun encodeVideoWithMediaCodec(
             inputBuffer.clear()
             if (frameIdx >= allFrames.size) {
               videoCodec.queueInputBuffer(
-                inputIndex, 0, 0, 0L, MediaCodec.BUFFER_FLAG_END_OF_STREAM,
+                inputIndex,
+                0,
+                0,
+                0L,
+                MediaCodec.BUFFER_FLAG_END_OF_STREAM,
               )
               frameIdx++
             } else {
@@ -513,7 +524,11 @@ private fun encodeVideoWithMediaCodec(
               val remaining = pcmBytes.size - audioInputOffset
               if (remaining <= 0) {
                 audioCodec.queueInputBuffer(
-                  inputIndex, 0, 0, 0L, MediaCodec.BUFFER_FLAG_END_OF_STREAM,
+                  inputIndex,
+                  0,
+                  0,
+                  0L,
+                  MediaCodec.BUFFER_FLAG_END_OF_STREAM,
                 )
                 sawAudioInputEos = true
               } else {
@@ -619,18 +634,23 @@ internal class AndroidMp4Codec : VideoCodec {
 
     val audioSamples = if (audioInfo.first >= 0) {
       decodeAudioWithMediaCodec(bytes, timeRange)
-    } else null
+    } else {
+      null
+    }
 
     val width = frames.first().width
     val height = frames.first().height
     val durationMs = timeRange?.durationMs ?: frames.last().timestampMs.coerceAtLeast(1)
     val frameRate = if (durationMs > 0) {
       frames.size.toDouble() * 1000.0 / durationMs
-    } else 30.0
+    } else {
+      30.0
+    }
 
     return VideoIR(
       videoTrack = VideoTrack(
-        width = width, height = height,
+        width = width,
+        height = height,
         frameRate = frameRate,
         frames = ListFrameStream(frames),
       ),
@@ -666,18 +686,23 @@ internal class AndroidMovCodec : VideoCodec {
 
     val audioSamples = if (audioInfo.first >= 0) {
       decodeAudioWithMediaCodec(bytes, timeRange)
-    } else null
+    } else {
+      null
+    }
 
     val width = frames.first().width
     val height = frames.first().height
     val durationMs = timeRange?.durationMs ?: frames.last().timestampMs.coerceAtLeast(1)
     val frameRate = if (durationMs > 0) {
       frames.size.toDouble() * 1000.0 / durationMs
-    } else 30.0
+    } else {
+      30.0
+    }
 
     return VideoIR(
       videoTrack = VideoTrack(
-        width = width, height = height,
+        width = width,
+        height = height,
         frameRate = frameRate,
         frames = ListFrameStream(frames),
       ),
@@ -711,18 +736,23 @@ internal class AndroidWebmDecoder : dev.transmute.video.VideoDecoder {
 
     val audioSamples = if (audioInfo.first >= 0) {
       decodeAudioWithMediaCodec(bytes, timeRange)
-    } else null
+    } else {
+      null
+    }
 
     val width = frames.first().width
     val height = frames.first().height
     val durationMs = timeRange?.durationMs ?: frames.last().timestampMs.coerceAtLeast(1)
     val frameRate = if (durationMs > 0) {
       frames.size.toDouble() * 1000.0 / durationMs
-    } else 30.0
+    } else {
+      30.0
+    }
 
     return VideoIR(
       videoTrack = VideoTrack(
-        width = width, height = height,
+        width = width,
+        height = height,
         frameRate = frameRate,
         frames = ListFrameStream(frames),
       ),
@@ -731,4 +761,3 @@ internal class AndroidWebmDecoder : dev.transmute.video.VideoDecoder {
     )
   }
 }
-

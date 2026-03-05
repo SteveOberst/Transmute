@@ -76,4 +76,3 @@ sealed interface ImageFormat : MediaFormat<ImageDecodeOptions, ImageEncodeOption
     val all: Set<ImageFormat> = setOf(Jpeg, Png, Webp, Heif, Heic, Avif, Gif, Bmp, Tiff)
   }
 }
-

@@ -66,8 +66,7 @@ class TransformPipeline<IR> {
   }
 
   /** Alias for [before]. */
-  inline fun <reified B : Transform<IR>> addBefore(transform: Transform<IR>): TransformPipeline<IR> =
-    before<B>(transform)
+  inline fun <reified B : Transform<IR>> addBefore(transform: Transform<IR>): TransformPipeline<IR> = before<B>(transform)
 
   /**
    * Insert [transform] **after** the first occurrence of type [B].
@@ -81,15 +80,17 @@ class TransformPipeline<IR> {
   }
 
   /** Alias for [after]. */
-  inline fun <reified B : Transform<IR>> addAfter(transform: Transform<IR>): TransformPipeline<IR> =
-    after<B>(transform)
+  inline fun <reified B : Transform<IR>> addAfter(transform: Transform<IR>): TransformPipeline<IR> = after<B>(transform)
 
   // -- Removal --
 
   /** Remove the first occurrence of type [B]. Returns `true` if found. */
   inline fun <reified B : Transform<IR>> remove(): Boolean {
     val index = _transforms.indexOfFirst { it is B }
-    if (index >= 0) { _transforms.removeAt(index); return true }
+    if (index >= 0) {
+      _transforms.removeAt(index)
+      return true
+    }
     return false
   }
 
@@ -122,9 +123,10 @@ class TransformPipeline<IR> {
 
   // -- Kotlin operators --
 
-  operator fun plusAssign(transform: Transform<IR>) { add(transform) }
+  operator fun plusAssign(transform: Transform<IR>) {
+    add(transform)
+  }
   operator fun iterator(): Iterator<Transform<IR>> = _transforms.iterator()
 
-  override fun toString(): String =
-    "TransformPipeline(${_transforms.joinToString { it.id.value }})"
+  override fun toString(): String = "TransformPipeline(${_transforms.joinToString { it.id.value }})"
 }

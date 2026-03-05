@@ -70,7 +70,7 @@ class PlaygroundRoutesTest {
     @Test
     fun knownPluginRouteReturns200() = testApplication {
         application { configureServer(testService()) }
-        val response = client.get("/api/plugins/${GStreamer.key.id}")
+        val response = client.get("/api/plugins/gstreamer")
         assertEquals(HttpStatusCode.OK, response.status)
     }
 

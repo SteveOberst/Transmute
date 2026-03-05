@@ -22,17 +22,15 @@ fun interface PipelineHandler<IN, OUT> {
  * val handler = ImageCodecs.Decode.DEFAULT + MyAuditHandler() + MyMetricsHandler()
  * ```
  */
-operator fun <A, B, C> PipelineHandler<A, B>.plus(next: PipelineHandler<B, C>): PipelineHandler<A, C> =
-  PipelineHandler { value, ctx ->
-    val mid = handle(value, ctx)
-    next.handle(mid, ctx)
-  }
+operator fun <A, B, C> PipelineHandler<A, B>.plus(next: PipelineHandler<B, C>): PipelineHandler<A, C> = PipelineHandler { value, ctx ->
+  val mid = handle(value, ctx)
+  next.handle(mid, ctx)
+}
 
 /**
  * Tap-style handler that executes [block] and returns the original value unchanged.
  */
-fun <T> tap(block: suspend (T, PipelineContext) -> Unit): PipelineHandler<T, T> =
-  PipelineHandler { value, ctx ->
-    block(value, ctx)
-    value
-  }
+fun <T> tap(block: suspend (T, PipelineContext) -> Unit): PipelineHandler<T, T> = PipelineHandler { value, ctx ->
+  block(value, ctx)
+  value
+}

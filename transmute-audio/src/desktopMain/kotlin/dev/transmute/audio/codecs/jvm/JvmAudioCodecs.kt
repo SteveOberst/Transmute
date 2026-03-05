@@ -3,16 +3,18 @@ package dev.transmute.audio.codecs.jvm
 import com.jcraft.jorbis.VorbisFile
 import com.jcraft.jorbis.VorbisFileAccess
 import de.sciss.jump3r.lowlevel.LameEncoder
-import dev.transmute.io.TSource
 import dev.transmute.audio.AudioCodec
 import dev.transmute.audio.AudioDecodeOptions
 import dev.transmute.audio.AudioEncodeOptions
 import dev.transmute.audio.AudioFormat
 import dev.transmute.audio.AudioIR
 import dev.transmute.audio.AudioSamples
-import dev.transmute.model.core.Bytes
 import dev.transmute.common.PipelineContext
+import dev.transmute.io.TSource
+import dev.transmute.model.core.Bytes
 import dev.transmute.model.core.asBytes
+import java.io.ByteArrayInputStream
+import javax.sound.sampled.AudioFormat as JvmAudioFormat
 import javazoom.jl.decoder.Bitstream
 import javazoom.jl.decoder.Decoder
 import javazoom.jl.decoder.SampleBuffer
@@ -20,8 +22,6 @@ import org.jflac.FLACDecoder
 import org.jflac.PCMProcessor
 import org.jflac.metadata.StreamInfo
 import org.jflac.util.ByteData
-import java.io.ByteArrayInputStream
-import javax.sound.sampled.AudioFormat as JvmAudioFormat
 
 private fun requireNoDecodeRange(options: AudioDecodeOptions, codecName: String) {
   if (options.decodeRange != null) {
@@ -87,29 +87,24 @@ class JvmMp3Codec : AudioCodec {
     )
   }
 
-  override suspend fun encode(
-    ir: AudioIR,
-    format: AudioFormat,
-    options: AudioEncodeOptions,
-    context: PipelineContext,
-  ): Bytes {
+  override suspend fun encode(ir: AudioIR, format: AudioFormat, options: AudioEncodeOptions, context: PipelineContext): Bytes {
     require(format == AudioFormat.Mp3) { "JvmMp3Codec only supports MP3, got $format" }
     val pcmBytes = floatToPcm16(ir.samples.data)
 
     val sourceFormat = JvmAudioFormat(
       ir.sampleRate.toFloat(),
-      16,              // bits per sample
+      16, // bits per sample
       ir.channelCount,
-      true,            // signed
-      false,           // little-endian
+      true, // signed
+      false, // little-endian
     )
 
     val lame = LameEncoder(
       sourceFormat,
-      128,                             // bitrate kbps
+      128, // bitrate kbps
       LameEncoder.CHANNEL_MODE_AUTO,
       LameEncoder.QUALITY_MIDDLE,
-      false,                           // VBR
+      false, // VBR
     )
 
     try {
@@ -201,12 +196,7 @@ class JvmFlacCodec : AudioCodec {
     )
   }
 
-  override suspend fun encode(
-    ir: AudioIR,
-    format: AudioFormat,
-    options: AudioEncodeOptions,
-    context: PipelineContext,
-  ): Bytes {
+  override suspend fun encode(ir: AudioIR, format: AudioFormat, options: AudioEncodeOptions, context: PipelineContext): Bytes {
     error("FLAC encoding on Desktop requires the transmute-gstreamer module")
   }
 
@@ -287,12 +277,7 @@ class JvmOggVorbisCodec : AudioCodec {
     )
   }
 
-  override suspend fun encode(
-    ir: AudioIR,
-    format: AudioFormat,
-    options: AudioEncodeOptions,
-    context: PipelineContext,
-  ): Bytes {
+  override suspend fun encode(ir: AudioIR, format: AudioFormat, options: AudioEncodeOptions, context: PipelineContext): Bytes {
     error("OGG/Vorbis encoding on Desktop requires the transmute-gstreamer module")
   }
 }

@@ -3,6 +3,7 @@
 package dev.transmute.model.structure.video.types
 
 import dev.transmute.model.core.Bytes
+import dev.transmute.model.core.RawMediaStructure
 import dev.transmute.model.core.concatToBytes
 import dev.transmute.model.identify.Brand
 import dev.transmute.model.structure.common.FtypData
@@ -14,7 +15,6 @@ import dev.transmute.model.structure.common.majorBrand
 import dev.transmute.model.structure.common.mdatBox
 import dev.transmute.model.structure.common.minorVersion
 import dev.transmute.model.structure.common.moovBox
-import dev.transmute.model.core.RawMediaStructure
 import kotlinx.serialization.Serializable
 
 // --- MOV file - complete on-disk representation ---
@@ -33,13 +33,13 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class MovRaw(
-    /** All top-level ISO BMFF boxes (atoms) in file order. */
-    val boxes: List<IsoBmffBox>,
+  /** All top-level ISO BMFF boxes (atoms) in file order. */
+  val boxes: List<IsoBmffBox>,
 ) : RawMediaStructure {
 
-    // --- Binary serialization ---
+  // --- Binary serialization ---
 
-    override fun toBytes(): Bytes = boxes.concatToBytes()
+  override fun toBytes(): Bytes = boxes.concatToBytes()
 }
 
 // --- Typed extension accessors (delegated to shared List<IsoBmffBox> extensions) ---

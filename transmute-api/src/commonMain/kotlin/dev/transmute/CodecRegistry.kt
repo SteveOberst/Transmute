@@ -17,9 +17,9 @@ import dev.transmute.model.core.MediaStructureRegistry
 import dev.transmute.model.core.NoDecodeOptions
 import dev.transmute.model.core.RawMediaStructure
 import dev.transmute.model.core.TypedRegistrationScope
-import dev.transmute.video.VideoFormat
 import dev.transmute.video.MutableVideoDecoderRegistry
 import dev.transmute.video.MutableVideoEncoderRegistry
+import dev.transmute.video.VideoFormat
 
 // -- Generic structure-decoder registry --------------------------------------
 
@@ -35,19 +35,18 @@ import dev.transmute.video.MutableVideoEncoderRegistry
  * ```
  */
 class MutableDecoderRegistry<F : MediaFormat<*, *>, OUT> {
-    private val byFormat = mutableMapOf<MediaFormat<*, *>, MediaDecoder<F, out OUT, NoDecodeOptions>>()
+  private val byFormat = mutableMapOf<MediaFormat<*, *>, MediaDecoder<F, out OUT, NoDecodeOptions>>()
 
-    /** Register [decoder] for the given [format]. A later registration overrides an earlier one. */
-    fun register(format: F, decoder: MediaDecoder<F, out OUT, NoDecodeOptions>) {
-        byFormat[format] = decoder
-    }
+  /** Register [decoder] for the given [format]. A later registration overrides an earlier one. */
+  fun register(format: F, decoder: MediaDecoder<F, out OUT, NoDecodeOptions>) {
+    byFormat[format] = decoder
+  }
 
-    /** Return the decoder registered for [format], or `null` if none is registered. */
-    operator fun get(format: MediaFormat<*, *>): MediaDecoder<F, out OUT, NoDecodeOptions>? =
-        byFormat[format]
+  /** Return the decoder registered for [format], or `null` if none is registered. */
+  operator fun get(format: MediaFormat<*, *>): MediaDecoder<F, out OUT, NoDecodeOptions>? = byFormat[format]
 
-    /** All formats for which a decoder is registered. */
-    val supportedFormats: Set<MediaFormat<*, *>> get() = byFormat.keys.toSet()
+  /** All formats for which a decoder is registered. */
+  val supportedFormats: Set<MediaFormat<*, *>> get() = byFormat.keys.toSet()
 }
 
 // -- Domain codec registries --------------------------------------------------
@@ -59,40 +58,40 @@ class MutableDecoderRegistry<F : MediaFormat<*, *>, OUT> {
  * decoders, encoders, and structure decoders for image formats.
  */
 class ImageCodecRegistry(
-    /** IR (pixel-data) decoders for image formats. */
-    val decoders: MutableImageDecoderRegistry = MutableImageDecoderRegistry(),
-    /** IR (pixel-data) encoders for image formats. */
-    val encoders: MutableImageEncoderRegistry = MutableImageEncoderRegistry(),
-    /** Raw on-disk structure decoders - bytes -> [RawMediaStructure]. */
-    val rawStructureDecoders: MutableDecoderRegistry<ImageFormat, RawMediaStructure> = MutableDecoderRegistry(),
-    /** Developer-friendly structure decoders - bytes -> [MediaStructure]. */
-    val structureDecoders: MutableDecoderRegistry<ImageFormat, MediaStructure> = MutableDecoderRegistry(),
-    /** Metadata decoders - bytes -> list of [MediaMetadata]. */
-    val metadataDecoders: MutableDecoderRegistry<ImageFormat, List<MediaMetadata>> = MutableDecoderRegistry(),
+  /** IR (pixel-data) decoders for image formats. */
+  val decoders: MutableImageDecoderRegistry = MutableImageDecoderRegistry(),
+  /** IR (pixel-data) encoders for image formats. */
+  val encoders: MutableImageEncoderRegistry = MutableImageEncoderRegistry(),
+  /** Raw on-disk structure decoders - bytes -> [RawMediaStructure]. */
+  val rawStructureDecoders: MutableDecoderRegistry<ImageFormat, RawMediaStructure> = MutableDecoderRegistry(),
+  /** Developer-friendly structure decoders - bytes -> [MediaStructure]. */
+  val structureDecoders: MutableDecoderRegistry<ImageFormat, MediaStructure> = MutableDecoderRegistry(),
+  /** Metadata decoders - bytes -> list of [MediaMetadata]. */
+  val metadataDecoders: MutableDecoderRegistry<ImageFormat, List<MediaMetadata>> = MutableDecoderRegistry(),
 )
 
 /**
  * Holds all mutable codec registries for audio formats.
  */
 class AudioCodecRegistry(
-    val decoders: MutableAudioDecoderRegistry = MutableAudioDecoderRegistry(),
-    val encoders: MutableAudioEncoderRegistry = MutableAudioEncoderRegistry(),
-    val rawStructureDecoders: MutableDecoderRegistry<AudioFormat, RawMediaStructure> = MutableDecoderRegistry(),
-    val structureDecoders: MutableDecoderRegistry<AudioFormat, MediaStructure> = MutableDecoderRegistry(),
-    /** Metadata decoders - bytes -> list of [MediaMetadata]. */
-    val metadataDecoders: MutableDecoderRegistry<AudioFormat, List<MediaMetadata>> = MutableDecoderRegistry(),
+  val decoders: MutableAudioDecoderRegistry = MutableAudioDecoderRegistry(),
+  val encoders: MutableAudioEncoderRegistry = MutableAudioEncoderRegistry(),
+  val rawStructureDecoders: MutableDecoderRegistry<AudioFormat, RawMediaStructure> = MutableDecoderRegistry(),
+  val structureDecoders: MutableDecoderRegistry<AudioFormat, MediaStructure> = MutableDecoderRegistry(),
+  /** Metadata decoders - bytes -> list of [MediaMetadata]. */
+  val metadataDecoders: MutableDecoderRegistry<AudioFormat, List<MediaMetadata>> = MutableDecoderRegistry(),
 )
 
 /**
  * Holds all mutable codec registries for video formats.
  */
 class VideoCodecRegistry(
-    val decoders: MutableVideoDecoderRegistry = MutableVideoDecoderRegistry(),
-    val encoders: MutableVideoEncoderRegistry = MutableVideoEncoderRegistry(),
-    val rawStructureDecoders: MutableDecoderRegistry<VideoFormat, RawMediaStructure> = MutableDecoderRegistry(),
-    val structureDecoders: MutableDecoderRegistry<VideoFormat, MediaStructure> = MutableDecoderRegistry(),
-    /** Metadata decoders - bytes -> list of [MediaMetadata]. */
-    val metadataDecoders: MutableDecoderRegistry<VideoFormat, List<MediaMetadata>> = MutableDecoderRegistry(),
+  val decoders: MutableVideoDecoderRegistry = MutableVideoDecoderRegistry(),
+  val encoders: MutableVideoEncoderRegistry = MutableVideoEncoderRegistry(),
+  val rawStructureDecoders: MutableDecoderRegistry<VideoFormat, RawMediaStructure> = MutableDecoderRegistry(),
+  val structureDecoders: MutableDecoderRegistry<VideoFormat, MediaStructure> = MutableDecoderRegistry(),
+  /** Metadata decoders - bytes -> list of [MediaMetadata]. */
+  val metadataDecoders: MutableDecoderRegistry<VideoFormat, List<MediaMetadata>> = MutableDecoderRegistry(),
 )
 
 /**
@@ -114,9 +113,9 @@ class VideoCodecRegistry(
  * ```
  */
 class CodecRegistry(
-    val image: ImageCodecRegistry = ImageCodecRegistry(),
-    val audio: AudioCodecRegistry = AudioCodecRegistry(),
-    val video: VideoCodecRegistry = VideoCodecRegistry(),
+  val image: ImageCodecRegistry = ImageCodecRegistry(),
+  val audio: AudioCodecRegistry = AudioCodecRegistry(),
+  val video: VideoCodecRegistry = VideoCodecRegistry(),
 )
 
 // -- Registration scopes (for plugin API) -------------------------------------
@@ -126,13 +125,11 @@ class CodecRegistry(
  *
  * Delegates to [MediaStructureRegistry] via [TypedRegistrationScope].
  */
-class MediaStructureRegistrationScope
-    : TypedRegistrationScope<MediaStructure>(MediaStructureRegistry)
+class MediaStructureRegistrationScope : TypedRegistrationScope<MediaStructure>(MediaStructureRegistry)
 
 /**
  * Plugin-facing scope for registering [MediaMetadata] serialisation types.
  *
  * Delegates to [MediaMetadataRegistry] via [TypedRegistrationScope].
  */
-class MediaMetadataRegistrationScope
-    : TypedRegistrationScope<MediaMetadata>(MediaMetadataRegistry)
+class MediaMetadataRegistrationScope : TypedRegistrationScope<MediaMetadata>(MediaMetadataRegistry)

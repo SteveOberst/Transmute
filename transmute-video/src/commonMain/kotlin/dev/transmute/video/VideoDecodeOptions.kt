@@ -1,7 +1,7 @@
 package dev.transmute.video
 
-import dev.transmute.model.core.DecodeOptions
 import dev.transmute.codec.DecodeRange
+import dev.transmute.model.core.DecodeOptions
 
 /**
  * Sealed hierarchy of video decoding options.

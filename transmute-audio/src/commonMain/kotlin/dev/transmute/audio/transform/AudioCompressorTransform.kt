@@ -4,8 +4,8 @@ import dev.transmute.audio.AudioHint
 import dev.transmute.audio.AudioIR
 import dev.transmute.audio.AudioSamples
 import dev.transmute.audio.AudioTransform
-import dev.transmute.common.PipelineContext
 import dev.transmute.codec.pipeline.TransformId
+import dev.transmute.common.PipelineContext
 import kotlin.math.abs
 import kotlin.math.pow
 
@@ -48,8 +48,8 @@ class AudioCompressorTransform(
     }
 
     context.logger.info(
-      "AudioCompressorTransform: threshold=${thresholdDb}dB ratio=${ratio}:1 " +
-        "attack=${attackMs}ms release=${releaseMs}ms makeup=${makeupGainDb}dB"
+      "AudioCompressorTransform: threshold=${thresholdDb}dB ratio=$ratio:1 " +
+        "attack=${attackMs}ms release=${releaseMs}ms makeup=${makeupGainDb}dB",
     )
 
     val samples = ir.samples.data

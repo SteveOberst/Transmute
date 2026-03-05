@@ -10,26 +10,22 @@ import dev.transmute.video.transform.VideoSpeedTransform
 import dev.transmute.video.transform.VideoTrimTransform
 
 /** Trim to time range (milliseconds). [endMs] = null -> end of video. */
-fun <IN, OUT> DynamicVideoTransmuterBuilder<IN, OUT>.trim(startMs: Long, endMs: Long? = null): DynamicVideoTransmuterBuilder<IN, OUT> = apply {
-  transform { add(VideoTrimTransform(startMs, endMs)) }
-}
+fun <IN, OUT> DynamicVideoTransmuterBuilder<IN, OUT>.trim(startMs: Long, endMs: Long? = null): DynamicVideoTransmuterBuilder<IN, OUT> =
+  apply {
+    transform { add(VideoTrimTransform(startMs, endMs)) }
+  }
 
-fun <IN, OUT : VideoFormat> VideoTransmuterBuilder<IN, OUT>.trim(
-  startMs: Long,
-  endMs: Long? = null,
-): VideoTransmuterBuilder<IN, OUT> = apply {
-  transform { add(VideoTrimTransform(startMs, endMs)) }
-}
+fun <IN, OUT : VideoFormat> VideoTransmuterBuilder<IN, OUT>.trim(startMs: Long, endMs: Long? = null): VideoTransmuterBuilder<IN, OUT> =
+  apply {
+    transform { add(VideoTrimTransform(startMs, endMs)) }
+  }
 
 /** Resize frames to fit within [maxWidth]x[maxHeight], preserving aspect ratio. No upscaling. */
 fun <IN, OUT> DynamicVideoTransmuterBuilder<IN, OUT>.resize(maxWidth: Int, maxHeight: Int): DynamicVideoTransmuterBuilder<IN, OUT> = apply {
   transform { add(VideoResizeTransform(maxWidth, maxHeight)) }
 }
 
-fun <IN, OUT : VideoFormat> VideoTransmuterBuilder<IN, OUT>.resize(
-  maxWidth: Int,
-  maxHeight: Int,
-): VideoTransmuterBuilder<IN, OUT> = apply {
+fun <IN, OUT : VideoFormat> VideoTransmuterBuilder<IN, OUT>.resize(maxWidth: Int, maxHeight: Int): VideoTransmuterBuilder<IN, OUT> = apply {
   transform { add(VideoResizeTransform(maxWidth, maxHeight)) }
 }
 
@@ -52,9 +48,10 @@ fun <IN, OUT : VideoFormat> VideoTransmuterBuilder<IN, OUT>.removeAudio(): Video
 }
 
 /** Crop frames to a sub-region. Coordinates clamped to frame bounds. */
-fun <IN, OUT> DynamicVideoTransmuterBuilder<IN, OUT>.crop(x: Int, y: Int, width: Int, height: Int): DynamicVideoTransmuterBuilder<IN, OUT> = apply {
-  transform { add(VideoCropTransform(x, y, width, height)) }
-}
+fun <IN, OUT> DynamicVideoTransmuterBuilder<IN, OUT>.crop(x: Int, y: Int, width: Int, height: Int): DynamicVideoTransmuterBuilder<IN, OUT> =
+  apply {
+    transform { add(VideoCropTransform(x, y, width, height)) }
+  }
 
 fun <IN, OUT : VideoFormat> VideoTransmuterBuilder<IN, OUT>.crop(
   x: Int,

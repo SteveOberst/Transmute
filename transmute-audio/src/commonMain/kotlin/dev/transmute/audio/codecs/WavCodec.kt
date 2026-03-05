@@ -1,6 +1,5 @@
 package dev.transmute.audio.codecs
 
-import dev.transmute.io.TSource
 import dev.transmute.audio.AudioDecodeOptions
 import dev.transmute.audio.AudioDecoder
 import dev.transmute.audio.AudioEncodeOptions
@@ -9,8 +8,9 @@ import dev.transmute.audio.AudioFormat
 import dev.transmute.audio.AudioIR
 import dev.transmute.audio.AudioMetadata
 import dev.transmute.audio.AudioSamples
-import dev.transmute.model.core.Bytes
 import dev.transmute.common.PipelineContext
+import dev.transmute.io.TSource
+import dev.transmute.model.core.Bytes
 
 /**
  * Pure Kotlin WAV decoder supporting PCM (8/16/24/32-bit) and IEEE float formats.
@@ -128,7 +128,7 @@ class WavDecoder : AudioDecoder {
     val sampleCount = data.size / 2
     val samples = FloatArray(sampleCount)
     for (i in 0 until sampleCount) {
-      val sample = data.readInt16LE(i * 2).toShort()  // Convert to signed
+      val sample = data.readInt16LE(i * 2).toShort() // Convert to signed
       samples[i] = sample / 32768f
     }
     return samples
@@ -174,12 +174,7 @@ class WavEncoder : AudioEncoder {
 
   override val supportedFormats: Set<AudioFormat> = setOf(AudioFormat.Wav)
 
-  override suspend fun encode(
-    ir: AudioIR,
-    format: AudioFormat,
-    options: AudioEncodeOptions,
-    context: PipelineContext,
-  ): Bytes {
+  override suspend fun encode(ir: AudioIR, format: AudioFormat, options: AudioEncodeOptions, context: PipelineContext): Bytes {
     require(format == AudioFormat.Wav) { "WavEncoder only supports WAV, got $format" }
     val samples = ir.samples.data
     val sampleRate = ir.sampleRate
@@ -226,21 +221,17 @@ class WavEncoder : AudioEncoder {
 
 // --- ByteArray extensions for little-endian I/O ---
 
-private fun ByteArray.readString(offset: Int, length: Int): String {
-  return (offset until offset + length).map { this[it].toInt().toChar() }.joinToString("")
-}
+private fun ByteArray.readString(offset: Int, length: Int): String = (offset until offset + length).map {
+  this[it].toInt().toChar()
+}.joinToString("")
 
-private fun ByteArray.readInt16LE(offset: Int): Int {
-  return (this[offset].toInt() and 0xFF) or
-    ((this[offset + 1].toInt() and 0xFF) shl 8)
-}
+private fun ByteArray.readInt16LE(offset: Int): Int = (this[offset].toInt() and 0xFF) or
+  ((this[offset + 1].toInt() and 0xFF) shl 8)
 
-private fun ByteArray.readInt32LE(offset: Int): Int {
-  return (this[offset].toInt() and 0xFF) or
-    ((this[offset + 1].toInt() and 0xFF) shl 8) or
-    ((this[offset + 2].toInt() and 0xFF) shl 16) or
-    ((this[offset + 3].toInt() and 0xFF) shl 24)
-}
+private fun ByteArray.readInt32LE(offset: Int): Int = (this[offset].toInt() and 0xFF) or
+  ((this[offset + 1].toInt() and 0xFF) shl 8) or
+  ((this[offset + 2].toInt() and 0xFF) shl 16) or
+  ((this[offset + 3].toInt() and 0xFF) shl 24)
 
 private fun ByteArray.writeString(offset: Int, value: String) {
   for (i in value.indices) {

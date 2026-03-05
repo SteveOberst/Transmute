@@ -4,6 +4,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class Endianness {
-    Little,
-    Big,
+  Little,
+  Big,
 }

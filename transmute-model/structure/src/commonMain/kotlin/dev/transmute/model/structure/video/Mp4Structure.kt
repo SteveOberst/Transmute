@@ -17,17 +17,16 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class Mp4Structure(
-    /** Parsed `ftyp` box (brand + compatible brands). */
-    val ftyp: FtypData?,
-    /** Full recursive ISO BMFF box hierarchy (payload bytes excluded). */
-    val boxes: List<IsoBmffBoxTree>,
+  /** Parsed `ftyp` box (brand + compatible brands). */
+  val ftyp: FtypData?,
+  /** Full recursive ISO BMFF box hierarchy (payload bytes excluded). */
+  val boxes: List<IsoBmffBoxTree>,
 ) : MediaStructure
 
 /**
  * Parse this [dev.transmute.model.structure.video.types.Mp4Raw] into an [Mp4Structure].
  */
-fun Mp4Raw.toStructure(): Mp4Structure =
-    Mp4Structure(
-        ftyp = ftyp,
-        boxes = boxes.map { it.toTree() },
-    )
+fun Mp4Raw.toStructure(): Mp4Structure = Mp4Structure(
+  ftyp = ftyp,
+  boxes = boxes.map { it.toTree() },
+)

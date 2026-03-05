@@ -45,51 +45,51 @@ private const val GSTREAMER_CONFIG_KEY = "transmute.gstreamer.config"
  * ```
  */
 fun TransmuteContext.Builder.gstreamer(block: GStreamerConfig.Builder.() -> Unit = {}) {
-    val config = GStreamerConfig.Builder().apply(block).build()
-    extra(GSTREAMER_CONFIG_KEY, config)
+  val config = GStreamerConfig.Builder().apply(block).build()
+  extra(GSTREAMER_CONFIG_KEY, config)
 
-    // Apply resolver configuration
-    configureResolver(config.installation)
+  // Apply resolver configuration
+  configureResolver(config.installation)
 
-    if (MediaDomain.AUDIO in config.domains) {
-        val decoders = MutableAudioDecoderRegistry()
-        val encoders = MutableAudioEncoderRegistry()
-        decoders.register(WavDecoder())
-        encoders.register(WavEncoder())
-        installPlatformAudioCodecs(decoders, encoders)
-        if (GStreamerCodecInstaller.available) {
-            GStreamerCodecInstaller.installAudioCodecs(decoders, encoders)
-        }
-        audioDecoders(decoders)
-        audioEncoders(encoders)
+  if (MediaDomain.AUDIO in config.domains) {
+    val decoders = MutableAudioDecoderRegistry()
+    val encoders = MutableAudioEncoderRegistry()
+    decoders.register(WavDecoder())
+    encoders.register(WavEncoder())
+    installPlatformAudioCodecs(decoders, encoders)
+    if (GStreamerCodecInstaller.available) {
+      GStreamerCodecInstaller.installAudioCodecs(decoders, encoders)
     }
+    audioDecoders(decoders)
+    audioEncoders(encoders)
+  }
 
-    if (MediaDomain.IMAGE in config.domains) {
-        val decoders = MutableImageDecoderRegistry()
-        val encoders = MutableImageEncoderRegistry()
-        installPlatformImageCodecs(decoders, encoders)
-        if (decoders.decoderFor(ImageFormat.Bmp) == null) {
-            decoders.register(BmpImageDecoder())
-        }
-        if (encoders.encoderFor(ImageFormat.Bmp) == null) {
-            encoders.register(BmpImageEncoder())
-        }
-        // NOTE: HEIF/HEIC/AVIF image codecs are now provided by the libheif plugin,
-        // not by GStreamer. GStreamer only handles audio and video codecs.
-        imageDecoders(decoders)
-        imageEncoders(encoders)
+  if (MediaDomain.IMAGE in config.domains) {
+    val decoders = MutableImageDecoderRegistry()
+    val encoders = MutableImageEncoderRegistry()
+    installPlatformImageCodecs(decoders, encoders)
+    if (decoders.decoderFor(ImageFormat.Bmp) == null) {
+      decoders.register(BmpImageDecoder())
     }
+    if (encoders.encoderFor(ImageFormat.Bmp) == null) {
+      encoders.register(BmpImageEncoder())
+    }
+    // NOTE: HEIF/HEIC/AVIF image codecs are now provided by the libheif plugin,
+    // not by GStreamer. GStreamer only handles audio and video codecs.
+    imageDecoders(decoders)
+    imageEncoders(encoders)
+  }
 
-    if (MediaDomain.VIDEO in config.domains) {
-        val decoders = MutableVideoDecoderRegistry()
-        val encoders = MutableVideoEncoderRegistry()
-        installPlatformVideoCodecs(decoders, encoders)
-        if (GStreamerCodecInstaller.available) {
-            GStreamerCodecInstaller.installVideoCodecs(decoders, encoders)
-        }
-        videoDecoders(decoders)
-        videoEncoders(encoders)
+  if (MediaDomain.VIDEO in config.domains) {
+    val decoders = MutableVideoDecoderRegistry()
+    val encoders = MutableVideoEncoderRegistry()
+    installPlatformVideoCodecs(decoders, encoders)
+    if (GStreamerCodecInstaller.available) {
+      GStreamerCodecInstaller.installVideoCodecs(decoders, encoders)
     }
+    videoDecoders(decoders)
+    videoEncoders(encoders)
+  }
 }
 
 /**
@@ -97,4 +97,4 @@ fun TransmuteContext.Builder.gstreamer(block: GStreamerConfig.Builder.() -> Unit
  * was not enabled via [gstreamer].
  */
 val TransmuteContext.gstreamerConfig: GStreamerConfig?
-    get() = service(GSTREAMER_CONFIG_KEY)
+  get() = service(GSTREAMER_CONFIG_KEY)

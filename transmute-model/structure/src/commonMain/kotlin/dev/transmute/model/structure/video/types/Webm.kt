@@ -3,12 +3,12 @@
 package dev.transmute.model.structure.video.types
 
 import dev.transmute.model.core.Bytes
+import dev.transmute.model.core.RawMediaStructure
 import dev.transmute.model.core.concatToBytes
 import dev.transmute.model.structure.common.EbmlElement
 import dev.transmute.model.structure.common.headerData
 import dev.transmute.model.structure.common.infoElement
 import dev.transmute.model.structure.common.tracksElement
-import dev.transmute.model.core.RawMediaStructure
 import kotlinx.serialization.Serializable
 
 // --- WebM file - complete on-disk representation ---
@@ -25,28 +25,28 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class WebmRaw(
-    /** All top-level EBML elements in file order (EBML header + Segment). */
-    val elements: List<EbmlElement>,
+  /** All top-level EBML elements in file order (EBML header + Segment). */
+  val elements: List<EbmlElement>,
 ) : RawMediaStructure {
 
-    // --- Binary serialization ---
+  // --- Binary serialization ---
 
-    override fun toBytes(): Bytes = elements.concatToBytes()
+  override fun toBytes(): Bytes = elements.concatToBytes()
 }
 
 // --- Typed extension accessors (delegated to shared List<EbmlElement> extensions) ---
 
 val WebmRaw.ebmlHeader: EbmlElement?
-    get() = elements.firstOrNull { it.id == MatroskaIds.EBML }
+  get() = elements.firstOrNull { it.id == MatroskaIds.EBML }
 
 val WebmRaw.segment: EbmlElement?
-    get() = elements.firstOrNull { it.id == MatroskaIds.Segment }
+  get() = elements.firstOrNull { it.id == MatroskaIds.Segment }
 
 val WebmRaw.headerData: EbmlHeaderData?
-    get() = elements.headerData
+  get() = elements.headerData
 
 val WebmRaw.infoElement: EbmlElement?
-    get() = elements.infoElement
+  get() = elements.infoElement
 
 val WebmRaw.tracksElement: EbmlElement?
-    get() = elements.tracksElement
+  get() = elements.tracksElement

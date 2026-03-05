@@ -53,8 +53,8 @@ class ImageFormatDetectorTest {
     data[2] = 0x46 // F
     data[3] = 0x46 // F
     // bytes 4-7: file size (don't care for detection)
-    data[8] = 0x57  // W
-    data[9] = 0x45  // E
+    data[8] = 0x57 // W
+    data[9] = 0x45 // E
     data[10] = 0x42 // B
     data[11] = 0x50 // P
     assertEquals(ImageFormat.Webp, ImageFormatDetector.detect(data.asBytes()))
@@ -66,25 +66,46 @@ class ImageFormatDetectorTest {
   fun detectHeic() {
     // ISO BMFF: [size][ftyp][heic]
     val data = ByteArray(16)
-    data[0] = 0x00; data[1] = 0x00; data[2] = 0x00; data[3] = 0x18 // box size
-    data[4] = 0x66; data[5] = 0x74; data[6] = 0x79; data[7] = 0x70 // "ftyp"
-    data[8] = 0x68; data[9] = 0x65; data[10] = 0x69; data[11] = 0x63 // "heic"
+    data[0] = 0x00
+    data[1] = 0x00
+    data[2] = 0x00
+    data[3] = 0x18 // box size
+    data[4] = 0x66
+    data[5] = 0x74
+    data[6] = 0x79
+    data[7] = 0x70 // "ftyp"
+    data[8] = 0x68
+    data[9] = 0x65
+    data[10] = 0x69
+    data[11] = 0x63 // "heic"
     assertEquals(ImageFormat.Heic, ImageFormatDetector.detect(data.asBytes()))
   }
 
   @Test
   fun detectHeicHeix() {
     val data = ByteArray(16)
-    data[4] = 0x66; data[5] = 0x74; data[6] = 0x79; data[7] = 0x70
-    data[8] = 0x68; data[9] = 0x65; data[10] = 0x69; data[11] = 0x78 // "heix"
+    data[4] = 0x66
+    data[5] = 0x74
+    data[6] = 0x79
+    data[7] = 0x70
+    data[8] = 0x68
+    data[9] = 0x65
+    data[10] = 0x69
+    data[11] = 0x78 // "heix"
     assertEquals(ImageFormat.Heic, ImageFormatDetector.detect(data.asBytes()))
   }
 
   @Test
   fun detectHeicHevc() {
     val data = ByteArray(16)
-    data[4] = 0x66; data[5] = 0x74; data[6] = 0x79; data[7] = 0x70
-    data[8] = 0x68; data[9] = 0x65; data[10] = 0x76; data[11] = 0x63 // "hevc"
+    data[4] = 0x66
+    data[5] = 0x74
+    data[6] = 0x79
+    data[7] = 0x70
+    data[8] = 0x68
+    data[9] = 0x65
+    data[10] = 0x76
+    data[11] = 0x63 // "hevc"
     assertEquals(ImageFormat.Heic, ImageFormatDetector.detect(data.asBytes()))
   }
 
@@ -93,8 +114,14 @@ class ImageFormatDetectorTest {
   @Test
   fun detectHeifMif1() {
     val data = ByteArray(16)
-    data[4] = 0x66; data[5] = 0x74; data[6] = 0x79; data[7] = 0x70
-    data[8] = 0x6D; data[9] = 0x69; data[10] = 0x66; data[11] = 0x31 // "mif1"
+    data[4] = 0x66
+    data[5] = 0x74
+    data[6] = 0x79
+    data[7] = 0x70
+    data[8] = 0x6D
+    data[9] = 0x69
+    data[10] = 0x66
+    data[11] = 0x31 // "mif1"
     assertEquals(ImageFormat.Heif, ImageFormatDetector.detect(data.asBytes()))
   }
 
@@ -103,16 +130,28 @@ class ImageFormatDetectorTest {
   @Test
   fun detectAvif() {
     val data = ByteArray(16)
-    data[4] = 0x66; data[5] = 0x74; data[6] = 0x79; data[7] = 0x70
-    data[8] = 0x61; data[9] = 0x76; data[10] = 0x69; data[11] = 0x66 // "avif"
+    data[4] = 0x66
+    data[5] = 0x74
+    data[6] = 0x79
+    data[7] = 0x70
+    data[8] = 0x61
+    data[9] = 0x76
+    data[10] = 0x69
+    data[11] = 0x66 // "avif"
     assertEquals(ImageFormat.Avif, ImageFormatDetector.detect(data.asBytes()))
   }
 
   @Test
   fun detectAvifSequence() {
     val data = ByteArray(16)
-    data[4] = 0x66; data[5] = 0x74; data[6] = 0x79; data[7] = 0x70
-    data[8] = 0x61; data[9] = 0x76; data[10] = 0x69; data[11] = 0x73 // "avis"
+    data[4] = 0x66
+    data[5] = 0x74
+    data[6] = 0x79
+    data[7] = 0x70
+    data[8] = 0x61
+    data[9] = 0x76
+    data[10] = 0x69
+    data[11] = 0x73 // "avis"
     assertEquals(ImageFormat.Avif, ImageFormatDetector.detect(data.asBytes()))
   }
 

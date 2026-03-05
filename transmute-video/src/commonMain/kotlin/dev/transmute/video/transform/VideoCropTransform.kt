@@ -1,7 +1,7 @@
 ﻿package dev.transmute.video.transform
 
-import dev.transmute.common.PipelineContext
 import dev.transmute.codec.pipeline.TransformId
+import dev.transmute.common.PipelineContext
 import dev.transmute.image.ByteArrayPixelBuffer
 import dev.transmute.video.FrameStream
 import dev.transmute.video.VideoFrame
@@ -21,12 +21,7 @@ import dev.transmute.video.VideoTransform
  * @param cropWidth Width of the crop region.
  * @param cropHeight Height of the crop region.
  */
-class VideoCropTransform(
-  val x: Int,
-  val y: Int,
-  val cropWidth: Int,
-  val cropHeight: Int,
-) : VideoTransform {
+class VideoCropTransform(val x: Int, val y: Int, val cropWidth: Int, val cropHeight: Int) : VideoTransform {
 
   override fun wouldTransform(hint: VideoHint): Boolean = true // always crops
 
@@ -51,7 +46,7 @@ class VideoCropTransform(
       return ir
     }
 
-    context.logger.info("VideoCropTransform: cropping to ($cx,$cy) ${cw}x${ch}")
+    context.logger.info("VideoCropTransform: cropping to ($cx,$cy) ${cw}x$ch")
 
     return ir.copy(
       videoTrack = track.copy(

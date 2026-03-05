@@ -4,8 +4,8 @@ import dev.transmute.audio.AudioHint
 import dev.transmute.audio.AudioIR
 import dev.transmute.audio.AudioSamples
 import dev.transmute.audio.AudioTransform
-import dev.transmute.common.PipelineContext
 import dev.transmute.codec.pipeline.TransformId
+import dev.transmute.common.PipelineContext
 import kotlin.math.abs
 import kotlin.math.pow
 
@@ -78,7 +78,7 @@ class AudioSilenceTrimTransform(
     val newDurationMs = (newFrames.toLong() * 1000L) / sampleRate
 
     context.logger.info(
-      "AudioSilenceTrimTransform: trimmed ${startFrame} leading + ${frameCount - endFrame} trailing frames"
+      "AudioSilenceTrimTransform: trimmed $startFrame leading + ${frameCount - endFrame} trailing frames",
     )
 
     return ir.copy(
@@ -90,10 +90,7 @@ class AudioSilenceTrimTransform(
   companion object {
 
     /** Scans forward to find the first frame where amplitude exceeds threshold. */
-    private fun findFirstLoudFrame(
-      samples: FloatArray, channels: Int, frames: Int,
-      threshold: Float, minSilence: Int,
-    ): Int {
+    private fun findFirstLoudFrame(samples: FloatArray, channels: Int, frames: Int, threshold: Float, minSilence: Int): Int {
       var consecutiveLoud = 0
       for (frame in 0 until frames) {
         val loud = isFrameLoud(samples, frame, channels, threshold)
@@ -111,10 +108,7 @@ class AudioSilenceTrimTransform(
     }
 
     /** Scans backward to find the last frame where amplitude exceeds threshold. */
-    private fun findLastLoudFrame(
-      samples: FloatArray, channels: Int, frames: Int,
-      threshold: Float, minSilence: Int,
-    ): Int {
+    private fun findLastLoudFrame(samples: FloatArray, channels: Int, frames: Int, threshold: Float, minSilence: Int): Int {
       var consecutiveLoud = 0
       for (frame in frames - 1 downTo 0) {
         val loud = isFrameLoud(samples, frame, channels, threshold)

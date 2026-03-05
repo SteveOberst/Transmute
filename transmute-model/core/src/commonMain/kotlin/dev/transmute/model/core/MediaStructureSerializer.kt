@@ -12,6 +12,6 @@ package dev.transmute.model.core
  * [dev.transmute.Transmute] instance is built.
  */
 object MediaStructureSerializer : TypedEnvelopeSerializer<MediaStructure>(
-    "MediaStructure",
-    MediaStructureRegistry,
+  "MediaStructure",
+  MediaStructureRegistry,
 )

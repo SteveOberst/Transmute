@@ -17,37 +17,37 @@ import dev.transmute.common.TransmuteLogger
  * ```
  */
 class PluginLogger internal constructor(
-    /** The plugin id used as prefix for log messages. */
-    val key: PluginId,
-    private var delegate: TransmuteLogger = TransmuteLogger.Noop,
-    private var minLevel: LogLevel = LogLevel.WARN,
+  /** The plugin id used as prefix for log messages. */
+  val key: PluginId,
+  private var delegate: TransmuteLogger = TransmuteLogger.Noop,
+  private var minLevel: LogLevel = LogLevel.WARN,
 ) : TransmuteLogger {
 
-    override fun debug(message: String) {
-        if (minLevel <= LogLevel.DEBUG) delegate.debug("[$key] $message")
-    }
+  override fun debug(message: String) {
+    if (minLevel <= LogLevel.DEBUG) delegate.debug("[$key] $message")
+  }
 
-    override fun info(message: String) {
-        if (minLevel <= LogLevel.INFO) delegate.info("[$key] $message")
-    }
+  override fun info(message: String) {
+    if (minLevel <= LogLevel.INFO) delegate.info("[$key] $message")
+  }
 
-    override fun warn(message: String) {
-        if (minLevel <= LogLevel.WARN) delegate.warn("[$key] $message")
-    }
+  override fun warn(message: String) {
+    if (minLevel <= LogLevel.WARN) delegate.warn("[$key] $message")
+  }
 
-    override fun error(message: String, throwable: Throwable?) {
-        if (minLevel <= LogLevel.ERROR) delegate.error("[$key] $message", throwable)
-    }
+  override fun error(message: String, throwable: Throwable?) {
+    if (minLevel <= LogLevel.ERROR) delegate.error("[$key] $message", throwable)
+  }
 
-    /**
-     * Reconfigure this plugin logger.
-     *
-     * Called by the framework when the user supplies a `configure { }` block.
-     */
-    internal fun applyConfig(config: PluginLoggerConfig) {
-        config.levelOverride?.let { minLevel = it }
-        config.backendOverride?.let { delegate = it }
-    }
+  /**
+   * Reconfigure this plugin logger.
+   *
+   * Called by the framework when the user supplies a `configure { }` block.
+   */
+  internal fun applyConfig(config: PluginLoggerConfig) {
+    config.levelOverride?.let { minLevel = it }
+    config.backendOverride?.let { delegate = it }
+  }
 }
 
 /**
@@ -65,16 +65,16 @@ class PluginLogger internal constructor(
  * ```
  */
 class PluginLoggerConfig internal constructor() {
-    internal var levelOverride: LogLevel? = null
-    internal var backendOverride: TransmuteLogger? = null
+  internal var levelOverride: LogLevel? = null
+  internal var backendOverride: TransmuteLogger? = null
 
-    /** Set the minimum log level for this plugin. */
-    fun level(level: LogLevel) {
-        levelOverride = level
-    }
+  /** Set the minimum log level for this plugin. */
+  fun level(level: LogLevel) {
+    levelOverride = level
+  }
 
-    /** Set a custom logger backend for this plugin. */
-    fun backend(logger: TransmuteLogger) {
-        backendOverride = logger
-    }
+  /** Set a custom logger backend for this plugin. */
+  fun backend(logger: TransmuteLogger) {
+    backendOverride = logger
+  }
 }

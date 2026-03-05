@@ -2,94 +2,85 @@
 
 package dev.transmute.model.metadata.matroska
 
+import dev.transmute.model.core.LanguageTag
 import dev.transmute.model.core.MediaMetadata
+import dev.transmute.model.core.Utf8String
+import dev.transmute.model.identify.EbmlId
+import dev.transmute.model.metadata.common.PayloadRef
 import kotlinx.serialization.Serializable
 
 /**
  * Matroska/WebM tag metadata extracted from the EBML `Tags` element.
  *
- * Matroska files embed metadata tags inside a hierarchical structure:
- * ```
- * Tags
- *   +- Tag
- *        +- Targets (scope: track, chapter, edition, attachment)
- *        +- SimpleTag*
- *              +- TagName    (UTF-8 string)
- *              +- TagString  (UTF-8 string value)
- *              +- TagBinary  (binary data - reported as byte size only)
- * ```
+ * Models the on-disk hierarchy:
+ * `Tags` -> `Tag*` -> (`Targets`?, `SimpleTag*`, other/unknown elements).
  *
- * Well-known tag names include `TITLE`, `ARTIST`, `ALBUM`, `DATE_RELEASED`,
- * `GENRE`, `COMMENT`, `ENCODER`, `DESCRIPTION`, `COMPOSER`, etc.
+ * EBML element payload bytes are not embedded; unknown elements are preserved as
+ * [MatroskaUnknownElement] with payload size summaries, and [PayloadRef] where available.
  */
 @Serializable
 data class MatroskaTagMetadata(
-    /** All tags found in the file, in document order. */
-    val tags: List<MatroskaTag>,
+  /** All Tag elements found, in document order. */
+  val tags: List<MatroskaTag>,
+  /** Unknown EBML elements under Tags (rare, but preserved). */
+  val extra: List<MatroskaUnknownElement> = emptyList(),
+  /** Reference to the original Tags element payload when available. */
+  val original: PayloadRef? = null,
 ) : MediaMetadata
 
-/**
- * A single Matroska `Tag` element containing target scope and one or
- * more simple name/value pairs.
- *
- * Matches the Matroska spec hierarchy:
- * ```
- * Tag
- *   +- Targets
- *   |    +- TargetTypeValue
- *   |    +- TargetType
- *   |    +- TagTrackUID*
- *   |    +- TagEditionUID*
- *   |    +- TagChapterUID*
- *   |    +- TagAttachmentUID*
- *   +- SimpleTag*
- * ```
- */
 @Serializable
 data class MatroskaTag(
-    /** Target type value (50 = album, 30 = track, etc.). Null if unspecified. */
-    val targetTypeValue: Int? = null,
-    /** Target type string (e.g. "ALBUM", "TRACK"). Null if unspecified. */
-    val targetType: String? = null,
-    /** Track UIDs this tag applies to. Empty if it applies to the whole segment. */
-    val trackUIDs: List<Long> = emptyList(),
-    /** Edition UIDs this tag applies to. */
-    val editionUIDs: List<Long> = emptyList(),
-    /** Chapter UIDs this tag applies to. */
-    val chapterUIDs: List<Long> = emptyList(),
-    /** Attachment UIDs this tag applies to. */
-    val attachmentUIDs: List<Long> = emptyList(),
-    /** Simple tags within this Tag element. */
-    val simpleTags: List<MatroskaSimpleTag>,
+  val targets: MatroskaTargets? = null,
+  /** SimpleTags within this Tag element (preserves order). */
+  val simpleTags: List<MatroskaSimpleTag> = emptyList(),
+  /** Unknown EBML children of Tag. */
+  val extra: List<MatroskaUnknownElement> = emptyList(),
+)
+
+@Serializable
+data class MatroskaTargets(
+  /** Unsigned EBML integer. */
+  val targetTypeValue: ULong? = null,
+  /** Target type string (e.g. "ALBUM", "TRACK"). */
+  val targetType: Utf8String? = null,
+  /** Track UIDs this tag applies to. Empty if it applies to the whole segment. */
+  val trackUIDs: List<ULong> = emptyList(),
+  val editionUIDs: List<ULong> = emptyList(),
+  val chapterUIDs: List<ULong> = emptyList(),
+  val attachmentUIDs: List<ULong> = emptyList(),
+  /** Unknown EBML children of Targets. */
+  val extra: List<MatroskaUnknownElement> = emptyList(),
 )
 
 /**
  * A single Matroska `SimpleTag` - a key/value pair that can be nested.
- *
- * Per the spec, SimpleTags can contain child SimpleTags to form
- * a hierarchical metadata tree:
- * ```
- * SimpleTag
- *   +- TagName
- *   +- TagLanguage
- *   +- TagDefault
- *   +- TagString
- *   +- TagBinary
- *   +- SimpleTag* (nested children)
- * ```
  */
 @Serializable
 data class MatroskaSimpleTag(
-    /** Tag name (e.g. `"TITLE"`, `"ARTIST"`). */
-    val name: String,
-    /** Tag language (BCP-47 or ISO-639-2). Null if default/undetermined. */
-    val language: String? = null,
-    /** Whether this is the default language tag. Null if unspecified. */
-    val default: Boolean? = null,
-    /** UTF-8 string value. Null if the tag is binary-only. */
-    val value: String? = null,
-    /** Size in bytes of binary data if present. Null if the tag is text-only. */
-    val binarySize: Long? = null,
-    /** Nested child SimpleTags. Empty if this is a leaf tag. */
-    val children: List<MatroskaSimpleTag> = emptyList(),
+  /** TagName (required). */
+  val name: Utf8String,
+  /** TagLanguage (optional). */
+  val language: LanguageTag? = null,
+  /** TagDefault (optional). */
+  val default: Boolean? = null,
+  /** TagString (optional). */
+  val value: Utf8String? = null,
+  /** TagBinary (optional). */
+  val binary: PayloadRef? = null,
+  /** Nested child SimpleTags (preserves order). */
+  val children: List<MatroskaSimpleTag> = emptyList(),
+  /** Unknown EBML children of SimpleTag. */
+  val extra: List<MatroskaUnknownElement> = emptyList(),
 )
+
+@Serializable
+data class MatroskaUnknownElement(
+  val id: EbmlId,
+  /** Payload size in bytes (excludes the EBML id+size headers). */
+  val payloadSizeBytes: ULong,
+  /** Present for leaf elements when a stable slice can be referenced. */
+  val payload: PayloadRef? = null,
+  /** Unknown master elements preserve their child tree. */
+  val children: List<MatroskaUnknownElement> = emptyList(),
+)
+

@@ -1,9 +1,9 @@
 package dev.transmute.video
 
-import dev.transmute.io.TSource
 import dev.transmute.codec.pipeline.Decoded
 import dev.transmute.codec.pipeline.EncodedBytes
 import dev.transmute.codec.pipeline.PipelineHandler
+import dev.transmute.io.TSource
 
 object VideoCodecs {
   object Decode {
@@ -17,4 +17,3 @@ object VideoCodecs {
       VideoFixedEncodeHandler(output)
   }
 }
-

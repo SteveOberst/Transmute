@@ -17,9 +17,7 @@ object VideoFormatDetector {
    * @param bytes At least 12 bytes from the start of the file for reliable detection.
    * @return The detected format, or [VideoFormat.Unknown] if not recognized.
    */
-  fun detect(bytes: Bytes): VideoFormat {
-    return detectBuiltIn(bytes) ?: VideoFormat.Unknown
-  }
+  fun detect(bytes: Bytes): VideoFormat = detectBuiltIn(bytes) ?: VideoFormat.Unknown
 
   /**
    * Magic-byte checks covering all supported video formats.
@@ -31,11 +29,19 @@ object VideoFormatDetector {
     MagicBytes.ftypBrand(data)?.let { brand ->
       if (brand == "qt  ") return VideoFormat.Mov
       if (
-        brand.startsWith("mp4") || brand == "isom" || brand == "M4V " ||
-        brand == "avc1" || brand == "iso2" || brand == "iso5" ||
-        brand == "iso6" || brand == "mmp4" ||
-        brand.startsWith("3gp") || brand.startsWith("3g2")
-      ) return VideoFormat.Mp4
+        brand.startsWith("mp4") ||
+        brand == "isom" ||
+        brand == "M4V " ||
+        brand == "avc1" ||
+        brand == "iso2" ||
+        brand == "iso5" ||
+        brand == "iso6" ||
+        brand == "mmp4" ||
+        brand.startsWith("3gp") ||
+        brand.startsWith("3g2")
+      ) {
+        return VideoFormat.Mp4
+      }
     }
 
     // AVI: RIFF....AVI

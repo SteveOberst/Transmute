@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import type { InspectResult, MediaMetadata, MediaStructure } from '@/lib/types'
+import { useState } from 'react'
+import type { InspectResult, MediaMetadata } from '@/lib/types'
 import { motion, AnimatePresence } from 'framer-motion'
 import { formatBytes } from '@/lib/utils'
 
@@ -9,9 +9,9 @@ interface Props {
   result: InspectResult
 }
 
-// ===============================================================================
+// ═══════════════════════════════════════════════════════════════════════════════
 //  Main InspectPanel
-// ===============================================================================
+// ═══════════════════════════════════════════════════════════════════════════════
 
 export default function InspectPanel({ result }: Props) {
   const domainClass =
@@ -19,17 +19,12 @@ export default function InspectPanel({ result }: Props) {
     : result.domain === 'VIDEO' ? 'chip-video'
     : 'chip-image'
 
+  const [activeTab, setActiveTab] = useState<'structure' | 'metadata'>(
+    result.metadata && result.metadata.length > 0 ? 'metadata' : 'structure',
+  )
+
   const hasStructure = !!result.structure
   const hasMetadata = !!result.metadata && result.metadata.length > 0
-
-  const [activeTab, setActiveTab] = useState<'metadata' | 'structure'>(
-    hasMetadata ? 'metadata' : 'structure',
-  )
-
-  const overview = useMemo(
-    () => result.structure ? extractOverview(result.structure, result.domain) : null,
-    [result.structure, result.domain],
-  )
 
   return (
     <motion.div
@@ -37,7 +32,7 @@ export default function InspectPanel({ result }: Props) {
       animate={{ opacity: 1, y: 0 }}
       className="rounded-2xl border border-[var(--surface-3)] bg-[var(--surface-1)] overflow-hidden"
     >
-      {/* -- Header bar ------------------------------------------------ */}
+      {/* ── Header bar ──────────────────────────────────────────────── */}
       <div className="flex items-center justify-between px-5 py-3 bg-[var(--surface-2)] border-b border-[var(--surface-3)]">
         <div className="flex items-center gap-3">
           <span className={`text-[10px] font-mono px-2 py-0.5 rounded ${domainClass}`}>
@@ -52,35 +47,26 @@ export default function InspectPanel({ result }: Props) {
         </span>
       </div>
 
-      {/* -- Overview card --------------------------------------------- */}
-      {overview && overview.length > 0 && (
-        <OverviewCard items={overview} domain={result.domain} />
-      )}
-
-      {/* -- Tab bar --------------------------------------------------- */}
-      {(hasStructure || hasMetadata) && (
+      {/* ── Tab bar ─────────────────────────────────────────────────── */}
+      {hasStructure && hasMetadata && (
         <div className="flex border-b border-[var(--surface-3)]">
-          {hasMetadata && (
-            <TabButton
-              active={activeTab === 'metadata'}
-              onClick={() => setActiveTab('metadata')}
-              count={result.metadata!.length}
-            >
-              Metadata
-            </TabButton>
-          )}
-          {hasStructure && (
-            <TabButton
-              active={activeTab === 'structure'}
-              onClick={() => setActiveTab('structure')}
-            >
-              Structure
-            </TabButton>
-          )}
+          <TabButton
+            active={activeTab === 'metadata'}
+            onClick={() => setActiveTab('metadata')}
+            count={result.metadata!.length}
+          >
+            Metadata
+          </TabButton>
+          <TabButton
+            active={activeTab === 'structure'}
+            onClick={() => setActiveTab('structure')}
+          >
+            Structure
+          </TabButton>
         </div>
       )}
 
-      {/* -- Content --------------------------------------------------- */}
+      {/* ── Content ─────────────────────────────────────────────────── */}
       <AnimatePresence mode="wait">
         {activeTab === 'structure' && hasStructure && (
           <motion.div
@@ -129,234 +115,17 @@ export default function InspectPanel({ result }: Props) {
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* -- No-data fallback ------------------------------------------ */}
-      {!hasStructure && !hasMetadata && (
-        <div className="p-5 text-center">
-          <span className="text-[11px] font-mono text-[#444456] italic">
-            No structure or metadata available for this format
-          </span>
-        </div>
-      )}
     </motion.div>
   )
 }
 
-// ===============================================================================
-//  Overview card - key file properties at a glance
-// ===============================================================================
-
-interface OverviewItem {
-  label: string
-  value: string
-  accent?: boolean
-}
-
-function extractOverview(
-  structure: MediaStructure,
-  domain: string,
-): OverviewItem[] {
-  const v = structure.value
-  const items: OverviewItem[] = []
-
-  if (domain === 'IMAGE') {
-    // JPEG hierarchical: frame.sofData.width/height
-    const frame = v.frame as Record<string, unknown> | undefined
-    const sofFromFrame = frame?.sofData as Record<string, unknown> | undefined
-    // JPEG flat fallback: top-level sofData
-    const sof = sofFromFrame ?? (v.sofData as Record<string, unknown> | undefined)
-    if (sof) {
-      if (sof.width && sof.height) {
-        items.push({ label: 'Dimensions', value: `${sof.width} \u00D7 ${sof.height} px`, accent: true })
-      }
-      if (sof.precision) items.push({ label: 'Bit Depth', value: `${sof.precision}-bit` })
-      const comps = sof.components as unknown[] | undefined
-      if (comps) items.push({ label: 'Components', value: `${comps.length}` })
-    }
-    // JPEG: jfifHeader
-    const jfif = v.jfifHeader as Record<string, unknown> | undefined
-    if (jfif?.xDensity && jfif?.yDensity) {
-      const units = jfif.densityUnits === 1 ? 'DPI' : jfif.densityUnits === 2 ? 'DPCM' : ''
-      items.push({ label: 'Density', value: `${jfif.xDensity}\u00D7${jfif.yDensity} ${units}`.trim() })
-    }
-    // JPEG: frame info
-    if (frame) {
-      const sofMarker = frame.sofMarkerName as string | undefined
-      if (sofMarker) items.push({ label: 'Frame Type', value: sofMarker })
-      const scans = frame.scans as unknown[] | undefined
-      if (scans && scans.length > 1) {
-        items.push({ label: 'Scans', value: `${scans.length} (progressive)` })
-      }
-    }
-    // PNG: ihdr
-    const ihdr = v.ihdr as Record<string, unknown> | undefined
-    if (ihdr) {
-      if (ihdr.width && ihdr.height) {
-        items.push({ label: 'Dimensions', value: `${ihdr.width} \u00D7 ${ihdr.height} px`, accent: true })
-      }
-      if (ihdr.bitDepth) items.push({ label: 'Bit Depth', value: `${ihdr.bitDepth}-bit` })
-      if (ihdr.colorType !== undefined) {
-        const ct = PNG_COLOR_TYPES[ihdr.colorType as number] ?? `Type ${ihdr.colorType}`
-        items.push({ label: 'Color', value: ct })
-      }
-      if (ihdr.interlace) items.push({ label: 'Interlace', value: 'Adam7' })
-    }
-    const actl = v.actl as Record<string, unknown> | undefined
-    if (actl?.numFrames) items.push({ label: 'Frames', value: `${actl.numFrames} (APNG)` })
-    // BMP
-    const dibHeader = v.dibHeader as Record<string, unknown> | undefined
-    if (dibHeader) {
-      if (dibHeader.width && dibHeader.height) {
-        items.push({ label: 'Dimensions', value: `${dibHeader.width} \u00D7 ${dibHeader.height} px`, accent: true })
-      }
-      if (dibHeader.bitsPerPixel) items.push({ label: 'Bit Depth', value: `${dibHeader.bitsPerPixel}-bit` })
-    }
-    // GIF
-    const screenDescriptor = v.screenDescriptor as Record<string, unknown> | undefined
-    if (screenDescriptor) {
-      if (screenDescriptor.width && screenDescriptor.height) {
-        items.push({ label: 'Dimensions', value: `${screenDescriptor.width} \u00D7 ${screenDescriptor.height} px`, accent: true })
-      }
-    }
-    // TIFF IFDs
-    const ifds = v.ifds as unknown[] | undefined
-    if (ifds && !sof && !ihdr) {
-      items.push({ label: 'IFDs', value: `${ifds.length}` })
-    }
-    // ISO BMFF images (HEIF, AVIF)
-    const ftyp = v.ftyp as Record<string, unknown> | undefined
-    if (ftyp?.majorBrand) items.push({ label: 'Brand', value: String(ftyp.majorBrand) })
-    const boxes = v.boxes as unknown[] | undefined
-    if (boxes && !ihdr && !sof && !dibHeader) {
-      items.push({ label: 'Top-level Boxes', value: `${boxes.length}` })
-    }
-  }
-
-  if (domain === 'AUDIO') {
-    // WAV
-    if (v.sampleRate) items.push({ label: 'Sample Rate', value: formatHz(v.sampleRate as number), accent: true })
-    if (v.channels) items.push({ label: 'Channels', value: channelLabel(v.channels as number) })
-    if (v.bitsPerSample) items.push({ label: 'Bit Depth', value: `${v.bitsPerSample}-bit` })
-    if (v.audioFormat !== undefined) {
-      const af = WAV_FORMATS[v.audioFormat as number] ?? `0x${(v.audioFormat as number).toString(16)}`
-      items.push({ label: 'Format', value: af })
-    }
-    if (v.dataBytesTotal) items.push({ label: 'Audio Data', value: formatBytes(v.dataBytesTotal as number) })
-    // MP3
-    const firstFrame = v.firstFrame as Record<string, unknown> | undefined
-    if (firstFrame) {
-      if (firstFrame.sampleRate) items.push({ label: 'Sample Rate', value: formatHz(firstFrame.sampleRate as number), accent: true })
-      if (firstFrame.bitrate) items.push({ label: 'Bitrate', value: `${firstFrame.bitrate} kbps` })
-      if (firstFrame.channelMode) items.push({ label: 'Channels', value: String(firstFrame.channelMode) })
-      if (firstFrame.version) items.push({ label: 'MPEG', value: String(firstFrame.version) })
-      if (firstFrame.layer) items.push({ label: 'Layer', value: String(firstFrame.layer) })
-    }
-    // FLAC
-    const streamInfo = v.streamInfo as Record<string, unknown> | undefined
-    if (streamInfo) {
-      if (streamInfo.sampleRate) items.push({ label: 'Sample Rate', value: formatHz(streamInfo.sampleRate as number), accent: true })
-      if (streamInfo.channels) items.push({ label: 'Channels', value: channelLabel(streamInfo.channels as number) })
-      if (streamInfo.bitsPerSample) items.push({ label: 'Bit Depth', value: `${streamInfo.bitsPerSample}-bit` })
-      if (streamInfo.totalSamples) {
-        const dur = (streamInfo.totalSamples as number) / (streamInfo.sampleRate as number)
-        items.push({ label: 'Duration', value: formatDuration(dur) })
-      }
-    }
-    // AAC/OGG/Opus/M4A with ISO BMFF
-    const ftypA = v.ftyp as Record<string, unknown> | undefined
-    if (ftypA?.majorBrand) items.push({ label: 'Brand', value: String(ftypA.majorBrand) })
-  }
-
-  if (domain === 'VIDEO') {
-    // ISO BMFF (MP4, MOV)
-    const ftypV = v.ftyp as Record<string, unknown> | undefined
-    if (ftypV?.majorBrand) items.push({ label: 'Brand', value: String(ftypV.majorBrand), accent: true })
-    const compatBrands = ftypV?.compatibleBrands as string[] | undefined
-    if (compatBrands && compatBrands.length > 0) {
-      items.push({ label: 'Compatible', value: compatBrands.slice(0, 5).join(', ') })
-    }
-    const boxesV = v.boxes as unknown[] | undefined
-    if (boxesV) items.push({ label: 'Top-level Boxes', value: `${boxesV.length}` })
-    // RIFF (AVI)
-    const riffChunks = v.chunks as unknown[] | undefined
-    if (riffChunks) items.push({ label: 'RIFF Chunks', value: `${riffChunks.length}` })
-    // EBML (MKV, WebM)
-    const elements = v.elements as unknown[] | undefined
-    if (elements) items.push({ label: 'EBML Elements', value: `${elements.length}` })
-  }
-
-  return items
-}
-
-const PNG_COLOR_TYPES: Record<number, string> = {
-  0: 'Grayscale',
-  2: 'RGB',
-  3: 'Indexed',
-  4: 'Grayscale+Alpha',
-  6: 'RGBA',
-}
-
-const WAV_FORMATS: Record<number, string> = {
-  1: 'PCM',
-  3: 'IEEE Float',
-  6: 'A-law',
-  7: '\u03BC-law',
-  0xFFFE: 'Extensible',
-}
-
-function formatHz(hz: number): string {
-  if (hz >= 1000) return `${(hz / 1000).toFixed(hz % 1000 === 0 ? 0 : 1)} kHz`
-  return `${hz} Hz`
-}
-
-function channelLabel(ch: number): string {
-  if (ch === 1) return 'Mono'
-  if (ch === 2) return 'Stereo'
-  return `${ch}ch`
-}
-
-function formatDuration(seconds: number): string {
-  const m = Math.floor(seconds / 60)
-  const s = Math.floor(seconds % 60)
-  return `${m}:${s.toString().padStart(2, '0')}`
-}
-
-function OverviewCard({ items, domain }: { items: OverviewItem[]; domain: string }) {
-  const accentColor =
-    domain === 'AUDIO' ? '#38bdf8'
-    : domain === 'VIDEO' ? '#34d399'
-    : '#a78bfa'
-
-  return (
-    <div className="px-5 py-4 border-b border-[var(--surface-3)]">
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-3">
-        {items.map((item, i) => (
-          <motion.div
-            key={item.label}
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.04, duration: 0.25 }}
-            className="min-w-0"
-          >
-            <div className="text-[9px] font-mono uppercase tracking-[0.08em] text-[#555568] mb-0.5">
-              {item.label}
-            </div>
-            <div
-              className="text-[13px] font-mono font-medium truncate"
-              style={{ color: item.accent ? accentColor : '#c4c4d4' }}
-            >
-              {item.value}
-            </div>
-          </motion.div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-// ===============================================================================
+<<<<<<< Updated upstream
+/* -- Generic JSON tree renderer -------------------------------------- */
+=======
+// ═══════════════════════════════════════════════════════════════════════════════
 //  Tab button
-// ===============================================================================
+// ═══════════════════════════════════════════════════════════════════════════════
+>>>>>>> Stashed changes
 
 function TabButton({
   active,
@@ -406,9 +175,9 @@ function TabButton({
   )
 }
 
-// ===============================================================================
-//  Metadata type registry - maps type discriminator to renderer
-// ===============================================================================
+// ═══════════════════════════════════════════════════════════════════════════════
+//  Metadata type registry — maps type discriminator to a renderer
+// ═══════════════════════════════════════════════════════════════════════════════
 
 const METADATA_RENDERERS: Record<string, {
   label: string
@@ -478,9 +247,9 @@ const METADATA_RENDERERS: Record<string, {
   },
 }
 
-// ===============================================================================
-//  MetadataBlock - dispatches to the right renderer
-// ===============================================================================
+// ═══════════════════════════════════════════════════════════════════════════════
+//  MetadataBlock — dispatches to the right renderer
+// ═══════════════════════════════════════════════════════════════════════════════
 
 function MetadataBlock({ meta, index }: { meta: MediaMetadata; index: number }) {
   const [expanded, setExpanded] = useState(index < 3)
@@ -535,302 +304,161 @@ function MetadataBlock({ meta, index }: { meta: MediaMetadata; index: number }) 
   )
 }
 
-// ===============================================================================
-//  Type-specific metadata renderers
-// ===============================================================================
+// ═══════════════════════════════════════════════════════════════════════════════
+//  Type-specific renderers
+// ═══════════════════════════════════════════════════════════════════════════════
 
-/* -- EXIF --------------------------------------------------------------- */
+/* ── EXIF ────────────────────────────────────────────────────────────── */
 
-/** Human-friendly IFD section names. */
-const IFD_LABELS: Record<string, string> = {
-  ifd0: 'IFD0 (Main Image)',
-  exifIfd: 'EXIF IFD',
-  gpsIfd: 'GPS IFD',
-  interopIfd: 'Interop IFD',
-  ifd1: 'IFD1 (Thumbnail)',
-}
-
-/**
- * Extract a human-readable display string from a serialized ExifValue
- * (kotlinx.serialization sealed class with type discriminator).
- *
- * Handles: Text, Integers, Rationals, Floats, Blob
- */
-function formatExifValue(val: unknown): string {
-  if (val === null || val === undefined) return '\u2014'
-  if (typeof val === 'string') return val
-  if (typeof val === 'number') return String(val)
-  if (typeof val !== 'object') return String(val)
-
-  const obj = val as Record<string, unknown>
-
-  // ExifValue.Text -> { type: "...", value: "Canon" }
-  if (typeof obj.value === 'string') return obj.value
-
-  // ExifValue.Integers / Floats / Rationals -> { type: "...", values: [...] }
-  if (Array.isArray(obj.values)) {
-    return (obj.values as unknown[]).map((v: unknown) => {
-      if (typeof v === 'object' && v !== null) {
-        const r = v as Record<string, unknown>
-        // ExifRational: { numerator, denominator }
-        if (r.numerator !== undefined && r.denominator !== undefined) {
-          return r.denominator === 1 ? String(r.numerator) : `${r.numerator}/${r.denominator}`
-        }
-        return JSON.stringify(v)
-      }
-      return String(v)
-    }).join(', ')
-  }
-
-  // ExifValue.Blob -> { type: "...", sizeBytes: 1024 }
-  if (obj.sizeBytes !== undefined) return `[${obj.sizeBytes} bytes]`
-
-  return JSON.stringify(val)
-}
-
-/**
- * Adaptive EXIF renderer — dynamically discovers IFD sections and entries
- * from whatever the backend returns, without hard-coding field expectations.
- */
 function renderExif(value: Record<string, unknown>): React.ReactNode {
-  const byteOrder = value.byteOrder as string | undefined
-
-  // Dynamically discover IFD sections (objects with an `entries` array)
-  const ifdSections: Array<{ key: string; label: string; entries: Array<Record<string, unknown>> }> = []
-  const scalarProps: Array<{ label: string; value: string }> = []
-
-  for (const [key, val] of Object.entries(value)) {
-    if (val === null || val === undefined) continue
-    if (typeof val === 'object' && !Array.isArray(val)) {
-      const obj = val as Record<string, unknown>
-      if (Array.isArray(obj.entries) && obj.entries.length > 0) {
-        ifdSections.push({
-          key,
-          label: IFD_LABELS[key] ?? humanize(key),
-          entries: obj.entries as Array<Record<string, unknown>>,
-        })
-      } else if (key !== 'byteOrder') {
-        scalarProps.push({ label: humanize(key), value: JSON.stringify(val) })
-      }
-    } else if (key !== 'byteOrder' && typeof val !== 'object') {
-      scalarProps.push({ label: humanize(key), value: String(val) })
-    }
-  }
-
-  const isEmpty = ifdSections.length === 0 && scalarProps.length === 0
-  if (isEmpty) return <FallbackRenderer value={value} />
-
-  // Best-effort hero: scan all IFD entries for camera summary tags
-  const allEntries = ifdSections.flatMap(s => s.entries)
-  const findTag = (name: string) => {
-    const entry = allEntries.find(
-      e => (e.tagName as string)?.toLowerCase() === name.toLowerCase(),
-    )
-    return entry ? formatExifValue(entry.value) : undefined
-  }
-  const make = findTag('Make')
-  const model = findTag('Model')
-  const fNumber = findTag('FNumber')
-  const exposure = findTag('ExposureTime')
-  const iso = findTag('ISOSpeedRatings') ?? findTag('PhotographicSensitivity')
+  const ifds = value.ifds as Array<Record<string, unknown>> | undefined
+  if (!ifds || ifds.length === 0) return <EmptyState text="No EXIF data" />
 
   return (
     <div className="space-y-3">
-      {/* Hero: camera quick info (best-effort) */}
-      {(make || model) && (
-        <div className="flex items-start gap-3 pb-2 border-b border-[var(--surface-3)]/40">
-          <div className="w-10 h-10 rounded-lg bg-[#e879f9]/10 flex items-center justify-center text-lg shrink-0">
-            {'\u{1F4F7}'}
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="text-sm text-white font-medium truncate">
-              {[make, model].filter(Boolean).join(' ')}
-            </div>
-            <div className="flex items-center gap-2 mt-0.5 text-[11px] text-[#888898] font-mono">
-              {fNumber != null && <span>\u0192/{fNumber}</span>}
-              {exposure != null && <span>{exposure}s</span>}
-              {iso != null && <span>ISO {iso}</span>}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {byteOrder && (
-        <div className="text-[10px] font-mono text-[#555568]">
-          Byte Order: <span className="text-[#888898]">{byteOrder.replace(/_/g, ' ')}</span>
-        </div>
-      )}
-
-      {/* IFD sections — rendered dynamically based on what the backend returned */}
-      {ifdSections.map(section => (
-        <CollapsibleSection
-          key={section.key}
-          title={`${section.label} (${section.entries.length})`}
-          defaultOpen={section.key === 'ifd0' || section.key === 'exifIfd'}
-        >
-          <MetadataTable
-            rows={section.entries.map(entry => ({
-              label: (entry.tagName as string) ?? `Tag 0x${((entry.tag as number) ?? 0).toString(16).toUpperCase().padStart(4, '0')}`,
-              value: formatExifValue(entry.value),
-              badge: entry.type as string | undefined,
-            }))}
-            compact
-          />
-        </CollapsibleSection>
-      ))}
-
-      {/* Any remaining scalar properties */}
-      {scalarProps.length > 0 && (
-        <CollapsibleSection title="Properties" defaultOpen={false}>
-          <MetadataTable rows={scalarProps} compact />
-        </CollapsibleSection>
-      )}
+      {ifds.map((ifd, i) => {
+        const label = (ifd.label as string) ?? `IFD ${i}`
+        const entries = (ifd.entries as Array<Record<string, unknown>>) ?? []
+        return (
+          <CollapsibleSection key={i} title={label} defaultOpen={i === 0}>
+            <MetadataTable
+              rows={entries.map(e => ({
+                label: (e.tagName as string) ?? `0x${((e.tag as number) ?? 0).toString(16)}`,
+                value: formatExifValue(e),
+              }))}
+            />
+          </CollapsibleSection>
+        )
+      })}
     </div>
   )
 }
 
-/* -- XMP ---------------------------------------------------------------- */
+function formatExifValue(entry: Record<string, unknown>): string {
+  const v = entry.values
+  if (Array.isArray(v)) {
+    if (v.length === 0) return '\u2014'
+    if (v.length === 1) return String(v[0])
+    if (v.length <= 6) return v.join(', ')
+    return `[${v.length} values]`
+  }
+  if (v !== undefined) return String(v)
+  const display = entry.displayValue ?? entry.value
+  return display !== undefined ? String(display) : '\u2014'
+}
+
+/* ── XMP ─────────────────────────────────────────────────────────────── */
 
 function renderXmp(value: Record<string, unknown>): React.ReactNode {
   const root = value.root as Record<string, unknown> | undefined
-  if (!root) return <FallbackRenderer value={value} />
+  if (!root) return <EmptyState text="No XMP data" />
 
   return (
     <div className="space-y-1">
-      <XmpNodeRenderer node={root} depth={0} />
+      <XmpElementTree element={root} depth={0} />
     </div>
   )
 }
 
-/**
- * Unwrap a polymorphic XmpNode serialized by kotlinx.serialization.
- *
- * XmpNode.Element -> { type: "...", element: { namespace, name, attributes, children } }
- * XmpNode.Text    -> { type: "...", content: "..." }
- *
- * The root XmpElement is NOT wrapped, so this is safe for both cases.
- */
-function unwrapXmpNode(node: Record<string, unknown>): Record<string, unknown> {
-  if (node.element && typeof node.element === 'object') {
-    return node.element as Record<string, unknown>
-  }
-  return node
-}
-
-function XmpNodeRenderer({ node: rawNode, depth }: { node: Record<string, unknown>; depth: number }) {
-  // Unwrap polymorphic XmpNode wrapper if present
-  const node = unwrapXmpNode(rawNode)
-
-  const name = node.name as string | undefined
-  const ns = node.namespace as string | undefined
-  const rawChildren = node.children as Array<Record<string, unknown>> | undefined
-  const content = (rawNode.content as string | undefined) ?? (node.content as string | undefined)
-  const attrs = node.attributes as Array<Record<string, unknown>> | undefined
-  const [open, setOpen] = useState(depth < 3)
-
-  // Text node
-  if (content !== undefined && !rawChildren) {
-    return (
-      <span className="text-[11px] font-mono text-[#e8c07a]">{content}</span>
-    )
-  }
-
-  // Unwrap polymorphic children
-  const children = rawChildren?.map(child => unwrapXmpNode(child))
-  const hasChildren = children && children.length > 0
-  const attrCount = Array.isArray(attrs) ? attrs.length : 0
+function XmpElementTree({ element, depth }: { element: Record<string, unknown>; depth: number }) {
+  const name = element.name as string ?? '?'
+  const ns = element.namespace as string | undefined
+  const attrs = (element.attributes as Array<Record<string, unknown>>) ?? []
+  const children = (element.children as Array<Record<string, unknown>>) ?? []
+  const [expanded, setExpanded] = useState(depth < 2)
+  const hasContent = children.length > 0
 
   return (
-    <div className={`${depth > 0 ? 'ml-3 pl-3 border-l border-[var(--surface-3)]/30' : ''}`}>
-      <div className="flex items-center gap-1.5 py-0.5">
-        {hasChildren && (
+    <div className={depth > 0 ? 'ml-3 border-l border-[var(--surface-3)]/30 pl-3' : ''}>
+      <div className="flex items-start gap-1.5 py-0.5">
+        {hasContent && (
           <button
-            onClick={() => setOpen(o => !o)}
-            className="text-[10px] text-[#555568] hover:text-[#888898] w-3 shrink-0"
+            onClick={() => setExpanded(e => !e)}
+            className="text-[10px] text-[#555568] hover:text-[#888898] font-mono mt-0.5 shrink-0"
           >
-            {open ? '\u25BE' : '\u25B8'}
+            {expanded ? '\u25BE' : '\u25B8'}
           </button>
         )}
-        {!hasChildren && <span className="w-3 shrink-0" />}
-        {name && (
-          <span className="text-[11px] font-mono text-[#fb923c]">&lt;{name}&gt;</span>
-        )}
-        {ns && (
-          <span className="text-[8px] font-mono px-1 py-px rounded bg-[var(--surface-2)] text-[#555568] border border-[var(--surface-3)]">
-            {ns.split('/').pop()}
-          </span>
-        )}
-        {attrCount > 0 && (
-          <span className="text-[9px] font-mono text-[#666680]">
-            [{attrCount} attrs]
-          </span>
-        )}
-      </div>
-      {open && hasChildren && (
-        <div>
-          {children!.map((child, i) => {
-            // Detect text nodes (unwrapped XmpNode.Text or node with just content)
-            const childContent = (child as Record<string, unknown>).content as string | undefined
-            if (childContent !== undefined && !child.children && !child.name) {
-              return (
-                <div key={i} className="ml-6 py-0.5">
-                  <span className="text-[11px] font-mono text-[#e8c07a]">{childContent}</span>
-                </div>
-              )
-            }
-            return <XmpNodeRenderer key={i} node={child} depth={depth + 1} />
-          })}
+        <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+          <span className="text-[#fb923c] font-mono text-xs">{'<'}{name}</span>
+          {ns && (
+            <span className="text-[10px] text-[#555568] font-mono truncate max-w-40"
+              title={ns}
+            >
+              xmlns={ns.split('/').pop()}
+            </span>
+          )}
+          {attrs.slice(0, 3).map((attr, i) => (
+            <span key={i} className="text-[10px] font-mono">
+              <span className="text-[#888898]">{attr.name as string}</span>
+              <span className="text-[#555568]">=</span>
+              <span className="text-[#e8c07a]">&quot;{truncate(attr.value as string, 30)}&quot;</span>
+            </span>
+          ))}
+          {attrs.length > 3 && (
+            <span className="text-[10px] text-[#555568] font-mono">+{attrs.length - 3} attrs</span>
+          )}
+          <span className="text-[#fb923c] font-mono text-xs">{'>'}</span>
         </div>
-      )}
+      </div>
+      {expanded && children.map((child, i) => {
+        if ('content' in child) {
+          return (
+            <div key={i} className="ml-5 py-0.5">
+              <span className="text-xs text-[#c4c4d4] font-mono">
+                {truncate(child.content as string, 80)}
+              </span>
+            </div>
+          )
+        }
+        if ('element' in child) {
+          return (
+            <XmpElementTree
+              key={i}
+              element={child.element as Record<string, unknown>}
+              depth={depth + 1}
+            />
+          )
+        }
+        return null
+      })}
     </div>
   )
 }
 
-/* -- ICC ---------------------------------------------------------------- */
+/* ── ICC Profile ─────────────────────────────────────────────────────── */
 
 function renderIcc(value: Record<string, unknown>): React.ReactNode {
   const header = value.header as Record<string, unknown> | undefined
   const tags = value.tags as Array<Record<string, unknown>> | undefined
 
-  const fields: Array<{ label: string; value: string }> = []
-  if (header) {
-    // Render all header fields dynamically - don't assume specific field names
-    for (const [k, v] of Object.entries(header)) {
-      if (v !== undefined && v !== null) {
-        fields.push({ label: humanize(k), value: String(v) })
-      }
-    }
-  }
+  const headerRows = header ? Object.entries(header).map(([k, v]) => ({
+    label: humanize(k),
+    value: String(v ?? '\u2014'),
+  })) : []
 
   return (
     <div className="space-y-3">
-      {fields.length > 0 && (
-        <MetadataTable rows={fields} compact />
+      {headerRows.length > 0 && (
+        <CollapsibleSection title="Profile Header" defaultOpen>
+          <MetadataTable rows={headerRows} />
+        </CollapsibleSection>
       )}
       {tags && tags.length > 0 && (
         <CollapsibleSection title={`Tags (${tags.length})`} defaultOpen={false}>
           <MetadataTable
             rows={tags.map(t => ({
               label: (t.signature as string) ?? '?',
-              value: truncate(formatIccTagValue(t), 100),
+              value: (t.description as string) ?? `${t.type ?? 'unknown'} \u00B7 ${t.size ?? '?'} bytes`,
             }))}
-            compact
           />
         </CollapsibleSection>
       )}
-      {!header && !tags && <FallbackRenderer value={value} />}
     </div>
   )
 }
 
-function formatIccTagValue(tag: Record<string, unknown>): string {
-  if (tag.text) return String(tag.text)
-  if (tag.value) return String(tag.value)
-  if (tag.size) return `[${tag.size} bytes]`
-  return '\u2014'
-}
-
-/* -- ID3v1 -------------------------------------------------------------- */
+/* ── ID3v1 ───────────────────────────────────────────────────────────── */
 
 function renderId3v1(value: Record<string, unknown>): React.ReactNode {
   const fields = ['title', 'artist', 'album', 'year', 'comment', 'track', 'genre', 'genreName'] as const
@@ -866,7 +494,7 @@ function renderId3v1(value: Record<string, unknown>): React.ReactNode {
   )
 }
 
-/* -- ID3v2 -------------------------------------------------------------- */
+/* ── ID3v2 ───────────────────────────────────────────────────────────── */
 
 function renderId3v2(value: Record<string, unknown>): React.ReactNode {
   const version = value.version as Record<string, unknown> | undefined
@@ -915,7 +543,7 @@ function renderId3v2(value: Record<string, unknown>): React.ReactNode {
 
       {version && (
         <div className="flex items-center gap-2 text-[10px] text-[#555568] font-mono">
-          <span>ID3v2.{String(version.major ?? '?')}.{String(version.revision ?? 0)}</span>
+          <span>ID3v2.{version.major as number ?? '?'}.{version.revision as number ?? 0}</span>
           {flags && Object.entries(flags).filter(([, v]) => v === true).map(([k]) => (
             <span key={k} className="px-1.5 py-0.5 rounded bg-[var(--surface-2)] border border-[var(--surface-3)] text-[#666680]">
               {k}
@@ -928,7 +556,7 @@ function renderId3v2(value: Record<string, unknown>): React.ReactNode {
         <CollapsibleSection title={`Frames (${frames.length})`} defaultOpen={!title}>
           <MetadataTable
             rows={frames.map(f => ({
-              label: (f.id as string) ?? '?',
+              label: f.id as string ?? '?',
               value: formatId3v2Frame(f),
             }))}
           />
@@ -947,13 +575,13 @@ function formatId3v2Frame(frame: Record<string, unknown>): string {
     return `${content.description}: ${truncate(String(content.text), 80)}`
   }
   if ('mimeType' in content) {
-    const size = (content.pictureData as unknown[])?.length
+    const size = (content.pictureData as Array<unknown>)?.length
     return `[${content.mimeType}${size ? ` \u00B7 ${size} bytes` : ''}]`
   }
   return JSON.stringify(content).slice(0, 100)
 }
 
-/* -- PNG Text ----------------------------------------------------------- */
+/* ── PNG Text ────────────────────────────────────────────────────────── */
 
 function renderPngText(value: Record<string, unknown>): React.ReactNode {
   const entries = value.entries as Array<Record<string, unknown>> | undefined
@@ -962,15 +590,15 @@ function renderPngText(value: Record<string, unknown>): React.ReactNode {
   return (
     <MetadataTable
       rows={entries.map(e => ({
-        label: (e.keyword as string) ?? '?',
-        value: truncate((e.text as string) ?? '', 120),
+        label: e.keyword as string ?? '?',
+        value: truncate(e.text as string ?? '', 120),
         badge: e.chunkType as string | undefined,
       }))}
     />
   )
 }
 
-/* -- Vorbis Comment ----------------------------------------------------- */
+/* ── Vorbis Comment ──────────────────────────────────────────────────── */
 
 function renderVorbisComment(value: Record<string, unknown>): React.ReactNode {
   const vendor = value.vendor as string | undefined
@@ -1013,8 +641,8 @@ function renderVorbisComment(value: Record<string, unknown>): React.ReactNode {
       {comments && comments.length > 0 && (
         <MetadataTable
           rows={comments.map(c => ({
-            label: (c.field as string) ?? '?',
-            value: truncate((c.value as string) ?? '', 100),
+            label: c.field as string ?? '?',
+            value: truncate(c.value as string ?? '', 100),
           }))}
           compact
         />
@@ -1023,7 +651,7 @@ function renderVorbisComment(value: Record<string, unknown>): React.ReactNode {
   )
 }
 
-/* -- RIFF INFO ---------------------------------------------------------- */
+/* ── RIFF INFO ───────────────────────────────────────────────────────── */
 
 function renderRiffInfo(value: Record<string, unknown>): React.ReactNode {
   const entries = value.entries as Array<Record<string, unknown>> | undefined
@@ -1033,14 +661,14 @@ function renderRiffInfo(value: Record<string, unknown>): React.ReactNode {
     <MetadataTable
       rows={entries.map(e => ({
         label: (e.name as string) ?? (e.tag as string) ?? '?',
-        value: (e.value as string) ?? '\u2014',
+        value: e.value as string ?? '\u2014',
         badge: e.tag as string | undefined,
       }))}
     />
   )
 }
 
-/* -- iTunes -------------------------------------------------------------- */
+/* ── iTunes ───────────────────────────────────────────────────────────── */
 
 const ITUNES_DATA_TYPE_NAMES: Record<number, string> = {
   0: 'implicit',
@@ -1107,7 +735,7 @@ function renderItunes(value: Record<string, unknown>): React.ReactNode {
                 )}
               </div>
               <span className="text-[11px] font-mono text-[#c4c4d4] break-all min-w-0 flex-1">
-                {truncate((item.value as string) ?? '\u2014', 100)}
+                {truncate(item.value as string ?? '\u2014', 100)}
               </span>
               {dtLabel && (
                 <span className="text-[8px] font-mono px-1.5 py-px rounded bg-[#fb7185]/8 text-[#fb7185]/70 border border-[#fb7185]/15 shrink-0 whitespace-nowrap">
@@ -1122,7 +750,7 @@ function renderItunes(value: Record<string, unknown>): React.ReactNode {
   )
 }
 
-/* -- Matroska Tags ------------------------------------------------------ */
+/* ── Matroska Tags ───────────────────────────────────────────────────── */
 
 function renderMatroskaTags(value: Record<string, unknown>): React.ReactNode {
   const tags = value.tags as Array<Record<string, unknown>> | undefined
@@ -1228,9 +856,9 @@ function MatroskaSimpleTagList({ tags, depth }: { tags: Array<Record<string, unk
   )
 }
 
-// ===============================================================================
+// ═══════════════════════════════════════════════════════════════════════════════
 //  Shared UI components
-// ===============================================================================
+// ═══════════════════════════════════════════════════════════════════════════════
 
 function MetadataTable({
   rows,
@@ -1243,7 +871,7 @@ function MetadataTable({
     <div className={`${compact ? 'space-y-0.5' : 'space-y-1'}`}>
       {rows.map((row, i) => (
         <div
-          key={`${row.label}-${i}`}
+          key={i}
           className={`
             flex items-start gap-3 group
             ${compact ? 'py-0.5' : 'py-1'}
@@ -1327,9 +955,9 @@ function FallbackRenderer({ value }: { value: Record<string, unknown> }) {
   )
 }
 
-// ===============================================================================
+// ═══════════════════════════════════════════════════════════════════════════════
 //  JSON tree (retained for structure view + fallback)
-// ===============================================================================
+// ═══════════════════════════════════════════════════════════════════════════════
 
 function JsonTree({ value, depth }: { value: unknown; depth: number }) {
   if (value === null || value === undefined) {
@@ -1419,9 +1047,9 @@ function JsonArray({ arr, depth }: { arr: unknown[]; depth: number }) {
   )
 }
 
-// ===============================================================================
+// ═══════════════════════════════════════════════════════════════════════════════
 //  Utilities
-// ===============================================================================
+// ═══════════════════════════════════════════════════════════════════════════════
 
 function truncate(s: string, max: number): string {
   return s.length > max ? s.slice(0, max) + '\u2026' : s
@@ -1433,3 +1061,5 @@ function humanize(camelCase: string): string {
     .replace(/^./, s => s.toUpperCase())
     .trim()
 }
+
+

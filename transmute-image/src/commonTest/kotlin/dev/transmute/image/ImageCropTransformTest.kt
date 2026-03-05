@@ -1,17 +1,17 @@
 ﻿package dev.transmute.image
 
+import dev.transmute.codec.pipeline.TransformId
 import dev.transmute.image.ImageTestHelpers.checkerboard
 import dev.transmute.image.ImageTestHelpers.horizontalGradient
 import dev.transmute.image.ImageTestHelpers.pixelAt
 import dev.transmute.image.ImageTestHelpers.solidColor
 import dev.transmute.image.ImageTestHelpers.testContext
 import dev.transmute.image.transform.ImageCropTransform
-import dev.transmute.codec.pipeline.TransformId
-import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertSame
+import kotlinx.coroutines.test.runTest
 
 class ImageCropTransformTest {
 
@@ -55,7 +55,10 @@ class ImageCropTransformTest {
 
   @Test
   fun cropTopLeftCorner() = runTest {
-    val input = checkerboard(100, 100, blockSize = 10,
+    val input = checkerboard(
+      100,
+      100,
+      blockSize = 10,
       colorA = intArrayOf(255, 0, 0, 255),
       colorB = intArrayOf(0, 255, 0, 255),
     )

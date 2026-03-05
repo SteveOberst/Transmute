@@ -4,8 +4,8 @@ import dev.transmute.audio.AudioHint
 import dev.transmute.audio.AudioIR
 import dev.transmute.audio.AudioSamples
 import dev.transmute.audio.AudioTransform
-import dev.transmute.common.PipelineContext
 import dev.transmute.codec.pipeline.TransformId
+import dev.transmute.common.PipelineContext
 
 /**
  * Changes playback speed without altering pitch.
@@ -23,9 +23,7 @@ import dev.transmute.codec.pipeline.TransformId
  *
  * @param speed Playback speed multiplier. Must be > 0. Default is 1.0 (no change).
  */
-class AudioSpeedTransform(
-  val speed: Float = 1f,
-) : AudioTransform {
+class AudioSpeedTransform(val speed: Float = 1f) : AudioTransform {
 
   override fun wouldTransform(hint: AudioHint): Boolean = speed != 1f
 

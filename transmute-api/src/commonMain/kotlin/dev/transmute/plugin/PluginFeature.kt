@@ -49,12 +49,8 @@ package dev.transmute.plugin
  * @property defaultEnabled Whether the feature is enabled when the user does not
  *   explicitly set it. Defaults to `true`.
  */
-open class PluginFeature(
-    val id: String,
-    val description: String = "",
-    val defaultEnabled: Boolean = true,
-) {
-    override fun equals(other: Any?): Boolean = other is PluginFeature && other.id == id
-    override fun hashCode(): Int = id.hashCode()
-    override fun toString(): String = id
+open class PluginFeature(val id: String, val description: String = "", val defaultEnabled: Boolean = true) {
+  override fun equals(other: Any?): Boolean = other is PluginFeature && other.id == id
+  override fun hashCode(): Int = id.hashCode()
+  override fun toString(): String = id
 }

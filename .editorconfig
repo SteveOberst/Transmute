@@ -1,0 +1,26 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+indent_style = space
+indent_size = 2
+
+[*.{kt,kts}]
+# Align ktlint with Android Studio / Android-ish conventions.
+ktlint_code_style = android_studio
+indent_style = space
+indent_size = 2
+max_line_length = 140
+ij_kotlin_allow_trailing_comma = true
+ij_kotlin_allow_trailing_comma_on_call_site = true
+
+# Keep ktlint usable on the current codebase without large mechanical refactors.
+ktlint_standard_no-wildcard-imports = disabled
+ktlint_standard_filename = disabled
+ktlint_standard_backing-property-naming = disabled
+ktlint_standard_enum-entry-name-case = disabled
+
+[*.md]
+trim_trailing_whitespace = false

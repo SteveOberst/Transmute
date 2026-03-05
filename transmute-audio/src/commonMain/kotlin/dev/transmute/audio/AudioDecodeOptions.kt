@@ -1,7 +1,7 @@
 package dev.transmute.audio
 
-import dev.transmute.model.core.DecodeOptions
 import dev.transmute.codec.DecodeRange
+import dev.transmute.model.core.DecodeOptions
 
 /**
  * Sealed hierarchy of audio decoding options.

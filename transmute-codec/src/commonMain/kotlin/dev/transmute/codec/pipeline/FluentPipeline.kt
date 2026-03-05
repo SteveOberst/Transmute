@@ -5,9 +5,7 @@ import dev.transmute.common.PipelineContext
 /**
  * A typed, sequential pipeline where each step can change the value's type.
  */
-class Pipeline<IN, OUT> internal constructor(
-  private val steps: List<suspend (Any?, PipelineContext) -> Any?>,
-) : PipelineHandler<IN, OUT> {
+class Pipeline<IN, OUT> internal constructor(private val steps: List<suspend (Any?, PipelineContext) -> Any?>) : PipelineHandler<IN, OUT> {
 
   @Suppress("UNCHECKED_CAST")
   suspend fun run(input: IN, context: PipelineContext): OUT {
@@ -25,25 +23,21 @@ class Pipeline<IN, OUT> internal constructor(
  * The key idea: the builder is parameterized by the *current* output type. Each [then]
  * returns a new builder instance whose current type is the handler's output.
  */
-class PipelineBuilder<IN, CUR> internal constructor(
-  private val steps: List<suspend (Any?, PipelineContext) -> Any?>,
-) {
+class PipelineBuilder<IN, CUR> internal constructor(private val steps: List<suspend (Any?, PipelineContext) -> Any?>) {
 
   /**
    * Alias for [then] intended for the first pipeline step to avoid starting a pipeline with `then(...)`.
    *
    * This is a pure naming convenience; it behaves identically to [then].
    */
-  infix fun <NEXT> startWith(handler: PipelineHandler<CUR, NEXT>): PipelineBuilder<IN, NEXT> =
-    this then handler
+  infix fun <NEXT> startWith(handler: PipelineHandler<CUR, NEXT>): PipelineBuilder<IN, NEXT> = this then handler
 
   /**
    * Alias for [then] intended for the first pipeline step to avoid starting a pipeline with `then { ... }`.
    *
    * This is a pure naming convenience; it behaves identically to [then].
    */
-  infix fun <NEXT> startWith(block: suspend (CUR, PipelineContext) -> NEXT): PipelineBuilder<IN, NEXT> =
-    this then block
+  infix fun <NEXT> startWith(block: suspend (CUR, PipelineContext) -> NEXT): PipelineBuilder<IN, NEXT> = this then block
 
   infix fun <NEXT> then(handler: PipelineHandler<CUR, NEXT>): PipelineBuilder<IN, NEXT> {
     val nextSteps = steps.toMutableList()
@@ -77,13 +71,10 @@ class PipelineBuilder<IN, CUR> internal constructor(
  *
  * For **type-changing** steps you must use [PipelineBuilder.then]/[PipelineBuilder.startWith].
  */
-operator fun <IN, CUR> PipelineBuilder<IN, CUR>.plus(
-  next: PipelineHandler<CUR, CUR>,
-): PipelineBuilder<IN, CUR> = this then next
+operator fun <IN, CUR> PipelineBuilder<IN, CUR>.plus(next: PipelineHandler<CUR, CUR>): PipelineBuilder<IN, CUR> = this then next
 
 /**
  * Append a **same-type** lambda step to a [PipelineBuilder]. See [plus].
  */
-operator fun <IN, CUR> PipelineBuilder<IN, CUR>.plus(
-  block: suspend (CUR, PipelineContext) -> CUR,
-): PipelineBuilder<IN, CUR> = this then block
+operator fun <IN, CUR> PipelineBuilder<IN, CUR>.plus(block: suspend (CUR, PipelineContext) -> CUR): PipelineBuilder<IN, CUR> =
+  this then block

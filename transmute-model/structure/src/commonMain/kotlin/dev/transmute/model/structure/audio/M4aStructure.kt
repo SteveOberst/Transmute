@@ -17,17 +17,16 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class M4aStructure(
-    /** Parsed `ftyp` box (brand + compatible brands). */
-    val ftyp: FtypData?,
-    /** Full recursive ISO BMFF box hierarchy (payload bytes excluded). */
-    val boxes: List<IsoBmffBoxTree>,
+  /** Parsed `ftyp` box (brand + compatible brands). */
+  val ftyp: FtypData?,
+  /** Full recursive ISO BMFF box hierarchy (payload bytes excluded). */
+  val boxes: List<IsoBmffBoxTree>,
 ) : MediaStructure
 
 /**
  * Parse this [dev.transmute.model.structure.audio.types.M4aRaw] into an [M4aStructure].
  */
-fun M4aRaw.toStructure(): M4aStructure =
-    M4aStructure(
-        ftyp = ftyp,
-        boxes = boxes.map { it.toTree() },
-    )
+fun M4aRaw.toStructure(): M4aStructure = M4aStructure(
+  ftyp = ftyp,
+  boxes = boxes.map { it.toTree() },
+)

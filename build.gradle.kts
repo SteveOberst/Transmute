@@ -4,6 +4,7 @@ import org.gradle.api.publish.PublishingExtension
 plugins {
     alias(libs.plugins.kotlin.multiplatform) apply false
     alias(libs.plugins.android.library) apply false
+    alias(libs.plugins.ktlint) apply false
 }
 
 group = "com.github.SteveOberst.Transmute"
@@ -12,6 +13,14 @@ version = ProjectVersion.resolve(rootDir) // x-release-please-version
 subprojects {
     group = rootProject.group
     version = rootProject.version
+
+    // Code style / formatting (ktlint)
+    apply(plugin = "org.jlleitschuh.gradle.ktlint")
+
+    extensions.findByName("ktlint")?.let {
+        // Keep configuration light; behavior is driven by .editorconfig.
+        // (We intentionally don't hardcode more style knobs here.)
+    }
 
     // Wire GitHub Packages as the publish target for all modules that apply maven-publish.
     // Credentials come from GITHUB_USERNAME / GITHUB_TOKEN environment variables.
@@ -58,4 +67,24 @@ tasks.register("coreTests") {
     group = "verification"
     description = "Runs desktopTest for all modules except transmute-plugins (no GStreamer/libheif required)."
     dependsOn(coreSubprojects.map { "${it.path}:desktopTest" })
+}
+
+tasks.register("coreIntegrationTests") {
+    group = "verification"
+    description = "Runs desktopIntegrationTest for core modules (excludes transmute-plugins)."
+    dependsOn(
+        ":transmute-api:desktopIntegrationTest",
+        ":transmute-audio:desktopIntegrationTest",
+        ":transmute-image:desktopIntegrationTest",
+    )
+}
+
+tasks.register("integrationTest") {
+    group = "verification"
+    description = "Runs all desktopIntegrationTest tasks, including transmute-plugins."
+    dependsOn(
+        "coreIntegrationTests",
+        ":transmute-plugins:gstreamer:desktopIntegrationTest",
+        ":transmute-plugins:libheif:desktopIntegrationTest",
+    )
 }

@@ -22,16 +22,16 @@ package dev.transmute.video
  * ```
  */
 data class VideoHint(
-    /** Frame width in pixels, or `null` if unknown. */
-    val width: Int? = null,
-    /** Frame height in pixels, or `null` if unknown. */
-    val height: Int? = null,
-    /** Frame rate in frames per second, or `null` if unknown. */
-    val frameRate: Double? = null,
-    /** Track duration in milliseconds, or `null` if unknown. */
-    val durationMs: Long? = null,
-    /** Detected or declared format, or `null` if unknown. */
-    val format: VideoFormat? = null,
-    /** Encoded file size in bytes, or `null` if unknown. */
-    val sizeBytes: Long? = null,
+  /** Frame width in pixels, or `null` if unknown. */
+  val width: Int? = null,
+  /** Frame height in pixels, or `null` if unknown. */
+  val height: Int? = null,
+  /** Frame rate in frames per second, or `null` if unknown. */
+  val frameRate: Double? = null,
+  /** Track duration in milliseconds, or `null` if unknown. */
+  val durationMs: Long? = null,
+  /** Detected or declared format, or `null` if unknown. */
+  val format: VideoFormat? = null,
+  /** Encoded file size in bytes, or `null` if unknown. */
+  val sizeBytes: Long? = null,
 )

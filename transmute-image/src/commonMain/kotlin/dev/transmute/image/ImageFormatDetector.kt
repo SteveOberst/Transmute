@@ -17,9 +17,7 @@ object ImageFormatDetector {
    * Requires at least 12 bytes for reliable detection (HEIF/WebP need
    * the RIFF/ftyp box). Returns [ImageFormat.Unknown] for unrecognised data.
    */
-  fun detect(bytes: Bytes): ImageFormat {
-    return detectBuiltIn(bytes) ?: ImageFormat.Unknown
-  }
+  fun detect(bytes: Bytes): ImageFormat = detectBuiltIn(bytes) ?: ImageFormat.Unknown
 
   /**
    * Built-in magic byte detection for all standard image formats.
@@ -53,7 +51,8 @@ object ImageFormatDetector {
 
     // TIFF: "II*\0" (little-endian) or "MM\0*" (big-endian)
     if ((b[0] == 0x49.toByte() && b[1] == 0x49.toByte() && b[2] == 0x2A.toByte() && b[3] == 0x00.toByte()) ||
-        (b[0] == 0x4D.toByte() && b[1] == 0x4D.toByte() && b[2] == 0x00.toByte() && b[3] == 0x2A.toByte())) {
+      (b[0] == 0x4D.toByte() && b[1] == 0x4D.toByte() && b[2] == 0x00.toByte() && b[3] == 0x2A.toByte())
+    ) {
       return ImageFormat.Tiff
     }
 
@@ -80,7 +79,8 @@ object ImageFormatDetector {
   fun supportsAlpha(format: ImageFormat): Boolean = when (format) {
     ImageFormat.Png, ImageFormat.Webp, ImageFormat.Gif, ImageFormat.Avif -> true
     ImageFormat.Jpeg, ImageFormat.Heif, ImageFormat.Heic, ImageFormat.Bmp,
-    ImageFormat.Tiff, ImageFormat.Unknown -> false
+    ImageFormat.Tiff, ImageFormat.Unknown,
+    -> false
   }
 
   /**

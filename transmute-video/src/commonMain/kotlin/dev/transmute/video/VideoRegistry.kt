@@ -1,11 +1,11 @@
 package dev.transmute.video
 
-import kotlin.concurrent.Volatile
-import dev.transmute.io.TSource
 import dev.transmute.codec.MediaCodec
 import dev.transmute.codec.MediaDecoder
 import dev.transmute.codec.MediaEncoder
 import dev.transmute.common.PipelineContext
+import dev.transmute.io.TSource
+import kotlin.concurrent.Volatile
 
 /**
  * Mutable registry for [VideoDecoder] instances.
@@ -67,12 +67,8 @@ class MutableVideoEncoderRegistry : VideoEncoderRegistry {
   fun register(encoder: MediaEncoder<VideoFormat, VideoIR, VideoEncodeOptions>) {
     val wrapper = object : VideoEncoder {
       override val supportedFormats = encoder.encodableFormats
-      override suspend fun encode(
-        ir: VideoIR,
-        format: VideoFormat,
-        options: VideoEncodeOptions,
-        context: PipelineContext,
-      ) = encoder.encode(ir, format, options, context)
+      override suspend fun encode(ir: VideoIR, format: VideoFormat, options: VideoEncodeOptions, context: PipelineContext) =
+        encoder.encode(ir, format, options, context)
     }
     register(wrapper)
   }
@@ -86,12 +82,8 @@ class MutableVideoEncoderRegistry : VideoEncoderRegistry {
     for (format in codec.encodableFormats) {
       encoders[format] = object : VideoEncoder {
         override val supportedFormats = codec.encodableFormats
-        override suspend fun encode(
-          ir: VideoIR,
-          format: VideoFormat,
-          options: VideoEncodeOptions,
-          context: PipelineContext,
-        ) = codec.encode(ir, format, options, context)
+        override suspend fun encode(ir: VideoIR, format: VideoFormat, options: VideoEncodeOptions, context: PipelineContext) =
+          codec.encode(ir, format, options, context)
       }
     }
   }
@@ -134,9 +126,7 @@ object VideoRegistries {
    * after platform-native codecs.  This is the primary mechanism for optional
    * modules (e.g. `transmute-gstreamer`) to fill codec gaps automatically.
    */
-  fun addSupplementaryInstaller(
-    installer: (MutableVideoDecoderRegistry, MutableVideoEncoderRegistry) -> Unit,
-  ) {
+  fun addSupplementaryInstaller(installer: (MutableVideoDecoderRegistry, MutableVideoEncoderRegistry) -> Unit) {
     supplementaryInstallers.add(installer)
   }
 
@@ -185,7 +175,4 @@ object VideoRegistries {
   }
 }
 
-expect fun installPlatformVideoCodecs(
-  decoders: MutableVideoDecoderRegistry,
-  encoders: MutableVideoEncoderRegistry,
-)
+expect fun installPlatformVideoCodecs(decoders: MutableVideoDecoderRegistry, encoders: MutableVideoEncoderRegistry)

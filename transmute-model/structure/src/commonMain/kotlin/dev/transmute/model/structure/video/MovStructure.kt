@@ -17,17 +17,16 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class MovStructure(
-    /** Parsed `ftyp` box (brand + compatible brands), if present. */
-    val ftyp: FtypData?,
-    /** Full recursive ISO BMFF box hierarchy (payload bytes excluded). */
-    val boxes: List<IsoBmffBoxTree>,
+  /** Parsed `ftyp` box (brand + compatible brands), if present. */
+  val ftyp: FtypData?,
+  /** Full recursive ISO BMFF box hierarchy (payload bytes excluded). */
+  val boxes: List<IsoBmffBoxTree>,
 ) : MediaStructure
 
 /**
  * Parse this [dev.transmute.model.structure.video.types.MovRaw] into a [MovStructure].
  */
-fun MovRaw.toStructure(): MovStructure =
-    MovStructure(
-        ftyp = ftyp,
-        boxes = boxes.map { it.toTree() },
-    )
+fun MovRaw.toStructure(): MovStructure = MovStructure(
+  ftyp = ftyp,
+  boxes = boxes.map { it.toTree() },
+)

@@ -18,28 +18,28 @@ import dev.transmute.structure.common.findHeifXmpBytes
  * metadata items referenced through the `meta > iloc` and `meta > iinf` boxes.
  */
 fun AvifRaw.extractMetadata(): List<MediaMetadata> = buildList {
-    extractExif()?.let(::add)
-    extractXmp()?.let(::add)
+  extractExif()?.let(::add)
+  extractXmp()?.let(::add)
 }
 
 // -- EXIF from iloc-referenced Exif item --------------------------------------
 
 private fun AvifRaw.extractExif(): MediaMetadata? {
-    val tiffBytes = findHeifExifBytes(boxes) ?: return null
-    if (tiffBytes.size < 8) return null
-    return try {
-        val reader = TiffStructureReader()
-        val tiffRaw = reader.read(dev.transmute.model.core.Bytes(tiffBytes))
-        tiffRawToExif(tiffRaw)
-    } catch (_: Exception) {
-        null
-    }
+  val tiffBytes = findHeifExifBytes(boxes) ?: return null
+  if (tiffBytes.size < 8) return null
+  return try {
+    val reader = TiffStructureReader()
+    val tiffRaw = reader.read(dev.transmute.model.core.Bytes(tiffBytes))
+    tiffRawToExif(tiffRaw)
+  } catch (_: Exception) {
+    null
+  }
 }
 
 // -- XMP from iloc-referenced mime item ---------------------------------------
 
 private fun AvifRaw.extractXmp(): MediaMetadata? {
-    val xmpBytes = findHeifXmpBytes(boxes) ?: return null
-    val text = xmpBytes.decodeToString().trim()
-    return parseXmpText(text)
+  val xmpBytes = findHeifXmpBytes(boxes) ?: return null
+  val text = xmpBytes.decodeToString().trim()
+  return parseXmpText(text)
 }

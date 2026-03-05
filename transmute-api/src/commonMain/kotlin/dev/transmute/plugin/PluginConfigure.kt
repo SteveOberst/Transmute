@@ -1,8 +1,5 @@
 package dev.transmute.plugin
 
-import dev.transmute.common.LogLevel
-import dev.transmute.common.TransmuteLogger
-
 /**
  * Base configuration that every plugin receives automatically.
  *
@@ -26,52 +23,60 @@ import dev.transmute.common.TransmuteLogger
  * ```
  */
 class PluginConfigure {
-    internal val loggerConfig = PluginLoggerConfig()
-    internal val featuresConfig = PluginFeaturesConfig()
+  internal val loggerConfig = PluginLoggerConfig()
+  internal val featuresConfig = PluginFeaturesConfig()
 
-    /**
-     * Configure the plugin's logger.
-     *
-     * ```kotlin
-     * configure {
-     *     logging {
-     *         level(LogLevel.DEBUG)
-     *         backend(PrintLogger)
-     *     }
-     * }
-     * ```
-     */
-    fun logging(block: PluginLoggerConfig.() -> Unit) {
-        loggerConfig.apply(block)
-    }
+  /**
+   * Configure the plugin's logger.
+   *
+   * ```kotlin
+   * configure {
+   *     logging {
+   *         level(LogLevel.DEBUG)
+   *         backend(PrintLogger)
+   *     }
+   * }
+   * ```
+   */
+  fun logging(block: PluginLoggerConfig.() -> Unit) {
+    loggerConfig.apply(block)
+  }
 
-    /**
-     * Toggle named features on this plugin.
-     *
-     * ```kotlin
-     * configure {
-     *     features {
-     *         enable(GStreamerFeature.AudioCodecs)
-     *         disable(GStreamerFeature.LegacyAvi)
-     *     }
-     * }
-     * ```
-     */
-    fun features(block: PluginFeaturesConfig.() -> Unit) {
-        featuresConfig.apply(block)
-    }
+  /**
+   * Toggle named features on this plugin.
+   *
+   * ```kotlin
+   * configure {
+   *     features {
+   *         enable(GStreamerFeature.AudioCodecs)
+   *         disable(GStreamerFeature.LegacyAvi)
+   *     }
+   * }
+   * ```
+   */
+  fun features(block: PluginFeaturesConfig.() -> Unit) {
+    featuresConfig.apply(block)
+  }
 
-    // -- Shorthand feature toggles (skip nested features { } block) -----------
+  // -- Shorthand feature toggles (skip nested features { } block) -----------
 
-    /** Enable a [PluginFeature] directly without a nested `features { }` block. */
-    fun enable(feature: PluginFeature) { featuresConfig.enable(feature) }
+  /** Enable a [PluginFeature] directly without a nested `features { }` block. */
+  fun enable(feature: PluginFeature) {
+    featuresConfig.enable(feature)
+  }
 
-    /** Disable a [PluginFeature] directly without a nested `features { }` block. */
-    fun disable(feature: PluginFeature) { featuresConfig.disable(feature) }
+  /** Disable a [PluginFeature] directly without a nested `features { }` block. */
+  fun disable(feature: PluginFeature) {
+    featuresConfig.disable(feature)
+  }
 
-    /** Set a [PluginFeature] to the given state directly. */
-    fun set(feature: PluginFeature, enabled: Boolean) { featuresConfig.set(feature, enabled) }
+  /** Set a [PluginFeature] to the given state directly. */
+  fun set(feature: PluginFeature, enabled: Boolean) {
+    featuresConfig.set(feature, enabled)
+  }
 
-    /** Set a feature by raw string id directly. */
-    fun set(featureId: String, enabled: Boolean) { featuresConfig.set(featureId, enabled) }
+  /** Set a feature by raw string id directly. */
+  fun set(featureId: String, enabled: Boolean) {
+    featuresConfig.set(featureId, enabled)
+  }
 }

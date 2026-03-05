@@ -17,14 +17,12 @@ import dev.transmute.model.structure.common.OggPage
  * resulting model type differs. Subclasses supply a [factory] that
  * wraps the parsed box list in the appropriate raw model.
  */
-open class IsoBmffStructureReader<T : RawMediaStructure>(
-    private val factory: (List<IsoBmffBox>) -> T,
-) : StructureReader<T> {
+open class IsoBmffStructureReader<T : RawMediaStructure>(private val factory: (List<IsoBmffBox>) -> T) : StructureReader<T> {
 
-    override fun read(source: Bytes): T {
-        val boxes = source.data.parseIsoBmffBoxes()
-        return factory(boxes)
-    }
+  override fun read(source: Bytes): T {
+    val boxes = source.data.parseIsoBmffBoxes()
+    return factory(boxes)
+  }
 }
 
 /**
@@ -33,14 +31,12 @@ open class IsoBmffStructureReader<T : RawMediaStructure>(
  * All EBML formats share the same parsing step -- only the resulting
  * model type differs.
  */
-open class EbmlStructureReader<T : RawMediaStructure>(
-    private val factory: (List<EbmlElement>) -> T,
-) : StructureReader<T> {
+open class EbmlStructureReader<T : RawMediaStructure>(private val factory: (List<EbmlElement>) -> T) : StructureReader<T> {
 
-    override fun read(source: Bytes): T {
-        val elements = source.data.parseEbmlElements()
-        return factory(elements)
-    }
+  override fun read(source: Bytes): T {
+    val elements = source.data.parseEbmlElements()
+    return factory(elements)
+  }
 }
 
 /**
@@ -50,12 +46,10 @@ open class EbmlStructureReader<T : RawMediaStructure>(
  * All Ogg formats share the same parsing step -- only the resulting
  * model type differs.
  */
-open class OggStructureReader<T : RawMediaStructure>(
-    private val factory: (List<OggPage>) -> T,
-) : StructureReader<T> {
+open class OggStructureReader<T : RawMediaStructure>(private val factory: (List<OggPage>) -> T) : StructureReader<T> {
 
-    override fun read(source: Bytes): T {
-        val pages = source.data.parseOggPages()
-        return factory(pages)
-    }
+  override fun read(source: Bytes): T {
+    val pages = source.data.parseOggPages()
+    return factory(pages)
+  }
 }

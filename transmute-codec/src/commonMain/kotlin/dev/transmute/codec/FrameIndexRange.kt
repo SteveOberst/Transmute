@@ -11,11 +11,7 @@ import kotlin.math.floor
  *
  * The conversion rounds outwards (start = floor, end = ceil) to avoid accidentally excluding frames.
  */
-data class FrameIndexRange(
-  val startFrameIndex: Long,
-  val endFrameIndexExclusive: Long,
-  val frameRate: Double,
-) : DecodeRange {
+data class FrameIndexRange(val startFrameIndex: Long, val endFrameIndexExclusive: Long, val frameRate: Double) : DecodeRange {
   init {
     require(startFrameIndex >= 0) { "startFrameIndex must be >= 0, was $startFrameIndex" }
     require(endFrameIndexExclusive > startFrameIndex) {

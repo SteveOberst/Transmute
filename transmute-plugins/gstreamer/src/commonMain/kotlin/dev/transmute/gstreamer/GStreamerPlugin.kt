@@ -43,85 +43,87 @@ import dev.transmute.plugins.BuiltinPlugins
  * ```
  */
 class GStreamerPluginConfig : HasPluginConfigure {
-    override val pluginConfigure = PluginConfigure()
+  override val pluginConfigure = PluginConfigure()
 
-    private var _installation: GStreamerInstallation = GStreamerInstallation.Bundled
-    private var _timeoutMs: Long = 30_000L
+  private var _installation: GStreamerInstallation = GStreamerInstallation.Bundled
+  private var _timeoutMs: Long = 30_000L
 
-    /** How GStreamer binaries are located. */
-    val installation: GStreamerInstallation get() = _installation
-    /** Subprocess timeout in milliseconds. */
-    val timeoutMs: Long get() = _timeoutMs
+  /** How GStreamer binaries are located. */
+  val installation: GStreamerInstallation get() = _installation
 
-    // -- Feature toggles (delegate to pluginConfigure) -------------------------
+  /** Subprocess timeout in milliseconds. */
+  val timeoutMs: Long get() = _timeoutMs
 
-    /** Enable a [GStreamerFeature] for this installation. */
-    fun enable(feature: PluginFeature) = pluginConfigure.enable(feature)
+  // -- Feature toggles (delegate to pluginConfigure) -------------------------
 
-    /** Disable a [GStreamerFeature] for this installation. */
-    fun disable(feature: PluginFeature) = pluginConfigure.disable(feature)
+  /** Enable a [GStreamerFeature] for this installation. */
+  fun enable(feature: PluginFeature) = pluginConfigure.enable(feature)
 
-    /** Set a [GStreamerFeature] to the given enabled/disabled state. */
-    fun set(feature: PluginFeature, enabled: Boolean) = pluginConfigure.set(feature, enabled)
+  /** Disable a [GStreamerFeature] for this installation. */
+  fun disable(feature: PluginFeature) = pluginConfigure.disable(feature)
 
-    /** Set a feature by raw string id (fallback for dynamic/runtime usage). */
-    fun set(featureId: String, enabled: Boolean) = pluginConfigure.set(featureId, enabled)
+  /** Set a [GStreamerFeature] to the given enabled/disabled state. */
+  fun set(feature: PluginFeature, enabled: Boolean) = pluginConfigure.set(feature, enabled)
 
-    // -- Installation -----------------------------------------------------------
+  /** Set a feature by raw string id (fallback for dynamic/runtime usage). */
+  fun set(featureId: String, enabled: Boolean) = pluginConfigure.set(featureId, enabled)
 
-    /**
-     * Use a pre-existing GStreamer installation at [home].
-     *
-     * The resolver looks for `<home>/bin/gst-launch-1.0`.
-     */
-    fun installFrom(home: TPath) {
-        _installation = GStreamerInstallation.Custom(home)
-    }
+  // -- Installation -----------------------------------------------------------
 
-    /**
-     * Use a pre-existing GStreamer installation at [home] with
-     * additional [searchPaths] for binaries.
-     */
-    fun installFrom(home: TPath, searchPaths: List<TPath>) {
-        _installation = GStreamerInstallation.Custom(home, searchPaths)
-    }
+  /**
+   * Use a pre-existing GStreamer installation at [home].
+   *
+   * The resolver looks for `<home>/bin/gst-launch-1.0`.
+   */
+  fun installFrom(home: TPath) {
+    _installation = GStreamerInstallation.Custom(home)
+  }
 
-    /**
-     * Locate GStreamer via the system PATH and platform defaults.
-     *
-     * Does not use bundled binaries. If GStreamer is not installed
-     * on the system, codecs that require it will be unavailable.
-     */
-    fun useSystemInstallation() {
-        _installation = GStreamerInstallation.System
-    }
+  /**
+   * Use a pre-existing GStreamer installation at [home] with
+   * additional [searchPaths] for binaries.
+   */
+  fun installFrom(home: TPath, searchPaths: List<TPath>) {
+    _installation = GStreamerInstallation.Custom(home, searchPaths)
+  }
 
-    /** Set the installation mode directly. */
-    fun installation(mode: GStreamerInstallation) {
-        _installation = mode
-    }
+  /**
+   * Locate GStreamer via the system PATH and platform defaults.
+   *
+   * Does not use bundled binaries. If GStreamer is not installed
+   * on the system, codecs that require it will be unavailable.
+   */
+  fun useSystemInstallation() {
+    _installation = GStreamerInstallation.System
+  }
 
-    /** Set the subprocess timeout in milliseconds. Use `0` to disable. */
-    fun timeout(ms: Long) { _timeoutMs = ms }
+  /** Set the installation mode directly. */
+  fun installation(mode: GStreamerInstallation) {
+    _installation = mode
+  }
 
-    /**
-     * Configure cross-cutting plugin concerns (logging, etc.).
-     *
-     * ```kotlin
-     * configure {
-     *     logging {
-     *         level(LogLevel.DEBUG)
-     *         backend(PrintLogger)
-     *     }
-     * }
-     * ```
-     */
-    fun configure(block: PluginConfigure.() -> Unit) {
-        pluginConfigure.apply(block)
-    }
+  /** Set the subprocess timeout in milliseconds. Use `0` to disable. */
+  fun timeout(ms: Long) {
+    _timeoutMs = ms
+  }
 
-    override fun toString(): String =
-        "GStreamerPluginConfig(installation=$_installation, timeoutMs=$_timeoutMs)"
+  /**
+   * Configure cross-cutting plugin concerns (logging, etc.).
+   *
+   * ```kotlin
+   * configure {
+   *     logging {
+   *         level(LogLevel.DEBUG)
+   *         backend(PrintLogger)
+   *     }
+   * }
+   * ```
+   */
+  fun configure(block: PluginConfigure.() -> Unit) {
+    pluginConfigure.apply(block)
+  }
+
+  override fun toString(): String = "GStreamerPluginConfig(installation=$_installation, timeoutMs=$_timeoutMs)"
 }
 
 /**
@@ -167,7 +169,7 @@ object GStreamer : TransmutePlugin<GStreamerPluginConfig> {
     if (!GStreamerCodecInstaller.available) {
       val diag = resolverDiagnostics()
       if (diag.isNotBlank()) logger.warn("GStreamer resolution trace:\n$diag")
-        logger.warn("GStreamer is not available -- skipping codec registration")
+      logger.warn("GStreamer is not available -- skipping codec registration")
       return
     }
 

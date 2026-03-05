@@ -27,17 +27,16 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class WebmStructure(
-    /** Parsed EBML header metadata (DocType, version, read-version). */
-    val headerData: EbmlHeaderData?,
-    /** All top-level EBML elements in file order (EBML Header + Segment + ...). Payload bytes excluded. */
-    val elements: List<EbmlElementTree>,
+  /** Parsed EBML header metadata (DocType, version, read-version). */
+  val headerData: EbmlHeaderData?,
+  /** All top-level EBML elements in file order (EBML Header + Segment + ...). Payload bytes excluded. */
+  val elements: List<EbmlElementTree>,
 ) : MediaStructure
 
 /**
  * Parse this [dev.transmute.model.structure.video.types.WebmRaw] into a [WebmStructure].
  */
-fun WebmRaw.toStructure(): WebmStructure =
-    WebmStructure(
-        headerData = headerData,
-        elements = elements.map { it.toTree() },
-    )
+fun WebmRaw.toStructure(): WebmStructure = WebmStructure(
+  headerData = headerData,
+  elements = elements.map { it.toTree() },
+)

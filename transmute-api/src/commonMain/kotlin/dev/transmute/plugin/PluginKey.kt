@@ -33,9 +33,9 @@ package dev.transmute.plugin
  * @property id Reverse-domain-style identifier (e.g. `"dev.transmute.gstreamer"`).
  */
 open class PluginId(val id: String) {
-    override fun equals(other: Any?): Boolean = other is PluginId && other.id == id
-    override fun hashCode(): Int = id.hashCode()
-    override fun toString(): String = id
+  override fun equals(other: Any?): Boolean = other is PluginId && other.id == id
+  override fun hashCode(): Int = id.hashCode()
+  override fun toString(): String = id
 }
 
 /** Backward-compatible alias. Prefer [PluginId]. */

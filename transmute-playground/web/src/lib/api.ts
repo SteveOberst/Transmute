@@ -65,16 +65,6 @@ export function fileUrl(handle: string): string {
   return `${BASE}/api/files/${handle}`
 }
 
-/**
- * URL that always returns a browser-renderable image.
- * HEIC / HEIF / AVIF are transcoded to JPEG server-side; other image
- * formats are returned as-is with the correct Content-Type header.
- * Use this for <img> src attributes instead of fileUrl() for image domains.
- */
-export function previewUrl(handle: string): string {
-  return `${BASE}/api/preview/${handle}`
-}
-
 /* -- Transform --------------------------------------------------------- */
 
 export async function executeTransform(req: TransformRequest): Promise<TransformResult> {

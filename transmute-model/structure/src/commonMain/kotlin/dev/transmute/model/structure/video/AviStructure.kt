@@ -25,24 +25,24 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class AviStreamHeader(
-    /** Stream type: `vids` (video), `auds` (audio), `mids` (MIDI), `txts` (text). */
-    val fccType: String,
-    /** Codec / handler FOURCC (e.g. `xvid`, `MP4V`, `mp3 `, `avc1`). */
-    val fccHandler: String,
-    /** Time scale denominator (frame-rate = rate / scale). */
-    val scale: UInt,
-    /** Time scale numerator. */
-    val rate: UInt,
-    /** Stream start offset in scale / rate units. */
-    val start: UInt,
-    /** Length of the stream in scale / rate units. */
-    val length: UInt,
-    /** Suggested playback buffer size in bytes (0 = unspecified). */
-    val suggestedBufferSize: UInt,
-    /** Encoding quality (0-10 000; 1 = default). */
-    val quality: Int,
-    /** Sample size in bytes (0 = variable-size samples). */
-    val sampleSize: UInt,
+  /** Stream type: `vids` (video), `auds` (audio), `mids` (MIDI), `txts` (text). */
+  val fccType: String,
+  /** Codec / handler FOURCC (e.g. `xvid`, `MP4V`, `mp3 `, `avc1`). */
+  val fccHandler: String,
+  /** Time scale denominator (frame-rate = rate / scale). */
+  val scale: UInt,
+  /** Time scale numerator. */
+  val rate: UInt,
+  /** Stream start offset in scale / rate units. */
+  val start: UInt,
+  /** Length of the stream in scale / rate units. */
+  val length: UInt,
+  /** Suggested playback buffer size in bytes (0 = unspecified). */
+  val suggestedBufferSize: UInt,
+  /** Encoding quality (0-10 000; 1 = default). */
+  val quality: Int,
+  /** Sample size in bytes (0 = variable-size samples). */
+  val sampleSize: UInt,
 )
 
 /**
@@ -55,10 +55,10 @@ data class AviStreamHeader(
  */
 @Serializable
 data class AviStreamDescriptor(
-    /** Parsed `strh` chunk. `null` if the chunk is absent or malformed. */
-    val header: AviStreamHeader?,
-    /** Size of the `strf` (stream format) payload in bytes. */
-    val formatDataBytes: Int,
+  /** Parsed `strh` chunk. `null` if the chunk is absent or malformed. */
+  val header: AviStreamHeader?,
+  /** Size of the `strf` (stream format) payload in bytes. */
+  val formatDataBytes: Int,
 )
 
 /**
@@ -82,60 +82,59 @@ data class AviStreamDescriptor(
  */
 @Serializable
 data class AviStructure(
-    /** Parsed `avih` chunk - global stream parameters. */
-    val mainHeader: AviMainHeader?,
-    /** Descriptor for each logical stream (video, audio, ...) in `hdrl` order. */
-    val streams: List<AviStreamDescriptor>,
-    /** Payload size of the `movi` LIST (all interleaved frame data) in bytes. */
-    val movieDataBytes: Long,
-    /** `true` when a legacy `idx1` chunk index is present. */
-    val hasIndex: Boolean,
-    /** Full recursive RIFF chunk hierarchy (payload bytes excluded). */
-    val riff: RiffChunkTree,
+  /** Parsed `avih` chunk - global stream parameters. */
+  val mainHeader: AviMainHeader?,
+  /** Descriptor for each logical stream (video, audio, ...) in `hdrl` order. */
+  val streams: List<AviStreamDescriptor>,
+  /** Payload size of the `movi` LIST (all interleaved frame data) in bytes. */
+  val movieDataBytes: Long,
+  /** `true` when a legacy `idx1` chunk index is present. */
+  val hasIndex: Boolean,
+  /** Full recursive RIFF chunk hierarchy (payload bytes excluded). */
+  val riff: RiffChunkTree,
 ) : MediaStructure
 
 /**
  * Parse this [dev.transmute.model.structure.video.types.AviRaw] into an [AviStructure].
  */
-fun AviRaw.toStructure(): AviStructure =
-    AviStructure(
-        mainHeader = mainHeader,
-        streams = parseAviStreams(),
-        movieDataBytes = movieList?.size?.toLong() ?: 0L,
-        hasIndex = indexChunk != null,
-        riff = riff.toTree(),
-    )
+fun AviRaw.toStructure(): AviStructure = AviStructure(
+  mainHeader = mainHeader,
+  streams = parseAviStreams(),
+  movieDataBytes = movieList?.size?.toLong() ?: 0L,
+  hasIndex = indexChunk != null,
+  riff = riff.toTree(),
+)
 
 private fun AviRaw.parseAviStreams(): List<AviStreamDescriptor> {
-    val hdrl = headerList ?: return emptyList()
-    return hdrl.children
-        .filter { it.id.value == "LIST" && it.formType?.value == "strl" }
-        .map { strl ->
-            val strh = strl.children.firstOrNull { it.id.value == "strh" }
-            val strf = strl.children.firstOrNull { it.id.value == "strf" }
-            AviStreamDescriptor(
-                header = strh?.let { parseAviStreamHeader(it.data.data) },
-                formatDataBytes = strf?.data?.size ?: 0,
-            )
-        }
+  val hdrl = headerList ?: return emptyList()
+  return hdrl.children
+    .filter { it.id.value == "LIST" && it.formType?.value == "strl" }
+    .map { strl ->
+      val strh = strl.children.firstOrNull { it.id.value == "strh" }
+      val strf = strl.children.firstOrNull { it.id.value == "strf" }
+      AviStreamDescriptor(
+        header = strh?.let { parseAviStreamHeader(it.data.data) },
+        formatDataBytes = strf?.data?.size ?: 0,
+      )
+    }
 }
 
 private fun parseAviStreamHeader(d: ByteArray): AviStreamHeader? {
-    if (d.size < 56) return null
-    fun fcc(off: Int) = String(CharArray(4) { d[off + it].toInt().and(0xFF).toChar() })
-    fun u32(off: Int): UInt = (d[off].toUInt() and 0xFFu) or
-        ((d[off + 1].toUInt() and 0xFFu) shl 8) or
-        ((d[off + 2].toUInt() and 0xFFu) shl 16) or
-        ((d[off + 3].toUInt() and 0xFFu) shl 24)
-    return AviStreamHeader(
-        fccType = fcc(0),
-        fccHandler = fcc(4),
-        scale = u32(20),
-        rate = u32(24),
-        start = u32(28),
-        length = u32(32),
-        suggestedBufferSize = u32(36),
-        quality = u32(40).toInt(),
-        sampleSize = u32(44),
-    )
+  if (d.size < 56) return null
+  fun fcc(off: Int) = String(CharArray(4) { d[off + it].toInt().and(0xFF).toChar() })
+  fun u32(off: Int): UInt = (d[off].toUInt() and 0xFFu) or
+    ((d[off + 1].toUInt() and 0xFFu) shl 8) or
+    ((d[off + 2].toUInt() and 0xFFu) shl 16) or
+    ((d[off + 3].toUInt() and 0xFFu) shl 24)
+  return AviStreamHeader(
+    fccType = fcc(0),
+    fccHandler = fcc(4),
+    scale = u32(20),
+    rate = u32(24),
+    start = u32(28),
+    length = u32(32),
+    suggestedBufferSize = u32(36),
+    quality = u32(40).toInt(),
+    sampleSize = u32(44),
+  )
 }

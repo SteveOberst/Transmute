@@ -15,7 +15,5 @@ import dev.transmute.model.structure.audio.types.AacRaw
  */
 class AacStructureReader : StructureReader<AacRaw> {
 
-    override fun read(source: Bytes): AacRaw {
-        return AacRaw(data = source)
-    }
+  override fun read(source: Bytes): AacRaw = AacRaw(data = source)
 }

@@ -1,8 +1,8 @@
 ﻿package dev.transmute.video.transform
 
 import dev.transmute.audio.AudioSamples
-import dev.transmute.common.PipelineContext
 import dev.transmute.codec.pipeline.TransformId
+import dev.transmute.common.PipelineContext
 import dev.transmute.video.AudioTrack
 import dev.transmute.video.FrameStream
 import dev.transmute.video.VideoFrame
@@ -28,9 +28,7 @@ import kotlin.math.roundToInt
  *
  * @param speed Playback speed multiplier. Must be > 0.
  */
-class VideoSpeedTransform(
-  val speed: Float,
-) : VideoTransform {
+class VideoSpeedTransform(val speed: Float) : VideoTransform {
 
   override fun wouldTransform(hint: VideoHint): Boolean = speed != 1f
 
@@ -85,10 +83,7 @@ class VideoSpeedTransform(
 /**
  * Adjusts frame timestamps by the speed factor.
  */
-private class SpeedAdjustedFrameStream(
-  private val source: FrameStream,
-  private val speed: Float,
-) : FrameStream {
+private class SpeedAdjustedFrameStream(private val source: FrameStream, private val speed: Float) : FrameStream {
   override val frameCount: Long = (source.frameCount / speed).toLong()
 
   override fun close() = source.close()

@@ -21,20 +21,19 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class BmpStructure(
-    /** 14-byte file header (signature, file size, reserved fields, pixel-data offset). */
-    val fileHeader: BmpFileHeader,
-    /** DIB (info) header - `BITMAPINFOHEADER` or a larger variant (40-124 bytes). */
-    val dibHeader: BmpDibHeader,
-    /** Colour table entries - populated when bits-per-pixel <= 8; empty otherwise. */
-    val colorTable: List<BmpColorEntry>,
+  /** 14-byte file header (signature, file size, reserved fields, pixel-data offset). */
+  val fileHeader: BmpFileHeader,
+  /** DIB (info) header - `BITMAPINFOHEADER` or a larger variant (40-124 bytes). */
+  val dibHeader: BmpDibHeader,
+  /** Colour table entries - populated when bits-per-pixel <= 8; empty otherwise. */
+  val colorTable: List<BmpColorEntry>,
 ) : MediaStructure
 
 /**
  * Parse this [dev.transmute.model.structure.image.types.BmpRaw] into a [BmpStructure].
  */
-fun BmpRaw.toStructure(): BmpStructure =
-    BmpStructure(
-        fileHeader = fileHeader,
-        dibHeader = dibHeader,
-        colorTable = colorTable,
-    )
+fun BmpRaw.toStructure(): BmpStructure = BmpStructure(
+  fileHeader = fileHeader,
+  dibHeader = dibHeader,
+  colorTable = colorTable,
+)

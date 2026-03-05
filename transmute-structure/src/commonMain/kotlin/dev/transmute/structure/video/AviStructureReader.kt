@@ -18,8 +18,8 @@ import dev.transmute.structure.common.parseRiffContainer
  */
 class AviStructureReader : StructureReader<AviRaw> {
 
-    override fun read(source: Bytes): AviRaw {
-        val riff = parseRiffContainer(source.data, expectedFormType = "AVI ", formatName = "AVI")
-        return AviRaw(riff = riff)
-    }
+  override fun read(source: Bytes): AviRaw {
+    val riff = parseRiffContainer(source.data, expectedFormType = "AVI ", formatName = "AVI")
+    return AviRaw(riff = riff)
+  }
 }

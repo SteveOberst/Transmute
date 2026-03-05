@@ -13,9 +13,9 @@ import dev.transmute.model.structure.image.types.TiffRaw
  * via the shared [tiffRawToExif] helper.
  */
 fun TiffRaw.extractMetadata(): List<MediaMetadata> = buildList {
-    try {
-        add(tiffRawToExif(this@extractMetadata))
-    } catch (_: Exception) {
-        // Skip malformed IFDs
-    }
+  try {
+    add(tiffRawToExif(this@extractMetadata))
+  } catch (_: Exception) {
+    // Skip malformed IFDs
+  }
 }

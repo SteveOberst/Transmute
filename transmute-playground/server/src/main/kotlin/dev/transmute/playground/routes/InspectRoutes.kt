@@ -9,105 +9,106 @@ import io.ktor.server.routing.*
 import io.ktor.utils.io.toByteArray
 
 fun Route.inspectRoutes(service: TransmuteService) {
-    post("/api/upload") {
-        val multipart = call.receiveMultipart()
-        var fileName = "unknown"
-        var fileBytes: ByteArray? = null
+  post("/api/upload") {
+    val multipart = call.receiveMultipart()
+    var fileName = "unknown"
+    var fileBytes: ByteArray? = null
 
-        multipart.forEachPart { part ->
-            when (part) {
-                is PartData.FileItem -> {
-                    fileName = part.originalFileName ?: "unknown"
-                    fileBytes = part.provider().toByteArray()
-                }
-                else -> {}
-            }
-            part.dispose()
+    multipart.forEachPart { part ->
+      when (part) {
+        is PartData.FileItem -> {
+          fileName = part.originalFileName ?: "unknown"
+          fileBytes = part.provider().toByteArray()
         }
-
-        val bytes = fileBytes
-        if (bytes == null) {
-            call.respond(HttpStatusCode.BadRequest, mapOf("error" to "No file provided"))
-            return@post
-        }
-
-        val handle = service.storeFile(fileName, bytes)
-        call.respond(HttpStatusCode.Created, handle)
+        else -> {}
+      }
+      part.dispose()
     }
 
-    post("/api/inspect/{handle}") {
-        val handle = call.parameters["handle"]
-        if (handle == null) {
-            call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Missing handle"))
-            return@post
-        }
-
-        val result = service.inspect(handle)
-        if (result == null) {
-            call.respond(HttpStatusCode.NotFound, mapOf("error" to "File not found"))
-            return@post
-        }
-
-        call.respond(result)
+    val bytes = fileBytes
+    if (bytes == null) {
+      call.respond(HttpStatusCode.BadRequest, mapOf("error" to "No file provided"))
+      return@post
     }
 
-    get("/api/files/{handle}") {
-        val handle = call.parameters["handle"]
-        if (handle == null) {
-            call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Missing handle"))
-            return@get
-        }
+    val handle = service.storeFile(fileName, bytes)
+    call.respond(HttpStatusCode.Created, handle)
+  }
 
-        val bytes = service.getFileBytes(handle)
-        if (bytes == null) {
-            call.respond(HttpStatusCode.NotFound, mapOf("error" to "File not found"))
-            return@get
-        }
-
-        val uploaded = service.getFile(handle)!!
-        call.response.header(
-            HttpHeaders.ContentDisposition,
-            ContentDisposition.Attachment.withParameter(
-                ContentDisposition.Parameters.FileName, uploaded.name
-            ).toString()
-        )
-        call.respondBytes(bytes, ContentType.Application.OctetStream)
+  post("/api/inspect/{handle}") {
+    val handle = call.parameters["handle"]
+    if (handle == null) {
+      call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Missing handle"))
+      return@post
     }
 
-    /**
-     * Returns browser-renderable bytes for any image format.
-     *
-     * HEIC / HEIF / AVIF are transcoded to JPEG on the fly so the browser
-     * can display them. Other image formats are returned as-is with the
-     * appropriate Content-Type header.
-     *
-     * Returns 404 when the handle is unknown or the file is not an image.
-     */
-    get("/api/preview/{handle}") {
-        val handle = call.parameters["handle"]
-        if (handle == null) {
-            call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Missing handle"))
-            return@get
-        }
-
-        val result = service.previewImage(handle)
-        if (result == null) {
-            call.respond(HttpStatusCode.NotFound, mapOf("error" to "File not found or not an image"))
-            return@get
-        }
-
-        val (bytes, contentType) = result
-        call.respondBytes(bytes, ContentType.parse(contentType))
+    val result = service.inspect(handle)
+    if (result == null) {
+      call.respond(HttpStatusCode.NotFound, mapOf("error" to "File not found"))
+      return@post
     }
 
-    get("/api/files") {
-        val files = service.listFiles().map { uploaded ->
-            mapOf(
-                "handle" to uploaded.handle,
-                "name" to uploaded.name,
-                "size" to uploaded.size.toString(),
-            )
-        }
-        call.respond(files)
+    call.respond(result)
+  }
+
+  get("/api/files/{handle}") {
+    val handle = call.parameters["handle"]
+    if (handle == null) {
+      call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Missing handle"))
+      return@get
     }
+
+    val bytes = service.getFileBytes(handle)
+    if (bytes == null) {
+      call.respond(HttpStatusCode.NotFound, mapOf("error" to "File not found"))
+      return@get
+    }
+
+    val uploaded = service.getFile(handle)!!
+    call.response.header(
+      HttpHeaders.ContentDisposition,
+      ContentDisposition.Attachment.withParameter(
+        ContentDisposition.Parameters.FileName,
+        uploaded.name,
+      ).toString(),
+    )
+    call.respondBytes(bytes, ContentType.Application.OctetStream)
+  }
+
+  /**
+   * Returns browser-renderable bytes for any image format.
+   *
+   * HEIC / HEIF / AVIF are transcoded to JPEG on the fly so the browser
+   * can display them. Other image formats are returned as-is with the
+   * appropriate Content-Type header.
+   *
+   * Returns 404 when the handle is unknown or the file is not an image.
+   */
+  get("/api/preview/{handle}") {
+    val handle = call.parameters["handle"]
+    if (handle == null) {
+      call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Missing handle"))
+      return@get
+    }
+
+    val result = service.previewImage(handle)
+    if (result == null) {
+      call.respond(HttpStatusCode.NotFound, mapOf("error" to "File not found or not an image"))
+      return@get
+    }
+
+    val (bytes, contentType) = result
+    call.respondBytes(bytes, ContentType.parse(contentType))
+  }
+
+  get("/api/files") {
+    val files = service.listFiles().map { uploaded ->
+      mapOf(
+        "handle" to uploaded.handle,
+        "name" to uploaded.name,
+        "size" to uploaded.size.toString(),
+      )
+    }
+    call.respond(files)
+  }
 }

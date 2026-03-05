@@ -17,17 +17,16 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class HeifStructure(
-    /** Parsed `ftyp` box (brand + compatible brands). */
-    val ftyp: FtypData?,
-    /** Full recursive ISO BMFF box hierarchy (payload bytes excluded). */
-    val boxes: List<IsoBmffBoxTree>,
+  /** Parsed `ftyp` box (brand + compatible brands). */
+  val ftyp: FtypData?,
+  /** Full recursive ISO BMFF box hierarchy (payload bytes excluded). */
+  val boxes: List<IsoBmffBoxTree>,
 ) : MediaStructure
 
 /**
  * Parse this [dev.transmute.model.structure.image.types.HeifRaw] into a [HeifStructure].
  */
-fun HeifRaw.toStructure(): HeifStructure =
-    HeifStructure(
-        ftyp = ftyp,
-        boxes = boxes.map { it.toTree() },
-    )
+fun HeifRaw.toStructure(): HeifStructure = HeifStructure(
+  ftyp = ftyp,
+  boxes = boxes.map { it.toTree() },
+)

@@ -14,10 +14,10 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class IsoBmffBoxSummary(
-    /** 4-character box type code, e.g. `"ftyp"`, `"moov"`, `"mdat"`. */
-    val type: String,
-    /** Total payload size in bytes (excluding the 8-byte box header). */
-    val dataSizeBytes: Long,
-    /** Type codes of immediate children (for container boxes). */
-    val childTypes: List<String> = emptyList(),
+  /** 4-character box type code, e.g. `"ftyp"`, `"moov"`, `"mdat"`. */
+  val type: String,
+  /** Total payload size in bytes (excluding the 8-byte box header). */
+  val dataSizeBytes: Long,
+  /** Type codes of immediate children (for container boxes). */
+  val childTypes: List<String> = emptyList(),
 )

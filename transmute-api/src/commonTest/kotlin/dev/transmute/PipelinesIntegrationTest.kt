@@ -1,14 +1,13 @@
 package dev.transmute
 
 import dev.transmute.codec.OutputFormat
-import dev.transmute.common.PipelineContext
-import dev.transmute.common.TransmuteLogger
-import dev.transmute.model.core.asBytes
 import dev.transmute.codec.pipeline.Decoded
 import dev.transmute.codec.pipeline.EncodedBytes
-import dev.transmute.codec.pipeline.PipelineHandler
 import dev.transmute.codec.pipeline.Transform
 import dev.transmute.codec.pipeline.TransformId
+import dev.transmute.common.PipelineContext
+import dev.transmute.common.TransmuteLogger
+import dev.transmute.image.AlphaSemantics
 import dev.transmute.image.ByteArrayPixelBuffer
 import dev.transmute.image.CanonicalImageEncodeOptions
 import dev.transmute.image.ColorInfo
@@ -16,9 +15,10 @@ import dev.transmute.image.ImageEncodeOptions
 import dev.transmute.image.ImageFormat
 import dev.transmute.image.ImageIR
 import dev.transmute.image.PixelFormat
-import kotlinx.coroutines.test.runTest
+import dev.transmute.model.core.asBytes
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlinx.coroutines.test.runTest
 
 class PipelinesIntegrationTest {
 
@@ -29,7 +29,8 @@ class PipelinesIntegrationTest {
         pipeline(
           initial = { bytes, _ ->
             val sourceData = bytes.readAll()
-            val width = sourceData.firstOrNull()?.toInt() ?: 1
+            val width = sourceData.firstOrNull()?.toInt()
+              ?: 1
             val ir =
               ImageIR(
                 buffer = ByteArrayPixelBuffer(ByteArray(4)),
@@ -37,7 +38,7 @@ class PipelinesIntegrationTest {
                 height = 1,
                 stride = 4,
                 pixelFormat = PixelFormat.RGBA_8888,
-                alphaSemantics = dev.transmute.image.AlphaSemantics.OPAQUE,
+                alphaSemantics = AlphaSemantics.OPAQUE,
                 colorInfo = ColorInfo(),
               )
             Decoded(ImageFormat.Jpeg, ir)
@@ -48,8 +49,7 @@ class PipelinesIntegrationTest {
       transform {
         add(object : Transform<ImageIR> {
           override val id: TransformId = TransformId("inc-width")
-          override suspend fun apply(ir: ImageIR, context: PipelineContext): ImageIR =
-            ir.copy(width = ir.width + 1)
+          override suspend fun apply(ir: ImageIR, context: PipelineContext): ImageIR = ir.copy(width = ir.width + 1)
         })
       }
 
@@ -58,7 +58,8 @@ class PipelinesIntegrationTest {
 
         pipeline(
           initial = { decoded, ctx ->
-            val options = (ctx.encodeOptions as? ImageEncodeOptions) ?: CanonicalImageEncodeOptions()
+            val options = (ctx.encodeOptions as? ImageEncodeOptions)
+              ?: CanonicalImageEncodeOptions()
             val outFormat = when (val declared = options.outputFormat) {
               OutputFormat.ORIGINAL -> decoded.format
               is OutputFormat.Exact -> declared.format

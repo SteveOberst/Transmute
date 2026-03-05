@@ -1,14 +1,13 @@
 package dev.transmute.video.transform
 
-import dev.transmute.video.VideoIR
+import dev.transmute.image.ByteArrayPixelBuffer
 import dev.transmute.video.VideoTestHelpers.syntheticVideo
 import dev.transmute.video.VideoTestHelpers.testContext
-import dev.transmute.image.ByteArrayPixelBuffer
-import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlinx.coroutines.test.runTest
 
 class VideoTrimTransformTest {
 
@@ -272,7 +271,7 @@ class VideoSpeedTransformTest {
     val outputAudioLen = result.audioTrack!!.samples.data.size
     assertTrue(
       outputAudioLen < inputAudioLen,
-      "Audio should be shortened: input=$inputAudioLen, output=$outputAudioLen"
+      "Audio should be shortened: input=$inputAudioLen, output=$outputAudioLen",
     )
   }
 

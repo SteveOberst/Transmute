@@ -1,8 +1,8 @@
 package dev.transmute.video
 
-import dev.transmute.common.Closeable
 import dev.transmute.audio.AudioSamples
 import dev.transmute.audio.SampleStream
+import dev.transmute.common.Closeable
 import dev.transmute.image.PixelBuffer
 import dev.transmute.image.PixelFormat
 
@@ -22,12 +22,7 @@ data class VideoIR(
 
 // --- Video track ---
 
-data class VideoTrack(
-  val width: Int,
-  val height: Int,
-  val frameRate: Double,
-  val frames: FrameStream,
-)
+data class VideoTrack(val width: Int, val height: Int, val frameRate: Double, val frames: FrameStream)
 
 /** Pull-based streaming access to decoded video frames. */
 interface FrameStream : Closeable {
@@ -50,20 +45,11 @@ class ListFrameStream(private val frames: List<VideoFrame>) : FrameStream {
   override fun close() {}
 }
 
-data class VideoFrame(
-  val buffer: PixelBuffer,
-  val width: Int,
-  val height: Int,
-  val pixelFormat: PixelFormat,
-  val timestampMs: Long,
-)
+data class VideoFrame(val buffer: PixelBuffer, val width: Int, val height: Int, val pixelFormat: PixelFormat, val timestampMs: Long)
 
 // --- Audio track (within a video container) ---
 
-data class AudioTrack(
-  val samples: AudioSamples,
-  val sampleStream: SampleStream?,
-)
+data class AudioTrack(val samples: AudioSamples, val sampleStream: SampleStream?)
 
 // --- Metadata ---
 
