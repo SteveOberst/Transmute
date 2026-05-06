@@ -43,8 +43,10 @@ cd Transmute
           :transmute-video:compileKotlinDesktop \
           :transmute-structure:compileKotlinDesktop
 
-# Run all desktop tests
-./gradlew desktopTest
+# Run all desktop tests for the published modules
+# (use coreTests instead of root-level desktopTest, which pulls in optional
+#  staging tasks for plugin SDKs that may not be available locally)
+./gradlew coreTests
 ```
 
 ### GStreamer (Bundled by Default)
@@ -58,14 +60,14 @@ Enable GStreamer codecs via the plugin system:
 
 ```kotlin
 // All features (audio, video) are enabled by default
-val transmute = Transmute {
+val transmute = transmute {
     plugins {
         install(GStreamer)
     }
 }
 
 // Or selectively disable features you don't need:
-val slim = Transmute {
+val slim = transmute {
     plugins {
         install(GStreamer) {
             disable(GStreamerFeature.LegacyAvi)      // skip legacy AVI
@@ -91,9 +93,9 @@ install(GStreamer) {
 ```
 Transmute/
 ├── transmute-api/         # Public facade (Transmute.kt, Transformers.kt, *TransmuterExt.kt)
-├── transmute-common/      # Shared utilities, TransmuteContext, logging
+├── transmute-common/      # Shared utilities, PipelineContext, logging
 ├── transmute-codec/       # Codec infrastructure — registry, encode/decode handler base
-├── transmute-model/       # Umbrella for model sub-modules (core, identify, structure, view, stream, metadata, diagnostics)
+├── transmute-model/       # Umbrella for model sub-modules (core, identify, structure, metadata)
 ├── transmute-structure/   # Structure readers — parse raw bytes into typed MediaStructure
 ├── transmute-filesystem/  # Cross-platform filesystem abstraction (core, okio)
 ├── transmute-audio/       # Audio codecs + transforms
@@ -105,9 +107,11 @@ Transmute/
 ├── gradle/
 │   └── libs.versions.toml  # Version catalog
 ├── .github/workflows/
-│   ├── ci.yml            # Unit tests on every push + PR
-│   ├── integration.yml   # Full integration tests (Android emulator, iOS sim, desktop)
-│   └── release.yml       # release-please + publish (gates on integration tests)
+│   ├── desktop.yml       # Desktop unit + integration tests on every push + PR
+│   ├── android.yml       # Android instrumented test matrix
+│   ├── ios.yml           # iOS simulator tests
+│   ├── playground.yml    # Playground build / smoke check
+│   └── release.yml       # release-please + publish (gated on tests)
 ├── release-please-config.json
 └── .release-please-manifest.json
 ```
@@ -239,7 +243,7 @@ Also add it to the domain’s `Format.all` set so registries and docs can enumer
 
 ```kotlin
 // transmute-audio/src/commonMain/kotlin/dev/transmute/audio/AudioFormat.kt
-sealed interface AudioFormat : MediaFormat<AudioDecodeOptions, AudioEncodeOptions> {
+sealed interface AudioFormat : MediaFormat {
   // ...
   data object Alac : AudioFormat { override val mimeType: String = "audio/alac"; override val extension: String = "m4a" }
 
@@ -278,16 +282,16 @@ internal class JvmAlacCodec : AudioCodec {
   override val encodableFormats = setOf(AudioFormat.Alac)
 
   override suspend fun decode(
-    source: Bytes,
-    options: AudioDecodeOptions,
-    context: TransmuteContext,
+    source: TSource,
+    params: Params,
+    context: PipelineContext,
   ): AudioIR = TODO("decode")
 
   override suspend fun encode(
     ir: AudioIR,
     format: AudioFormat,
-    options: AudioEncodeOptions,
-    context: TransmuteContext,
+    params: Params,
+    context: PipelineContext,
   ): Bytes = TODO("encode")
 }
 ```
@@ -323,10 +327,10 @@ class JvmAlacCodecTest {
     val codec = JvmAlacCodec()
     val ctx = AudioTestHelpers.testContext()
 
-    val encoded = codec.encode(original, AudioFormat.Alac, CanonicalAudioEncodeOptions(), ctx)
+    val encoded = codec.encode(original, AudioFormat.Alac, Params.Empty, ctx)
     assertTrue(encoded.data.isNotEmpty())
 
-    val decoded = codec.decode(encoded, CanonicalAudioDecodeOptions(), ctx)
+    val decoded = codec.decode(encoded, Params.Empty, ctx)
     assertEquals(44100, decoded.sampleRate)
     assertTrue(decoded.samples.data.isNotEmpty())
   }
@@ -371,7 +375,7 @@ class ImageSepiaTransform(
 ) : Transform<ImageIR> {
   override val id = TransformId("image.sepia")
 
-  override suspend fun apply(ir: ImageIR, context: TransmuteContext): ImageIR {
+  override suspend fun apply(ir: ImageIR, context: PipelineContext): ImageIR {
     // Apply sepia filter to pixels
     return ir.copy(/* modified pixel buffer */)
   }
@@ -396,15 +400,15 @@ add an extension function so DSL callers get an ergonomic shortcut:
 
 ```kotlin
 // In transmute-api/.../ImageTransmuterExt.kt
-fun ImageTransmuter.sepia(intensity: Float = 1.0f): ImageTransmuter = apply {
-  pipeline.add(ImageSepiaTransform(intensity))
+fun <T : TransformConfigurable<ImageIR>> T.sepia(intensity: Float = 1.0f): T = apply {
+  transform { add(ImageSepiaTransform(intensity)) }
 }
 ```
 
 > **Why extension functions?**  
 > Keeping convenience methods as extension functions in dedicated files
 > (`ImageTransmuterExt.kt`, `AudioTransmuterExt.kt`, `VideoTransmuterExt.kt`)
-> keeps the Transmuter classes lean and avoids modifying core infrastructure
+> keeps the builder classes lean and avoids modifying core infrastructure
 > every time a new transform is added.
 
 ### 4. Test
@@ -431,7 +435,7 @@ class ImageSepiaTransformTest {
 | Source Set                | Runs On           | Command                           | What It Tests                                                  |
 |---------------------------|-------------------|-----------------------------------|----------------------------------------------------------------|
 | `commonTest`              | All targets       | `./gradlew allTests`              | Pure-Kotlin codecs (WAV, BMP), transforms, format detection    |
-| `desktopTest`             | JVM               | `./gradlew desktopTest`           | JVM codecs (ImageIO, JLayer), JVM-specific integration         |
+| `desktopTest`             | JVM               | `./gradlew coreTests` (aggregate) or `./gradlew :<module>:desktopTest` | JVM codecs (ImageIO, JLayer), JVM-specific integration         |
 | `androidInstrumentedTest` | Device/Emulator   | `./gradlew connectedAndroidTest`  | Android codecs (BitmapFactory, MediaCodec)                     |
 | `iosTest`                 | macOS + Simulator | `./gradlew iosSimulatorArm64Test` | iOS codecs (CoreGraphics, AVFoundation)                        |
 
@@ -476,6 +480,55 @@ AudioTestHelpers.silence(durationMs = 1000)
 // Video: synthetic gradient frames with optional audio
 VideoTestHelpers.syntheticVideo(width = 64, height = 48, durationMs = 300)
 ```
+
+**Optional external real-media corpus:**
+
+When a change needs real files with messy metadata, odd timestamps, or
+container edge cases, use the opt-in external corpus harness instead of
+checking binaries into the repo.
+
+Configuration:
+
+```bash
+# PowerShell / cmd via Gradle property
+./gradlew :transmute-testing:desktopTest -Ptransmute.testMediaDir=C:/media/transmute-corpus
+
+# or environment variable
+set TRANSMUTE_TEST_MEDIA_DIR=C:/media/transmute-corpus
+./gradlew :transmute-testing:desktopTest
+```
+
+Expected manifest: `fixtures.tsv` at the corpus root, with tab-separated columns:
+
+```text
+id    relativePath    domain    format    tags    notes    expectations
+cover-jpeg    images/cover.jpg    image    jpeg    smoke,metadata,structure    Embedded EXIF sample    detect=jpeg;domain=image;structure=true;metadata.min=1
+sample-mov    video/sample.mov    video    mov    smoke,structure    Variable frame timing sample    detect=mov;domain=video;structure=true
+```
+
+Supported tag conventions used by the current harness:
+- `smoke` or `detect`: assert format detection matches the manifest format label
+- `structure`: assert `transmute.inspect.structure(...)` returns a non-null structure
+- `metadata`: assert `transmute.inspect.metadata(...)` returns at least one metadata entry
+
+Optional expectation tokens in the seventh column allow stricter per-fixture
+assertions without hard-coding them in test code:
+- `detect=<format>`: assert `transmute.inspect.detectFormat(...)` matches the token
+- `domain=image|audio|video|other`: assert the inspected media domain
+- `structure=true|false`: assert whether decoded structure is available
+- `rawStructure=true|false`: assert whether raw structure is available
+- `metadata.min=<count>`: assert at least `<count>` metadata entries are produced
+
+Keep the corpus out of the normal checkout and curate it separately; the tests
+gracefully no-op when no external corpus is configured.
+
+**Manual release dry run:**
+
+Use `.github/workflows/release-dry-run.yml` before the first public tag, or
+after changing release wiring. Supply a `ref` in the Actions UI; the workflow
+stages the desktop GStreamer/libheif payloads on Windows and macOS, downloads
+the GStreamer iOS SDK on macOS, runs `publishToMavenLocal`, and uploads the
+resulting `~/.m2/repository/dev/transmute` tree as an artifact for inspection.
 
 **Graceful skip when optional dependency is unavailable:**
 

@@ -1,0 +1,153 @@
+name: Release Dry Run
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Git ref to validate (branch, tag, or SHA)
+        required: true
+        default: main
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  stage-gstreamer-desktop:
+    name: Stage GStreamer Desktop (${{ matrix.os }})
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [windows-latest, macos-15]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Restore GStreamer staging cache
+        id: gst-cache
+        uses: actions/cache@v4
+        with:
+          path: transmute-plugins/gstreamer/build/gstreamer-desktop/
+          key: gstreamer-desktop-${{ runner.os }}-${{ hashFiles('gradle.properties') }}
+
+      - name: Stage GStreamer desktop binaries
+        if: steps.gst-cache.outputs.cache-hit != 'true'
+        run: ./gradlew --no-daemon :transmute-plugins:gstreamer:stageGStreamerDesktop
+
+      - name: Upload staged binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: gstreamer-desktop-${{ runner.os }}
+          path: transmute-plugins/gstreamer/build/gstreamer-desktop/
+          if-no-files-found: error
+          retention-days: 1
+
+  stage-libheif-desktop:
+    name: Stage libheif Desktop (${{ matrix.os }})
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [windows-latest, macos-15]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Restore libheif staging cache
+        id: libheif-cache
+        uses: actions/cache@v4
+        with:
+          path: transmute-plugins/libheif/build/libheif-desktop/
+          key: libheif-desktop-${{ runner.os }}-${{ hashFiles('gradle.properties') }}
+
+      - name: Stage libheif desktop binaries
+        if: steps.libheif-cache.outputs.cache-hit != 'true'
+        run: ./gradlew --no-daemon :transmute-plugins:libheif:stageLibHeifDesktop
+
+      - name: Upload staged libheif binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: libheif-desktop-${{ runner.os }}
+          path: transmute-plugins/libheif/build/libheif-desktop/
+          if-no-files-found: error
+          retention-days: 1
+
+  publish-dry-run:
+    name: Publish Dry Run (macOS)
+    needs: [stage-gstreamer-desktop, stage-libheif-desktop]
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Download staged GStreamer binaries (Windows)
+        uses: actions/download-artifact@v4
+        with:
+          name: gstreamer-desktop-Windows
+          path: transmute-plugins/gstreamer/build/gstreamer-desktop/
+
+      - name: Download staged GStreamer binaries (macOS)
+        uses: actions/download-artifact@v4
+        with:
+          name: gstreamer-desktop-macOS
+          path: transmute-plugins/gstreamer/build/gstreamer-desktop/
+
+      - name: Download staged libheif binaries (Windows)
+        uses: actions/download-artifact@v4
+        with:
+          name: libheif-desktop-Windows
+          path: transmute-plugins/libheif/build/libheif-desktop/
+
+      - name: Download staged libheif binaries (macOS)
+        uses: actions/download-artifact@v4
+        with:
+          name: libheif-desktop-macOS
+          path: transmute-plugins/libheif/build/libheif-desktop/
+
+      - name: Download GStreamer iOS SDK
+        run: ./gradlew --no-daemon :transmute-plugins:gstreamer:downloadGStreamerIos
+
+      - name: Clear previous local Transmute publications
+        run: rm -rf ~/.m2/repository/dev/transmute
+
+      - name: Publish to Maven Local
+        run: ./gradlew --no-daemon build -x test -x check publishToMavenLocal
+
+      - name: Upload local Maven repository snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: maven-local-dev-transmute
+          path: ~/.m2/repository/dev/transmute/
+          if-no-files-found: error
+          retention-days: 7
