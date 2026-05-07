@@ -81,6 +81,15 @@ jobs:
           path: transmute-plugins/libheif/build/libheif-desktop/
           key: libheif-desktop-${{ runner.os }}-${{ hashFiles('gradle.properties') }}
 
+      - name: Set up MSYS2 libheif on Windows
+        if: runner.os == 'Windows' && steps.libheif-cache.outputs.cache-hit != 'true'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            mingw-w64-x86_64-libheif
+
       - name: Install libheif on macOS
         if: runner.os == 'macOS' && steps.libheif-cache.outputs.cache-hit != 'true'
         env:

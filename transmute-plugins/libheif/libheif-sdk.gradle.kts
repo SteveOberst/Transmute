@@ -70,13 +70,55 @@ fun writeLibHeifManifest(platformDir: File) {
   File(platformDir, "manifest.txt").writeText(manifest)
 }
 
+fun hasLibHeifDecoder(binDir: File): Boolean =
+  listOf("heif-dec.exe", "heif-convert.exe").any { File(binDir, it).isFile }
+
+fun stageLibHeifWindowsHome(homeDir: File, platformDir: File): Boolean {
+  val srcBin = File(homeDir, "bin")
+  if (!srcBin.isDirectory || !hasLibHeifDecoder(srcBin)) return false
+
+  val dstBin = File(platformDir, "bin")
+  val dstLib = File(platformDir, "lib")
+  dstBin.mkdirs()
+  srcBin.copyRecursively(dstBin, overwrite = true)
+
+  val srcLib = File(homeDir, "lib")
+  if (srcLib.isDirectory) {
+    srcLib.copyRecursively(dstLib, overwrite = true)
+  }
+
+  return true
+}
+
+fun stageLibHeifFromVcpkgInstall(vcpkgInstalledDir: File, platformDir: File): Boolean {
+  val toolsDir = File(vcpkgInstalledDir, "tools/libheif")
+  val binDir = File(vcpkgInstalledDir, "bin")
+  val libDir = File(vcpkgInstalledDir, "lib")
+
+  val dstBin = File(platformDir, "bin")
+  val dstLib = File(platformDir, "lib")
+  dstBin.mkdirs()
+
+  if (toolsDir.isDirectory) {
+    toolsDir.copyRecursively(dstBin, overwrite = true)
+  }
+  if (binDir.isDirectory) {
+    binDir.copyRecursively(dstBin, overwrite = true)
+  }
+  if (libDir.isDirectory) {
+    libDir.copyRecursively(dstLib, overwrite = true)
+  }
+
+  return hasLibHeifDecoder(dstBin)
+}
+
 // ---------------------------------------------------------------------------
 // Windows staging via vcpkg
 // ---------------------------------------------------------------------------
 
 tasks.register("stageLibHeifDesktopWindows") {
   group = "libheif"
-  description = "Stages libheif Windows x86_64 binaries via vcpkg for bundling into the desktop JAR."
+  description = "Stages libheif Windows x86_64 binaries from an existing local installation for bundling into the desktop JAR."
 
   val os = System.getProperty("os.name", "").lowercase()
   val isWindows = os.startsWith("windows")
@@ -86,88 +128,52 @@ tasks.register("stageLibHeifDesktopWindows") {
   onlyIf { isWindows && !marker.exists() }
 
   doLast {
-    // Locate vcpkg -- fails with an actionable message if not installed.
-    val vcpkgExe = requireVcpkg(logger)
-    val vcpkgRoot = vcpkgRootFrom(vcpkgExe)
     val triplet = "x64-windows"
-
-    // vcpkg feature flags for libheif.
-    //
-    // Feature   License            Notes
-    // --------  -----------------  ---------------------------------
-    // tools     libheif (LGPL-3)   heif-dec.exe, heif-enc.exe, etc.
-    // aom       BSD-2-Clause       AV1 encode / decode (AVIF)
-    // dav1d     BSD-2-Clause       Fast AV1 decode (AVIF)
-    // rav1e     BSD-2-Clause       AV1 encode (AVIF)
-    // hevc      LGPL-3.0           HEVC/H.265 decode via libde265 (HEIC)
-    // x265      GPL-2.0 / comm.    HEVC/H.265 encode (HEIC) <-- see note
-    //
-    // LICENSE NOTE: the default feature set is intentionally permissive-only
-    // (LGPL-3 / BSD). x265 (GPL-2.0 / commercial) is NOT included by default,
-    // because distributing a binary that bundles x265 requires GPL-2.0 source
-    // disclosure or a commercial x265 license.
-    // Reference: https://www.videolan.org/developers/x265.html
-    //
-    // To opt in to HEIC encoding via x265 (and accept the licensing impact),
-    // override the feature set in gradle.properties or on the command line:
-    //
-    //   ./gradlew ... -Ptransmute.libheif.vcpkgFeatures=tools,aom,dav1d,rav1e,hevc,x265
-    //
-    // HEIF/AVIF decoding and AVIF encoding (aom/rav1e) are unaffected by this
-    // default and remain available.
-    val features = (project.findProperty("transmute.libheif.vcpkgFeatures") as? String)
-      ?: "tools,aom,dav1d,rav1e,hevc"
-    val pkg = "libheif[$features]"
-
-    logger.lifecycle("libheif Desktop: installing $pkg --triplet $triplet via vcpkg...")
-    exec {
-      commandLine(
-        vcpkgExe.absolutePath,
-        "install",
-        pkg,
-        "--triplet",
-        triplet,
-        "--no-print-usage",
-      )
-    }
-
-    // vcpkg installs CLI tools to: installed/<triplet>/tools/libheif/
-    // Shared DLLs land in:         installed/<triplet>/bin/
-    val toolsDir = File(vcpkgRoot, "installed/$triplet/tools/libheif")
-    val binDir = File(vcpkgRoot, "installed/$triplet/bin")
-    val libDir = File(vcpkgRoot, "installed/$triplet/lib")
-
-    check(toolsDir.isDirectory) {
-      """
-            stageLibHeifDesktopWindows: CLI tools directory not found at $toolsDir.
-            The libheif vcpkg port may not support the 'tools' feature on this version.
-            Check: https://github.com/microsoft/vcpkg/tree/master/ports/libheif
-            Alternatively, install libheif manually and use installFrom() in your Transmute config.
-            vcpkg installed root: ${File(vcpkgRoot, "installed/$triplet")}
-      """.trimIndent()
-    }
-
-    val decoderExe = listOf("heif-dec.exe", "heif-convert.exe")
-      .map { File(toolsDir, it) }
-      .firstOrNull { it.exists() }
-    check(decoderExe != null) {
-      "stageLibHeifDesktopWindows: neither heif-dec.exe nor heif-convert.exe found under $toolsDir"
-    }
-
     platformDir.mkdirs()
-    val dstBin = File(platformDir, "bin")
-    val dstLib = File(platformDir, "lib")
-    dstBin.mkdirs()
 
-    // Copy CLI executables from the vcpkg tools directory
-    toolsDir.copyRecursively(dstBin, overwrite = true)
+    val configuredHome = (project.findProperty("transmute.libheif.windowsHome") as? String)
+      ?: System.getenv("TRANSMUTE_LIBHEIF_WINDOWS_HOME")
+    val msys2Root = System.getenv("MSYS2_ROOT")
+    val windowsHomes = buildList {
+      configuredHome?.let(::add)
+      msys2Root?.let { add(File(it, "mingw64").absolutePath) }
+      add("C:/msys64/mingw64")
+      add("C:/msys64/ucrt64")
+      add("C:/msys64/clang64")
+    }
+      .distinct()
+      .map(::File)
 
-    // Copy runtime DLLs needed by the tools at runtime
-    if (binDir.isDirectory) binDir.copyRecursively(dstBin, overwrite = true)
-    if (libDir.isDirectory) libDir.copyRecursively(dstLib, overwrite = true)
+    val stagedFromHome = windowsHomes.firstOrNull { homeDir ->
+      homeDir.isDirectory && stageLibHeifWindowsHome(homeDir, platformDir)
+    }
+
+    if (stagedFromHome != null) {
+      logger.lifecycle("libheif Desktop: Windows binaries staged from ${stagedFromHome.absolutePath}")
+    } else {
+      val vcpkgExe = runCatching { requireVcpkg(logger) }.getOrNull()
+      val vcpkgInstalledDir = vcpkgExe?.let { File(vcpkgRootFrom(it), "installed/$triplet") }
+      val stagedFromVcpkg = vcpkgInstalledDir?.takeIf { it.isDirectory }?.let { installDir ->
+        stageLibHeifFromVcpkgInstall(installDir, platformDir)
+      } == true
+
+      check(stagedFromVcpkg) {
+        """
+              stageLibHeifDesktopWindows: No supported libheif CLI installation found.
+              Preferred source for CI and local staging: MSYS2 with mingw-w64-x86_64-libheif installed.
+              Option 1: set TRANSMUTE_LIBHEIF_WINDOWS_HOME to a home containing bin/ and lib/.
+              Option 2: install MSYS2 libheif under C:/msys64/mingw64.
+              Option 3: provide a vcpkg installation that already contains heif-dec.exe / heif-convert.exe.
+        """.trimIndent()
+      }
+
+      logger.lifecycle("libheif Desktop: Windows binaries staged from vcpkg at $vcpkgInstalledDir")
+    }
 
     writeLibHeifManifest(platformDir)
     marker.writeText(libheifVersion)
+
+    val dstBin = File(platformDir, "bin")
 
     val exeCount = dstBin.listFiles { f -> f.extension.equals("exe", ignoreCase = true) }?.size ?: 0
     val dllCount = dstBin.listFiles { f -> f.extension.equals("dll", ignoreCase = true) }?.size ?: 0
