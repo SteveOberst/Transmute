@@ -168,15 +168,15 @@ class IosImageIoEncoder : ImageEncoder {
       val dest = CGImageDestinationCreateWithData(mutableData, uti, 1u, null)
         ?: error("CGImageDestinationCreateWithData failed")
 
+      var compressionQualityNumber: CFTypeRef? = null
       val props = if (format == ImageFormat.Jpeg) {
         val q = ((options as? JpegEncodeOptions)?.quality ?: 0.85f).coerceIn(0f, 1f).toDouble()
         val num = memScoped { CFNumberCreate(null, kCFNumberDoubleType, alloc<DoubleVar>().apply { value = q }.ptr) }
           ?: error("CFNumberCreate failed")
+        compressionQualityNumber = num
         val dict = CFDictionaryCreateMutable(null, 0, null, null)
           ?: error("CFDictionaryCreateMutable failed")
         CFDictionarySetValue(dict, kCGImageDestinationLossyCompressionQuality, num)
-        // CFDictionary retains values; release our local reference.
-        CFRelease(num)
         dict
       } else {
         null
@@ -188,6 +188,9 @@ class IosImageIoEncoder : ImageEncoder {
 
       if (props != null) {
         CFRelease(props)
+      }
+      if (compressionQualityNumber != null) {
+        CFRelease(compressionQualityNumber)
       }
 
       val len = CFDataGetLength(mutableData).toInt()
