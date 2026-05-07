@@ -102,7 +102,34 @@ fun extractMacPkgFramework(
 
   logger.lifecycle("Expanding ${pkg.name} ...")
   exec {
-    commandLine("pkgutil", "--expand", pkg.absolutePath, expandedDir.absolutePath)
+    environment("PKG_PATH", pkg.absolutePath)
+    environment("EXPANDED_DIR", expandedDir.absolutePath)
+    commandLine(
+      "bash",
+      "-lc",
+      """
+      set -euo pipefail
+
+      if pkgutil --help 2>&1 | grep -q -- '--expand-full'; then
+        pkgutil --expand-full "${'$'}PKG_PATH" "${'$'}EXPANDED_DIR"
+      else
+        pkgutil --expand "${'$'}PKG_PATH" "${'$'}EXPANDED_DIR"
+      fi
+      """.trimIndent(),
+    )
+  }
+
+  val expandedFrameworkDir = expandedDir.walkTopDown().firstOrNull { it.isDirectory && it.name == frameworkName }
+  if (expandedFrameworkDir != null) {
+    destinationDir.parentFile.mkdirs()
+    destinationDir.deleteRecursively()
+    exec {
+      commandLine("cp", "-R", expandedFrameworkDir.absolutePath, destinationDir.parentFile.absolutePath)
+    }
+    expandedDir.deleteRecursively()
+    payloadDir.deleteRecursively()
+    logger.lifecycle("$frameworkName extracted via pkgutil -> ${destinationDir.absolutePath}")
+    return
   }
 
   val payload = expandedDir.walkTopDown().firstOrNull { it.isFile && it.name == "Payload" }
