@@ -112,6 +112,7 @@ class MutableAudioEncoderRegistry : AudioEncoderRegistry {
  */
 object AudioRegistries {
   @Volatile private var defaultsInstalled: Boolean = false
+  private val defaultInstallation: Unit by lazy { installDefaults() }
 
   val decoders = MutableAudioDecoderRegistry()
   val encoders = MutableAudioEncoderRegistry()
@@ -170,11 +171,7 @@ object AudioRegistries {
   /** Installs defaults if the registries look empty. */
   fun installDefaultsIfEmpty() {
     if (defaultsInstalled) return
-    synchronized(this) {
-      if (defaultsInstalled) return
-      installDefaults()
-      defaultsInstalled = true
-    }
+    defaultInstallation
   }
 }
 

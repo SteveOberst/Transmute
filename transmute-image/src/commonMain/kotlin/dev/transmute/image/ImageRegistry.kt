@@ -121,6 +121,7 @@ class MutableImageEncoderRegistry : ImageEncoderRegistry {
  */
 object ImageRegistries {
   @Volatile private var defaultsInstalled: Boolean = false
+  private val defaultInstallation: Unit by lazy { installDefaults() }
 
   val decoders: MutableImageDecoderRegistry = MutableImageDecoderRegistry()
   val encoders: MutableImageEncoderRegistry = MutableImageEncoderRegistry()
@@ -182,11 +183,7 @@ object ImageRegistries {
   /** Installs platform defaults if the registries look empty. */
   fun installDefaultsIfEmpty() {
     if (defaultsInstalled) return
-    synchronized(this) {
-      if (defaultsInstalled) return
-      installDefaults()
-      defaultsInstalled = true
-    }
+    defaultInstallation
   }
 }
 
