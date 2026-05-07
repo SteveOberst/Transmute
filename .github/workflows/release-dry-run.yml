@@ -81,6 +81,12 @@ jobs:
           path: transmute-plugins/libheif/build/libheif-desktop/
           key: libheif-desktop-${{ runner.os }}-${{ hashFiles('gradle.properties') }}
 
+      - name: Install libheif on macOS
+        if: runner.os == 'macOS' && steps.libheif-cache.outputs.cache-hit != 'true'
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: '1'
+        run: brew list libheif >/dev/null 2>&1 || brew install libheif
+
       - name: Stage libheif desktop binaries
         if: steps.libheif-cache.outputs.cache-hit != 'true'
         run: ./gradlew --no-daemon :transmute-plugins:libheif:stageLibHeifDesktop

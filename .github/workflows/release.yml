@@ -57,7 +57,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: transmute-plugins/gstreamer/build/gstreamer-desktop/
-          key: gstreamer-desktop-1.26.4-${{ runner.os }}
+          key: gstreamer-desktop-${{ runner.os }}-${{ hashFiles('gradle.properties') }}
 
       - name: Stage GStreamer desktop binaries
         if: steps.gst-cache.outputs.cache-hit != 'true'
@@ -104,7 +104,13 @@ jobs:
         uses: actions/cache@v4
         with:
           path: transmute-plugins/libheif/build/libheif-desktop/
-          key: libheif-desktop-1.19.7-${{ runner.os }}
+          key: libheif-desktop-${{ runner.os }}-${{ hashFiles('gradle.properties') }}
+
+      - name: Install libheif on macOS
+        if: runner.os == 'macOS' && steps.libheif-cache.outputs.cache-hit != 'true'
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: '1'
+        run: brew list libheif >/dev/null 2>&1 || brew install libheif
 
       - name: Stage libheif desktop binaries
         if: steps.libheif-cache.outputs.cache-hit != 'true'
@@ -122,7 +128,12 @@ jobs:
     name: Publish to GitHub Packages
     if: github.event_name == 'release'
     needs: [stage-gstreamer-desktop, stage-libheif-desktop]
-    runs-on: [self-hosted, linux, x64]
+    # Publish from macOS so the iOS Kotlin/Native publications are produced
+    # alongside the Android, Desktop/JVM, and KMP metadata publications.
+    # The Linux self-hosted runner cannot link the iOS frameworks; switching
+    # to a GitHub-hosted macOS runner keeps the published artifact set in
+    # sync with the public README's platform claims (B-2).
+    runs-on: macos-15
     env:
       GITHUB_USERNAME: ${{ github.repository_owner }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -166,11 +177,16 @@ jobs:
           name: libheif-desktop-macOS
           path: transmute-plugins/libheif/build/libheif-desktop/
 
+      # Required for the iOS Kotlin/Native compilation of :transmute-plugins:gstreamer.
+      # Cached by the SDK gradle task; safe to run unconditionally.
+      - name: Download GStreamer iOS SDK
+        run: ./gradlew --no-daemon :transmute-plugins:gstreamer:downloadGStreamerIos
+
       - name: Build (tests already gated on the release PR)
-        run: ./gradlew --no-daemon build -x test -x check -Pkotlin.native.enabled=false
+        run: ./gradlew --no-daemon build -x test -x check
 
       - name: Publish to GitHub Packages
-        run: ./gradlew --no-daemon publish -Pkotlin.native.enabled=false
+        run: ./gradlew --no-daemon publish
 
       - name: Upload JARs to release
         uses: softprops/action-gh-release@v2
