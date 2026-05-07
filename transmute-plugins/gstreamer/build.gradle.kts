@@ -79,6 +79,7 @@ kotlin {
       api(project(":transmute-image"))
       api(project(":transmute-video"))
       api(project(":transmute-filesystem:core"))
+      api(project(":transmute-plugins:catalog"))
       implementation(libs.kotlinx.coroutines.core)
     }
     commonTest.dependencies {
