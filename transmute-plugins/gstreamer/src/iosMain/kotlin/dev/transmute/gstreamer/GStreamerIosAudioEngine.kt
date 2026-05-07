@@ -132,7 +132,8 @@ internal fun buildIosPipelineDesc(vararg parts: String): List<String> =
 internal fun ByteArray.toNSData(): NSData = kotlinx.cinterop.memScoped {
     if (isEmpty()) return NSData()
     usePinned { pinned ->
-        NSData.create(bytes = pinned.addressOf(0), length = size.toULong())
+        NSData.dataWithBytes(pinned.addressOf(0), size.toULong())
+            ?: error("Failed to create NSData")
     }
 }
 
