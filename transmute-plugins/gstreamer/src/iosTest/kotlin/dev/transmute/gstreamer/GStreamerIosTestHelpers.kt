@@ -57,6 +57,19 @@ object GStreamerIosTestHelpers {
         block()
     }
 
+    suspend fun requireGStreamerElements(vararg elements: String, block: suspend () -> Unit) {
+        if (!gstreamerAvailable) {
+            println("SKIP: GStreamer not available - test skipped")
+            return
+        }
+        val missing = elements.filterNot(GStreamerIosBridge::hasElement)
+        if (missing.isNotEmpty()) {
+            println("SKIP: GStreamer elements not available - ${missing.joinToString()}")
+            return
+        }
+        block()
+    }
+
     // -- Synthetic audio --------------------------------------------------
 
     fun sineWave(

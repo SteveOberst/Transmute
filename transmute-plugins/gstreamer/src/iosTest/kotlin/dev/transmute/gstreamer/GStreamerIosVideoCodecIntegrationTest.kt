@@ -1,6 +1,6 @@
 package dev.transmute.gstreamer
 
-import dev.transmute.gstreamer.GStreamerIosTestHelpers.requireGStreamer
+import dev.transmute.gstreamer.GStreamerIosTestHelpers.requireGStreamerElements
 import dev.transmute.gstreamer.GStreamerIosTestHelpers.testContext
 import dev.transmute.video.CanonicalVideoDecodeOptions
 import dev.transmute.video.CanonicalVideoEncodeOptions
@@ -41,7 +41,7 @@ class GStreamerIosVideoCodecIntegrationTest {
 
     @Test
     fun mp4_encode_producesNonEmptyOutput() = runTest {
-        requireGStreamer {
+        requireGStreamerElements(*(listOfNotNull(iosH264VideoEncoderElementOrNull(), "h264parse", "mp4mux").toTypedArray())) {
             val video = GStreamerIosTestHelpers.syntheticVideo(
                 width = 160, height = 120, frameRate = 10.0, durationMs = 500,
             )
@@ -52,7 +52,7 @@ class GStreamerIosVideoCodecIntegrationTest {
 
     @Test
     fun mp4_encodeAndDecode_roundTrip() = runTest {
-        requireGStreamer {
+        requireGStreamerElements(*(listOfNotNull(iosH264VideoEncoderElementOrNull(), "h264parse", "mp4mux").toTypedArray())) {
             val video = GStreamerIosTestHelpers.syntheticVideo(
                 width = 160, height = 120, frameRate = 10.0, durationMs = 500,
             )
@@ -83,7 +83,7 @@ class GStreamerIosVideoCodecIntegrationTest {
 
     @Test
     fun mov_encodeAndDecode_roundTrip() = runTest {
-        requireGStreamer {
+        requireGStreamerElements(*(listOfNotNull(iosH264VideoEncoderElementOrNull(), "h264parse", "qtmux").toTypedArray())) {
             val video = GStreamerIosTestHelpers.syntheticVideo(
                 width = 160, height = 120, frameRate = 10.0, durationMs = 500,
             )
@@ -112,7 +112,7 @@ class GStreamerIosVideoCodecIntegrationTest {
 
     @Test
     fun webm_encodeAndDecode_roundTrip() = runTest {
-        requireGStreamer {
+        requireGStreamerElements("vp8enc", "webmmux") {
             val video = GStreamerIosTestHelpers.syntheticVideo(
                 width = 160, height = 120, frameRate = 10.0, durationMs = 500,
             )
@@ -141,7 +141,7 @@ class GStreamerIosVideoCodecIntegrationTest {
 
     @Test
     fun avi_encodeAndDecode_roundTrip() = runTest {
-        requireGStreamer {
+        requireGStreamerElements("avenc_mpeg4", "avimux") {
             val video = GStreamerIosTestHelpers.syntheticVideo(
                 width = 160, height = 120, frameRate = 10.0, durationMs = 500,
             )
@@ -170,7 +170,7 @@ class GStreamerIosVideoCodecIntegrationTest {
 
     @Test
     fun mkv_encodeAndDecode_roundTrip() = runTest {
-        requireGStreamer {
+        requireGStreamerElements(*(listOfNotNull(iosH264VideoEncoderElementOrNull(), "h264parse", "matroskamux").toTypedArray())) {
             val video = GStreamerIosTestHelpers.syntheticVideo(
                 width = 160, height = 120, frameRate = 10.0, durationMs = 500,
             )

@@ -3,7 +3,8 @@ package dev.transmute.gstreamer
 import dev.transmute.audio.AudioFormat
 import dev.transmute.audio.CanonicalAudioDecodeOptions
 import dev.transmute.audio.CanonicalAudioEncodeOptions
-import dev.transmute.gstreamer.GStreamerIosTestHelpers.requireGStreamer
+import dev.transmute.gstreamer.GStreamerIosTestHelpers.requireGStreamerElement
+import dev.transmute.gstreamer.GStreamerIosTestHelpers.requireGStreamerElements
 import dev.transmute.gstreamer.GStreamerIosTestHelpers.testContext
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -43,7 +44,7 @@ class GStreamerIosAudioCodecIntegrationTest {
 
     @Test
     fun aac_encodeAndDecode_roundTrip() = runTest {
-        requireGStreamer {
+        requireGStreamerElements(*(listOfNotNull(iosAacEncoderElementOrNull(), "aacparse").toTypedArray())) {
             val ir = GStreamerIosTestHelpers.sineWave(durationMs = 500, sampleRate = 44100)
             val encoded = aac.encode(ir, AudioFormat.Aac, CanonicalAudioEncodeOptions(), ctx)
             assertTrue(encoded.isNotEmpty(), "Encoded AAC output must not be empty")
@@ -71,7 +72,7 @@ class GStreamerIosAudioCodecIntegrationTest {
 
     @Test
     fun m4a_encodeAndDecode_roundTrip() = runTest {
-        requireGStreamer {
+        requireGStreamerElements(*(listOfNotNull(iosAacEncoderElementOrNull(), "mp4mux").toTypedArray())) {
             val ir = GStreamerIosTestHelpers.sineWave(durationMs = 500, sampleRate = 44100)
             val encoded = m4a.encode(ir, AudioFormat.M4a, CanonicalAudioEncodeOptions(), ctx)
             assertTrue(encoded.isNotEmpty(), "Encoded M4A output must not be empty")
@@ -99,7 +100,7 @@ class GStreamerIosAudioCodecIntegrationTest {
 
     @Test
     fun opus_encodeAndDecode_roundTrip() = runTest {
-        requireGStreamer {
+        requireGStreamerElements("opusenc", "oggmux") {
             val ir = GStreamerIosTestHelpers.sineWave(durationMs = 500, sampleRate = 48000)
             val encoded = opus.encode(ir, AudioFormat.Opus, CanonicalAudioEncodeOptions(), ctx)
             assertTrue(encoded.isNotEmpty(), "Encoded Opus output must not be empty")
@@ -122,7 +123,7 @@ class GStreamerIosAudioCodecIntegrationTest {
 
     @Test
     fun flac_encode_producesNonEmptyOutput() = runTest {
-        requireGStreamer {
+        requireGStreamerElement("flacenc") {
             val ir = GStreamerIosTestHelpers.sineWave(durationMs = 500, sampleRate = 44100)
             val encoded = flacEncoder.encode(ir, AudioFormat.Flac, CanonicalAudioEncodeOptions(), ctx)
             assertTrue(encoded.isNotEmpty(), "Encoded FLAC output must not be empty")
@@ -143,7 +144,7 @@ class GStreamerIosAudioCodecIntegrationTest {
 
     @Test
     fun ogg_encode_producesNonEmptyOutput() = runTest {
-        requireGStreamer {
+        requireGStreamerElements("vorbisenc", "oggmux") {
             val ir = GStreamerIosTestHelpers.sineWave(durationMs = 500, sampleRate = 44100)
             val encoded = oggEncoder.encode(ir, AudioFormat.Ogg, CanonicalAudioEncodeOptions(), ctx)
             assertTrue(encoded.isNotEmpty(), "Encoded OGG output must not be empty")

@@ -36,31 +36,52 @@ internal actual fun installGstAudioCodecs(
 ): CodecInstallResult {
     if (!GStreamerIosBridge.available) return CodecInstallResult(registered = 0, skipped = 0)
     var registered = 0
+    var skipped = 0
 
     val aac = GstIosAacCodec()
     decoders.register(aac)
     registered++
-    encoders.register(aac)
-    registered++
+    if (iosAacEncodeSupported()) {
+        encoders.register(aac)
+        registered++
+    } else {
+        skipped++
+    }
 
     val m4a = GstIosM4aCodec()
     decoders.register(m4a)
     registered++
-    encoders.register(m4a)
-    registered++
+    if (iosM4aEncodeSupported()) {
+        encoders.register(m4a)
+        registered++
+    } else {
+        skipped++
+    }
 
     val opus = GstIosOpusCodec()
     decoders.register(opus)
     registered++
-    encoders.register(opus)
-    registered++
+    if (iosOpusEncodeSupported()) {
+        encoders.register(opus)
+        registered++
+    } else {
+        skipped++
+    }
 
-    encoders.register(GstIosFlacEncoder())
-    registered++
-    encoders.register(GstIosOggVorbisEncoder())
-    registered++
+    if (iosFlacEncodeSupported()) {
+        encoders.register(GstIosFlacEncoder())
+        registered++
+    } else {
+        skipped++
+    }
+    if (iosOggVorbisEncodeSupported()) {
+        encoders.register(GstIosOggVorbisEncoder())
+        registered++
+    } else {
+        skipped++
+    }
 
-    return CodecInstallResult(registered = registered, skipped = 0)
+    return CodecInstallResult(registered = registered, skipped = skipped)
 }
 
 internal actual fun installGstVideoCodecs(
@@ -70,41 +91,62 @@ internal actual fun installGstVideoCodecs(
 ): CodecInstallResult {
     if (!GStreamerIosBridge.available) return CodecInstallResult(registered = 0, skipped = 0)
     var registered = 0
+    var skipped = 0
 
     val mp4 = GstIosMp4Codec()
     decoders.register(mp4)
     registered++
-    encoders.register(mp4)
-    registered++
+    if (iosMp4EncodeSupported()) {
+        encoders.register(mp4)
+        registered++
+    } else {
+        skipped++
+    }
 
     val mov = GstIosMovCodec()
     decoders.register(mov)
     registered++
-    encoders.register(mov)
-    registered++
+    if (iosMovEncodeSupported()) {
+        encoders.register(mov)
+        registered++
+    } else {
+        skipped++
+    }
 
     val webm = GstIosWebmCodec()
     decoders.register(webm)
     registered++
-    encoders.register(webm)
-    registered++
+    if (iosWebmEncodeSupported()) {
+        encoders.register(webm)
+        registered++
+    } else {
+        skipped++
+    }
 
     // Only register AVI if the LegacyAvi feature is enabled
     if (features.isEnabled(GStreamerFeature.LegacyAvi)) {
         val avi = GstIosAviCodec()
         decoders.register(avi)
         registered++
-        encoders.register(avi)
-        registered++
+        if (iosAviEncodeSupported()) {
+            encoders.register(avi)
+            registered++
+        } else {
+            skipped++
+        }
     }
 
     val mkv = GstIosMkvCodec()
     decoders.register(mkv)
     registered++
-    encoders.register(mkv)
-    registered++
+    if (iosMkvEncodeSupported()) {
+        encoders.register(mkv)
+        registered++
+    } else {
+        skipped++
+    }
 
-    return CodecInstallResult(registered = registered, skipped = 0)
+    return CodecInstallResult(registered = registered, skipped = skipped)
 }
 
 internal actual fun configureResolver(

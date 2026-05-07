@@ -10,6 +10,42 @@ import dev.transmute.video.VideoEncodeOptions
 import dev.transmute.video.VideoFormat
 import dev.transmute.video.VideoIR
 
+private val iosH264EncoderCandidates = listOf(
+    "vtenc_h264",
+    "vtenc_h264_hw",
+    "x264enc",
+    "openh264enc",
+    "avenc_h264",
+)
+
+private val iosH264Encoder: String? by lazy {
+    iosH264EncoderCandidates.firstOrNull { GStreamerIosBridge.hasElement(it) }
+}
+
+private fun hasAllElements(vararg elements: String): Boolean =
+    elements.all(GStreamerIosBridge::hasElement)
+
+internal fun iosH264VideoEncoderElementOrNull(): String? = iosH264Encoder
+
+internal fun iosMp4EncodeSupported(): Boolean =
+    iosH264VideoEncoderElementOrNull() != null && hasAllElements("h264parse", "mp4mux")
+
+internal fun iosMovEncodeSupported(): Boolean =
+    iosH264VideoEncoderElementOrNull() != null && hasAllElements("h264parse", "qtmux")
+
+internal fun iosMkvEncodeSupported(): Boolean =
+    iosH264VideoEncoderElementOrNull() != null && hasAllElements("h264parse", "matroskamux")
+
+internal fun iosWebmEncodeSupported(): Boolean =
+    hasAllElements("vp8enc", "webmmux")
+
+internal fun iosAviEncodeSupported(): Boolean =
+    hasAllElements("avenc_mpeg4", "avimux")
+
+private fun requireH264VideoEncoderElement(): String =
+    iosH264VideoEncoderElementOrNull()
+        ?: error("No supported H.264 encoder element available on this iOS GStreamer runtime: ${iosH264EncoderCandidates.joinToString()}")
+
 // ---------------------------------------------------------------------------
 // GStreamer-backed video codecs for iOS.
 // Mirrors the Desktop / Android implementations but delegates to
@@ -28,7 +64,7 @@ internal class GstIosMp4Codec : VideoCodec {
     override suspend fun encode(ir: VideoIR, format: VideoFormat, options: VideoEncodeOptions, context: PipelineContext): Bytes {
         require(format == VideoFormat.Mp4)
         return GStreamerIosVideoEngine.encode(
-            ir, videoEncoder = "x264enc", audioEncoder = iosAacEncoderElement(),
+            ir, videoEncoder = requireH264VideoEncoderElement(), audioEncoder = iosAacEncoderElementOrNull(),
             muxElement = "mp4mux", ext = "mp4",
             extraElements = listOf("h264parse"),
             context = context,
@@ -48,7 +84,7 @@ internal class GstIosMovCodec : VideoCodec {
     override suspend fun encode(ir: VideoIR, format: VideoFormat, options: VideoEncodeOptions, context: PipelineContext): Bytes {
         require(format == VideoFormat.Mov)
         return GStreamerIosVideoEngine.encode(
-            ir, videoEncoder = "x264enc", audioEncoder = iosAacEncoderElement(),
+            ir, videoEncoder = requireH264VideoEncoderElement(), audioEncoder = iosAacEncoderElementOrNull(),
             muxElement = "qtmux", ext = "mov",
             extraElements = listOf("h264parse"),
             context = context,
@@ -106,7 +142,7 @@ internal class GstIosMkvCodec : VideoCodec {
     override suspend fun encode(ir: VideoIR, format: VideoFormat, options: VideoEncodeOptions, context: PipelineContext): Bytes {
         require(format == VideoFormat.Mkv)
         return GStreamerIosVideoEngine.encode(
-            ir, videoEncoder = "x264enc", audioEncoder = iosAacEncoderElement(),
+            ir, videoEncoder = requireH264VideoEncoderElement(), audioEncoder = iosAacEncoderElementOrNull(),
             muxElement = "matroskamux", ext = "mkv",
             extraElements = listOf("h264parse"),
             context = context,
