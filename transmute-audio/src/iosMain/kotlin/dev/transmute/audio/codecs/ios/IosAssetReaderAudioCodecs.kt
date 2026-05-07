@@ -70,7 +70,6 @@ private suspend fun decodeWithAssetReader(
         "AVFormatIDKey" to kAudioFormatLinearPCM,
         "AVLinearPCMIsFloatKey" to true,
         "AVLinearPCMBitDepthKey" to 32,
-        "AVLinearPCMIsNonInterleavedKey" to false,
       )
 
       val output = AVAssetReaderTrackOutput(track = track, outputSettings = settings)
