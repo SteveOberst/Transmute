@@ -35,8 +35,8 @@ import org.slf4j.LoggerFactory
  * Owns the Transmute instance and manages uploaded files.
  *
  * All media processing operations flow through this service.
- * Plugin and format information is derived **dynamically** from the
- * Transmute instance's codec registries - nothing is hardcoded.
+ * Plugin and format information is derived from the Transmute instance's
+ * codec registries, with playground-specific display metadata layered on top.
  */
 class TransmuteService(
   private val tempDir: File = File(System.getProperty("java.io.tmpdir"), "transmute-playground"),
@@ -50,7 +50,7 @@ class TransmuteService(
   private val featureOverrides = mutableMapOf<String, Boolean>()
   private val disabledPlugins = mutableSetOf<PluginId>().apply { addAll(initiallyDisabledPlugins) }
 
-  /** All plugins this playground supports, in preferred display order. Metadata comes from the plugins themselves. */
+  /** All plugins this playground supports, in preferred display order. */
   private val allPlugins: List<TransmutePlugin<*>> = listOf(GStreamer, LibHeif)
 
   /** All plugins keyed by plugin ID string. */
@@ -321,8 +321,8 @@ class TransmuteService(
       val info = installed[keyId]
       PluginDescriptor(
         key = keyId,
-        name = plugin.displayName,
-        description = plugin.description,
+        name = pluginDisplayName(plugin),
+        description = pluginDescription(plugin),
         version = null,
         enabled = plugin.key !in disabledPlugins,
         status = PluginStatusInfo(available = true),
@@ -394,6 +394,18 @@ class TransmuteService(
     (decodable + encodable)
       .filter { it.label.lowercase() != "unknown" && it.label !in builtInFormatLabels }
       .forEach { add(it.label) }
+  }
+
+  private fun pluginDisplayName(plugin: TransmutePlugin<*>): String = when (plugin.key) {
+    GStreamer.key -> "GStreamer"
+    LibHeif.key -> "libheif"
+    else -> plugin.key.id.substringAfterLast('.').replaceFirstChar { it.uppercase() }
+  }
+
+  private fun pluginDescription(plugin: TransmutePlugin<*>): String = when (plugin.key) {
+    GStreamer.key -> "Audio and video codecs powered by GStreamer."
+    LibHeif.key -> "HEIF, HEIC, and AVIF image codecs powered by libheif."
+    else -> "Optional Transmute plugin."
   }
 
   @Synchronized

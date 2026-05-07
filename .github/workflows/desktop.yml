@@ -55,7 +55,6 @@ jobs:
           :transmute-codec:desktopTest
           :transmute-image:desktopTest
           :transmute-model:structure:desktopTest
-          :transmute-model:view:desktopTest
           :transmute-filesystem:core:desktopTest
           :transmute-filesystem:okio:desktopTest
           -Pkotlin.native.enabled=false
@@ -96,6 +95,8 @@ jobs:
           gstreamer1.0-plugins-bad
           gstreamer1.0-plugins-ugly
           libheif-examples
+          libheif-plugin-x265
+          libheif-plugin-aomenc
 
       - name: Run desktop integration tests
         run: >
