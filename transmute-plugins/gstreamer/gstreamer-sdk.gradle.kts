@@ -89,6 +89,45 @@ fun verifyChecksum(file: File, expectedHex: String, logger: org.gradle.api.loggi
   logger.lifecycle("  -> checksum OK ($expected)")
 }
 
+fun extractMacPkgFramework(
+  pkg: File,
+  frameworkName: String,
+  destinationDir: File,
+  logger: org.gradle.api.logging.Logger,
+) {
+  val expandedDir = File(sdkDir, "${pkg.nameWithoutExtension}-expanded")
+  val payloadDir = File(sdkDir, "${pkg.nameWithoutExtension}-payload")
+  expandedDir.deleteRecursively()
+  payloadDir.deleteRecursively()
+
+  logger.lifecycle("Expanding ${pkg.name} ...")
+  exec {
+    commandLine("pkgutil", "--expand", pkg.absolutePath, expandedDir.absolutePath)
+  }
+
+  val payload = expandedDir.walkTopDown().firstOrNull { it.isFile && it.name == "Payload" }
+    ?: error("Payload not found after expanding ${pkg.name}")
+
+  payloadDir.mkdirs()
+  logger.lifecycle("Extracting PKG payload ...")
+  exec {
+    commandLine("tar", "xf", payload.absolutePath, "-C", payloadDir.absolutePath)
+  }
+
+  val frameworkDir = payloadDir.walkTopDown().firstOrNull { it.isDirectory && it.name == frameworkName }
+    ?: error("$frameworkName not found in extracted payload for ${pkg.name}")
+
+  destinationDir.parentFile.mkdirs()
+  destinationDir.deleteRecursively()
+  exec {
+    commandLine("cp", "-R", frameworkDir.absolutePath, destinationDir.parentFile.absolutePath)
+  }
+
+  expandedDir.deleteRecursively()
+  payloadDir.deleteRecursively()
+  logger.lifecycle("$frameworkName extracted -> ${destinationDir.absolutePath}")
+}
+
 // ---------------------------------------------------------------------------
 // Android SDK download
 // ---------------------------------------------------------------------------
@@ -131,12 +170,14 @@ tasks.register("downloadGStreamerIos") {
   description = "Downloads the GStreamer iOS framework (macOS only)."
 
   val envRoot = System.getenv("GSTREAMER_ROOT_IOS")
-  val frameworkDir = File("/Library/Frameworks/GStreamer.framework")
-  val marker = File(sdkDir, ".gst-ios-$gstVersion")
+  val systemFrameworkDir = File("/Library/Frameworks/GStreamer.framework")
+  val outputDir = File(sdkDir, "ios")
+  val extractedFrameworkDir = File(outputDir, "GStreamer.framework")
+  val marker = File(outputDir, ".gst-ios-$gstVersion")
 
   onlyIf {
     val isMac = System.getProperty("os.name").startsWith("Mac", ignoreCase = true)
-    isMac && envRoot == null && !frameworkDir.exists() && !marker.exists()
+    isMac && envRoot == null && !systemFrameworkDir.exists() && !extractedFrameworkDir.exists() && !marker.exists()
   }
 
   doLast {
@@ -147,13 +188,12 @@ tasks.register("downloadGStreamerIos") {
     logger.lifecycle("Downloading GStreamer iOS SDK $gstVersion ...")
     downloadGst(url, pkg, logger)
 
-    logger.lifecycle("Installing GStreamer.framework (requires sudo) ...")
-    exec {
-      commandLine("sudo", "installer", "-pkg", pkg.absolutePath, "-target", "/")
-    }
+    logger.lifecycle("Extracting GStreamer.framework without system install ...")
+    extractMacPkgFramework(pkg, "GStreamer.framework", extractedFrameworkDir, logger)
+    outputDir.mkdirs()
     marker.writeText(gstVersion)
 
-    logger.lifecycle("GStreamer iOS framework installed -> /Library/Frameworks/GStreamer.framework")
+    logger.lifecycle("GStreamer iOS framework ready -> ${extractedFrameworkDir.absolutePath}")
   }
 }
 

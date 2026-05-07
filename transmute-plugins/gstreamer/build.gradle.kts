@@ -8,7 +8,11 @@ apply(from = "gstreamer-sdk.gradle.kts")
 
 // -- Optional GStreamer SDK locations -----------------------------------------
 val gstreamerAndroidRoot: String? = System.getenv("GSTREAMER_ROOT_ANDROID")
-val gstreamerIosFramework = file("/Library/Frameworks/GStreamer.framework")
+val gstreamerIosFramework = listOfNotNull(
+  System.getenv("GSTREAMER_ROOT_IOS")?.let(::file),
+  rootProject.layout.buildDirectory.dir("gstreamer-sdk/ios/GStreamer.framework").get().asFile,
+  file("/Library/Frameworks/GStreamer.framework"),
+).firstOrNull { it.exists() } ?: file("/Library/Frameworks/GStreamer.framework")
 
 kotlin {
   val isMac = System.getProperty("os.name").startsWith("Mac", ignoreCase = true)
@@ -50,8 +54,19 @@ kotlin {
       }
       // Set up GStreamer cinterop when the framework is present
       if (gstreamerIosFramework.exists()) {
+        val headersDir = File(gstreamerIosFramework, "Headers")
         target.compilations["main"].cinterops.create("gstreamer") {
           defFile(project.file("src/nativeInterop/cinterop/gstreamer.def"))
+          compilerOpts(
+            "-I${headersDir.absolutePath}",
+            "-I${File(headersDir, "gstreamer-1.0").absolutePath}",
+            "-I${File(headersDir, "glib-2.0").absolutePath}",
+          )
+          linkerOpts(
+            "-F${gstreamerIosFramework.parentFile.absolutePath}",
+            "-framework",
+            "GStreamer",
+          )
         }
       }
     }
@@ -64,7 +79,6 @@ kotlin {
       api(project(":transmute-image"))
       api(project(":transmute-video"))
       api(project(":transmute-filesystem:core"))
-      api(project(":transmute-plugins:catalog"))
       implementation(libs.kotlinx.coroutines.core)
     }
     commonTest.dependencies {
