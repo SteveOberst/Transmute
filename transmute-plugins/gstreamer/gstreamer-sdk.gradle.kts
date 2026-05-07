@@ -111,7 +111,34 @@ fun extractMacPkgFramework(
   payloadDir.mkdirs()
   logger.lifecycle("Extracting PKG payload ...")
   exec {
-    commandLine("tar", "xf", payload.absolutePath, "-C", payloadDir.absolutePath)
+    environment("PAYLOAD_PATH", payload.absolutePath)
+    environment("PAYLOAD_OUTPUT_DIR", payloadDir.absolutePath)
+    commandLine(
+      "bash",
+      "-lc",
+      """
+      set -euo pipefail
+
+      if tar -xf "${'$'}PAYLOAD_PATH" -C "${'$'}PAYLOAD_OUTPUT_DIR" 2>/dev/null; then
+        exit 0
+      fi
+
+      if gzip -dc "${'$'}PAYLOAD_PATH" 2>/dev/null | (cd "${'$'}PAYLOAD_OUTPUT_DIR" && cpio -idm --quiet); then
+        exit 0
+      fi
+
+      if xz -dc "${'$'}PAYLOAD_PATH" 2>/dev/null | (cd "${'$'}PAYLOAD_OUTPUT_DIR" && cpio -idm --quiet); then
+        exit 0
+      fi
+
+      if cat "${'$'}PAYLOAD_PATH" | (cd "${'$'}PAYLOAD_OUTPUT_DIR" && cpio -idm --quiet); then
+        exit 0
+      fi
+
+      file "${'$'}PAYLOAD_PATH"
+      exit 1
+      """.trimIndent(),
+    )
   }
 
   val frameworkDir = payloadDir.walkTopDown().firstOrNull { it.isDirectory && it.name == frameworkName }
