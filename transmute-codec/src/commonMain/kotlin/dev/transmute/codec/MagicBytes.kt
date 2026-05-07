@@ -9,6 +9,9 @@ package dev.transmute.codec
  */
 object MagicBytes {
 
+  private fun ByteArray.decodeSlice(startIndex: Int, length: Int): String =
+    copyOfRange(startIndex, startIndex + length).decodeToString()
+
   // -- ISO Base Media File Format (MP4 / MOV / M4A / HEIF / AVIF) ----------
 
   /**
@@ -30,7 +33,7 @@ object MagicBytes {
    */
   fun ftypBrand(data: ByteArray): String? {
     if (!isIsoBmff(data)) return null
-    return String(data, 8, 4, Charsets.US_ASCII)
+    return data.decodeSlice(8, 4)
   }
 
   // -- RIFF (WAV / AVI / WebP) ---------------------------------------------
@@ -54,7 +57,7 @@ object MagicBytes {
    */
   fun riffType(data: ByteArray): String? {
     if (!isRiff(data)) return null
-    return String(data, 8, 4, Charsets.US_ASCII)
+    return data.decodeSlice(8, 4)
   }
 
   // -- EBML (WebM / Matroska) -----------------------------------------------
@@ -99,7 +102,7 @@ object MagicBytes {
         pos += sizeLen
         val end = minOf(pos + size.toInt(), data.size)
         if (end <= pos) return null
-        return String(CharArray(end - pos) { data[pos + it].toInt().toChar() })
+        return data.decodeSlice(pos, end - pos)
       }
       pos++
     }
@@ -126,6 +129,6 @@ object MagicBytes {
    */
   fun isOggOpus(data: ByteArray): Boolean {
     if (!isOgg(data) || data.size < 36) return false
-    return String(data, 28, 8, Charsets.US_ASCII) == "OpusHead"
+    return data.decodeSlice(28, 8) == "OpusHead"
   }
 }
