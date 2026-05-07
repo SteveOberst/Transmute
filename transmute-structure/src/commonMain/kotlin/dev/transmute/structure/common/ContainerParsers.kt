@@ -356,4 +356,5 @@ internal fun ByteArray.readI64LE(off: Int): Long = (this[off].toLong() and 0xFF)
   ((this[off + 6].toLong() and 0xFF) shl 48) or
   ((this[off + 7].toLong() and 0xFF) shl 56)
 
-internal fun ByteArray.decodeAscii(off: Int, len: Int): String = String(CharArray(len) { this[off + it].toInt().toChar() })
+internal fun ByteArray.decodeAscii(off: Int, len: Int): String =
+  CharArray(len) { this[off + it].toInt().toChar() }.concatToString()

@@ -121,7 +121,7 @@ private fun AviRaw.parseAviStreams(): List<AviStreamDescriptor> {
 
 private fun parseAviStreamHeader(d: ByteArray): AviStreamHeader? {
   if (d.size < 56) return null
-  fun fcc(off: Int) = String(CharArray(4) { d[off + it].toInt().and(0xFF).toChar() })
+  fun fcc(off: Int) = CharArray(4) { d[off + it].toInt().and(0xFF).toChar() }.concatToString()
   fun u32(off: Int): UInt = (d[off].toUInt() and 0xFFu) or
     ((d[off + 1].toUInt() and 0xFFu) shl 8) or
     ((d[off + 2].toUInt() and 0xFFu) shl 16) or
