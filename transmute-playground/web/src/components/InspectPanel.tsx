@@ -119,13 +119,10 @@ export default function InspectPanel({ result }: Props) {
   )
 }
 
-<<<<<<< Updated upstream
 /* -- Generic JSON tree renderer -------------------------------------- */
-=======
 // ═══════════════════════════════════════════════════════════════════════════════
 //  Tab button
 // ═══════════════════════════════════════════════════════════════════════════════
->>>>>>> Stashed changes
 
 function TabButton({
   active,

@@ -159,9 +159,6 @@ class LibHeifPluginConfig : HasPluginConfigure {
 object LibHeif : TransmutePlugin<LibHeifPluginConfig> {
 
   override val key: PluginId = BuiltinPlugins.LibHeif
-  override val displayName: String = "LibHeif"
-  override val description: String =
-    "libheif-based image codec backend - HEIF/HEIC/AVIF decode/encode via heif-dec/heif-enc (desktop); no-op on Android/iOS."
   override val features: Set<PluginFeature> = LibHeifFeature.ALL
 
   override fun createConfig(): LibHeifPluginConfig = LibHeifPluginConfig()
