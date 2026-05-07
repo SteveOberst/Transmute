@@ -1,6 +1,7 @@
 package dev.transmute.model.core
 
 import kotlinx.serialization.Serializable
+import kotlin.jvm.JvmInline
 
 /**
  * Stream identifier. Unique within a single media file.

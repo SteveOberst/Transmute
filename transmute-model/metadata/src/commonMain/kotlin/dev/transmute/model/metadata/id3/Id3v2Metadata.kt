@@ -7,6 +7,7 @@ import dev.transmute.model.core.MediaMetadata
 import dev.transmute.model.core.UriString
 import dev.transmute.model.metadata.common.PayloadRef
 import kotlinx.serialization.Serializable
+import kotlin.jvm.JvmInline
 
 /**
  * ID3v2 tag metadata (ID3v2.2 / v2.3 / v2.4).
