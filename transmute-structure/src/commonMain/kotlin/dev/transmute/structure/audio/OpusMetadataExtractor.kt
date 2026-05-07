@@ -20,7 +20,7 @@ fun OpusRaw.extractMetadata(): List<MediaMetadata> = buildList {
   extractVorbisComment()?.let(::add)
 }
 
-// -- Vorbis Comment extraction (OpusTags) -------------------------------------
+// -- Vorbis Comment extraction (OpusTags) ---
 
 private fun OpusRaw.extractVorbisComment(): VorbisCommentMetadata? {
   // OpusTags magic: the string "OpusTags" (8 bytes)

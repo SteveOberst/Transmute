@@ -22,13 +22,13 @@ import okio.use
  */
 class OkioFileSystem(private val delegate: FileSystem) : TransmuteFileSystem {
 
-  // -- Path conversion ----------------------------------------
+  // -- Path conversion ---
 
   private fun TPath.toOkio(): okio.Path = toString().toPath()
 
   private fun okio.Path.toTPath(): TPath = TPath.of(toString())
 
-  // -- Metadata -----------------------------------------------
+  // -- Metadata ---
 
   override fun exists(path: TPath): Boolean = delegate.exists(path.toOkio())
 
@@ -48,7 +48,7 @@ class OkioFileSystem(private val delegate: FileSystem) : TransmuteFileSystem {
     )
   }
 
-  // -- Bulk read / write --------------------------------------
+  // -- Bulk read / write ---
 
   override fun read(path: TPath): ByteArray {
     val okPath = path.toOkio()
@@ -76,7 +76,7 @@ class OkioFileSystem(private val delegate: FileSystem) : TransmuteFileSystem {
     }
   }
 
-  // -- Streaming / random-access ------------------------------
+  // -- Streaming / random-access ---
 
   override fun openRead(path: TPath): ReadHandle {
     val okPath = path.toOkio()
@@ -102,7 +102,7 @@ class OkioFileSystem(private val delegate: FileSystem) : TransmuteFileSystem {
     return OkioWriteHandle(handle, appendMode = mode == WriteMode.Append)
   }
 
-  // -- Directory operations -----------------------------------
+  // -- Directory operations ---
 
   override fun list(path: TPath): List<TPath> {
     val okPath = path.toOkio()
@@ -121,7 +121,7 @@ class OkioFileSystem(private val delegate: FileSystem) : TransmuteFileSystem {
     }
   }
 
-  // -- Delete -------------------------------------------------
+  // -- Delete ---
 
   override fun delete(path: TPath, recursive: Boolean) {
     val okPath = path.toOkio()
@@ -133,7 +133,7 @@ class OkioFileSystem(private val delegate: FileSystem) : TransmuteFileSystem {
     }
   }
 
-  // -- Copy / Move --------------------------------------------
+  // -- Copy / Move ---
 
   override fun copy(source: TPath, target: TPath, overwrite: Boolean) {
     val src = source.toOkio()
@@ -156,7 +156,7 @@ class OkioFileSystem(private val delegate: FileSystem) : TransmuteFileSystem {
   }
 }
 
-// -- OkioReadHandle ---------------------------------------------
+// -- OkioReadHandle ---
 
 private class OkioReadHandle(private val handle: okio.FileHandle) : ReadHandle {
   private var pos = 0L
@@ -181,7 +181,7 @@ private class OkioReadHandle(private val handle: okio.FileHandle) : ReadHandle {
   }
 }
 
-// -- OkioWriteHandle --------------------------------------------
+// -- OkioWriteHandle ---
 
 private class OkioWriteHandle(private val handle: okio.FileHandle, appendMode: Boolean) : WriteHandle {
   private var pos = if (appendMode) handle.size() else 0L

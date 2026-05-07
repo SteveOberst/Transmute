@@ -13,9 +13,9 @@ import dev.transmute.video.VideoIR
 import dev.transmute.video.VideoTrack
 import kotlin.math.roundToInt
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===
 //  Entry point
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===
 
 /**
  * Build a synthetic [VideoIR] using the video DSL.
@@ -71,9 +71,9 @@ import kotlin.math.roundToInt
 fun syntheticVideo(block: VideoScope.() -> Unit): VideoIR =
   VideoScope().apply(block).build()
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===
 //  Root scope
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===
 
 @SyntheticMediaDsl
 class VideoScope {
@@ -105,7 +105,7 @@ class VideoScope {
   /** Pixel format for generated frames. */
   var pixelFormat: PixelFormat = PixelFormat.RGBA_8888
 
-  // ---- internal ----
+  // --- internal ---
   internal var frameGenerator: FrameGenerator? = null
   internal var audioBuilder: AudioScope? = null
 
@@ -115,10 +115,10 @@ class VideoScope {
     height = h
   }
 
-  // ─────────────────────────── Frame generation ──────────────────────
+  // --- Frame generation ---
 
   /**
-   * Every frame is identical — described once by an [ImageScope] block.
+   * Every frame is identical - described once by an [ImageScope] block.
    */
   fun staticFrame(block: ImageScope.() -> Unit) {
     frameGenerator = StaticFrameGen(block)
@@ -138,7 +138,7 @@ class VideoScope {
   /**
    * Define keyframed transitions.
    *
-   * Each keyframe specifies a progress value (0.0–1.0) and the image at that point.
+   * Each keyframe specifies a progress value (0.0-1.0) and the image at that point.
    * Frames between keyframes are interpolated by linearly blending the two nearest
    * keyframes' pixel data.
    */
@@ -147,14 +147,14 @@ class VideoScope {
     frameGenerator = KeyframeFrameGen(scope.entries.sortedBy { it.progress })
   }
 
-  // ─────────────────────────── Audio ─────────────────────────────────
+  // --- Audio ---
 
   /** Attach an audio track described by the audio DSL. Duration auto-matches video. */
   fun audio(block: AudioScope.() -> Unit) {
     audioBuilder = AudioScope().apply(block)
   }
 
-  // ─────────────────────────── Build ─────────────────────────────────
+  // --- Build ---
 
   internal fun build(): VideoIR {
     // Resolve frameCount / duration
@@ -199,9 +199,9 @@ class VideoScope {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===
 //  Sub-scopes & data
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===
 
 /**
  * Context passed to frame animation lambdas.
@@ -225,7 +225,7 @@ class KeyframeScope {
   internal val entries = mutableListOf<KeyframeEntry>()
 
   /**
-   * Define a keyframe at [progress] (0.0–1.0).
+   * Define a keyframe at [progress] (0.0-1.0).
    *
    * The [block] configures the image for that keyframe.
    */
@@ -236,9 +236,9 @@ class KeyframeScope {
 
 internal data class KeyframeEntry(val progress: Float, val block: ImageScope.() -> Unit)
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===
 //  Frame generators (internal)
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===
 
 internal sealed interface FrameGenerator {
   fun generate(scope: VideoScope, frameCount: Int, durationMs: Long): List<VideoFrame>

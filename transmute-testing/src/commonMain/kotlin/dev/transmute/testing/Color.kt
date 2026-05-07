@@ -8,7 +8,7 @@ import kotlin.math.roundToInt
 /**
  * Type-safe RGBA color for synthetic media generation.
  *
- * All channel values are in the range 0–255. Provides constants for common
+ * All channel values are in the range 0-255. Provides constants for common
  * colors, HSV conversion, interpolation, and blending helpers.
  *
  * ```kotlin
@@ -30,10 +30,10 @@ data class Color(val r: Int, val g: Int, val b: Int, val a: Int = 255) {
   /** Return a copy with a different alpha. */
   fun withAlpha(alpha: Int): Color = copy(a = alpha)
 
-  /** Convert to `[R, G, B, A]` array (0–255 each). */
+  /** Convert to `[R, G, B, A]` array (0-255 each). */
   fun toRgbaArray(): IntArray = intArrayOf(r, g, b, a)
 
-  /** Rec.601 luminance: Y = 0.299·R + 0.587·G + 0.114·B. */
+  /** Rec.601 luminance: Y = 0.299.R + 0.587.G + 0.114.B. */
   val luminance: Double get() = 0.299 * r + 0.587 * g + 0.114 * b
 
   /** Whether this color is fully opaque. */
@@ -42,7 +42,7 @@ data class Color(val r: Int, val g: Int, val b: Int, val a: Int = 255) {
   /** Invert RGB channels (alpha unchanged). */
   fun inverted(): Color = Color(255 - r, 255 - g, 255 - b, a)
 
-  /** Multiply RGB by a scalar (clamped to 0–255). */
+  /** Multiply RGB by a scalar (clamped to 0-255). */
   operator fun times(factor: Float): Color = Color(
     r = (r * factor).roundToInt().coerceIn(0, 255),
     g = (g * factor).roundToInt().coerceIn(0, 255),
@@ -71,7 +71,7 @@ data class Color(val r: Int, val g: Int, val b: Int, val a: Int = 255) {
     /**
      * Linear interpolation between [a] and [b].
      *
-     * [t] is clamped to 0–1; 0.0 → [a], 1.0 → [b].
+     * [t] is clamped to 0-1; 0.0 -> [a], 1.0 -> [b].
      */
     fun lerp(a: Color, b: Color, t: Float): Color {
       val ct = t.coerceIn(0f, 1f)
@@ -86,9 +86,9 @@ data class Color(val r: Int, val g: Int, val b: Int, val a: Int = 255) {
     /**
      * Create a color from HSV values.
      *
-     * @param h Hue in degrees (0–360).
-     * @param s Saturation (0–1).
-     * @param v Value / brightness (0–1).
+     * @param h Hue in degrees (0-360).
+     * @param s Saturation (0-1).
+     * @param v Value / brightness (0-1).
      */
     fun fromHsv(h: Float, s: Float, v: Float, alpha: Int = 255): Color {
       val c = v * s

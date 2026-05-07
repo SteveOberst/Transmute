@@ -26,7 +26,7 @@ class GStreamerIosVideoCodecIntegrationTest {
 
     private val ctx = testContext()
 
-    // -- MP4 ----------------------------------------------------------------
+    // -- MP4 ---
 
     private val mp4 = GstIosMp4Codec()
 
@@ -68,7 +68,7 @@ class GStreamerIosVideoCodecIntegrationTest {
         }
     }
 
-    // -- MOV ----------------------------------------------------------------
+    // -- MOV ---
 
     private val mov = GstIosMovCodec()
 
@@ -97,7 +97,7 @@ class GStreamerIosVideoCodecIntegrationTest {
         }
     }
 
-    // -- WebM ---------------------------------------------------------------
+    // -- WebM ---
 
     private val webm = GstIosWebmCodec()
 
@@ -126,7 +126,7 @@ class GStreamerIosVideoCodecIntegrationTest {
         }
     }
 
-    // -- AVI ----------------------------------------------------------------
+    // -- AVI ---
 
     private val avi = GstIosAviCodec()
 
@@ -155,7 +155,7 @@ class GStreamerIosVideoCodecIntegrationTest {
         }
     }
 
-    // -- MKV ----------------------------------------------------------------
+    // -- MKV ---
 
     private val mkv = GstIosMkvCodec()
 
@@ -184,7 +184,7 @@ class GStreamerIosVideoCodecIntegrationTest {
         }
     }
 
-    // -- Cross-format checks -----------------------------------------------
+    // -- Cross-format checks ---
 
     @Test
     fun allCodecsReportCorrectFormats() {

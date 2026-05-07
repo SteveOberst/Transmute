@@ -11,7 +11,7 @@ supports.
 ## Key Types
 
 | Type | Purpose |
-|------|---------|
+|---|---|
 | `OkioFileSystem` | `TransmuteFileSystem` implementation wrapping `okio.FileSystem` |
 
 Internal: `OkioReadHandle`, `OkioWriteHandle`
@@ -30,4 +30,4 @@ val data = fs.read(TPath.of("image.png"))
 
 ## Targets
 
-Android, Desktop JVM, iOS — via Kotlin Multiplatform.
+Android, Desktop JVM, iOS - via Kotlin Multiplatform.

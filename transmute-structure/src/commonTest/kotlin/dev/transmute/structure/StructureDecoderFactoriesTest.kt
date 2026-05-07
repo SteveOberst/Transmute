@@ -17,7 +17,7 @@ import kotlin.test.assertEquals
  */
 class StructureDecoderFactoriesTest {
 
-  // -- rawDecoderFor ---------------------------------------------------------
+  // -- rawDecoderFor ---
 
   @Test
   fun rawDecoderForReportsCorrectDecodableFormats() {
@@ -25,7 +25,7 @@ class StructureDecoderFactoriesTest {
     assertEquals(setOf(AudioFormat.Wav), decoder.decodableFormats)
   }
 
-  // -- structureDecoderFor ---------------------------------------------------
+  // -- structureDecoderFor ---
 
   @Test
   fun structureDecoderForReportsCorrectDecodableFormats() {

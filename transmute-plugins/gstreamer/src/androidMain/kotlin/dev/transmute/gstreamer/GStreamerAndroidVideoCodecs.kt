@@ -10,11 +10,11 @@ import dev.transmute.video.VideoEncodeOptions
 import dev.transmute.video.VideoFormat
 import dev.transmute.video.VideoIR
 
-// ---------------------------------------------------------------------------
+// ---
 // GStreamer-backed video codecs for Android.
 // Mirrors the Desktop implementations but delegates to
 // GStreamerAndroidVideoEngine (JNI) instead of subprocess.
-// ---------------------------------------------------------------------------
+// ---
 
 // --- MP4 (H.264 + AAC) ---
 

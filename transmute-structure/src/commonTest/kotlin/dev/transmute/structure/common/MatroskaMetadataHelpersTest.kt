@@ -14,7 +14,7 @@ import kotlin.test.assertTrue
  */
 class MatroskaMetadataHelpersTest {
 
-  // -- Helpers to build synthetic EBML trees --------------------------------
+  // -- Helpers to build synthetic EBML trees ---
 
   /** Create a leaf element with string data. */
   private fun stringElement(id: Long, value: String) = EbmlElement(
@@ -68,7 +68,7 @@ class MatroskaMetadataHelpersTest {
     return master(MatroskaIds.Tag.value, children)
   }
 
-  // -- Tests ----------------------------------------------------------------
+  // -- Tests ---
 
   @Test
   fun extractsSingleTagWithOneSimpleTag() {
@@ -259,7 +259,7 @@ class MatroskaMetadataHelpersTest {
     assertEquals("TRACK", result.tags[0].targets?.targetType?.value)
   }
 
-  // -- Nested SimpleTags ----------------------------------------------------
+  // -- Nested SimpleTags ---
 
   @Test
   fun extractsNestedSimpleTags() {
@@ -299,7 +299,7 @@ class MatroskaMetadataHelpersTest {
     assertTrue(result.tags[0].simpleTags[0].children.isEmpty())
   }
 
-  // -- TagDefault flag ------------------------------------------------------
+  // -- TagDefault flag ---
 
   @Test
   fun extractsTagDefaultTrue() {
@@ -343,7 +343,7 @@ class MatroskaMetadataHelpersTest {
     assertNull(result.tags[0].simpleTags[0].default)
   }
 
-  // -- Target UIDs ----------------------------------------------------------
+  // -- Target UIDs ---
 
   /** Create a leaf element with an 8-byte big-endian unsigned integer. */
   private fun uint64Element(id: Long, value: Long) = EbmlElement(

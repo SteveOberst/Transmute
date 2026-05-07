@@ -46,11 +46,11 @@ private fun requireH264VideoEncoderElement(): String =
     iosH264VideoEncoderElementOrNull()
         ?: error("No supported H.264 encoder element available on this iOS GStreamer runtime: ${iosH264EncoderCandidates.joinToString()}")
 
-// ---------------------------------------------------------------------------
+// ---
 // GStreamer-backed video codecs for iOS.
 // Mirrors the Desktop / Android implementations but delegates to
 // GStreamerIosVideoEngine (cinterop) instead of subprocess / JNI.
-// ---------------------------------------------------------------------------
+// ---
 
 // --- MP4 (H.264 + AAC) ---
 

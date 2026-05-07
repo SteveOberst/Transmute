@@ -3,8 +3,42 @@ name: Android
 on:
   push:
     branches: [main]
+    paths:
+      - '.github/workflows/android.yml'
+      - 'build.gradle.kts'
+      - 'buildSrc/**'
+      - 'settings.gradle.kts'
+      - 'gradle.properties'
+      - 'gradle/**'
+      - 'transmute-api/**'
+      - 'transmute-codec/**'
+      - 'transmute-common/**'
+      - 'transmute-filesystem/**'
+      - 'transmute-model/**'
+      - 'transmute-audio/**'
+      - 'transmute-image/**'
+      - 'transmute-video/**'
+      - 'transmute-testing/**'
+      - 'transmute-plugins/gstreamer/**'
   pull_request:
     branches: [main]
+    paths:
+      - '.github/workflows/android.yml'
+      - 'build.gradle.kts'
+      - 'buildSrc/**'
+      - 'settings.gradle.kts'
+      - 'gradle.properties'
+      - 'gradle/**'
+      - 'transmute-api/**'
+      - 'transmute-codec/**'
+      - 'transmute-common/**'
+      - 'transmute-filesystem/**'
+      - 'transmute-model/**'
+      - 'transmute-audio/**'
+      - 'transmute-image/**'
+      - 'transmute-video/**'
+      - 'transmute-testing/**'
+      - 'transmute-plugins/gstreamer/**'
 
 concurrency:
   group: android-${{ github.ref }}
@@ -29,6 +63,8 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.event_name == 'pull_request' }}
 
       - name: Enable KVM (hardware acceleration)
         run: |

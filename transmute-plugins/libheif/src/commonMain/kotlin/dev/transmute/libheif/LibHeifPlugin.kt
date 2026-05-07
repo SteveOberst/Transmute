@@ -55,7 +55,7 @@ class LibHeifPluginConfig : HasPluginConfigure {
   /** Subprocess timeout in milliseconds. */
   val timeoutMs: Long get() = _timeoutMs
 
-  // -- Feature toggles (delegate to pluginConfigure) -------------------------
+  // -- Feature toggles (delegate to pluginConfigure) ---
 
   /** Enable a [LibHeifFeature] for this installation. */
   fun enable(feature: PluginFeature) = pluginConfigure.enable(feature)
@@ -69,7 +69,7 @@ class LibHeifPluginConfig : HasPluginConfigure {
   /** Set a feature by raw string id (fallback for dynamic/runtime usage). */
   fun set(featureId: String, enabled: Boolean) = pluginConfigure.set(featureId, enabled)
 
-  // -- Installation -----------------------------------------------------------
+  // -- Installation ---
 
   /**
    * Use a pre-existing libheif installation at [home].

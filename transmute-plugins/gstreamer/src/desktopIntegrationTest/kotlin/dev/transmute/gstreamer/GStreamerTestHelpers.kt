@@ -36,7 +36,7 @@ object GStreamerTestHelpers {
    */
   fun testContext(): PipelineContext = PipelineContext(logger = PrintLogger)
 
-  // -- Synthetic audio --------------------------------------------------
+  // -- Synthetic audio ---
 
   /**
    * Generate a 440 Hz sine-wave [AudioIR].
@@ -60,7 +60,7 @@ object GStreamerTestHelpers {
     )
   }
 
-  // -- Synthetic image --------------------------------------------------
+  // -- Synthetic image ---
 
   /**
    * Create a solid-colour RGBA_8888 [ImageIR].
@@ -89,7 +89,7 @@ object GStreamerTestHelpers {
     )
   }
 
-  // -- Synthetic video --------------------------------------------------
+  // -- Synthetic video ---
 
   /**
    * Create a synthetic [VideoIR] with flat-colour frames.

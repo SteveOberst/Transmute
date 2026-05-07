@@ -27,7 +27,7 @@ import dev.transmute.video.VideoFormat
  */
 object DefaultMetadataDecoders {
 
-  // -- Image metadata decoders ----------------------------------------------
+  // -- Image metadata decoders ---
 
   val jpeg: MediaDecoder<ImageFormat, List<MediaMetadata>, NoDecodeOptions> =
     metadataDecoderFor(ImageFormat.Jpeg, DefaultStructureReaders.jpeg) { extractMetadata() }
@@ -51,7 +51,7 @@ object DefaultMetadataDecoders {
   val avif: MediaDecoder<ImageFormat, List<MediaMetadata>, NoDecodeOptions> =
     metadataDecoderFor(ImageFormat.Avif, DefaultStructureReaders.avif) { extractMetadata() }
 
-  // -- Audio metadata decoders ----------------------------------------------
+  // -- Audio metadata decoders ---
 
   val mp3: MediaDecoder<AudioFormat, List<MediaMetadata>, NoDecodeOptions> =
     metadataDecoderFor(AudioFormat.Mp3, DefaultStructureReaders.mp3) { extractMetadata() }
@@ -74,7 +74,7 @@ object DefaultMetadataDecoders {
   val aac: MediaDecoder<AudioFormat, List<MediaMetadata>, NoDecodeOptions> =
     metadataDecoderFor(AudioFormat.Aac, DefaultStructureReaders.aac) { extractMetadata() }
 
-  // -- Video metadata decoders ----------------------------------------------
+  // -- Video metadata decoders ---
 
   val mp4: MediaDecoder<VideoFormat, List<MediaMetadata>, NoDecodeOptions> =
     metadataDecoderFor(VideoFormat.Mp4, DefaultStructureReaders.mp4) { extractMetadata() }
@@ -91,7 +91,7 @@ object DefaultMetadataDecoders {
   val mkv: MediaDecoder<VideoFormat, List<MediaMetadata>, NoDecodeOptions> =
     metadataDecoderFor(VideoFormat.Mkv, DefaultStructureReaders.mkv) { extractMetadata() }
 
-  // -- Domain lists ---------------------------------------------------------
+  // -- Domain lists ---
 
   val allImageDecoders: List<MediaDecoder<ImageFormat, List<MediaMetadata>, NoDecodeOptions>> =
     listOf(jpeg, tiff, png, webp, heif, heic, avif)

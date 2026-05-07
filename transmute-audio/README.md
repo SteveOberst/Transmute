@@ -1,6 +1,6 @@
 # transmute-audio
 
-Audio domain module — formats, codecs, intermediate representation, and transforms.
+Audio domain module - formats, codecs, intermediate representation, and transforms.
 
 ## Overview
 
@@ -14,7 +14,7 @@ JLayer, jump3r, jflac-codec, and jorbis.
 ### Formats & IR
 
 | Type | Purpose |
-|------|---------|
+|---|---|
 | `AudioFormat` | Sealed interface: `Mp3`, `Aac`, `Wav`, `Ogg`, `Flac`, `M4a`, `Opus`, `Unknown` |
 | `AudioIR` | Intermediate representation (samples, sampleRate, channelCount, durationMs) |
 | `AudioSamples` | In-memory float audio sample buffer |
@@ -24,7 +24,7 @@ JLayer, jump3r, jflac-codec, and jorbis.
 ### Codecs
 
 | Type | Purpose |
-|------|---------|
+|---|---|
 | `AudioCodec` | Unified audio codec interface |
 | `AudioDecoder` / `AudioEncoder` | Split codec interfaces |
 | `AudioDecoderRegistry` / `AudioEncoderRegistry` | Registries with `MutableAudioDecoderRegistry` / `MutableAudioEncoderRegistry` for plugins |
@@ -34,7 +34,7 @@ JLayer, jump3r, jflac-codec, and jorbis.
 ### Transforms
 
 | Transform | DSL | Purpose |
-|-----------|-----|---------|
+|---|---|---|
 | `AudioNormalizeTransform` | `normalize` | Peak amplitude normalization |
 | `AudioResampleTransform` | `resample` | Resample to target sample rate |
 | `AudioFadeTransform` | `fade` | Fade-in / fade-out envelopes |
@@ -60,4 +60,4 @@ JLayer, jump3r, jflac-codec, and jorbis.
 
 ## Targets
 
-Android, Desktop JVM, iOS — via Kotlin Multiplatform.
+Android, Desktop JVM, iOS - via Kotlin Multiplatform.

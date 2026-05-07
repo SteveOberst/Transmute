@@ -41,7 +41,7 @@ internal object LibHeifAutoProvisioner {
    * Default vcpkg feature set for libheif.
    *
    * Feature   License             Notes
-   * --------  ------------------  -----------------------------------------
+   * ---  ---  ---
    * tools     libheif (LGPL-3)    heif-dec.exe, heif-enc.exe, etc.
    * aom       BSD-2-Clause        AV1 encode / decode (AVIF)
    * dav1d     BSD-2-Clause        Fast AV1 decode (AVIF)

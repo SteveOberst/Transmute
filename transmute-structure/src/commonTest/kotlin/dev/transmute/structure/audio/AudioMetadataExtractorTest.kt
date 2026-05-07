@@ -25,9 +25,9 @@ import kotlin.test.assertTrue
  */
 class AudioMetadataExtractorTest {
 
-  // ===========================================================================
+  // ===
   //  Shared fixture builders
-  // ===========================================================================
+  // ===
 
   /** Build a minimal ID3v2.3 tag with a single TIT2 frame. */
   private fun minimalId3v2Tag(title: String = "Test Song"): ByteArray {
@@ -113,9 +113,9 @@ class AudioMetadataExtractorTest {
     data = Bytes(data),
   )
 
-  // ===========================================================================
+  // ===
   //  MP3 tests
-  // ===========================================================================
+  // ===
 
   @Test
   fun mp3ExtractsId3v2Metadata() {
@@ -176,9 +176,9 @@ class AudioMetadataExtractorTest {
     assertTrue(mp3.extractMetadata().isEmpty())
   }
 
-  // ===========================================================================
+  // ===
   //  AAC tests
-  // ===========================================================================
+  // ===
 
   @Test
   fun aacExtractsId3v2FromPrependedTag() {
@@ -206,9 +206,9 @@ class AudioMetadataExtractorTest {
     assertTrue(raw.extractMetadata().isEmpty())
   }
 
-  // ===========================================================================
+  // ===
   //  WAV tests
-  // ===========================================================================
+  // ===
 
   @Test
   fun wavExtractsRiffInfo() {
@@ -263,9 +263,9 @@ class AudioMetadataExtractorTest {
     assertTrue(WavRaw(riff = riff).extractMetadata().isEmpty())
   }
 
-  // ===========================================================================
+  // ===
   //  FLAC tests
-  // ===========================================================================
+  // ===
 
   @Test
   fun flacExtractsVorbisComment() {
@@ -309,9 +309,9 @@ class AudioMetadataExtractorTest {
     assertTrue(flac.extractMetadata().isEmpty())
   }
 
-  // ===========================================================================
+  // ===
   //  Ogg Vorbis tests
-  // ===========================================================================
+  // ===
 
   @Test
   fun oggVorbisExtractsVorbisComment() {
@@ -337,9 +337,9 @@ class AudioMetadataExtractorTest {
     assertTrue(OggAudioRaw(pages = listOf(page)).extractMetadata().isEmpty())
   }
 
-  // ===========================================================================
+  // ===
   //  Opus tests
-  // ===========================================================================
+  // ===
 
   @Test
   fun opusExtractsVorbisComment() {

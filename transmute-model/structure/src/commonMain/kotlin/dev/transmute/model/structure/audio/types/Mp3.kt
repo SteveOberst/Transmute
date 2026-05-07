@@ -11,9 +11,9 @@ import dev.transmute.model.core.RawMediaStructure
 import dev.transmute.model.core.asBytes
 import kotlinx.serialization.Serializable
 
-// ================================================================
+// ===
 //  MPEG enums
-// ================================================================
+// ===
 
 /** MPEG audio version. */
 @Serializable
@@ -27,9 +27,9 @@ enum class MpegLayer { Layer1, Layer2, Layer3 }
 @Serializable
 enum class MpegChannelMode { Stereo, JointStereo, DualChannel, Mono }
 
-// ================================================================
+// ===
 //  Typed models
-// ================================================================
+// ===
 
 /**
  * Parsed MPEG audio frame header (4 bytes).
@@ -71,9 +71,9 @@ data class Mp3Id3v1Tag(
   val genre: Int,
 )
 
-// ================================================================
+// ===
 //  MP3 file - complete on-disk representation
-// ================================================================
+// ===
 
 /**
  * Canonical representation of an MP3 file as written to disk.

@@ -24,7 +24,7 @@ internal object GStreamerJni {
   /** `true` when the native library is loaded and GStreamer is initialised. */
   val available: Boolean by lazy { tryInit() }
 
-  // -- JNI declarations ---------------------------------------------------
+  // -- JNI declarations ---
 
   /** Initialise the GStreamer runtime. Must be called before other functions. */
   @JvmStatic
@@ -52,7 +52,7 @@ internal object GStreamerJni {
   @JvmStatic
   external fun nativeGetVersion(): String
 
-  // -- Internal helpers ---------------------------------------------------
+  // -- Internal helpers ---
 
   private fun tryInit(): Boolean = try {
     System.loadLibrary("gstreamer_bridge")

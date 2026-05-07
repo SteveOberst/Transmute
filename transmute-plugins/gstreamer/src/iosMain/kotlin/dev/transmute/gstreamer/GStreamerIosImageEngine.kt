@@ -63,7 +63,7 @@ internal object GStreamerIosImageEngine {
 
     val available: Boolean get() = GStreamerIosBridge.available
 
-    // -- Decode ---------------------------------------------------------------
+    // -- Decode ---
 
     suspend fun decode(
         source: Bytes,
@@ -104,7 +104,7 @@ internal object GStreamerIosImageEngine {
         }
     }
 
-    // -- Encode ---------------------------------------------------------------
+    // -- Encode ---
 
     suspend fun encode(
         ir: ImageIR,
@@ -149,9 +149,9 @@ internal object GStreamerIosImageEngine {
     }
 }
 
-// ---------------------------------------------------------------------------
+// ---
 // CoreGraphics PNG  ImageIR helpers
-// ---------------------------------------------------------------------------
+// ---
 
 /**
  * Decode PNG bytes to [ImageIR] using CoreGraphics [CGImageSource].

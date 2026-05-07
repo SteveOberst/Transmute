@@ -21,7 +21,7 @@ import dev.transmute.video.MutableVideoDecoderRegistry
 import dev.transmute.video.MutableVideoEncoderRegistry
 import dev.transmute.video.VideoFormat
 
-// -- Generic structure-decoder registry --------------------------------------
+// -- Generic structure-decoder registry ---
 
 /**
  * Generic format-keyed registry for structure decoders.
@@ -49,7 +49,7 @@ class MutableDecoderRegistry<F : MediaFormat<*, *>, OUT> {
   val supportedFormats: Set<MediaFormat<*, *>> get() = byFormat.keys.toSet()
 }
 
-// -- Domain codec registries --------------------------------------------------
+// -- Domain codec registries ---
 
 /**
  * Holds all mutable codec registries for image formats.
@@ -118,7 +118,7 @@ class CodecRegistry(
   val video: VideoCodecRegistry = VideoCodecRegistry(),
 )
 
-// -- Registration scopes (for plugin API) -------------------------------------
+// -- Registration scopes (for plugin API) ---
 
 /**
  * Plugin-facing scope for registering [MediaStructure] serialisation types.

@@ -20,7 +20,7 @@ import dev.transmute.model.metadata.id3.Id3v2Version
 import dev.transmute.model.metadata.id3.Id3FrameId
 import dev.transmute.model.metadata.id3.Id3TextEncoding
 
-// -- Shared ID3v2 parser ------------------------------------------------------
+// -- Shared ID3v2 parser ---
 
 /**
  * Parse an ID3v2 tag from raw bytes.
@@ -171,7 +171,7 @@ fun parseId3v2FromBytes(data: ByteArray): Id3v2Metadata? {
     pad.toUInt()
   }
 
-  // -- Partition frames into typed slots + extra + order ----------------------
+  // -- Partition frames into typed slots + extra + order ---
 
   val order = mutableListOf<Id3v2FrameRef>()
   val title = mutableListOf<Id3v2Frame>()
@@ -265,7 +265,7 @@ fun id3v2TotalSize(header: ByteArray): Int? {
   return 10 + syncsafeInt(header, 6)
 }
 
-// -- Internal helpers ---------------------------------------------------------
+// -- Internal helpers ---
 
 internal fun syncsafeInt(d: ByteArray, offset: Int): Int = ((d[offset].toInt() and 0x7F) shl 21) or
   ((d[offset + 1].toInt() and 0x7F) shl 14) or

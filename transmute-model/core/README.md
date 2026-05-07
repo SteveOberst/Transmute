@@ -13,8 +13,8 @@ primitives, and domain-specific typed wrappers.
 ### Binary Data
 
 | Type | Purpose |
-|------|---------|
-| `Bytes` | `@JvmInline value class` wrapping `ByteArray` — canonical binary container |
+|---|---|
+| `Bytes` | `@JvmInline value class` wrapping `ByteArray` - canonical binary container |
 | `BinarySerializable` | Interface for types that serialize to on-disk binary format |
 | `BinarySerializer` | Custom `KSerializer` for binary round-tripping |
 | `ByteRange` / `BoundedBytes` | Byte range and bounded byte types |
@@ -22,7 +22,7 @@ primitives, and domain-specific typed wrappers.
 ### Format Descriptors
 
 | Type | Purpose |
-|------|---------|
+|---|---|
 | `MediaFormat<D, E>` | Typed format descriptor (label, mimeType, extension, containerFamily) |
 | `ContainerFamily` | Extensible grouping: `IsoBmff`, `Riff`, `Ebml`, `Ogg`, `Mpeg`, etc. |
 | `UnknownFormat` | Domain-agnostic unknown format sentinel |
@@ -30,7 +30,7 @@ primitives, and domain-specific typed wrappers.
 ### Options
 
 | Type | Purpose |
-|------|---------|
+|---|---|
 | `DecodeOptions` / `EncodeOptions` | Marker interfaces for codec configuration |
 | `NoDecodeOptions` / `NoEncodeOptions` | Default no-op options |
 
@@ -45,7 +45,7 @@ Inline value classes for compile-time unit safety:
 ### Extension Points
 
 | Type | Purpose |
-|------|---------|
+|---|---|
 | `ModelExtension` | Extension point for custom metadata in model objects |
 
 ## Dependencies
@@ -54,4 +54,4 @@ Inline value classes for compile-time unit safety:
 
 ## Targets
 
-Android, Desktop JVM, iOS — via Kotlin Multiplatform.
+Android, Desktop JVM, iOS - via Kotlin Multiplatform.

@@ -24,9 +24,9 @@ import kotlinx.coroutines.withContext
  * handles locating the correct binaries.
  */
 
-// ---------------------------------------------------------------------------
+// ---
 // LibHeif Image Decoder -- HEIF, HEIC, AVIF
-// ---------------------------------------------------------------------------
+// ---
 
 /**
  * Decodes HEIF, HEIC, and AVIF images using libheif CLI tools on the desktop.
@@ -104,9 +104,9 @@ internal class LibHeifImageDecoder : ImageDecoder {
     }
 }
 
-// ---------------------------------------------------------------------------
+// ---
 // LibHeif Image Encoder -- HEIF, HEIC, AVIF
-// ---------------------------------------------------------------------------
+// ---
 
 /**
  * Encodes images to HEIF, HEIC, and AVIF using libheif CLI tools on the desktop.
@@ -182,9 +182,9 @@ internal class LibHeifImageEncoder : ImageEncoder {
     }
 }
 
-// ---------------------------------------------------------------------------
+// ---
 // Helpers
-// ---------------------------------------------------------------------------
+// ---
 
 /** Run a libheif CLI tool and check for errors. */
 internal fun runLibHeifTool(args: List<String>) {

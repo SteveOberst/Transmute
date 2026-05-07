@@ -22,7 +22,7 @@ fun AvifRaw.extractMetadata(): List<MediaMetadata> = buildList {
   extractXmp()?.let(::add)
 }
 
-// -- EXIF from iloc-referenced Exif item --------------------------------------
+// -- EXIF from iloc-referenced Exif item ---
 
 private fun AvifRaw.extractExif(): MediaMetadata? {
   val tiffBytes = findHeifExifBytes(boxes) ?: return null
@@ -36,7 +36,7 @@ private fun AvifRaw.extractExif(): MediaMetadata? {
   }
 }
 
-// -- XMP from iloc-referenced mime item ---------------------------------------
+// -- XMP from iloc-referenced mime item ---
 
 private fun AvifRaw.extractXmp(): MediaMetadata? {
   val xmpBytes = findHeifXmpBytes(boxes) ?: return null

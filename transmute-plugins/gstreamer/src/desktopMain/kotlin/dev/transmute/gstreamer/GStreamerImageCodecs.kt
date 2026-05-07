@@ -21,9 +21,9 @@ import kotlinx.coroutines.withContext
  * - **Encode**: ImageIO writes input to PNG temp file -> GStreamer converts to target format
  */
 
-// ---------------------------------------------------------------------------
+// ---
 // GStreamer Image Decoder - HEIF, HEIC, AVIF
-// ---------------------------------------------------------------------------
+// ---
 
 /**
  * Decodes HEIF, HEIC, and AVIF images using GStreamer on the desktop.
@@ -95,9 +95,9 @@ internal class GstImageDecoder : ImageDecoder {
     }
 }
 
-// ---------------------------------------------------------------------------
+// ---
 // GStreamer Image Encoder - HEIF, AVIF
-// ---------------------------------------------------------------------------
+// ---
 
 /**
  * Encodes images to HEIF and AVIF using GStreamer on the desktop.
@@ -174,9 +174,9 @@ internal class GstImageEncoder : ImageEncoder {
     }
 }
 
-// ---------------------------------------------------------------------------
+// ---
 // Helpers
-// ---------------------------------------------------------------------------
+// ---
 
 private fun abgrToRgba(abgr: ByteArray): ByteArray {
   val out = ByteArray(abgr.size)

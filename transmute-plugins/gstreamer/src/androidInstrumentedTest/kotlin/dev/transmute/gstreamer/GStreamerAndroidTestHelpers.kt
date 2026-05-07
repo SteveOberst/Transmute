@@ -54,7 +54,7 @@ object GStreamerAndroidTestHelpers {
         null
     }
 
-    // -- Synthetic audio --------------------------------------------------
+    // -- Synthetic audio ---
 
     fun sineWave(
         durationMs: Long = 500,
@@ -79,7 +79,7 @@ object GStreamerAndroidTestHelpers {
         )
     }
 
-    // -- Synthetic image --------------------------------------------------
+    // -- Synthetic image ---
 
     fun solidColor(
         width: Int,
@@ -112,7 +112,7 @@ object GStreamerAndroidTestHelpers {
         )
     }
 
-    // -- Synthetic video --------------------------------------------------
+    // -- Synthetic video ---
 
     fun syntheticVideo(
         width: Int = 160,

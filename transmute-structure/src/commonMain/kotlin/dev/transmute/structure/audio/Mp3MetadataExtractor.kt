@@ -8,7 +8,7 @@ import dev.transmute.model.structure.audio.types.Mp3Raw
 import dev.transmute.model.structure.audio.types.id3v1Tag
 import dev.transmute.structure.common.parseId3v2FromBytes
 
-// -- ID3v1 genre table (Winamp extended, 0-191) ------------------------------
+// -- ID3v1 genre table (Winamp extended, 0-191) ---
 
 private val ID3V1_GENRES: Array<String> = arrayOf(
   "Blues", "Classic Rock", "Country", "Dance", "Disco", "Funk", "Grunge",
@@ -61,14 +61,14 @@ fun Mp3Raw.extractMetadata(): List<MediaMetadata> = buildList {
   extractId3v1()?.let(::add)
 }
 
-// -- ID3v2 extraction ---------------------------------------------------------
+// -- ID3v2 extraction ---
 
 private fun Mp3Raw.extractId3v2(): Id3v2Metadata? {
   val tag = id3v2Tag ?: return null
   return parseId3v2FromBytes(tag.data)
 }
 
-// -- ID3v1 extraction ---------------------------------------------------------
+// -- ID3v1 extraction ---
 
 private fun Mp3Raw.extractId3v1(): Id3v1Metadata? {
   val tag = id3v1Tag ?: return null

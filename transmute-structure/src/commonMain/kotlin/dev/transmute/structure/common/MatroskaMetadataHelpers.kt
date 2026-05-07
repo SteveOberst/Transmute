@@ -13,7 +13,7 @@ import dev.transmute.model.metadata.matroska.MatroskaUnknownElement
 import dev.transmute.model.structure.common.EbmlElement
 import dev.transmute.model.structure.video.types.MatroskaIds
 
-// -- Matroska / WebM tag extraction helpers -----------------------------------
+// -- Matroska / WebM tag extraction helpers ---
 
 /**
  * Extract [MatroskaTagMetadata] from a list of top-level EBML elements.

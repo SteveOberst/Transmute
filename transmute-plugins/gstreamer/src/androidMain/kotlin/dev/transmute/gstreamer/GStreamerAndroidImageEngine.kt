@@ -31,7 +31,7 @@ internal object GStreamerAndroidImageEngine {
 
   val available: Boolean get() = GStreamerJni.available
 
-  // -- Decode ---------------------------------------------------------------
+  // -- Decode ---
 
   /**
    * Decode HEIF/HEIC/AVIF to [ImageIR] via GStreamer -> PNG -> BitmapFactory.
@@ -98,7 +98,7 @@ internal object GStreamerAndroidImageEngine {
     }
   }
 
-  // -- Encode ---------------------------------------------------------------
+  // -- Encode ---
 
   /**
    * Encode [ImageIR] to HEIF/HEIC/AVIF via PNG -> GStreamer pipeline.

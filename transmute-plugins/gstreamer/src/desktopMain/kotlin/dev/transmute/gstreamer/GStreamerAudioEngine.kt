@@ -96,9 +96,9 @@ internal object GStreamerAudioEngine {
     }
 }
 
-// ---------------------------------------------------------------------------
+// ---
 // GStreamer subprocess helpers (shared by all engines)
-// ---------------------------------------------------------------------------
+// ---
 
 /** Build the argument list for `gst-launch-1.0 -e --quiet ...`. */
 internal fun buildGstPipeline(vararg elements: String): List<String> = buildList {

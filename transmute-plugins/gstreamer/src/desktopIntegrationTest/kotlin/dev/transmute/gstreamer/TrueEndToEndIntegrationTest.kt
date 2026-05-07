@@ -39,9 +39,9 @@ class TrueEndToEndIntegrationTest : GStreamerTestBase() {
 
   private val ctx = testContext()
 
-  // =======================================================================
+  // ===
   // AUDIO: Generate real media -> Structure Reader -> Decode
-  // =======================================================================
+  // ===
 
   @Test
   fun aac_realMedia_structureReaderAccepts() = runTest {
@@ -106,9 +106,9 @@ class TrueEndToEndIntegrationTest : GStreamerTestBase() {
     assertTrue(structure.pages.isNotEmpty(), "OGG must have pages")
   }
 
-  // =======================================================================
+  // ===
   // VIDEO: Generate real media -> Structure Reader -> Decode
-  // =======================================================================
+  // ===
 
   @Test
   fun mp4_realMedia_structureReaderAccepts() = runTest {
@@ -204,9 +204,9 @@ class TrueEndToEndIntegrationTest : GStreamerTestBase() {
     assertTrue(structure.riff.children.isNotEmpty(), "AVI must have RIFF children")
   }
 
-  // =======================================================================
+  // ===
   // IMAGE (GStreamer): Generate real media -> Structure Reader -> Decode
-  // =======================================================================
+  // ===
 
   @Test
   fun heif_realMedia_structureReaderAccepts() = runTest {
@@ -239,9 +239,9 @@ class TrueEndToEndIntegrationTest : GStreamerTestBase() {
     assertTrue(structure.boxes.isNotEmpty(), "AVIF must have ISO BMFF boxes")
   }
 
-  // =======================================================================
+  // ===
   // FULL TRANSMUTE API: Transmute { }.image { } pipeline
-  // =======================================================================
+  // ===
 
   @Test
   fun transmuteApi_image_decodeTransformEncode() = runTest {
@@ -332,9 +332,9 @@ class TrueEndToEndIntegrationTest : GStreamerTestBase() {
     reader.read(result.bytes) // validates the output is parseable
   }
 
-  // =======================================================================
+  // ===
   // TRANSMUTE STRUCTURE API: Parse -> Write -> Re-parse
-  // =======================================================================
+  // ===
 
   @Test
   fun transmuteStructure_mp4_readWriteRoundtrip() = runTest {
@@ -373,9 +373,9 @@ class TrueEndToEndIntegrationTest : GStreamerTestBase() {
     assertNotNull(structure, "M4A structure must decode successfully")
   }
 
-  // =======================================================================
+  // ===
   // INSPECT: thumbnailFirstFrame
-  // =======================================================================
+  // ===
 
   @Test
   fun inspect_thumbnailFirstFrame_extractsFromVideo() = runTest {

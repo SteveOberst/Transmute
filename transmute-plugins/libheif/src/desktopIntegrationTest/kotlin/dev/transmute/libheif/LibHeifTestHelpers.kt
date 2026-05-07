@@ -26,7 +26,7 @@ internal object LibHeifTestHelpers {
    */
   fun testContext(): PipelineContext = PipelineContext(logger = PrintLogger)
 
-  // -- Synthetic image --------------------------------------------------
+  // -- Synthetic image ---
 
   /**
    * Create a solid-colour RGBA_8888 [ImageIR].

@@ -11,7 +11,7 @@ import dev.transmute.model.metadata.riff.RiffInfoList
 import dev.transmute.model.metadata.riff.RiffInfoTextChunk
 import dev.transmute.model.structure.common.RiffChunk
 
-// -- Well-known RIFF INFO tag ID -> human-readable name ------------------------
+// -- Well-known RIFF INFO tag ID -> human-readable name ---
 
 internal val RIFF_INFO_TAG_NAMES: Map<String, String> = mapOf(
   "IARL" to "Archival Location",
@@ -40,7 +40,7 @@ internal val RIFF_INFO_TAG_NAMES: Map<String, String> = mapOf(
   "ITRK" to "Track Number",
 )
 
-// -- Shared RIFF INFO extraction ----------------------------------------------
+// -- Shared RIFF INFO extraction ---
 
 /**
  * Extract RIFF INFO entries from a `LIST` chunk with form type `INFO`.

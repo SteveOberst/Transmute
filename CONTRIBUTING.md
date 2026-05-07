@@ -206,12 +206,16 @@ BREAKING CHANGE: Builder-level encodeOptions/decodeOptions were removed. Use dec
 3. When the Release PR is merged:
     - A GitHub Release is created from the Release PR notes
     - JitPack automatically builds the release tag
+4. Use the manual pre-release workflow for `-alpha`, `-beta`, or `-rc`
+   versions without mutating the release-please manifest or stable changelog line.
 
 ### Version Policy
 
 - Pre-1.0: `feat` bumps patch, breaking changes bump minor
 - Post-1.0: Standard semver (`feat` -> minor, `fix` -> patch, breaking -> major)
 - Current version is tracked in `.release-please-manifest.json`
+- Pre-release versions are published manually via `TRANSMUTE_VERSION`
+  overrides and should include a suffix such as `-beta.1` or `-rc.1`.
 
 ### JitPack
 
@@ -529,6 +533,21 @@ after changing release wiring. Supply a `ref` in the Actions UI; the workflow
 stages the desktop GStreamer/libheif payloads on Windows and macOS, downloads
 the GStreamer iOS SDK on macOS, runs `publishToMavenLocal`, and uploads the
 resulting `~/.m2/repository/dev/transmute` tree as an artifact for inspection.
+Optionally provide `version` to validate a planned pre-release version override.
+
+**Manual pre-release publish:**
+
+Use `.github/workflows/prerelease.yml` to publish a semantic pre-release such
+as `0.5.0-beta.1` or `0.5.0-rc.1`. The workflow validates that the version has a
+pre-release suffix, refuses to reuse an existing tag, stages desktop native
+payloads, publishes artifacts using `TRANSMUTE_VERSION`, and creates a GitHub
+pre-release tag `v<version>`.
+
+**Release history reset:**
+
+If you need a true fresh start, wipe GitHub releases and tags, reset
+`.release-please-manifest.json` to `0.0.0`, and clear `CHANGELOG.md` before
+cutting the next pre-release or stable release.
 
 **Graceful skip when optional dependency is unavailable:**
 
@@ -614,4 +633,3 @@ published if all integration tests pass.
 7. A maintainer will review and merge
 
 Thank you for contributing!
-

@@ -12,7 +12,7 @@ serialisation via `TypedEnvelopeSerializer`.
 ## Metadata Types
 
 | Type | Registry ID | Schema |
-|------|-------------|--------|
+|---|---|---|
 | `ExifMetadata` | `transmute.exif` | EXIF (TIFF-based image tags) |
 | `XmpMetadata` | `transmute.xmp` | XMP (XML-based Adobe metadata) |
 | `IccProfileMetadata` | `transmute.icc` | ICC colour profiles |
@@ -35,7 +35,7 @@ the original sequence for round-trip fidelity.
 ### Shared helpers
 
 | Type | Purpose |
-|------|---------|
+|---|---|
 | `PayloadRef` | Opaque reference to a byte range inside a container (offset + length) |
 | `ByteSlice` | Lightweight view over a `Bytes` buffer |
 
@@ -46,4 +46,4 @@ the original sequence for round-trip fidelity.
 
 ## Targets
 
-Android, Desktop JVM, iOS — via Kotlin Multiplatform.
+Android, Desktop JVM, iOS - via Kotlin Multiplatform.

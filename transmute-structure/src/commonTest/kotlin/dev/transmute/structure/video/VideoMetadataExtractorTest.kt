@@ -30,9 +30,9 @@ import kotlin.test.assertTrue
  */
 class VideoMetadataExtractorTest {
 
-  // ===========================================================================
+  // ===
   //  Helpers - EBML tree builders
-  // ===========================================================================
+  // ===
 
   private fun ebmlString(id: EbmlId, value: String) = EbmlElement(
     id = id,
@@ -59,9 +59,9 @@ class VideoMetadataExtractorTest {
     return listOf(segment)
   }
 
-  // ===========================================================================
+  // ===
   //  Helpers - ISO BMFF tree builders
-  // ===========================================================================
+  // ===
 
   /**
    * Build a moov > udta > meta > ilst tree with a single iTunes text item.
@@ -88,9 +88,9 @@ class VideoMetadataExtractorTest {
     return listOf(moov)
   }
 
-  // ===========================================================================
+  // ===
   //  WebM tests
-  // ===========================================================================
+  // ===
 
   @Test
   fun webmExtractsMatroskaTags() {
@@ -123,9 +123,9 @@ class VideoMetadataExtractorTest {
     assertTrue(webm.extractMetadata().isEmpty())
   }
 
-  // ===========================================================================
+  // ===
   //  MKV tests
-  // ===========================================================================
+  // ===
 
   @Test
   fun mkvExtractsMatroskaTags() {
@@ -144,9 +144,9 @@ class VideoMetadataExtractorTest {
     assertTrue(MkvRaw(elements = listOf(segment)).extractMetadata().isEmpty())
   }
 
-  // ===========================================================================
+  // ===
   //  MP4 tests
-  // ===========================================================================
+  // ===
 
   @Test
   fun mp4ExtractsItunesMetadata() {
@@ -171,9 +171,9 @@ class VideoMetadataExtractorTest {
     assertTrue(Mp4Raw(boxes = listOf(ftyp)).extractMetadata().isEmpty())
   }
 
-  // ===========================================================================
+  // ===
   //  MOV tests
-  // ===========================================================================
+  // ===
 
   @Test
   fun movExtractsItunesMetadata() {
@@ -197,9 +197,9 @@ class VideoMetadataExtractorTest {
     assertTrue(MovRaw(boxes = listOf(moov)).extractMetadata().isEmpty())
   }
 
-  // ===========================================================================
+  // ===
   //  AVI tests
-  // ===========================================================================
+  // ===
 
   @Test
   fun aviExtractsRiffInfo() {
@@ -251,9 +251,9 @@ class VideoMetadataExtractorTest {
     assertTrue(AviRaw(riff = riff).extractMetadata().isEmpty())
   }
 
-  // ===========================================================================
+  // ===
   //  M4A tests (ISO BMFF / iTunes)
-  // ===========================================================================
+  // ===
 
   @Test
   fun m4aExtractsItunesMetadata() {

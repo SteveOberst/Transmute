@@ -48,9 +48,9 @@ private class ByteArrayMediaDataSource(private val bytes: ByteArray) : MediaData
   }
 }
 
-// ---------------------------------------------------------------------------
+// ---
 // Shared decode logic - used by both decode-only and full codec classes.
-// ---------------------------------------------------------------------------
+// ---
 
 /**
  * Decodes any audio format supported by Android's [MediaCodec] pipeline
@@ -211,9 +211,9 @@ private suspend fun decodeWithMediaCodec(source: ByteArray, options: AudioDecode
   }
 }
 
-// ---------------------------------------------------------------------------
+// ---
 // Shared encode helpers
-// ---------------------------------------------------------------------------
+// ---
 
 private fun floatToPcm16(samples: FloatArray): ByteArray {
   val pcm = ByteArray(samples.size * 2)
@@ -264,9 +264,9 @@ private fun buildAdtsHeader(frameLength: Int, sampleRate: Int, channelCount: Int
   return header
 }
 
-// ---------------------------------------------------------------------------
+// ---
 // Decode-only codecs - formats where Android has no encoder.
-// ---------------------------------------------------------------------------
+// ---
 
 internal abstract class AndroidMediaCodecAudioDecoder(private val format: AudioFormat) : AudioDecoder {
 
@@ -374,9 +374,9 @@ internal class AndroidMp3Codec : AudioCodec {
 
 internal class AndroidOggDecoder : AndroidMediaCodecAudioDecoder(AudioFormat.Ogg)
 
-// ---------------------------------------------------------------------------
+// ---
 // Full codecs - formats we can both decode AND encode on Android.
-// ---------------------------------------------------------------------------
+// ---
 
 /**
  * FLAC codec using Android's [MediaCodec].
@@ -782,9 +782,9 @@ internal class AndroidM4aCodec : AudioCodec {
   }
 }
 
-// ---------------------------------------------------------------------------
+// ---
 // Helpers
-// ---------------------------------------------------------------------------
+// ---
 
 private class FloatArrayList(initialCapacity: Int = 16) {
   private var data = FloatArray(initialCapacity)

@@ -83,7 +83,7 @@ val Id3v2Metadata.flags: Id3v2HeaderFlags get() = header.flags
 @Deprecated("Use header.tagSize", ReplaceWith("header.tagSize"))
 val Id3v2Metadata.tagSizeBytes: Long get() = header.tagSize.toLong()
 
-// -- Typed frame slots --------------------------------------------------------
+// -- Typed frame slots ---
 
 /**
  * "Typed slots + extra list" wrapper for ID3v2 frames.
@@ -171,7 +171,7 @@ sealed class Id3v2FrameRef {
   data class Extra(val index: UInt) : Id3v2FrameRef()
 }
 
-// -- Header types -------------------------------------------------------------
+// -- Header types ---
 
 @Serializable
 data class Id3v2Header(
@@ -222,7 +222,7 @@ data class Id3v2ExtendedHeader(
   val payload: PayloadRef,
 )
 
-// -- Frames -------------------------------------------------------------------
+// -- Frames ---
 
 @Serializable
 @JvmInline

@@ -22,9 +22,9 @@ import kotlin.math.sqrt
  */
 object AudioAssertions {
 
-  // ---------------------------------------------------------------------------
+  // ---
   // Measurements
-  // ---------------------------------------------------------------------------
+  // ---
 
   /**
    * Peak absolute sample value across all channels.
@@ -37,7 +37,7 @@ object AudioAssertions {
   /**
    * Root-mean-square (RMS) level across all samples.
    *
-   * Returns 0 for empty audio. A common loudness proxy — useful for verifying
+   * Returns 0 for empty audio. A common loudness proxy - useful for verifying
    * that lossy codecs don't drastically alter perceived volume.
    */
   fun rms(ir: AudioIR): Float {
@@ -81,12 +81,12 @@ object AudioAssertions {
     return (total / count).toFloat()
   }
 
-  // ---------------------------------------------------------------------------
+  // ---
   // Assertion helpers
-  // ---------------------------------------------------------------------------
+  // ---
 
   /**
-   * Asserts that the audio duration is within ±[toleranceMs] of [expectedMs].
+   * Asserts that the audio duration is within +/-[toleranceMs] of [expectedMs].
    */
   fun assertDurationNear(ir: AudioIR, expectedMs: Long, toleranceMs: Long = 50) {
     val actual = ir.durationMs
@@ -195,7 +195,7 @@ object AudioAssertions {
    * Asserts that a decoded [AudioIR] has high fidelity relative to [original].
    *
    * Performs [assertRoundTripPlausible] checks plus verifies that the
-   * [energyRatio] is within the given bounds (default: 0.5–2.0, i.e. within
+   * [energyRatio] is within the given bounds (default: 0.5-2.0, i.e. within
    * a factor of 2).
    */
   fun assertHighFidelity(

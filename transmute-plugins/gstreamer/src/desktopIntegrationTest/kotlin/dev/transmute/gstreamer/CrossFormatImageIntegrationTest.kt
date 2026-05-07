@@ -30,9 +30,9 @@ class CrossFormatImageIntegrationTest : GStreamerTestBase() {
 
   private val ctx = testContext()
 
-  // =======================================================================
+  // ===
   // HEIF -> PNG (GStreamer -> JvmImageIo)
-  // =======================================================================
+  // ===
 
   @Test
   fun heif_to_png() = runTest {
@@ -62,9 +62,9 @@ class CrossFormatImageIntegrationTest : GStreamerTestBase() {
     assertEquals(64, decoded.height, "Decoded height must match")
   }
 
-  // =======================================================================
+  // ===
   // HEIF -> JPEG (GStreamer -> JvmImageIo)
-  // =======================================================================
+  // ===
 
   @Test
   fun heif_to_jpeg() = runTest {
@@ -89,9 +89,9 @@ class CrossFormatImageIntegrationTest : GStreamerTestBase() {
     reader.read(result.bytes) // validates the output is parseable
   }
 
-  // =======================================================================
+  // ===
   // PNG -> JPEG (JvmImageIo -> JvmImageIo)
-  // =======================================================================
+  // ===
 
   @Test
   fun png_to_jpeg() = runTest {
@@ -117,9 +117,9 @@ class CrossFormatImageIntegrationTest : GStreamerTestBase() {
     reader.read(result.bytes) // validates the output is parseable
   }
 
-  // =======================================================================
+  // ===
   // JPEG -> PNG (JvmImageIo -> JvmImageIo)
-  // =======================================================================
+  // ===
 
   @Test
   fun jpeg_to_png() = runTest {
@@ -145,9 +145,9 @@ class CrossFormatImageIntegrationTest : GStreamerTestBase() {
     reader.read(result.bytes) // validates the output is parseable
   }
 
-  // =======================================================================
+  // ===
   // AVIF -> PNG (GStreamer -> JvmImageIo)
-  // =======================================================================
+  // ===
 
   @Test
   fun avif_to_png() = runTest {
@@ -177,9 +177,9 @@ class CrossFormatImageIntegrationTest : GStreamerTestBase() {
     reader.read(result.bytes) // validates the output is parseable
   }
 
-  // =======================================================================
+  // ===
   // PNG -> BMP (JvmImageIo -> BmpEncoder)
-  // =======================================================================
+  // ===
 
   @Test
   fun png_to_bmp() = runTest {
@@ -205,9 +205,9 @@ class CrossFormatImageIntegrationTest : GStreamerTestBase() {
     reader.read(result.bytes) // validates the output is parseable
   }
 
-  // =======================================================================
+  // ===
   // JPEG -> HEIF (JvmImageIo -> GStreamer)
-  // =======================================================================
+  // ===
 
   @Test
   fun jpeg_to_heif() = runTest {
@@ -233,9 +233,9 @@ class CrossFormatImageIntegrationTest : GStreamerTestBase() {
     reader.read(result.bytes) // validates the output is parseable
   }
 
-  // =======================================================================
+  // ===
   // PNG -> GIF (JvmImageIo -> JvmImageIo)
-  // =======================================================================
+  // ===
 
   @Test
   fun png_to_gif() = runTest {

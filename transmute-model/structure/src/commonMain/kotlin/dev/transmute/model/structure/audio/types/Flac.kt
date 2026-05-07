@@ -10,9 +10,9 @@ import dev.transmute.model.core.RawMediaStructure
 import dev.transmute.model.core.asBytes
 import kotlinx.serialization.Serializable
 
-// ================================================================
+// ===
 //  FLAC metadata block type
-// ================================================================
+// ===
 
 /**
  * FLAC metadata block type codes.
@@ -34,9 +34,9 @@ enum class FlacMetadataBlockType(val code: Int) {
   }
 }
 
-// ================================================================
+// ===
 //  FLAC metadata block - fundamental structural unit
-// ================================================================
+// ===
 
 /**
  * A single FLAC metadata block as stored on disk.
@@ -69,9 +69,9 @@ data class FlacMetadataBlock(
   }
 }
 
-// ================================================================
+// ===
 //  Typed model: STREAMINFO block
-// ================================================================
+// ===
 
 /**
  * Parsed STREAMINFO metadata (block type 0, always 34 bytes).
@@ -95,9 +95,9 @@ data class FlacStreamInfo(
   val md5: Bytes,
 )
 
-// ================================================================
+// ===
 //  FLAC file - complete on-disk representation
-// ================================================================
+// ===
 
 /**
  * Canonical representation of a FLAC file as written to disk.

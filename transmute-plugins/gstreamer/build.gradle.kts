@@ -6,7 +6,7 @@ plugins {
 
 apply(from = "gstreamer-sdk.gradle.kts")
 
-// -- Optional GStreamer SDK locations -----------------------------------------
+// -- Optional GStreamer SDK locations ---
 val gstreamerAndroidRoot: String? = System.getenv("GSTREAMER_ROOT_ANDROID")
 val gstreamerIosFramework = listOfNotNull(
   System.getenv("GSTREAMER_ROOT_IOS")?.let(::file),

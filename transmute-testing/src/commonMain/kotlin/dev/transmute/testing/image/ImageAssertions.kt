@@ -15,9 +15,9 @@ import kotlin.math.sqrt
  *
  * Split into two groups:
  *
- * 1. **Measurements** — pure functions that return numbers (peak difference, PSNR,
- *    mean absolute error, …).  Use these inside custom assertion logic.
- * 2. **Assertions** — convenience wrappers that throw [AssertionError] with clear
+ * 1. **Measurements** - pure functions that return numbers (peak difference, PSNR,
+ *    mean absolute error, ...).  Use these inside custom assertion logic.
+ * 2. **Assertions** - convenience wrappers that throw [AssertionError] with clear
  *    messages when a condition is violated.  Ready for direct use in test bodies.
  *
  * All functions operate on the raw pixel bytes using [PixelFormat.bytesPerPixel]
@@ -28,7 +28,7 @@ import kotlin.math.sqrt
  * ### Quick start
  * ```kotlin
  * val original = SyntheticImage.colorBars(640, 480)
- * val decoded  = roundTrip(original) // encode → decode
+ * val decoded  = roundTrip(original) // encode -> decode
  *
  * assertDimensions(decoded, 640, 480)
  * assertSimilar(original, decoded, maxPeakDiff = 5)
@@ -38,15 +38,15 @@ import kotlin.math.sqrt
  */
 object ImageAssertions {
 
-  // ---------------------------------------------------------------------------
+  // ---
   // Pixel access
-  // ---------------------------------------------------------------------------
+  // ---
 
   /**
    * Read the RGBA components of the pixel at ([x], [y]).
    *
    * Works for [PixelFormat.RGBA_8888] and [PixelFormat.RGB_888] (alpha returned
-   * as 255 for RGB).  Returns an [IntArray] of `[R, G, B, A]` in 0–255.
+   * as 255 for RGB).  Returns an [IntArray] of `[R, G, B, A]` in 0-255.
    *
    * @throws IllegalArgumentException if the format is not 8-bit per channel.
    */
@@ -62,15 +62,15 @@ object ImageAssertions {
     return intArrayOf(r, g, b, a)
   }
 
-  // ---------------------------------------------------------------------------
+  // ---
   // Measurements
-  // ---------------------------------------------------------------------------
+  // ---
 
   /**
    * Peak (maximum) absolute difference across all channels between two images.
    *
    * The two images must have identical dimensions and pixel format.
-   * Returns a value in 0–255 for 8-bit formats.
+   * Returns a value in 0-255 for 8-bit formats.
    */
   fun peakDifference(a: ImageIR, b: ImageIR): Int {
     requireSameGeometry(a, b)
@@ -94,7 +94,7 @@ object ImageAssertions {
   /**
    * Mean absolute error (MAE) across all channels.
    *
-   * Returns a floating-point value in 0–255 for 8-bit formats.
+   * Returns a floating-point value in 0-255 for 8-bit formats.
    */
   fun meanAbsoluteError(a: ImageIR, b: ImageIR): Double {
     requireSameGeometry(a, b)
@@ -143,9 +143,9 @@ object ImageAssertions {
   /**
    * Peak Signal-to-Noise Ratio in decibels.
    *
-   * - Identical images → [Double.POSITIVE_INFINITY]
+   * - Identical images -> [Double.POSITIVE_INFINITY]
    * - Typical lossless: > 60 dB
-   * - Typical high-quality lossy (JPEG q=90): 30–45 dB
+   * - Typical high-quality lossy (JPEG q=90): 30-45 dB
    *
    * @param maxVal The maximum possible pixel value (255 for 8-bit).
    */
@@ -156,11 +156,11 @@ object ImageAssertions {
   }
 
   /**
-   * Structural similarity proxy — computes the mean luminance difference
+   * Structural similarity proxy - computes the mean luminance difference
    * weighted per-pixel.  This is a simplified (non-windowed) metric that
    * correlates with SSIM for test assertions without requiring convolutions.
    *
-   * Returns a value in 0.0–1.0 where 1.0 = identical.
+   * Returns a value in 0.0-1.0 where 1.0 = identical.
    */
   fun similarityIndex(a: ImageIR, b: ImageIR): Double {
     requireSameGeometry(a, b)
@@ -213,9 +213,9 @@ object ImageAssertions {
 
   /**
    * Average brightness (luma) of the image using the Rec.601 formula:
-   * Y = 0.299·R + 0.587·G + 0.114·B
+   * Y = 0.299.R + 0.587.G + 0.114.B
    *
-   * Returns a value in 0.0–255.0 for 8-bit images.
+   * Returns a value in 0.0-255.0 for 8-bit images.
    */
   fun averageBrightness(image: ImageIR): Double {
     val data = requirePixelBytes(image)
@@ -256,9 +256,9 @@ object ImageAssertions {
     return hist
   }
 
-  // ---------------------------------------------------------------------------
+  // ---
   // Assertions
-  // ---------------------------------------------------------------------------
+  // ---
 
   /**
    * Assert that the image has the expected [width] and [height].
@@ -294,8 +294,8 @@ object ImageAssertions {
   /**
    * Assert that the peak per-channel difference does not exceed [maxPeakDiff].
    *
-   * A value of 0 means exact match; 1–3 is typical for lossless codecs with
-   * rounding; 5–15 is typical for high-quality lossy codecs.
+   * A value of 0 means exact match; 1-3 is typical for lossless codecs with
+   * rounding; 5-15 is typical for high-quality lossy codecs.
    */
   fun assertSimilar(a: ImageIR, b: ImageIR, maxPeakDiff: Int) {
     val peak = peakDifference(a, b)
@@ -308,7 +308,7 @@ object ImageAssertions {
    * Assert that the PSNR between two images meets or exceeds [minDB].
    *
    * Typical thresholds:
-   * - Lossless: > 60 dB (often ∞)
+   * - Lossless: > 60 dB (often infinity)
    * - High-quality lossy: > 30 dB
    * - Low-quality lossy: > 20 dB
    */
@@ -395,7 +395,7 @@ object ImageAssertions {
    * Assert that the percentage of pixels differing by more than [threshold]
    * does not exceed [maxPercent].
    *
-   * @param maxPercent Maximum allowed percentage (0.0–100.0).
+   * @param maxPercent Maximum allowed percentage (0.0-100.0).
    */
   fun assertDiffPixelsBelowPercent(
     a: ImageIR,
@@ -414,7 +414,7 @@ object ImageAssertions {
   /**
    * Compound assertion for typical round-trip image codec tests.
    *
-   * Checks: dimensions preserved, pixel format matches, peak difference ≤ [maxPeakDiff],
+   * Checks: dimensions preserved, pixel format matches, peak difference <= [maxPeakDiff],
    * and not-uniform (unless original is uniform).
    */
   fun assertRoundTripFidelity(
@@ -426,9 +426,9 @@ object ImageAssertions {
     assertSimilar(original, decoded, maxPeakDiff)
   }
 
-  // ---------------------------------------------------------------------------
+  // ---
   // Internal helpers
-  // ---------------------------------------------------------------------------
+  // ---
 
   private fun requirePixelBytes(image: ImageIR): ByteArray {
     val buffer = image.buffer

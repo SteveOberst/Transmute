@@ -84,7 +84,7 @@ object GStreamerIosTestHelpers {
         block()
     }
 
-    // -- Synthetic audio --------------------------------------------------
+    // -- Synthetic audio ---
 
     fun sineWave(
         durationMs: Long = 500,
@@ -109,7 +109,7 @@ object GStreamerIosTestHelpers {
         )
     }
 
-    // -- Synthetic image --------------------------------------------------
+    // -- Synthetic image ---
 
     fun solidColor(
         width: Int,
@@ -142,7 +142,7 @@ object GStreamerIosTestHelpers {
         )
     }
 
-    // -- Synthetic video --------------------------------------------------
+    // -- Synthetic video ---
 
     fun syntheticVideo(
         width: Int = 160,

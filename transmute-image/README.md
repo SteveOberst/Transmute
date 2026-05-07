@@ -1,6 +1,6 @@
 # transmute-image
 
-Image domain module — formats, codecs, intermediate representation, and transforms.
+Image domain module - formats, codecs, intermediate representation, and transforms.
 
 ## Overview
 
@@ -14,7 +14,7 @@ TwelveMonkeys ImageIO.
 ### Formats & IR
 
 | Type | Purpose |
-|------|---------|
+|---|---|
 | `ImageFormat` | Sealed interface: `Jpeg`, `Png`, `Webp`, `Heif`, `Heic`, `Avif`, `Gif`, `Bmp`, `Tiff`, `Unknown` |
 | `ImageIR` | Intermediate representation (buffer, width, height, stride, pixelFormat, alpha, colorInfo, orientation) |
 | `PixelBuffer` / `ByteArrayPixelBuffer` | Pixel data storage |
@@ -26,7 +26,7 @@ TwelveMonkeys ImageIO.
 ### Codecs
 
 | Type | Purpose |
-|------|---------|
+|---|---|
 | `ImageCodec` / `ImageDecoder` / `ImageEncoder` | Codec interfaces |
 | `ImageDecoderRegistry` / `ImageEncoderRegistry` | Registries with mutable variants for plugins |
 | `ImageDecodeOptions` / `ImageEncodeOptions` | Sealed option hierarchies |
@@ -35,11 +35,11 @@ TwelveMonkeys ImageIO.
 ### Transforms
 
 | Transform | Purpose |
-|-----------|---------|
+|---|---|
 | `ImageScaleTransform` | Scale by factor |
 | `ImageResizeTransform` | Resize to target dimensions |
 | `ImageCropTransform` | Crop to rectangle |
-| `ImageRotateTransform` | Rotate by 90°, 180°, or 270° clockwise |
+| `ImageRotateTransform` | Rotate by 90 deg, 180 deg, or 270 deg clockwise |
 | `ImageGrayscaleTransform` | Convert to grayscale |
 | `ImageFlipTransform` | Flip horizontal/vertical |
 | `ImageBrightnessContrastTransform` | Adjust brightness and contrast |
@@ -48,7 +48,7 @@ TwelveMonkeys ImageIO.
 
 ### Resample Kernels
 
-`ResampleFilter`, `ResampleKernel`, `ResampleFactory` — implementations:
+`ResampleFilter`, `ResampleKernel`, `ResampleFactory` - implementations:
 Bicubic Mitchell, Bilinear, Box, Lanczos3, Nearest.
 
 ## Dependencies
@@ -58,4 +58,4 @@ Bicubic Mitchell, Bilinear, Box, Lanczos3, Nearest.
 
 ## Targets
 
-Android, Desktop JVM, iOS — via Kotlin Multiplatform.
+Android, Desktop JVM, iOS - via Kotlin Multiplatform.

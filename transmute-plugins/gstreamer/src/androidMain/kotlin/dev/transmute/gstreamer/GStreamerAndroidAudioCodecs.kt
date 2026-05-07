@@ -11,11 +11,11 @@ import dev.transmute.io.TSource
 import dev.transmute.model.core.Bytes
 import dev.transmute.model.core.asBytes
 
-// ---------------------------------------------------------------------------
+// ---
 // GStreamer-backed audio codecs for Android.
 // Mirrors the Desktop implementations but delegates to
 // GStreamerAndroidAudioEngine (JNI) instead of subprocess.
-// ---------------------------------------------------------------------------
+// ---
 
 // --- AAC (ADTS) ---
 
@@ -86,9 +86,9 @@ internal class GstAndroidOggVorbisEncoder : AudioEncoder {
   }
 }
 
-// ---------------------------------------------------------------------------
+// ---
 // AAC encoder element discovery
-// ---------------------------------------------------------------------------
+// ---
 
 private val _androidAacEncoder: String by lazy {
   listOf("fdkaacenc", "voaacenc", "avenc_aac", "faac")

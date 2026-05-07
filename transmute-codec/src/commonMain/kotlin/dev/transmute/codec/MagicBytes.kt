@@ -12,7 +12,7 @@ object MagicBytes {
   private fun ByteArray.decodeSlice(startIndex: Int, length: Int): String =
     copyOfRange(startIndex, startIndex + length).decodeToString()
 
-  // -- ISO Base Media File Format (MP4 / MOV / M4A / HEIF / AVIF) ----------
+  // -- ISO Base Media File Format (MP4 / MOV / M4A / HEIF / AVIF) ---
 
   /**
    * Returns `true` if [data] starts with an ISO BMFF `ftyp` box.
@@ -36,7 +36,7 @@ object MagicBytes {
     return data.decodeSlice(8, 4)
   }
 
-  // -- RIFF (WAV / AVI / WebP) ---------------------------------------------
+  // -- RIFF (WAV / AVI / WebP) ---
 
   /**
    * Returns `true` if [data] starts with a RIFF container header.
@@ -60,7 +60,7 @@ object MagicBytes {
     return data.decodeSlice(8, 4)
   }
 
-  // -- EBML (WebM / Matroska) -----------------------------------------------
+  // -- EBML (WebM / Matroska) ---
 
   /**
    * Returns `true` if [data] starts with an EBML header (0x1A45DFA3).
@@ -109,7 +109,7 @@ object MagicBytes {
     return null
   }
 
-  // -- Ogg ------------------------------------------------------------------
+  // -- Ogg ---
 
   /**
    * Returns `true` if [data] starts with the Ogg page sync pattern (`OggS`).

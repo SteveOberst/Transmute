@@ -26,7 +26,7 @@ class GStreamerImageCodecIntegrationTest : GStreamerTestBase() {
   private val decoder = GstImageDecoder()
   private val encoder = GstImageEncoder()
 
-  // -- Decoder metadata ---------------------------------------------------
+  // -- Decoder metadata ---
 
   @Test
   fun decoder_supportedFormats_containsHeifHeicAvif() {
@@ -36,7 +36,7 @@ class GStreamerImageCodecIntegrationTest : GStreamerTestBase() {
     assertTrue(ImageFormat.Avif in formats, "Must support AVIF")
   }
 
-  // -- Encoder metadata ---------------------------------------------------
+  // -- Encoder metadata ---
 
   @Test
   fun encoder_supportedFormats_containsHeifHeicAvif() {
@@ -46,7 +46,7 @@ class GStreamerImageCodecIntegrationTest : GStreamerTestBase() {
     assertTrue(ImageFormat.Avif in formats, "Must support AVIF")
   }
 
-  // -- HEIF encode -> decode roundtrip -------------------------------------
+  // -- HEIF encode -> decode roundtrip ---
 
   @Test
   fun heif_encodeAndDecode_roundTrip() = runTest {
@@ -60,7 +60,7 @@ class GStreamerImageCodecIntegrationTest : GStreamerTestBase() {
     assertEquals(64, decoded.height, "Height must survive roundtrip")
   }
 
-  // -- HEIC encode -> decode roundtrip -------------------------------------
+  // -- HEIC encode -> decode roundtrip ---
 
   @Test
   fun heic_encodeAndDecode_roundTrip() = runTest {
@@ -74,7 +74,7 @@ class GStreamerImageCodecIntegrationTest : GStreamerTestBase() {
     assertEquals(64, decoded.height, "Height must survive roundtrip")
   }
 
-  // -- AVIF encode -> decode roundtrip -------------------------------------
+  // -- AVIF encode -> decode roundtrip ---
 
   @Test
   fun avif_encodeAndDecode_roundTrip() = runTest {
@@ -88,7 +88,7 @@ class GStreamerImageCodecIntegrationTest : GStreamerTestBase() {
     assertEquals(64, decoded.height, "Height must survive roundtrip")
   }
 
-  // -- Encode produces valid ISO BMFF header ------------------------------
+  // -- Encode produces valid ISO BMFF header ---
 
   @Test
   fun heif_encode_producesIsoBmffOutput() = runTest {

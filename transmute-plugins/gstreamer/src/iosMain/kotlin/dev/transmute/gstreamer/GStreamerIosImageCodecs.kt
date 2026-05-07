@@ -10,11 +10,11 @@ import dev.transmute.image.ImageIR
 import dev.transmute.io.TSource
 import dev.transmute.model.core.Bytes
 
-// ---------------------------------------------------------------------------
+// ---
 // GStreamer-backed image codecs for iOS.
 // Handles HEIF, HEIC, AVIF via GStreamer cinterop -> PNG intermediate ->
 // CoreGraphics.
-// ---------------------------------------------------------------------------
+// ---
 
 internal class GstIosImageDecoder : ImageDecoder {
     override val supportedFormats: Set<ImageFormat> = setOf(

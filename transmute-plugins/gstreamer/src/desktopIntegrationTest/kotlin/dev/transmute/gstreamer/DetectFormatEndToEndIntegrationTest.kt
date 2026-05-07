@@ -41,9 +41,9 @@ class DetectFormatEndToEndIntegrationTest : GStreamerTestBase() {
     }
   }
 
-  // =======================================================================
+  // ===
   // IMAGE FORMAT DETECTION
-  // =======================================================================
+  // ===
 
   @Test
   fun detectFormat_jpeg() = runTest {
@@ -137,9 +137,9 @@ class DetectFormatEndToEndIntegrationTest : GStreamerTestBase() {
     assertEquals(ImageFormat.Avif, detected, "AVIF must be detected")
   }
 
-  // =======================================================================
+  // ===
   // AUDIO FORMAT DETECTION
-  // =======================================================================
+  // ===
 
   @Test
   fun detectFormat_aac() = runTest {
@@ -211,9 +211,9 @@ class DetectFormatEndToEndIntegrationTest : GStreamerTestBase() {
     assertEquals(AudioFormat.Mp3, detected, "MP3 must be detected")
   }
 
-  // =======================================================================
+  // ===
   // VIDEO FORMAT DETECTION
-  // =======================================================================
+  // ===
 
   @Test
   fun detectFormat_mp4() = runTest {
@@ -285,9 +285,9 @@ class DetectFormatEndToEndIntegrationTest : GStreamerTestBase() {
     assertEquals(VideoFormat.Avi, detected, "AVI must be detected")
   }
 
-  // =======================================================================
+  // ===
   // EDGE CASES
-  // =======================================================================
+  // ===
 
   @Test
   fun detectFormat_unknownBytes_returnsUnknown() {
@@ -308,9 +308,9 @@ class DetectFormatEndToEndIntegrationTest : GStreamerTestBase() {
     assertEquals(UnknownFormat, detected, "Tiny byte array must return UnknownFormat")
   }
 
-  // =======================================================================
+  // ===
   // DOMAIN-SPECIFIC DETECTION (Inspect sub-APIs)
-  // =======================================================================
+  // ===
 
   @Test
   fun inspectImage_detectFormat_jpeg() = runTest {
@@ -345,9 +345,9 @@ class DetectFormatEndToEndIntegrationTest : GStreamerTestBase() {
     assertEquals(VideoFormat.Mp4, detected, "inspect.video must detect MP4")
   }
 
-  // =======================================================================
+  // ===
   // BMFF DISAMBIGUATION
-  // =======================================================================
+  // ===
 
   @Test
   fun detectFormat_bmff_mp4_vs_m4a() = runTest {

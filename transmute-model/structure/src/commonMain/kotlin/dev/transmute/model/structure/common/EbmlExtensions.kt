@@ -5,10 +5,10 @@ package dev.transmute.model.structure.common
 import dev.transmute.model.structure.video.types.EbmlHeaderData
 import dev.transmute.model.structure.video.types.MatroskaIds
 
-// ================================================================
+// ===
 //  Shared EBML list extensions (used by MKV, WebM, and any
 //  future EBML-based format)
-// ================================================================
+// ===
 
 /** The EBML header element. */
 val List<EbmlElement>.ebmlHeader: EbmlElement?

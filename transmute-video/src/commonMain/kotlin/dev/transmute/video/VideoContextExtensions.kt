@@ -8,7 +8,7 @@ import dev.transmute.common.TransmuteContext
 private const val VIDEO_DECODERS_KEY = "transmute.video.decoders"
 private const val VIDEO_ENCODERS_KEY = "transmute.video.encoders"
 
-// -- Builder extensions -------------------------------------------------------
+// -- Builder extensions ---
 
 /**
  * Provide a custom [VideoDecoderRegistry] via the context.
@@ -36,7 +36,7 @@ fun TransmuteContext.Builder.videoEncoders(registry: VideoEncoderRegistry) {
   extra(VIDEO_ENCODERS_KEY, registry)
 }
 
-// -- Read extensions ----------------------------------------------------------
+// -- Read extensions ---
 
 /**
  * Video decoder registry stored in this context, or `null` if none was set.

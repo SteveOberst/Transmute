@@ -27,9 +27,9 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
-// ---------------------------------------------------------------------------
+// ---
 // Shared decode logic - AVAssetReader -> float32 PCM.
-// ---------------------------------------------------------------------------
+// ---
 
 private fun writeTempFile(data: ByteArray, ext: String): NSURL {
   val tmpDir = NSTemporaryDirectory()
@@ -143,9 +143,9 @@ private suspend fun decodeWithAssetReader(
   }
 }
 
-// ---------------------------------------------------------------------------
+// ---
 // Shared encode logic - AudioIR -> WAV -> AVAssetExportSession -> M4A.
-// ---------------------------------------------------------------------------
+// ---
 
 private suspend fun encodeToM4aWithExportSession(ir: AudioIR, context: PipelineContext): ByteArray {
   val wavBytes = WavEncoder().encode(ir, AudioFormat.Wav, CanonicalAudioEncodeOptions(), context).data
@@ -182,9 +182,9 @@ private suspend fun encodeToM4aWithExportSession(ir: AudioIR, context: PipelineC
   }
 }
 
-// ---------------------------------------------------------------------------
+// ---
 // Decode-only codecs
-// ---------------------------------------------------------------------------
+// ---
 
 internal class IosMp3Decoder : AudioDecoder {
   override val supportedFormats: Set<AudioFormat> = setOf(AudioFormat.Mp3)
@@ -198,9 +198,9 @@ internal class IosMp3Decoder : AudioDecoder {
     )
 }
 
-// ---------------------------------------------------------------------------
+// ---
 // "Full" codec shapes (decode + encode), but iOS only encodes M4A reliably.
-// ---------------------------------------------------------------------------
+// ---
 
 internal class IosFlacCodec : AudioCodec {
   override val decodableFormats: Set<AudioFormat> = setOf(AudioFormat.Flac)

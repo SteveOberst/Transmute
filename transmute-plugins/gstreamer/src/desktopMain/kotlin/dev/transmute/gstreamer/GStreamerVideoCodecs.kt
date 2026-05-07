@@ -10,13 +10,13 @@ import dev.transmute.video.VideoEncodeOptions
 import dev.transmute.video.VideoFormat
 import dev.transmute.video.VideoIR
 
-// ---------------------------------------------------------------------------
+// ---
 // GStreamer-backed video codecs for JVM/Desktop.
 //
 // Each codec delegates to GStreamerVideoEngine for both decode and encode.
 // All are gated on [GStreamerVideoEngine.available]; registration is skipped
 // in [GStreamerCodecInstaller] when GStreamer is absent.
-// ---------------------------------------------------------------------------
+// ---
 
 // --- MP4 (H.264 + AAC) ---
 

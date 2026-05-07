@@ -11,11 +11,11 @@ import dev.transmute.common.PipelineContext
 import dev.transmute.model.core.Bytes
 import dev.transmute.model.core.asBytes
 
-// ---------------------------------------------------------------------------
+// ---
 // GStreamer-backed audio codecs for iOS.
 // Mirrors the Desktop / Android implementations but delegates to
 // GStreamerIosAudioEngine (cinterop) instead of subprocess / JNI.
-// ---------------------------------------------------------------------------
+// ---
 
 // --- AAC (ADTS) ---
 
@@ -86,9 +86,9 @@ internal class GstIosOggVorbisEncoder : AudioEncoder {
     }
 }
 
-// ---------------------------------------------------------------------------
+// ---
 // AAC encoder element discovery for iOS
-// ---------------------------------------------------------------------------
+// ---
 
 private val iosAacEncoderCandidates = listOf("fdkaacenc", "voaacenc", "avenc_aac", "faac")
 

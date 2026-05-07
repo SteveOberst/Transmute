@@ -13,7 +13,7 @@ the **decode -> transform -> encode** flow.
 ### Codec Interfaces
 
 | Type | Purpose |
-|------|---------|
+|---|---|
 | `Decoder<F, IR, D>` | Base decoder interface (decode, decodableFormats) |
 | `Encoder<F, IR, O>` | Base encoder interface (encode, encodableFormats) |
 | `Codec<F, IR, D, O>` | Unified decode + encode interface |
@@ -21,7 +21,7 @@ the **decode -> transform -> encode** flow.
 ### Pipeline System
 
 | Type | Purpose |
-|------|---------|
+|---|---|
 | `Pipeline<IN, OUT>` | Type alias for composable pipelines |
 | `DecodePipeline<IN, IR>` | Decode pipeline (bytes -> IR) |
 | `EncodePipeline<IR, OUT>` | Encode pipeline (IR -> encoded bytes) |
@@ -34,7 +34,7 @@ the **decode -> transform -> encode** flow.
 ### Supporting Types
 
 | Type | Purpose |
-|------|---------|
+|---|---|
 | `EncodedBytes<F>` | Encoded bytes tagged with resolved format |
 | `Decoded<F, IR>` | Decode result: IR + resolved format |
 | `DecodeRange` | Decode range selector (time or frame) |
@@ -56,4 +56,4 @@ val result = pipeline.execute(inputBytes)
 
 ## Targets
 
-Android, Desktop JVM, iOS — via Kotlin Multiplatform.
+Android, Desktop JVM, iOS - via Kotlin Multiplatform.

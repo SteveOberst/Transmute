@@ -16,7 +16,7 @@ import kotlin.test.assertTrue
  */
 class Id3v2HelpersTest {
 
-  // -- Minimal ID3v2 fixture with one TIT2 frame ----------------------------
+  // -- Minimal ID3v2 fixture with one TIT2 frame ---
 
   /**
    * Build a minimal ID3v2.3 tag with a single text frame.
@@ -67,7 +67,7 @@ class Id3v2HelpersTest {
     return id.encodeToByteArray() + syncsafe + byteArrayOf(0x00, 0x00) + payload
   }
 
-  // -- Tests ----------------------------------------------------------------
+  // -- Tests ---
 
   @Test
   fun parsesEmptyTag() {
@@ -236,11 +236,11 @@ class Id3v2HelpersTest {
     assertEquals(frames.size.toUInt(), result.header.tagSize)
   }
 
-  // -- Typed-slot partitioning tests ----------------------------------------
+  // -- Typed-slot partitioning tests ---
 
   @Test
   fun multipleSameSlotFrames() {
-    // Two COMM frames → both go to content.comment; order tracks them
+    // Two COMM frames -> both go to content.comment; order tracks them
     val frames = textFrame("COMM", "Comment 1") + textFrame("COMM", "Comment 2")
     val tag = makeId3v2Tag(frames = frames)
     val result = parseId3v2FromBytes(tag)
@@ -265,7 +265,7 @@ class Id3v2HelpersTest {
     assertEquals(1, result.content.artist.size)
     assertEquals(1, result.content.extra.size)
     assertEquals("PRIV", result.content.extra[0].id.value)
-    // Order: Title → Extra(0) → Artist
+    // Order: Title -> Extra(0) -> Artist
     assertEquals(3, result.content.order.size)
     assertEquals(Id3v2FrameRef.Known(Id3v2KnownFrameId.Title, 0u), result.content.order[0])
     assertEquals(Id3v2FrameRef.Extra(0u), result.content.order[1])
@@ -358,7 +358,7 @@ class Id3v2HelpersTest {
 
   @Test
   fun onlyUnknownFrames() {
-    // All frames are unknown → everything goes to extra
+    // All frames are unknown -> everything goes to extra
     val frames = textFrame("PRIV", "x") + textFrame("WXXX", "y")
     val tag = makeId3v2Tag(frames = frames)
     val result = parseId3v2FromBytes(tag)

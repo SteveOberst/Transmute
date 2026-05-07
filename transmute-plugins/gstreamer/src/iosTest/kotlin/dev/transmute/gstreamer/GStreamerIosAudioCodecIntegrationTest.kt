@@ -29,7 +29,7 @@ class GStreamerIosAudioCodecIntegrationTest {
 
     private val ctx = testContext()
 
-    // -- AAC ----------------------------------------------------------------
+    // -- AAC ---
 
     private val aac = GstIosAacCodec()
 
@@ -57,7 +57,7 @@ class GStreamerIosAudioCodecIntegrationTest {
         }
     }
 
-    // -- M4A ----------------------------------------------------------------
+    // -- M4A ---
 
     private val m4a = GstIosM4aCodec()
 
@@ -85,7 +85,7 @@ class GStreamerIosAudioCodecIntegrationTest {
         }
     }
 
-    // -- Opus ---------------------------------------------------------------
+    // -- Opus ---
 
     private val opus = GstIosOpusCodec()
 
@@ -113,7 +113,7 @@ class GStreamerIosAudioCodecIntegrationTest {
         }
     }
 
-    // -- FLAC (encode only) -------------------------------------------------
+    // -- FLAC (encode only) ---
 
     private val flacEncoder = GstIosFlacEncoder()
 
@@ -134,7 +134,7 @@ class GStreamerIosAudioCodecIntegrationTest {
         }
     }
 
-    // -- OGG/Vorbis (encode only) -------------------------------------------
+    // -- OGG/Vorbis (encode only) ---
 
     private val oggEncoder = GstIosOggVorbisEncoder()
 
@@ -155,7 +155,7 @@ class GStreamerIosAudioCodecIntegrationTest {
         }
     }
 
-    // -- Cross-format check -------------------------------------------------
+    // -- Cross-format check ---
 
     @Test
     fun allCodecsReportCorrectFormats() {

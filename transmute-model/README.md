@@ -5,10 +5,10 @@ Umbrella module for the Transmute data model layer.
 ## Overview
 
 `transmute-model` aggregates all model submodules into a single dependency.
-It contains no source code of its own — instead it re-exports:
+It contains no source code of its own - instead it re-exports:
 
 | Submodule | Purpose |
-|-----------|---------|
+|---|---|
 | [core](core/) | Foundation types: `Bytes`, `MediaFormat`, serialization primitives, typed wrappers |
 | [identify](identify/) | Format identification: magic signatures, confidence levels, brands |
 | [structure](structure/) | Typed data models for every supported media format's binary layout |
@@ -31,4 +31,4 @@ Or pick individual submodules for a smaller dependency footprint.
 
 ## Targets
 
-Android, Desktop JVM, iOS — via Kotlin Multiplatform.
+Android, Desktop JVM, iOS - via Kotlin Multiplatform.

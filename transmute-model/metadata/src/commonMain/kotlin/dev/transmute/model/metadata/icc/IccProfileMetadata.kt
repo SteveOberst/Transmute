@@ -25,7 +25,7 @@ data class IccProfileMetadata(
   val original: PayloadRef? = null,
 ) : MediaMetadata
 
-// -- Header -------------------------------------------------------------------
+// -- Header ---
 
 @Serializable
 data class IccHeader(
@@ -65,7 +65,7 @@ enum class IccRenderingIntent {
   Unknown,
 }
 
-// -- Tag table ----------------------------------------------------------------
+// -- Tag table ---
 
 @Serializable
 data class IccTag(

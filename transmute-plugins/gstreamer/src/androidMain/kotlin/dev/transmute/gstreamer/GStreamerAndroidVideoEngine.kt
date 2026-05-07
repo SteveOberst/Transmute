@@ -35,7 +35,7 @@ internal object GStreamerAndroidVideoEngine {
   private val wavDecoder = WavDecoder()
   private val wavEncoder = WavEncoder()
 
-  // -- Encode ---------------------------------------------------------------
+  // -- Encode ---
 
   suspend fun encode(
     ir: VideoIR,
@@ -112,7 +112,7 @@ internal object GStreamerAndroidVideoEngine {
     }
   }
 
-  // -- Decode ---------------------------------------------------------------
+  // -- Decode ---
 
   suspend fun decode(source: ByteArray, ext: String, options: VideoDecodeOptions, context: PipelineContext): VideoIR =
     withContext(Dispatchers.IO) {
@@ -184,7 +184,7 @@ internal object GStreamerAndroidVideoEngine {
       )
     }
 
-  // -- Probe ----------------------------------------------------------------
+  // -- Probe ---
 
   data class VideoInfo(
     val width: Int,

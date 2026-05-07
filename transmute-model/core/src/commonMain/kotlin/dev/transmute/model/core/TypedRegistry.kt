@@ -16,7 +16,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 
-// -- Generic typed registry --------------------------------------------------
+// -- Generic typed registry ---
 
 /**
  * Dynamic registry that maps string [typeId]s to [KSerializer] instances
@@ -85,7 +85,7 @@ open class TypedRegistry<T : Any>(private val registryName: String) {
   }
 }
 
-// -- Generic typed-envelope serializer ---------------------------------------
+// -- Generic typed-envelope serializer ---
 
 /**
  * Polymorphic [KSerializer] that wraps any registered [T] subtype in a
@@ -159,7 +159,7 @@ open class TypedEnvelopeSerializer<T : Any>(private val descriptorName: String, 
   }
 }
 
-// -- Generic registration scope (for plugin API) ----------------------------
+// -- Generic registration scope (for plugin API) ---
 
 /**
  * Thin, scoped wrapper over a [TypedRegistry] that plugins use to register

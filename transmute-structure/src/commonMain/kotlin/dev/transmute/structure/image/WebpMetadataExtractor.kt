@@ -21,7 +21,7 @@ fun WebpRaw.extractMetadata(): List<MediaMetadata> = buildList {
   extractIcc()?.let(::add)
 }
 
-// -- EXIF ---------------------------------------------------------------------
+// -- EXIF ---
 
 private fun WebpRaw.extractExif(): MediaMetadata? {
   val chunk = chunks.firstOrNull { it.id.value == "EXIF" } ?: return null
@@ -43,7 +43,7 @@ private fun WebpRaw.extractExif(): MediaMetadata? {
   }
 }
 
-// -- XMP ----------------------------------------------------------------------
+// -- XMP ---
 
 private fun WebpRaw.extractXmp(): MediaMetadata? {
   val chunk = chunks.firstOrNull { it.id.value == "XMP " } ?: return null
@@ -51,7 +51,7 @@ private fun WebpRaw.extractXmp(): MediaMetadata? {
   return parseXmpText(text)
 }
 
-// -- ICC ----------------------------------------------------------------------
+// -- ICC ---
 
 private fun WebpRaw.extractIcc(): MediaMetadata? {
   val chunk = chunks.firstOrNull { it.id.value == "ICCP" } ?: return null

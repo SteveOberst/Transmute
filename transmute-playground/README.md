@@ -1,21 +1,21 @@
 # Transmute Playground
 
-Interactive web UI for the [Transmute](../README.md) media processing library. Upload files, inspect their structure, build transform pipelines, and get generated Kotlin code — all from the browser.
+Interactive web UI for the [Transmute](../README.md) media processing library. Upload files, inspect their structure, build transform pipelines, and get generated Kotlin code - all from the browser.
 
 ## Architecture
 
 ```
-┌──────────────────────┐       ┌──────────────────────┐
-│   Next.js Frontend   │──────▶│   Ktor API Server    │
-│  (React + HeroUI)    │ REST  │  (Netty, port 8080)  │
-│  static export -> out │◀──────│                       │
-│  port 3000 (dev)     │  WS   │  Transmute instance   │
-└──────────────────────┘       │  GStreamer plugin      │
-                               └──────────────────────┘
++---+       +---+
+|   Next.js Frontend   |--->|   Ktor API Server    |
+|  (React + HeroUI)    | REST  |  (Netty, port 8080)  |
+|  static export -> out |<---|                       |
+|  port 3000 (dev)     |  WS   |  Transmute instance   |
+`---+       |  GStreamer plugin      |
+                               `---+
 ```
 
 | Component | Stack | Location |
-|-----------|-------|----------|
+|---|---|---|
 | **Frontend** | Next.js 15, React 19, HeroUI, Tailwind CSS 4, TypeScript | `web/` |
 | **Server** | Ktor 3, Netty, kotlinx.serialization | `server/` |
 | **Shared Models** | Kotlin/JVM data classes | `shared/` |
@@ -23,7 +23,7 @@ Interactive web UI for the [Transmute](../README.md) media processing library. U
 ### How it works
 
 - The **server** creates a `Transmute` instance with the GStreamer plugin installed and exposes REST endpoints for format discovery, file upload/inspect, transform execution, and plugin management
-- Format and plugin data is derived **dynamically** from the live codec registries — nothing is hardcoded
+- Format and plugin data is derived **dynamically** from the live codec registries - nothing is hardcoded
 - The **frontend** is a Next.js static export (`output: 'export'`). In production, the Ktor server serves these files from `/app/static`. In development, Next.js runs its own dev server on port 3000
 - Transform pipelines are constructed visually and executed on the server; the server also generates equivalent Kotlin code
 
@@ -93,7 +93,7 @@ The Docker image uses a 3-stage build:
 ## API Endpoints
 
 | Method | Path | Description |
-|--------|------|-------------|
+|---|---|---|
 | `GET` | `/api/health` | Health check with plugin/format counts |
 | `GET` | `/api/formats?domain=IMAGE\|AUDIO\|VIDEO` | List supported formats (dynamically derived) |
 | `GET` | `/api/transforms?domain=IMAGE\|AUDIO\|VIDEO` | List available transforms |
@@ -110,25 +110,25 @@ The Docker image uses a 3-stage build:
 
 ```
 transmute-playground/
-├── build.gradle.kts          # Umbrella module + dev tasks
-├── Dockerfile                # 3-stage Docker build
-├── docker-compose.yml
-├── server/                   # Ktor backend
-│   ├── build.gradle.kts
-│   └── src/main/kotlin/
-│       └── dev/transmute/playground/
-│           ├── PlaygroundServer.kt
-│           ├── TransmuteService.kt
-│           └── routes/
-├── shared/                   # Kotlin data classes (JVM)
-│   ├── build.gradle.kts
-│   └── src/commonMain/kotlin/
-└── web/                      # Next.js frontend
-    ├── package.json
-    ├── next.config.js
-    ├── postcss.config.js
-    └── src/
-        ├── app/              # Next.js App Router pages
-        ├── components/       # React components
-        └── lib/              # API client & TypeScript types
+|-- build.gradle.kts          # Umbrella module + dev tasks
+|-- Dockerfile                # 3-stage Docker build
+|-- docker-compose.yml
+|-- server/                   # Ktor backend
+|   |-- build.gradle.kts
+|   `-- src/main/kotlin/
+|       `-- dev/transmute/playground/
+|           |-- PlaygroundServer.kt
+|           |-- TransmuteService.kt
+|           `-- routes/
+|-- shared/                   # Kotlin data classes (JVM)
+|   |-- build.gradle.kts
+|   `-- src/commonMain/kotlin/
+`-- web/                      # Next.js frontend
+    |-- package.json
+    |-- next.config.js
+    |-- postcss.config.js
+    `-- src/
+        |-- app/              # Next.js App Router pages
+        |-- components/       # React components
+        `-- lib/              # API client & TypeScript types
 ```

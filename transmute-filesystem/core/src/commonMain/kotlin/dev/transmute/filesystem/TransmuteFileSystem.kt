@@ -35,7 +35,7 @@ package dev.transmute.filesystem
  */
 interface TransmuteFileSystem {
 
-  // -- Metadata -----------------------------------------------
+  // -- Metadata ---
 
   /**
    * Check whether [path] exists.
@@ -54,7 +54,7 @@ interface TransmuteFileSystem {
    */
   fun metadataOrNull(path: TPath): FileMetadata?
 
-  // -- Bulk read / write --------------------------------------
+  // -- Bulk read / write ---
 
   /**
    * Read the entire file at [path] into a [ByteArray].
@@ -68,7 +68,7 @@ interface TransmuteFileSystem {
    */
   fun write(path: TPath, data: ByteArray, mode: WriteMode = WriteMode.Overwrite)
 
-  // -- Streaming / random-access ------------------------------
+  // -- Streaming / random-access ---
 
   /**
    * Open [path] for random-access reading.
@@ -86,7 +86,7 @@ interface TransmuteFileSystem {
    */
   fun openWrite(path: TPath, mode: WriteMode = WriteMode.Overwrite): WriteHandle
 
-  // -- Directory operations -----------------------------------
+  // -- Directory operations ---
 
   /**
    * List the immediate children of the directory at [path].
@@ -104,7 +104,7 @@ interface TransmuteFileSystem {
    */
   fun createDirectory(path: TPath, recursive: Boolean = false)
 
-  // -- Delete -------------------------------------------------
+  // -- Delete ---
 
   /**
    * Delete the file or directory at [path].
@@ -114,7 +114,7 @@ interface TransmuteFileSystem {
    */
   fun delete(path: TPath, recursive: Boolean = false)
 
-  // -- Copy / Move --------------------------------------------
+  // -- Copy / Move ---
 
   /**
    * Copy [source] to [target].

@@ -34,7 +34,7 @@ class GStreamerAndroidAudioCodecIntegrationTest {
 
   private val ctx = testContext()
 
-  // -- AAC ----------------------------------------------------------------
+  // -- AAC ---
 
   private val aac = GstAndroidAacCodec()
 
@@ -68,7 +68,7 @@ class GStreamerAndroidAudioCodecIntegrationTest {
     assertTrue(decoded.durationMs > 0)
   }
 
-  // -- M4A ----------------------------------------------------------------
+  // -- M4A ---
 
   private val m4a = GstAndroidM4aCodec()
 
@@ -102,7 +102,7 @@ class GStreamerAndroidAudioCodecIntegrationTest {
     assertTrue(decoded.durationMs > 0)
   }
 
-  // -- Opus ---------------------------------------------------------------
+  // -- Opus ---
 
   private val opus = GstAndroidOpusCodec()
 
@@ -136,7 +136,7 @@ class GStreamerAndroidAudioCodecIntegrationTest {
     assertTrue(decoded.durationMs > 0)
   }
 
-  // -- FLAC (encode only) -------------------------------------------------
+  // -- FLAC (encode only) ---
 
   private val flacEncoder = GstAndroidFlacEncoder()
 
@@ -161,7 +161,7 @@ class GStreamerAndroidAudioCodecIntegrationTest {
     assertEquals("fLaC", magic, "FLAC output must start with 'fLaC' magic")
   }
 
-  // -- OGG/Vorbis (encode only) -------------------------------------------
+  // -- OGG/Vorbis (encode only) ---
 
   private val oggEncoder = GstAndroidOggVorbisEncoder()
 
@@ -186,7 +186,7 @@ class GStreamerAndroidAudioCodecIntegrationTest {
     assertEquals("OggS", magic, "OGG output must start with 'OggS' magic")
   }
 
-  // -- Cross-format checks -----------------------------------------------
+  // -- Cross-format checks ---
 
   @Test
   fun allCodecsReportCorrectFormats() {

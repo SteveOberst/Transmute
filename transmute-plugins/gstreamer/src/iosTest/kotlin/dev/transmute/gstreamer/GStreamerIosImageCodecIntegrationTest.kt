@@ -31,7 +31,7 @@ class GStreamerIosImageCodecIntegrationTest {
     private val decoder = GstIosImageDecoder()
     private val encoder = GstIosImageEncoder()
 
-    // -- Decoder metadata ---------------------------------------------------
+    // -- Decoder metadata ---
 
     @Test
     fun decoder_supportedFormats_containsHeifHeicAvif() {
@@ -41,7 +41,7 @@ class GStreamerIosImageCodecIntegrationTest {
         assertTrue(ImageFormat.Avif in formats, "Must support AVIF")
     }
 
-    // -- Encoder metadata ---------------------------------------------------
+    // -- Encoder metadata ---
 
     @Test
     fun encoder_supportedFormats_containsHeifHeicAvif() {
@@ -51,7 +51,7 @@ class GStreamerIosImageCodecIntegrationTest {
         assertTrue(ImageFormat.Avif in formats, "Must support AVIF")
     }
 
-    // -- HEIF encode -> decode roundtrip -------------------------------------
+    // -- HEIF encode -> decode roundtrip ---
 
     @Test
     fun heif_encodeAndDecode_roundTrip() = runTest {
@@ -67,7 +67,7 @@ class GStreamerIosImageCodecIntegrationTest {
         }
     }
 
-    // -- HEIC encode -> decode roundtrip -------------------------------------
+    // -- HEIC encode -> decode roundtrip ---
 
     @Test
     fun heic_encodeAndDecode_roundTrip() = runTest {
@@ -86,7 +86,7 @@ class GStreamerIosImageCodecIntegrationTest {
         }
     }
 
-    // -- AVIF encode -> decode roundtrip -------------------------------------
+    // -- AVIF encode -> decode roundtrip ---
 
     @Test
     fun avif_encodeAndDecode_roundTrip() = runTest {

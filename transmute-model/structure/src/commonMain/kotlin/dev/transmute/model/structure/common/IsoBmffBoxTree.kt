@@ -22,9 +22,9 @@ data class IsoBmffBoxTree(
   val children: List<IsoBmffBoxTree> = emptyList(),
 )
 
-// -----------------------------------------------------------------------
+// ---
 //  Known ISO BMFF container types
-// -----------------------------------------------------------------------
+// ---
 
 /** Plain containers: child boxes start immediately at offset 0 of the payload. */
 private val PLAIN_CONTAINERS: Set<String> = setOf(
@@ -48,16 +48,16 @@ private val FULL_CONTAINERS: Set<String> = setOf(
 // `iinf` is also a FullBox container but carries an entry_count field between
 // the version/flags and the `infe` child boxes; handled separately in [expandChildren].
 
-// -----------------------------------------------------------------------
+// ---
 //  toTree() entry point
-// -----------------------------------------------------------------------
+// ---
 
 /**
  * Convert a parsed [IsoBmffBox] into a JSON-safe recursive tree.
  *
  * Known container and FullBox container types are recursively expanded so that
- * the full ISO BMFF box hierarchy is visible (meta → iinf → infe, meta → iprp
- * → ipco → ispe/hvcC, etc.) rather than appearing as opaque byte-size blobs.
+ * the full ISO BMFF box hierarchy is visible (meta -> iinf -> infe, meta -> iprp
+ * -> ipco -> ispe/hvcC, etc.) rather than appearing as opaque byte-size blobs.
  *
  * Large data-bearing boxes (`mdat`, raw codec config, etc.) remain as leaves
  * that only expose their byte count.
@@ -80,9 +80,9 @@ fun IsoBmffBox.toTree(): IsoBmffBoxTree {
   )
 }
 
-// -----------------------------------------------------------------------
+// ---
 //  Internal helpers
-// -----------------------------------------------------------------------
+// ---
 
 /**
  * Expand child [IsoBmffBoxTree] nodes from this payload [ByteArray] given the

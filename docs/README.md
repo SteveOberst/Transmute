@@ -5,14 +5,14 @@ This directory contains the full Transmute documentation.
 ## Getting Started
 
 - Start with the [project README](../README.md) for a quick-start overview and setup instructions.
-- [examples.md](examples.md) — Practical conversion and transformation examples for all three domains.
+- [examples.md](examples.md) - Practical conversion and transformation examples for all three domains.
 
 ## Core Concepts
 
 | File | Contents |
-|------|----------|
+|---|---|
 | [examples.md](examples.md) | Common conversion recipes: image, audio, video |
-| [pipelines.md](pipelines.md) | How the decode → transform → encode pipeline works; customising stages |
+| [pipelines.md](pipelines.md) | How the decode -> transform -> encode pipeline works; customising stages |
 | [codec.md](codec.md) | One-shot decode/encode via `Transmute.codec` without building a transmuter |
 | [inspect.md](inspect.md) | Format detection, metadata extraction, structure reading, video thumbnails |
 | [format-detection.md](format-detection.md) | Deep dive on automatic format detection logic |
@@ -21,7 +21,7 @@ This directory contains the full Transmute documentation.
 ## Extension Points
 
 | File | Contents |
-|------|----------|
+|---|---|
 | [plugins.md](plugins.md) | Instance-based API and the plugin system |
 | [extending.md](extending.md) | Writing custom codecs, transforms, structure decoders, and plugins |
 | [logging.md](logging.md) | Global and per-operation logging configuration |
@@ -29,7 +29,7 @@ This directory contains the full Transmute documentation.
 ## Format Reference
 
 | File | Contents |
-|------|----------|
+|---|---|
 | [codecs/README.md](codecs/README.md) | All supported formats with platform availability matrix |
 | [codecs/jpeg.md](codecs/jpeg.md) | JPEG |
 | [codecs/png.md](codecs/png.md) | PNG |
@@ -55,8 +55,8 @@ This directory contains the full Transmute documentation.
 ## Transform Reference
 
 | File | Contents |
-|------|----------|
+|---|---|
 | [transforms/README.md](transforms/README.md) | Complete index of all 27 transforms with parameters |
-| [transforms/image/](transforms/image/) | Image transforms (scale, resize, crop, rotate, …) |
-| [transforms/audio/](transforms/audio/) | Audio transforms (normalize, trim, fade, …) |
-| [transforms/video/](transforms/video/) | Video transforms (trim, resize, frameRate, …) |
+| [transforms/image/](transforms/image/) | Image transforms (scale, resize, crop, rotate, ...) |
+| [transforms/audio/](transforms/audio/) | Audio transforms (normalize, trim, fade, ...) |
+| [transforms/video/](transforms/video/) | Video transforms (trim, resize, frameRate, ...) |

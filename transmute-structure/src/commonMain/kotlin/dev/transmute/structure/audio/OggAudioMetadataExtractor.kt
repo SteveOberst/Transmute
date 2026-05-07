@@ -20,7 +20,7 @@ fun OggAudioRaw.extractMetadata(): List<MediaMetadata> = buildList {
   extractVorbisComment()?.let(::add)
 }
 
-// -- Vorbis Comment extraction ------------------------------------------------
+// -- Vorbis Comment extraction ---
 
 private fun OggAudioRaw.extractVorbisComment(): VorbisCommentMetadata? {
   // The comment header is the second Vorbis header packet.

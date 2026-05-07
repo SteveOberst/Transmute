@@ -45,7 +45,7 @@ class TransmuteService(
   private val log = LoggerFactory.getLogger(TransmuteService::class.java)
   private val files = ConcurrentHashMap<String, UploadedFile>()
 
-  // -- Plugin management (dynamic) -------------------------------------------
+  // -- Plugin management (dynamic) ---
 
   private val featureOverrides = mutableMapOf<String, Boolean>()
   private val disabledPlugins = mutableSetOf<PluginId>().apply { addAll(initiallyDisabledPlugins) }
@@ -60,7 +60,7 @@ class TransmuteService(
    * Maps a format label to the plugin ID that provides it.
    *
    * Built lazily by probing each known plugin in isolation against the builtin
-   * baseline. Completely dynamic — no format→plugin attribution is ever hardcoded.
+   * baseline. Completely dynamic - no format->plugin attribution is ever hardcoded.
    */
   private val formatToPlugin: Map<String, String> by lazy {
     buildMap {
@@ -112,7 +112,7 @@ class TransmuteService(
     tempDir.mkdirs()
   }
 
-  // -- File management --------------------------------------------------------
+  // -- File management ---
 
   fun storeFile(name: String, bytes: ByteArray): FileHandle {
     val handle = UUID.randomUUID().toString()
@@ -138,7 +138,7 @@ class TransmuteService(
 
   fun listFiles(): List<UploadedFile> = files.values.toList()
 
-  // -- Inspect ----------------------------------------------------------------
+  // -- Inspect ---
 
   suspend fun inspect(handle: String): InspectResult? {
     val uploaded = files[handle] ?: return null
@@ -177,7 +177,7 @@ class TransmuteService(
     }
   }
 
-  // -- Preview ----------------------------------------------------------------
+  // -- Preview ---
 
   /**
    * Returns browser-renderable image bytes for any image format.
@@ -224,7 +224,7 @@ class TransmuteService(
     }
   }
 
-  // -- Dynamic format catalog ------------------------------------------------
+  // -- Dynamic format catalog ---
 
   fun allFormats(): List<FormatInfo> = imageFormats() + audioFormats() + videoFormats()
 
@@ -257,7 +257,7 @@ class TransmuteService(
     }.sortedBy { it.name }
   }
 
-  // -- Reflection-driven transform catalog ---------------------------------
+  // -- Reflection-driven transform catalog ---
   //    Transform metadata is discovered at runtime from annotations on the
   //    Transformers.kt factory objects - nothing is hardcoded here.
 
@@ -424,7 +424,7 @@ class TransmuteService(
     }
   }
 
-  // -- Transform execution --------------------------------------------------
+  // -- Transform execution ---
 
   /**
    * Executes a [TransformRequest] against a previously uploaded file using
@@ -576,14 +576,14 @@ class TransmuteService(
     }
   }
 
-  // -- Cleanup ----------------------------------------------------------------
+  // -- Cleanup ---
 
   fun cleanup() {
     transmute.close()
     tempDir.deleteRecursively()
   }
 
-  // -- Format helpers --------------------------------------------------------
+  // -- Format helpers ---
 
   companion object {
     /** Extension strings that map to the image domain. */

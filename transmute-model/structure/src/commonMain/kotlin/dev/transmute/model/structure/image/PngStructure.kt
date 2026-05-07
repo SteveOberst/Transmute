@@ -47,9 +47,9 @@ import dev.transmute.model.structure.image.types.ztxtChunks
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
-// ---------------------------------------------------------------------------
+// ---
 // Summary type for unknown / unrecognised chunks
-// ---------------------------------------------------------------------------
+// ---
 
 /**
  * A summary of a PNG chunk whose type is not natively understood by
@@ -82,9 +82,9 @@ data class PngChunkLayoutEntry(
   val dataLength: Int,
 )
 
-// ---------------------------------------------------------------------------
+// ---
 // PngStructure - the serialisable, JSON-friendly view of a PNG file
-// ---------------------------------------------------------------------------
+// ---
 
 /**
  * A structured, JSON-serialisable representation of a PNG file.
@@ -163,9 +163,9 @@ data class PngStructure(
   internal val rawChunks: List<PngChunk> = emptyList(),
 ) : MediaStructure {
 
-  // -----------------------------------------------------------------------
+  // ---
   // Editor - mutable surface for chunk-level modifications
-  // -----------------------------------------------------------------------
+  // ---
 
   /**
    * Mutable editor for a [PngStructure].
@@ -301,9 +301,9 @@ data class PngStructure(
   }
 }
 
-// ---------------------------------------------------------------------------
+// ---
 // CRC-32 (ISO 3309 / PNG spec) - file-private
-// ---------------------------------------------------------------------------
+// ---
 
 private val pngCrcTable: IntArray = IntArray(256) { n ->
   var c = n
@@ -328,9 +328,9 @@ private fun buildPngChunk(type: String, data: ByteArray): PngChunk {
   )
 }
 
-// ---------------------------------------------------------------------------
+// ---
 // Public extension API
-// ---------------------------------------------------------------------------
+// ---
 
 /**
  * Mutate this [PngStructure] and return a new [PngStructure] incorporating

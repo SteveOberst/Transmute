@@ -39,7 +39,7 @@ import dev.transmute.model.structure.video.types.WebmRaw
  * @throws IllegalArgumentException if [this] is not a recognised built-in format.
  */
 fun RawMediaStructure.toMediaStructure(): CoreMediaStructure = when (this) {
-  // -- Image ----------------------------------------------------------------
+  // -- Image ---
   is PngRaw -> toStructure()
   is JpegRaw -> toStructure()
   is BmpRaw -> toStructure()
@@ -48,7 +48,7 @@ fun RawMediaStructure.toMediaStructure(): CoreMediaStructure = when (this) {
   is WebpRaw -> toStructure()
   is HeifRaw -> toStructure()
   is AvifRaw -> toStructure()
-  // -- Audio ----------------------------------------------------------------
+  // -- Audio ---
   is WavRaw -> toStructure()
   is Mp3Raw -> toStructure()
   is FlacRaw -> toStructure()
@@ -56,7 +56,7 @@ fun RawMediaStructure.toMediaStructure(): CoreMediaStructure = when (this) {
   is M4aRaw -> toStructure()
   is OggAudioRaw -> toStructure()
   is OpusRaw -> toStructure()
-  // -- Video ----------------------------------------------------------------
+  // -- Video ---
   is Mp4Raw -> toStructure()
   is MovRaw -> toStructure()
   is WebmRaw -> toStructure()

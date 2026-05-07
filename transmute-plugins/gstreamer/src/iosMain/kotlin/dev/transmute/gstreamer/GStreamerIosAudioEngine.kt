@@ -94,9 +94,9 @@ internal object GStreamerIosAudioEngine {
     }
 }
 
-// ---------------------------------------------------------------------------
+// ---
 // iOS file helpers  (shared by all iOS engines)
-// ---------------------------------------------------------------------------
+// ---
 
 @OptIn(kotlinx.cinterop.ExperimentalForeignApi::class, kotlinx.cinterop.BetaInteropApi::class)
 internal fun ByteArray.writeToTmpFile(path: String) {
@@ -121,9 +121,9 @@ internal fun deleteTmpFile(path: String) {
 internal fun buildIosPipelineDesc(vararg parts: String): List<String> =
     parts.filter { it.isNotBlank() }.flatMap { it.trim().split("\\s+".toRegex()) }
 
-// ---------------------------------------------------------------------------
+// ---
 // NSData <-> ByteArray conversions
-// ---------------------------------------------------------------------------
+// ---
 
 @OptIn(kotlinx.cinterop.ExperimentalForeignApi::class, kotlinx.cinterop.BetaInteropApi::class)
 internal fun ByteArray.toNSData(): NSData {
