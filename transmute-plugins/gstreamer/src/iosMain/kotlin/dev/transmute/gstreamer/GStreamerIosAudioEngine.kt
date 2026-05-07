@@ -126,10 +126,11 @@ internal fun buildIosPipelineDesc(vararg parts: String): List<String> =
 // ---------------------------------------------------------------------------
 
 @OptIn(kotlinx.cinterop.ExperimentalForeignApi::class, kotlinx.cinterop.BetaInteropApi::class)
-internal fun ByteArray.toNSData(): NSData = kotlinx.cinterop.memScoped {
+internal fun ByteArray.toNSData(): NSData {
     if (isEmpty()) return NSData()
-    usePinned { pinned ->
-        NSData.dataWithBytes(pinned.addressOf(0), size.toULong())
+    val data = this
+    return data.usePinned { pinned ->
+        NSData.dataWithBytes(pinned.addressOf(0), data.size.toULong())
             ?: error("Failed to create NSData")
     }
 }
