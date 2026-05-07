@@ -55,17 +55,19 @@ kotlin {
       // Set up GStreamer cinterop when the framework is present
       if (gstreamerIosFramework.exists()) {
         val headersDir = File(gstreamerIosFramework, "Headers")
+        target.binaries.all {
+          linkerOpts(
+            "-F${gstreamerIosFramework.parentFile.absolutePath}",
+            "-framework",
+            "GStreamer",
+          )
+        }
         target.compilations["main"].cinterops.create("gstreamer") {
           defFile(project.file("src/nativeInterop/cinterop/gstreamer.def"))
           compilerOpts(
             "-I${headersDir.absolutePath}",
             "-I${File(headersDir, "gstreamer-1.0").absolutePath}",
             "-I${File(headersDir, "glib-2.0").absolutePath}",
-          )
-          linkerOpts(
-            "-F${gstreamerIosFramework.parentFile.absolutePath}",
-            "-framework",
-            "GStreamer",
           )
         }
       }
