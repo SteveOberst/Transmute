@@ -1,25 +1,6 @@
 name: Android
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/android.yml'
-      - 'build.gradle.kts'
-      - 'buildSrc/**'
-      - 'settings.gradle.kts'
-      - 'gradle.properties'
-      - 'gradle/**'
-      - 'transmute-api/**'
-      - 'transmute-codec/**'
-      - 'transmute-common/**'
-      - 'transmute-filesystem/**'
-      - 'transmute-model/**'
-      - 'transmute-audio/**'
-      - 'transmute-image/**'
-      - 'transmute-video/**'
-      - 'transmute-testing/**'
-      - 'transmute-plugins/gstreamer/**'
   pull_request:
     branches: [main]
     paths:
@@ -47,7 +28,7 @@ concurrency:
 jobs:
   integration-tests:
     name: Integration Tests
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
       ANDROID_HOME: /opt/android-sdk

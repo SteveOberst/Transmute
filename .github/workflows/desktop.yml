@@ -1,27 +1,6 @@
 name: Desktop
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/desktop.yml'
-      - 'build.gradle.kts'
-      - 'buildSrc/**'
-      - 'settings.gradle.kts'
-      - 'gradle.properties'
-      - 'gradle/**'
-      - 'transmute-api/**'
-      - 'transmute-codec/**'
-      - 'transmute-common/**'
-      - 'transmute-filesystem/**'
-      - 'transmute-model/**'
-      - 'transmute-audio/**'
-      - 'transmute-image/**'
-      - 'transmute-video/**'
-      - 'transmute-structure/**'
-      - 'transmute-testing/**'
-      - 'transmute-plugins/gstreamer/**'
-      - 'transmute-plugins/libheif/**'
   pull_request:
     branches: [main]
     paths:
@@ -51,7 +30,7 @@ concurrency:
 jobs:
   unit-tests:
     name: Unit Tests
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-latest
     timeout-minutes: 15
 
     steps:
@@ -91,7 +70,7 @@ jobs:
 
   integration-tests:
     name: Integration Tests
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-latest
     timeout-minutes: 30
 
     steps:
