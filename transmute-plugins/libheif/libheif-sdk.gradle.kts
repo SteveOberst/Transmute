@@ -12,7 +12,7 @@
  * The staging task delegates to vcpkg, Microsoft's open-source C/C++ package
  * manager, to install libheif and its codec plugins:
  *
- *     vcpkg install "libheif[tools,aom,dav1d,rav1e,hevc,x265]" --triplet x64-windows
+ *     vcpkg install "libheif[tools,aom,dav1d,rav1e,hevc]" --triplet x64-windows
  *
  * Prerequisites:
  *   - vcpkg must be installed and either VCPKG_ROOT must be set or vcpkg must
@@ -102,14 +102,21 @@ tasks.register("stageLibHeifDesktopWindows") {
     // hevc      LGPL-3.0           HEVC/H.265 decode via libde265 (HEIC)
     // x265      GPL-2.0 / comm.    HEVC/H.265 encode (HEIC) <-- see note
     //
-    // LICENSE NOTE: x265 is dual-licensed GPL-2.0 / commercial.
-    // Distributing a binary that includes x265 requires GPL-2.0 compliance
-    // (publish full source) or a commercial x265 license.
+    // LICENSE NOTE: the default feature set is intentionally permissive-only
+    // (LGPL-3 / BSD). x265 (GPL-2.0 / commercial) is NOT included by default,
+    // because distributing a binary that bundles x265 requires GPL-2.0 source
+    // disclosure or a commercial x265 license.
     // Reference: https://www.videolan.org/developers/x265.html
-    // To opt out, remove "x265" from transmute.libheif.vcpkgFeatures in
-    // gradle.properties.  HEIC decoding and AVIF support remain LGPL/BSD.
+    //
+    // To opt in to HEIC encoding via x265 (and accept the licensing impact),
+    // override the feature set in gradle.properties or on the command line:
+    //
+    //   ./gradlew ... -Ptransmute.libheif.vcpkgFeatures=tools,aom,dav1d,rav1e,hevc,x265
+    //
+    // HEIF/AVIF decoding and AVIF encoding (aom/rav1e) are unaffected by this
+    // default and remain available.
     val features = (project.findProperty("transmute.libheif.vcpkgFeatures") as? String)
-      ?: "tools,aom,dav1d,rav1e,hevc,x265"
+      ?: "tools,aom,dav1d,rav1e,hevc"
     val pkg = "libheif[$features]"
 
     logger.lifecycle("libheif Desktop: installing $pkg --triplet $triplet via vcpkg...")

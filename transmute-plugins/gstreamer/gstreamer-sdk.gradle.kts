@@ -267,6 +267,7 @@ tasks.register("stageGStreamerDesktopMacos") {
 
   val os = System.getProperty("os.name", "").lowercase()
   val isMac = os.startsWith("mac") || os.contains("darwin")
+  val isCi = System.getenv("CI")?.equals("true", ignoreCase = true) == true
   // shared marker so we only download the universal PKG once for both arches
   val sharedMarker = File(desktopStagingDir, ".gst-macos-$gstVersion")
 
@@ -290,13 +291,16 @@ tasks.register("stageGStreamerDesktopMacos") {
       downloadGst(sha256Url, sha256File, logger)
       verifyChecksum(pkgFile, sha256File.readText(), logger)
 
-      val expandDir = File(tmpDir, "pkg-expanded")
-      logger.lifecycle("GStreamer Desktop: expanding PKG with pkgutil --expand-full...")
-      exec { commandLine("pkgutil", "--expand-full", pkgFile.absolutePath, expandDir.absolutePath) }
+      val fwBase = File("/Library/Frameworks/GStreamer.framework")
+      if (isCi) {
+        logger.lifecycle("GStreamer Desktop: installing PKG into /Library/Frameworks via installer...")
+        exec { commandLine("sudo", "installer", "-pkg", pkgFile.absolutePath, "-target", "/") }
+      }
 
-      val fwBase = expandDir.walk()
-        .filter { it.isDirectory && it.name == "GStreamer.framework" }
-        .firstOrNull() ?: error("stageGStreamerDesktopMacos: GStreamer.framework not found in $expandDir")
+      check(fwBase.isDirectory) {
+        "stageGStreamerDesktopMacos: GStreamer.framework not found at $fwBase. " +
+          "Install the PKG manually or run this task in CI where the package can be installed automatically."
+      }
 
       val commandsDir = File(fwBase, "Commands")
       val libDir = File(fwBase, "Versions/Current/lib")
