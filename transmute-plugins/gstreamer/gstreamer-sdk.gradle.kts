@@ -186,21 +186,6 @@ fun writeDesktopManifest(platformDir: File) {
   File(platformDir, "manifest.txt").writeText(manifest)
 }
 
-fun extractMacosPkgPayload(payload: File, destinationDir: File) {
-  val payloadPath = payload.absolutePath.replace("'", "'\\''")
-  val gzipMagic = byteArrayOf(0x1f, 0x8b.toByte())
-  val isGzip = payload.inputStream().use { input ->
-    val header = ByteArray(2)
-    input.read(header) == header.size && header.contentEquals(gzipMagic)
-  }
-  val payloadReader = if (isGzip) "gunzip -c '$payloadPath'" else "cat '$payloadPath'"
-
-  exec {
-    commandLine("sh", "-c", "$payloadReader | cpio -idum")
-    workingDir = destinationDir
-  }
-}
-
 tasks.register("stageGStreamerDesktopWindows") {
   group = "gstreamer"
   description = "Downloads and stages GStreamer Windows x86_64 binaries for bundling into the desktop JAR."
@@ -306,22 +291,12 @@ tasks.register("stageGStreamerDesktopMacos") {
       verifyChecksum(pkgFile, sha256File.readText(), logger)
 
       val expandDir = File(tmpDir, "pkg-expanded")
-      expandDir.mkdirs()
-      logger.lifecycle("GStreamer Desktop: expanding PKG with xar...")
-      exec { commandLine("xar", "-xf", pkgFile.absolutePath, "-C", expandDir.absolutePath) }
+      logger.lifecycle("GStreamer Desktop: expanding PKG with pkgutil --expand-full...")
+      exec { commandLine("pkgutil", "--expand-full", pkgFile.absolutePath, expandDir.absolutePath) }
 
-      val payload = expandDir.walk()
-        .filter { it.name == "Payload" && it.isFile }
-        .firstOrNull() ?: error("stageGStreamerDesktopMacos: Payload not found in $expandDir")
-
-      val cpioDir = File(tmpDir, "payload")
-      cpioDir.mkdirs()
-      logger.lifecycle("GStreamer Desktop: extracting cpio Payload...")
-      extractMacosPkgPayload(payload, cpioDir)
-
-      val fwBase = cpioDir.walk()
+      val fwBase = expandDir.walk()
         .filter { it.isDirectory && it.name == "GStreamer.framework" }
-        .firstOrNull() ?: error("stageGStreamerDesktopMacos: GStreamer.framework not found in $cpioDir")
+        .firstOrNull() ?: error("stageGStreamerDesktopMacos: GStreamer.framework not found in $expandDir")
 
       val commandsDir = File(fwBase, "Commands")
       val libDir = File(fwBase, "Versions/Current/lib")

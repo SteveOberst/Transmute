@@ -16,7 +16,7 @@ jobs:
   stage-gstreamer-desktop:
     name: Stage GStreamer Desktop (${{ matrix.os }})
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         os: [windows-latest, macos-15]
     runs-on: ${{ matrix.os }}
@@ -56,7 +56,7 @@ jobs:
   stage-libheif-desktop:
     name: Stage libheif Desktop (${{ matrix.os }})
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         os: [windows-latest, macos-15]
     runs-on: ${{ matrix.os }}

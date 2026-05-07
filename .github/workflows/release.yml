@@ -32,7 +32,7 @@ jobs:
     name: Stage GStreamer Desktop (${{ matrix.os }})
     if: github.event_name == 'release'
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         os: [windows-latest, macos-15]
     runs-on: ${{ matrix.os }}
@@ -81,7 +81,7 @@ jobs:
     name: Stage libheif Desktop (${{ matrix.os }})
     if: github.event_name == 'release'
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         os: [windows-latest, macos-15]
     runs-on: ${{ matrix.os }}
