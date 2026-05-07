@@ -6,6 +6,8 @@ import dev.transmute.common.PipelineContext
 import dev.transmute.io.TSource
 import dev.transmute.image.ImageFormat
 import dev.transmute.image.*
+import dev.transmute.model.core.Bytes
+import dev.transmute.model.core.asBytes
 import kotlinx.cinterop.*
 import platform.CoreFoundation.CFDataCreate
 import platform.CoreFoundation.CFDataCreateMutable
@@ -24,15 +26,15 @@ import dev.transmute.image.ImageDecodeOptions
 
 class IosImageIoDecoder : ImageDecoder {
   override val supportedFormats: Set<ImageFormat> = setOf(
-    ImageFormat.JPEG,
-    ImageFormat.PNG,
-    ImageFormat.HEIF,
-    ImageFormat.HEIC,
-    ImageFormat.WEBP,
-    ImageFormat.GIF,
-    ImageFormat.BMP,
-    ImageFormat.TIFF,
-    ImageFormat.AVIF,
+    ImageFormat.Jpeg,
+    ImageFormat.Png,
+    ImageFormat.Heif,
+    ImageFormat.Heic,
+    ImageFormat.Webp,
+    ImageFormat.Gif,
+    ImageFormat.Bmp,
+    ImageFormat.Tiff,
+    ImageFormat.Avif,
   )
 
   override suspend fun decode(source: TSource, options: ImageDecodeOptions, context: PipelineContext): ImageIR {
@@ -97,15 +99,15 @@ class IosImageIoDecoder : ImageDecoder {
 
 class IosImageIoEncoder : ImageEncoder {
   override val supportedFormats: Set<ImageFormat> = setOf(
-    ImageFormat.JPEG,
-    ImageFormat.PNG,
-    ImageFormat.HEIF,
-    ImageFormat.HEIC,
-    ImageFormat.AVIF,
-    ImageFormat.WEBP,
-    ImageFormat.TIFF,
-    ImageFormat.GIF,
-    ImageFormat.BMP,
+    ImageFormat.Jpeg,
+    ImageFormat.Png,
+    ImageFormat.Heif,
+    ImageFormat.Heic,
+    ImageFormat.Avif,
+    ImageFormat.Webp,
+    ImageFormat.Tiff,
+    ImageFormat.Gif,
+    ImageFormat.Bmp,
   )
 
   override suspend fun encode(
@@ -113,22 +115,22 @@ class IosImageIoEncoder : ImageEncoder {
     format: ImageFormat,
     options: ImageEncodeOptions,
     context: PipelineContext,
-  ): ByteArray {
+  ): Bytes {
     val buffer = ir.buffer as? ByteArrayPixelBuffer
       ?: error("IosImageIoEncoder requires ByteArrayPixelBuffer")
     require(ir.pixelFormat == PixelFormat.RGBA_8888) { "Only RGBA_8888 is supported" }
 
     require(format in supportedFormats) { "Unsupported format $format" }
     val utiString = when (format) {
-      ImageFormat.JPEG -> "public.jpeg"
-      ImageFormat.PNG -> "public.png"
-      ImageFormat.HEIF -> "public.heif"
-      ImageFormat.HEIC -> "public.heic"
-      ImageFormat.AVIF -> "public.avif"
-      ImageFormat.WEBP -> "public.webp"
-      ImageFormat.TIFF -> "public.tiff"
-      ImageFormat.GIF -> "com.compuserve.gif"
-      ImageFormat.BMP -> "com.microsoft.bmp"
+      ImageFormat.Jpeg -> "public.jpeg"
+      ImageFormat.Png -> "public.png"
+      ImageFormat.Heif -> "public.heif"
+      ImageFormat.Heic -> "public.heic"
+      ImageFormat.Avif -> "public.avif"
+      ImageFormat.Webp -> "public.webp"
+      ImageFormat.Tiff -> "public.tiff"
+      ImageFormat.Gif -> "com.compuserve.gif"
+      ImageFormat.Bmp -> "com.microsoft.bmp"
       else -> "public.png"
     }
     val uti = CFStringCreateWithCString(null, utiString, kCFStringEncodingUTF8)
@@ -168,7 +170,7 @@ class IosImageIoEncoder : ImageEncoder {
       val dest = CGImageDestinationCreateWithData(mutableData, uti, 1u, null)
         ?: error("CGImageDestinationCreateWithData failed")
 
-      val props = if (format == ImageFormat.JPEG) {
+      val props = if (format == ImageFormat.Jpeg) {
         val q = ((options as? JpegEncodeOptions)?.quality ?: 0.85f).coerceIn(0f, 1f).toDouble()
         val num = memScoped { CFNumberCreate(null, kCFNumberDoubleType, alloc<DoubleVar>().apply { value = q }.ptr) }
           ?: error("CFNumberCreate failed")
@@ -192,7 +194,7 @@ class IosImageIoEncoder : ImageEncoder {
 
       val len = CFDataGetLength(mutableData).toInt()
       val ptr = CFDataGetBytePtr(mutableData) ?: error("CFDataGetBytePtr failed")
-      return ByteArray(len) { idx -> ptr[idx].toByte() }
+      return ByteArray(len) { idx -> ptr[idx].toByte() }.asBytes()
     } finally {
       CGImageRelease(cgImage)
       CGColorSpaceRelease(colorSpace)
