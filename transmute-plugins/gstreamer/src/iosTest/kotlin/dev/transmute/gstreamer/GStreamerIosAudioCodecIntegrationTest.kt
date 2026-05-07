@@ -5,6 +5,7 @@ import dev.transmute.audio.CanonicalAudioDecodeOptions
 import dev.transmute.audio.CanonicalAudioEncodeOptions
 import dev.transmute.gstreamer.GStreamerIosTestHelpers.requireGStreamerElement
 import dev.transmute.gstreamer.GStreamerIosTestHelpers.requireGStreamerElements
+import dev.transmute.gstreamer.GStreamerIosTestHelpers.requireGStreamerOptionalElements
 import dev.transmute.gstreamer.GStreamerIosTestHelpers.testContext
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -44,7 +45,7 @@ class GStreamerIosAudioCodecIntegrationTest {
 
     @Test
     fun aac_encodeAndDecode_roundTrip() = runTest {
-        requireGStreamerElements(*(listOfNotNull(iosAacEncoderElementOrNull(), "aacparse").toTypedArray())) {
+        requireGStreamerOptionalElements(iosAacEncoderElementOrNull(), "aacparse") {
             val ir = GStreamerIosTestHelpers.sineWave(durationMs = 500, sampleRate = 44100)
             val encoded = aac.encode(ir, AudioFormat.Aac, CanonicalAudioEncodeOptions(), ctx)
             assertTrue(encoded.isNotEmpty(), "Encoded AAC output must not be empty")
@@ -72,7 +73,7 @@ class GStreamerIosAudioCodecIntegrationTest {
 
     @Test
     fun m4a_encodeAndDecode_roundTrip() = runTest {
-        requireGStreamerElements(*(listOfNotNull(iosAacEncoderElementOrNull(), "mp4mux").toTypedArray())) {
+        requireGStreamerOptionalElements(iosAacEncoderElementOrNull(), "mp4mux") {
             val ir = GStreamerIosTestHelpers.sineWave(durationMs = 500, sampleRate = 44100)
             val encoded = m4a.encode(ir, AudioFormat.M4a, CanonicalAudioEncodeOptions(), ctx)
             assertTrue(encoded.isNotEmpty(), "Encoded M4A output must not be empty")

@@ -1,6 +1,7 @@
 package dev.transmute.gstreamer
 
 import dev.transmute.gstreamer.GStreamerIosTestHelpers.requireGStreamerElements
+import dev.transmute.gstreamer.GStreamerIosTestHelpers.requireGStreamerOptionalElements
 import dev.transmute.gstreamer.GStreamerIosTestHelpers.testContext
 import dev.transmute.video.CanonicalVideoDecodeOptions
 import dev.transmute.video.CanonicalVideoEncodeOptions
@@ -41,7 +42,7 @@ class GStreamerIosVideoCodecIntegrationTest {
 
     @Test
     fun mp4_encode_producesNonEmptyOutput() = runTest {
-        requireGStreamerElements(*(listOfNotNull(iosH264VideoEncoderElementOrNull(), "h264parse", "mp4mux").toTypedArray())) {
+        requireGStreamerOptionalElements(iosH264VideoEncoderElementOrNull(), "h264parse", "mp4mux") {
             val video = GStreamerIosTestHelpers.syntheticVideo(
                 width = 160, height = 120, frameRate = 10.0, durationMs = 500,
             )
@@ -52,7 +53,7 @@ class GStreamerIosVideoCodecIntegrationTest {
 
     @Test
     fun mp4_encodeAndDecode_roundTrip() = runTest {
-        requireGStreamerElements(*(listOfNotNull(iosH264VideoEncoderElementOrNull(), "h264parse", "mp4mux").toTypedArray())) {
+        requireGStreamerOptionalElements(iosH264VideoEncoderElementOrNull(), "h264parse", "mp4mux") {
             val video = GStreamerIosTestHelpers.syntheticVideo(
                 width = 160, height = 120, frameRate = 10.0, durationMs = 500,
             )
@@ -83,7 +84,7 @@ class GStreamerIosVideoCodecIntegrationTest {
 
     @Test
     fun mov_encodeAndDecode_roundTrip() = runTest {
-        requireGStreamerElements(*(listOfNotNull(iosH264VideoEncoderElementOrNull(), "h264parse", "qtmux").toTypedArray())) {
+        requireGStreamerOptionalElements(iosH264VideoEncoderElementOrNull(), "h264parse", "qtmux") {
             val video = GStreamerIosTestHelpers.syntheticVideo(
                 width = 160, height = 120, frameRate = 10.0, durationMs = 500,
             )
@@ -170,7 +171,7 @@ class GStreamerIosVideoCodecIntegrationTest {
 
     @Test
     fun mkv_encodeAndDecode_roundTrip() = runTest {
-        requireGStreamerElements(*(listOfNotNull(iosH264VideoEncoderElementOrNull(), "h264parse", "matroskamux").toTypedArray())) {
+        requireGStreamerOptionalElements(iosH264VideoEncoderElementOrNull(), "h264parse", "matroskamux") {
             val video = GStreamerIosTestHelpers.syntheticVideo(
                 width = 160, height = 120, frameRate = 10.0, durationMs = 500,
             )
