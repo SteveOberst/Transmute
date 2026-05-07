@@ -15,34 +15,35 @@
 
 | Platform | Decode | Encode |
 |----------|--------|--------|
-| Android | ✅ built-in (MediaCodec) | ✅ built-in |
-| Desktop (JVM) | ✅ built-in (decode only) | ⚠️ GStreamer plugin |
-| iOS | ✅ built-in | ✅ built-in |
+| Android | built-in (MediaCodec) | built-in |
+| Desktop (JVM) | built-in (decode only) | plugin: GStreamer |
+| iOS | built-in | built-in |
 
 On Desktop, FLAC decoding is available built-in; encoding requires the [GStreamer plugin](../plugins.md).
 
 ## Desktop plugin setup (encode only)
 
 ```kotlin
-val transmute = Transmute {
+val transmute = transmute {
     plugins {
-        install(GStreamerPlugin) {
-            domains(MediaDomain.AUDIO)
-        }
+        install(GStreamer)
     }
 }
 ```
 
-## Encode options
+## Encode parameters
 
-FLAC uses `CanonicalAudioEncodeOptions` — there are currently no format-specific encoding knobs (compression level, etc.).
+FLAC has no format-specific parameter keys today. Use `AudioParamKeys.OutputFormat`
+and `AudioParamKeys.EncodeMetadataPolicy` when you need to force FLAC output or preserve metadata.
 
 ```kotlin
 encode {
-    options {
-        metadataPolicy = MetadataPolicy.PRESERVE   // default: STRIP_ALL
-        outputFormat   = OutputFormat.Exact(AudioFormat.Flac)
-    }
+    params(
+        Params.of(
+            AudioParamKeys.OutputFormat to OutputFormat.Exact(AudioFormat.Flac),
+            AudioParamKeys.EncodeMetadataPolicy to MetadataPolicy.PRESERVE,
+        )
+    )
 }
 ```
 
@@ -50,8 +51,10 @@ encode {
 
 ```kotlin
 // Decode FLAC to PCM-backed intermediate, re-encode as FLAC
-val transmuter = Transmute.audio.to(AudioFormat.Flac) {
-    encode { options { metadataPolicy = MetadataPolicy.PRESERVE } }
+val transmuter = transmute().audio.to(AudioFormat.Flac) {
+    encode {
+        params(Params.of(AudioParamKeys.EncodeMetadataPolicy to MetadataPolicy.PRESERVE))
+    }
 }
 val flacBytes = transmuter.transmute(inputBytes)
 ```
@@ -59,8 +62,8 @@ val flacBytes = transmuter.transmute(inputBytes)
 ## Inspection
 
 ```kotlin
-val structure  = Transmute.inspect.structure(flacBytes)  // FlacStructure
-val inspection = Transmute.inspect.inspect(flacBytes)
+val structure  = transmute().inspect.structure(flacBytes)  // FlacStructure
+val inspection = transmute().inspect.inspect(flacBytes)
 // VorbisCommentMetadata carries ARTIST, ALBUM, TITLE, etc.
 ```
 
@@ -73,3 +76,6 @@ val inspection = Transmute.inspect.inspect(flacBytes)
 - [Codec API](../codec.md)
 - [Plugins](../plugins.md)
 - [Structures](../structures.md)
+
+
+

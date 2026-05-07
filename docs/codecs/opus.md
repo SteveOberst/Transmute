@@ -15,49 +15,50 @@
 
 | Platform | Decode | Encode |
 |----------|--------|--------|
-| Android | ✅ built-in (decode); ⚠️ encode requires hardware | ✅ (hardware dependent) |
-| Desktop (JVM) | ⚠️ GStreamer plugin | ⚠️ GStreamer plugin |
-| iOS | ⚠️ GStreamer plugin | ⚠️ GStreamer plugin |
+| Android | built-in | hardware dependent |
+| Desktop (JVM) | plugin: GStreamer | plugin: GStreamer |
+| iOS | plugin: GStreamer | plugin: GStreamer |
 
 On Desktop and iOS, Opus requires the [GStreamer plugin](../plugins.md). On Android, decoding is always available; encoding depends on device hardware support.
 
 ## Plugin setup
 
 ```kotlin
-val transmute = Transmute {
+val transmute = transmute {
     plugins {
-        install(GStreamerPlugin) {
-            domains(MediaDomain.AUDIO)
-        }
+        install(GStreamer)
     }
 }
 ```
 
-## Encode options
+## Encode parameters
 
-Opus uses `CanonicalAudioEncodeOptions` — there are currently no format-specific encoding knobs (bitrate, application mode, etc.).
+Opus has no format-specific parameter keys today. Use `AudioParamKeys.OutputFormat`
+and `AudioParamKeys.EncodeMetadataPolicy` when you need to force Opus output or preserve metadata.
 
 ```kotlin
 encode {
-    options {
-        metadataPolicy = MetadataPolicy.PRESERVE   // default: STRIP_ALL
-        outputFormat   = OutputFormat.Exact(AudioFormat.Opus)
-    }
+    params(
+        Params.of(
+            AudioParamKeys.OutputFormat to OutputFormat.Exact(AudioFormat.Opus),
+            AudioParamKeys.EncodeMetadataPolicy to MetadataPolicy.PRESERVE,
+        )
+    )
 }
 ```
 
 ## Basic usage
 
 ```kotlin
-val transmuter = Transmute.audio.to(AudioFormat.Opus)
+val transmuter = transmute().audio.to(AudioFormat.Opus)
 val opusBytes = transmuter.transmute(inputBytes)
 ```
 
 ## Inspection
 
 ```kotlin
-val structure  = Transmute.inspect.structure(opusBytes)  // OpusStructure
-val inspection = Transmute.inspect.inspect(opusBytes)
+val structure  = transmute().inspect.structure(opusBytes)  // OpusStructure
+val inspection = transmute().inspect.inspect(opusBytes)
 // VorbisCommentMetadata carries ARTIST, ALBUM, TITLE, etc.
 ```
 
@@ -72,3 +73,6 @@ val inspection = Transmute.inspect.inspect(opusBytes)
 - [Plugins](../plugins.md)
 - [OGG](ogg.md)
 - [Structures](../structures.md)
+
+
+

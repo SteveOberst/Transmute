@@ -11,24 +11,25 @@
 
 | Platform | Decode | Encode |
 |----------|--------|--------|
-| Android  | ✓ | ✓ |
-| Desktop  | ✓ | ✓ |
-| iOS      | ✓ | ✓ |
+| Android  | built-in | built-in |
+| Desktop  | built-in | built-in |
+| iOS      | built-in | built-in |
 
-## Encode options
+## Encode parameters
 
 ```kotlin
-PngEncodeOptions(
-    compressionLevel: Int = 6,       // 0 (no compression) – 9 (max compression)
-    metadataPolicy: MetadataPolicy = STRIP_ALL,
-)
+ImageParamKeys.PngCompressionLevel   // Int, default 6
+ImageParamKeys.EncodeMetadataPolicy  // MetadataPolicy, default STRIP_ALL
+ImageParamKeys.OutputFormat          // OutputFormat<ImageFormat>, default ORIGINAL
 ```
 
 Usage:
 
 ```kotlin
-Transmute.image.to(ImageFormat.Png) {
-    encode { options(PngEncodeOptions(compressionLevel = 9)) }
+transmute().image.to(ImageFormat.Png) {
+    encode {
+        params(Params.of(ImageParamKeys.PngCompressionLevel to 9))
+    }
 }.transmute(source)
 ```
 
@@ -43,7 +44,10 @@ PNG files may carry: `PngTextMetadata`, `XmpMetadata`.
 | `PngStructure` | IHDR, IDAT, PLTE, and all named chunks |
 
 ```kotlin
-val s = Transmute.inspect.structure(bytes, ImageFormat.Png) as PngStructure?
+val s = transmute().inspect.structure(bytes, ImageFormat.Png) as PngStructure?
 println("Width:  ${s?.ihdr?.width}")
 println("Height: ${s?.ihdr?.height}")
 ```
+
+
+

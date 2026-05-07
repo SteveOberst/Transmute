@@ -15,49 +15,50 @@
 
 | Platform | Decode | Encode |
 |----------|--------|--------|
-| Android | ✅ built-in (MediaCodec) | ✅ built-in |
-| Desktop (JVM) | ⚠️ GStreamer plugin | ⚠️ GStreamer plugin |
-| iOS | ✅ built-in | ✅ built-in |
+| Android | built-in (MediaCodec) | built-in |
+| Desktop (JVM) | plugin: GStreamer | plugin: GStreamer |
+| iOS | built-in | built-in |
 
 On Desktop, AAC requires the [GStreamer plugin](../plugins.md).
 
 ## Desktop plugin setup
 
 ```kotlin
-val transmute = Transmute {
+val transmute = transmute {
     plugins {
-        install(GStreamerPlugin) {
-            domains(MediaDomain.AUDIO) // or MediaDomain.ALL
-        }
+        install(GStreamer)
     }
 }
 ```
 
-## Encode options
+## Encode parameters
 
-AAC uses `CanonicalAudioEncodeOptions` — there are currently no format-specific encoding knobs.
+AAC has no format-specific parameter keys today. Use `AudioParamKeys.OutputFormat`
+and `AudioParamKeys.EncodeMetadataPolicy` when you need to force AAC output or preserve metadata.
 
 ```kotlin
 encode {
-    options {
-        metadataPolicy = MetadataPolicy.PRESERVE   // default: STRIP_ALL
-        outputFormat   = OutputFormat.Exact(AudioFormat.Aac)
-    }
+    params(
+        Params.of(
+            AudioParamKeys.OutputFormat to OutputFormat.Exact(AudioFormat.Aac),
+            AudioParamKeys.EncodeMetadataPolicy to MetadataPolicy.PRESERVE,
+        )
+    )
 }
 ```
 
 ## Basic usage
 
 ```kotlin
-val transmuter = Transmute.audio.to(AudioFormat.Aac)
+val transmuter = transmute().audio.to(AudioFormat.Aac)
 val aacBytes = transmuter.transmute(inputBytes)
 ```
 
 ## Inspection
 
 ```kotlin
-val structure = Transmute.inspect.structure(aacBytes) // AacStructure
-val inspection = Transmute.inspect.inspect(aacBytes)
+val structure = transmute().inspect.structure(aacBytes) // AacStructure
+val inspection = transmute().inspect.inspect(aacBytes)
 ```
 
 ## Related
@@ -65,3 +66,6 @@ val inspection = Transmute.inspect.inspect(aacBytes)
 - [Codec API](../codec.md)
 - [Plugins](../plugins.md)
 - [Structures](../structures.md)
+
+
+

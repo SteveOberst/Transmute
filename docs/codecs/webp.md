@@ -11,18 +11,17 @@
 
 | Platform | Decode | Encode |
 |----------|--------|--------|
-| Android  | ✓ | ✓ |
-| Desktop  | ✓ | ✓ |
-| iOS      | ✓ | ✓ |
+| Android  | built-in | built-in |
+| Desktop  | built-in | built-in |
+| iOS      | built-in | built-in |
 
-## Encode options
+## Encode parameters
 
 ```kotlin
-WebPEncodeOptions(
-    quality: Float = 0.80f,          // 0.0 – 1.0 (lossy mode)
-    lossless: Boolean = false,       // true = lossless (ignores quality)
-    metadataPolicy: MetadataPolicy = STRIP_ALL,
-)
+ImageParamKeys.WebpQuality           // Float, default 0.80f
+ImageParamKeys.WebpLossless          // Boolean, default false
+ImageParamKeys.EncodeMetadataPolicy  // MetadataPolicy, default STRIP_ALL
+ImageParamKeys.OutputFormat          // OutputFormat<ImageFormat>, default ORIGINAL
 ```
 
 ## Metadata support
@@ -32,3 +31,6 @@ WebP files may carry: `ExifMetadata`, `XmpMetadata`, `IccProfileMetadata`.
 ## Structure support
 
 `WebpStructure` — RIFF/WEBP chunk list.
+
+
+

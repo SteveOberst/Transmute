@@ -15,49 +15,50 @@
 
 | Platform | Decode | Encode |
 |----------|--------|--------|
-| Android | ✅ built-in (MediaCodec) | ✅ built-in |
-| Desktop (JVM) | ✅ built-in (decode only) | ⚠️ GStreamer plugin |
-| iOS | ⚠️ GStreamer plugin | ⚠️ GStreamer plugin |
+| Android | built-in (MediaCodec) | built-in |
+| Desktop (JVM) | built-in (decode only) | plugin: GStreamer |
+| iOS | plugin: GStreamer | plugin: GStreamer |
 
 On Desktop, decoding OGG is available built-in; encoding requires the [GStreamer plugin](../plugins.md). On iOS, both operations require GStreamer.
 
 ## Desktop/iOS plugin setup
 
 ```kotlin
-val transmute = Transmute {
+val transmute = transmute {
     plugins {
-        install(GStreamerPlugin) {
-            domains(MediaDomain.AUDIO)
-        }
+        install(GStreamer)
     }
 }
 ```
 
-## Encode options
+## Encode parameters
 
-OGG uses `CanonicalAudioEncodeOptions` — there are currently no format-specific encoding knobs.
+OGG has no format-specific parameter keys today. Use `AudioParamKeys.OutputFormat`
+and `AudioParamKeys.EncodeMetadataPolicy` when you need to force OGG output or preserve metadata.
 
 ```kotlin
 encode {
-    options {
-        metadataPolicy = MetadataPolicy.PRESERVE   // default: STRIP_ALL
-        outputFormat   = OutputFormat.Exact(AudioFormat.Ogg)
-    }
+    params(
+        Params.of(
+            AudioParamKeys.OutputFormat to OutputFormat.Exact(AudioFormat.Ogg),
+            AudioParamKeys.EncodeMetadataPolicy to MetadataPolicy.PRESERVE,
+        )
+    )
 }
 ```
 
 ## Basic usage
 
 ```kotlin
-val transmuter = Transmute.audio.to(AudioFormat.Ogg)
+val transmuter = transmute().audio.to(AudioFormat.Ogg)
 val oggBytes = transmuter.transmute(inputBytes)
 ```
 
 ## Inspection
 
 ```kotlin
-val structure  = Transmute.inspect.structure(oggBytes)  // OggAudioStructure
-val inspection = Transmute.inspect.inspect(oggBytes)
+val structure  = transmute().inspect.structure(oggBytes)  // OggAudioStructure
+val inspection = transmute().inspect.inspect(oggBytes)
 // Vorbis comment tags: artist, album, title, etc.
 ```
 
@@ -66,3 +67,6 @@ val inspection = Transmute.inspect.inspect(oggBytes)
 - [Codec API](../codec.md)
 - [Plugins](../plugins.md)
 - [Structures](../structures.md)
+
+
+

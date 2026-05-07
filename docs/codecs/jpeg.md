@@ -11,24 +11,25 @@
 
 | Platform | Decode | Encode |
 |----------|--------|--------|
-| Android  | ✓ | ✓ |
-| Desktop  | ✓ | ✓ |
-| iOS      | ✓ | ✓ |
+| Android  | built-in | built-in |
+| Desktop  | built-in | built-in |
+| iOS      | built-in | built-in |
 
-## Encode options
+## Encode parameters
 
 ```kotlin
-JpegEncodeOptions(
-    quality: Float = 0.85f,                          // 0.0 (worst) – 1.0 (best)
-    metadataPolicy: MetadataPolicy = STRIP_ALL,
-)
+ImageParamKeys.JpegQuality           // Float, default 0.85f
+ImageParamKeys.EncodeMetadataPolicy  // MetadataPolicy, default STRIP_ALL
+ImageParamKeys.OutputFormat          // OutputFormat<ImageFormat>, default ORIGINAL
 ```
 
 Usage:
 
 ```kotlin
-Transmute.image.to(ImageFormat.Jpeg) {
-    encode { options(JpegEncodeOptions(quality = 0.92f)) }
+transmute().image.to(ImageFormat.Jpeg) {
+    encode {
+        params(Params.of(ImageParamKeys.JpegQuality to 0.92f))
+    }
 }.transmute(source)
 ```
 
@@ -43,6 +44,9 @@ JPEG files may carry: `ExifMetadata`, `XmpMetadata`, `IccProfileMetadata`.
 | `JpegStructure` | JPEG segment list |
 
 ```kotlin
-val s = Transmute.inspect.structure(bytes, ImageFormat.Jpeg) as JpegStructure?
+val s = transmute().inspect.structure(bytes, ImageFormat.Jpeg) as JpegStructure?
 println("Segments: ${s?.segments?.size}")
 ```
+
+
+

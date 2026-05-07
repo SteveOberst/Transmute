@@ -22,61 +22,69 @@ import dev.transmute.video.MutableVideoEncoderRegistry
  * 3. Build the project - the CMake script in `src/androidMain/cpp/`
  *    will compile `libgstreamer_bridge.so` for each ABI.
  *
- * **Note:** HEIF/HEIC/AVIF image codecs have been removed from GStreamer.
- * Android supports these natively via BitmapFactory. Install the `libheif`
- * plugin for additional desktop support.
+ * This installer registers the Android plugin's public audio and video codecs.
+ * HEIF/HEIC/AVIF support is documented through the platform image stack and
+ * the dedicated `libheif` plugin.
  */
 
 internal actual fun isGStreamerAvailable(): Boolean = GStreamerJni.available
 
-internal actual fun installGstAudioCodecs(decoders: MutableAudioDecoderRegistry, encoders: MutableAudioEncoderRegistry) {
-  if (!GStreamerJni.available) return
+internal actual fun installGstAudioCodecs(decoders: MutableAudioDecoderRegistry, encoders: MutableAudioEncoderRegistry): CodecInstallResult {
+  if (!GStreamerJni.available) return CodecInstallResult(registered = 0, skipped = 0)
+  var registered = 0
+  var skipped = 0
 
   val aac = GstAndroidAacCodec()
-  decoders.register(aac)
-  encoders.register(aac)
+  if (decoders.register(aac)) registered++ else skipped++
+  if (encoders.register(aac)) registered++ else skipped++
 
   val m4a = GstAndroidM4aCodec()
-  decoders.register(m4a)
-  encoders.register(m4a)
+  if (decoders.register(m4a)) registered++ else skipped++
+  if (encoders.register(m4a)) registered++ else skipped++
 
   val opus = GstAndroidOpusCodec()
-  decoders.register(opus)
-  encoders.register(opus)
+  if (decoders.register(opus)) registered++ else skipped++
+  if (encoders.register(opus)) registered++ else skipped++
 
-  encoders.register(GstAndroidFlacEncoder())
-  encoders.register(GstAndroidOggVorbisEncoder())
+  if (encoders.register(GstAndroidFlacEncoder())) registered++ else skipped++
+  if (encoders.register(GstAndroidOggVorbisEncoder())) registered++ else skipped++
+
+  return CodecInstallResult(registered = registered, skipped = skipped)
 }
 
 internal actual fun installGstVideoCodecs(
   decoders: MutableVideoDecoderRegistry,
   encoders: MutableVideoEncoderRegistry,
   features: PluginFeaturesConfig,
-) {
-  if (!GStreamerJni.available) return
+): CodecInstallResult {
+  if (!GStreamerJni.available) return CodecInstallResult(registered = 0, skipped = 0)
+  var registered = 0
+  var skipped = 0
 
   val mp4 = GstAndroidMp4Codec()
-  decoders.register(mp4)
-  encoders.register(mp4)
+  if (decoders.register(mp4)) registered++ else skipped++
+  if (encoders.register(mp4)) registered++ else skipped++
 
   val mov = GstAndroidMovCodec()
-  decoders.register(mov)
-  encoders.register(mov)
+  if (decoders.register(mov)) registered++ else skipped++
+  if (encoders.register(mov)) registered++ else skipped++
 
   val webm = GstAndroidWebmCodec()
-  decoders.register(webm)
-  encoders.register(webm)
+  if (decoders.register(webm)) registered++ else skipped++
+  if (encoders.register(webm)) registered++ else skipped++
 
   // Only register AVI if the LegacyAvi feature is enabled
   if (features.isEnabled(GStreamerFeature.LegacyAvi)) {
     val avi = GstAndroidAviCodec()
-    decoders.register(avi)
-    encoders.register(avi)
+    if (decoders.register(avi)) registered++ else skipped++
+    if (encoders.register(avi)) registered++ else skipped++
   }
 
   val mkv = GstAndroidMkvCodec()
-  decoders.register(mkv)
-  encoders.register(mkv)
+  if (decoders.register(mkv)) registered++ else skipped++
+  if (encoders.register(mkv)) registered++ else skipped++
+
+  return CodecInstallResult(registered = registered, skipped = skipped)
 }
 
 internal actual fun configureResolver(installation: GStreamerInstallation) {

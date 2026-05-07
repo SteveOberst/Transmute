@@ -13,9 +13,9 @@ BMP is implemented in **pure Kotlin** and works on all platforms without any nat
 
 | Platform | Decode | Encode |
 |----------|--------|--------|
-| Android  | ✓ | ✓ |
-| Desktop  | ✓ | ✓ |
-| iOS      | ✓ | ✓ |
+| Android  | built-in | built-in |
+| Desktop  | built-in | built-in |
+| iOS      | built-in | built-in |
 
 ## Encode options
 
@@ -28,3 +28,6 @@ No metadata extraction.
 ## Structure support
 
 `BmpStructure` — DIB file header, info header, and pixel data summary.
+
+
+

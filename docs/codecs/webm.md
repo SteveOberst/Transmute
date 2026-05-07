@@ -15,49 +15,50 @@
 
 | Platform | Decode | Encode |
 |----------|--------|--------|
-| Android | ✅ built-in (MediaCodec, VP8/VP9) | ✅ built-in |
-| Desktop (JVM) | ⚠️ GStreamer plugin | ⚠️ GStreamer plugin |
-| iOS | ⚠️ GStreamer plugin | ⚠️ GStreamer plugin |
+| Android | built-in (MediaCodec, VP8/VP9) | built-in |
+| Desktop (JVM) | plugin: GStreamer | plugin: GStreamer |
+| iOS | plugin: GStreamer | plugin: GStreamer |
 
 On Desktop and iOS, WebM requires the [GStreamer plugin](../plugins.md).
 
 ## Plugin setup
 
 ```kotlin
-val transmute = Transmute {
+val transmute = transmute {
     plugins {
-        install(GStreamerPlugin) {
-            domains(MediaDomain.VIDEO)
-        }
+        install(GStreamer)
     }
 }
 ```
 
-## Encode options
+## Encode parameters
 
-WebM uses `CanonicalVideoEncodeOptions` — there are currently no format-specific encoding knobs.
+WebM has no format-specific parameter keys today. Use `VideoParamKeys.OutputFormat`
+and `VideoParamKeys.EncodeMetadataPolicy` when you need to force WebM output or preserve metadata.
 
 ```kotlin
 encode {
-    options {
-        metadataPolicy = MetadataPolicy.PRESERVE   // default: STRIP_ALL
-        outputFormat   = OutputFormat.Exact(VideoFormat.Webm)
-    }
+    params(
+        Params.of(
+            VideoParamKeys.OutputFormat to OutputFormat.Exact(VideoFormat.Webm),
+            VideoParamKeys.EncodeMetadataPolicy to MetadataPolicy.PRESERVE,
+        )
+    )
 }
 ```
 
 ## Basic usage
 
 ```kotlin
-val transmuter = Transmute.video.to(VideoFormat.Webm)
+val transmuter = transmute().video.to(VideoFormat.Webm)
 val webmBytes = transmuter.transmute(inputBytes)
 ```
 
 ## Inspection
 
 ```kotlin
-val structure  = Transmute.inspect.structure(webmBytes)  // WebmStructure
-val inspection = Transmute.inspect.inspect(webmBytes)
+val structure  = transmute().inspect.structure(webmBytes)  // WebmStructure
+val inspection = transmute().inspect.inspect(webmBytes)
 // MatroskaTagMetadata carries Matroska-style tags
 ```
 
@@ -67,3 +68,6 @@ val inspection = Transmute.inspect.inspect(webmBytes)
 - [Plugins](../plugins.md)
 - [MKV](mkv.md) — same EBML container family
 - [Video transforms](../transforms/README.md)
+
+
+

@@ -15,43 +15,44 @@
 
 | Platform | Decode | Encode |
 |----------|--------|--------|
-| Android | ⚠️ GStreamer plugin | ⚠️ GStreamer plugin |
-| Desktop (JVM) | ⚠️ GStreamer plugin | ⚠️ GStreamer plugin |
-| iOS | ⚠️ GStreamer plugin | ⚠️ GStreamer plugin |
+| Android | plugin: GStreamer | plugin: GStreamer |
+| Desktop (JVM) | plugin: GStreamer | plugin: GStreamer |
+| iOS | plugin: GStreamer | plugin: GStreamer |
 
 AVI requires the [GStreamer plugin](../plugins.md) on **all platforms**.
 
 ## Plugin setup
 
 ```kotlin
-val transmute = Transmute {
+val transmute = transmute {
     plugins {
-        install(GStreamerPlugin) {
-            domains(MediaDomain.VIDEO)
-        }
+        install(GStreamer)
     }
 }
 ```
 
-## Encode options
+## Encode parameters
 
-AVI uses `CanonicalVideoEncodeOptions` — there are currently no format-specific encoding knobs.
+AVI has no format-specific parameter keys today. Use `VideoParamKeys.OutputFormat`
+and `VideoParamKeys.EncodeMetadataPolicy` when you need to force AVI output or preserve metadata.
 
 ```kotlin
 encode {
-    options {
-        metadataPolicy = MetadataPolicy.PRESERVE   // default: STRIP_ALL
-        outputFormat   = OutputFormat.Exact(VideoFormat.Avi)
-    }
+    params(
+        Params.of(
+            VideoParamKeys.OutputFormat to OutputFormat.Exact(VideoFormat.Avi),
+            VideoParamKeys.EncodeMetadataPolicy to MetadataPolicy.PRESERVE,
+        )
+    )
 }
 ```
 
 ## Basic usage
 
 ```kotlin
-val transmute = Transmute {
+val transmute = transmute {
     plugins {
-        install(GStreamerPlugin) { domains(MediaDomain.VIDEO) }
+        install(GStreamer)
     }
 }
 
@@ -62,8 +63,8 @@ val aviBytes = transmuter.transmute(inputBytes)
 ## Inspection
 
 ```kotlin
-val structure  = Transmute.inspect.structure(aviBytes)   // AviStructure
-val inspection = Transmute.inspect.inspect(aviBytes)
+val structure  = transmute().inspect.structure(aviBytes)   // AviStructure
+val inspection = transmute().inspect.inspect(aviBytes)
 // RiffInfoMetadata carries RIFF INFO list chunk fields
 ```
 
@@ -72,3 +73,6 @@ val inspection = Transmute.inspect.inspect(aviBytes)
 - [Codec API](../codec.md)
 - [Plugins](../plugins.md)
 - [Video transforms](../transforms/README.md)
+
+
+

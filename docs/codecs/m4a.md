@@ -15,49 +15,50 @@
 
 | Platform | Decode | Encode |
 |----------|--------|--------|
-| Android | ✅ built-in (MediaCodec) | ✅ built-in |
-| Desktop (JVM) | ⚠️ GStreamer plugin | ⚠️ GStreamer plugin |
-| iOS | ✅ built-in | ✅ built-in |
+| Android | built-in (MediaCodec) | built-in |
+| Desktop (JVM) | plugin: GStreamer | plugin: GStreamer |
+| iOS | built-in | built-in |
 
 On Desktop, M4A requires the [GStreamer plugin](../plugins.md).
 
 ## Desktop plugin setup
 
 ```kotlin
-val transmute = Transmute {
+val transmute = transmute {
     plugins {
-        install(GStreamerPlugin) {
-            domains(MediaDomain.AUDIO)
-        }
+        install(GStreamer)
     }
 }
 ```
 
-## Encode options
+## Encode parameters
 
-M4A uses `CanonicalAudioEncodeOptions` — there are currently no format-specific encoding knobs.
+M4A has no format-specific parameter keys today. Use `AudioParamKeys.OutputFormat`
+and `AudioParamKeys.EncodeMetadataPolicy` when you need to force M4A output or preserve metadata.
 
 ```kotlin
 encode {
-    options {
-        metadataPolicy = MetadataPolicy.PRESERVE   // default: STRIP_ALL
-        outputFormat   = OutputFormat.Exact(AudioFormat.M4a)
-    }
+    params(
+        Params.of(
+            AudioParamKeys.OutputFormat to OutputFormat.Exact(AudioFormat.M4a),
+            AudioParamKeys.EncodeMetadataPolicy to MetadataPolicy.PRESERVE,
+        )
+    )
 }
 ```
 
 ## Basic usage
 
 ```kotlin
-val transmuter = Transmute.audio.to(AudioFormat.M4a)
+val transmuter = transmute().audio.to(AudioFormat.M4a)
 val m4aBytes = transmuter.transmute(inputBytes)
 ```
 
 ## Inspection
 
 ```kotlin
-val structure  = Transmute.inspect.structure(m4aBytes)  // M4aStructure
-val inspection = Transmute.inspect.inspect(m4aBytes)
+val structure  = transmute().inspect.structure(m4aBytes)  // M4aStructure
+val inspection = transmute().inspect.inspect(m4aBytes)
 // ItunesMetadata carries iTunes-style atoms: artist, album, cover art, etc.
 ```
 
@@ -72,3 +73,6 @@ val inspection = Transmute.inspect.inspect(m4aBytes)
 - [Plugins](../plugins.md)
 - [AAC](aac.md)
 - [MP4](mp4.md)
+
+
+

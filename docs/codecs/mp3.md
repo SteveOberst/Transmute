@@ -15,22 +15,25 @@
 
 | Platform | Decode | Encode |
 |----------|--------|--------|
-| Android | ✅ built-in (MediaCodec) | ✅ built-in |
-| Desktop (JVM) | ✅ built-in | ✅ built-in |
-| iOS | ✅ built-in | ✅ built-in |
+| Android | built-in (MediaCodec) | built-in |
+| Desktop (JVM) | built-in | built-in |
+| iOS | built-in | built-in |
 
 MP3 is the most universally supported audio format. No plugins are required on any platform.
 
 ## Encode options
 
-MP3 uses `CanonicalAudioEncodeOptions` — there are currently no format-specific encoding knobs (bitrate, VBR settings, etc.).
+MP3 has no format-specific parameter keys today. Use `AudioParamKeys.OutputFormat`
+and `AudioParamKeys.EncodeMetadataPolicy` when you need to force MP3 output or preserve metadata.
 
 ```kotlin
 encode {
-    options {
-        metadataPolicy = MetadataPolicy.PRESERVE   // default: STRIP_ALL
-        outputFormat   = OutputFormat.Exact(AudioFormat.Mp3)
-    }
+    params(
+        Params.of(
+            AudioParamKeys.EncodeMetadataPolicy to MetadataPolicy.PRESERVE,
+            AudioParamKeys.OutputFormat to OutputFormat.Exact(AudioFormat.Mp3),
+        )
+    )
 }
 ```
 
@@ -38,14 +41,18 @@ encode {
 
 ```kotlin
 // Transcode any audio to MP3
-val transmuter = Transmute.audio.to(AudioFormat.Mp3) {
-    encode { options { metadataPolicy = MetadataPolicy.PRESERVE } }
+val transmuter = transmute().audio.to(AudioFormat.Mp3) {
+    encode {
+        params(Params.of(AudioParamKeys.EncodeMetadataPolicy to MetadataPolicy.PRESERVE))
+    }
 }
 val mp3Bytes = transmuter.transmute(inputBytes)
 
 // Dynamic output — keep existing bytes as MP3
-val dynamic = Transmute.audio {
-    encode { options { outputFormat = OutputFormat.Exact(AudioFormat.Mp3) } }
+val dynamic = transmute().audio {
+    encode {
+        params(Params.of(AudioParamKeys.OutputFormat to OutputFormat.Exact(AudioFormat.Mp3)))
+    }
 }
 val result = dynamic.transmute(inputBytes)
 ```
@@ -54,11 +61,11 @@ val result = dynamic.transmute(inputBytes)
 
 ```kotlin
 // Read ID3 tags
-val inspection = Transmute.inspect.inspect(mp3Bytes)
-val tags = inspection.metadata
+val inspection = transmute().inspect.inspect(mp3Bytes)
+val tags = inspection.metadata.filterIsInstance<Id3v2Metadata>().firstOrNull()
 
 // Read file structure (frame headers, bitrate info, etc.)
-val structure = Transmute.inspect.structure(mp3Bytes) // Mp3Structure
+val structure = transmute().inspect.structure(mp3Bytes) // Mp3Structure
 ```
 
 ## Related
@@ -67,3 +74,6 @@ val structure = Transmute.inspect.structure(mp3Bytes) // Mp3Structure
 - [Inspection](../inspect.md)
 - [Structures](../structures.md)
 - [Pipelines](../pipelines.md)
+
+
+

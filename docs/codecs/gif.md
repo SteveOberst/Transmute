@@ -11,13 +11,14 @@
 
 | Platform | Decode | Encode |
 |----------|--------|--------|
-| Android  | ✓ (decode) | – |
-| Desktop  | ✓ | ✓ |
-| iOS      | ✓ (decode) | – |
+| Android  | built-in | no |
+| Desktop  | built-in | built-in |
+| iOS      | built-in | no |
 
-## Encode options
+## Encode parameters
 
-No format-specific options. Use `CanonicalImageEncodeOptions` if you need to set `metadataPolicy`.
+GIF has no format-specific parameter keys today. Use `ImageParamKeys.EncodeMetadataPolicy`
+if you need to preserve metadata during encoding.
 
 ## Metadata support
 
@@ -26,3 +27,6 @@ No metadata extraction. GIF does not carry EXIF or XMP in a standard Transmute-p
 ## Structure support
 
 `GifStructure` — GIF header, logical screen descriptor, and frame list.
+
+
+

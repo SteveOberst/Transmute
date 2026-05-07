@@ -110,9 +110,10 @@ fun extractMacPkgFramework(
       """
       set -euo pipefail
 
-      if pkgutil --help 2>&1 | grep -q -- '--expand-full'; then
-        pkgutil --expand-full "${'$'}PKG_PATH" "${'$'}EXPANDED_DIR"
+      if pkgutil --expand-full "${'$'}PKG_PATH" "${'$'}EXPANDED_DIR" 2>/dev/null; then
+        exit 0
       else
+        echo "pkgutil --expand-full unavailable; falling back to --expand"
         pkgutil --expand "${'$'}PKG_PATH" "${'$'}EXPANDED_DIR"
       fi
       """.trimIndent(),

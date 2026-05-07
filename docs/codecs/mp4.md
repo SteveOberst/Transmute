@@ -15,42 +15,45 @@
 
 | Platform | Decode | Encode |
 |----------|--------|--------|
-| Android | ✅ built-in (MediaCodec) | ✅ built-in |
-| Desktop (JVM) | ⚠️ GStreamer plugin | ⚠️ GStreamer plugin |
-| iOS | ✅ built-in | ✅ built-in |
+| Android | built-in (MediaCodec) | built-in |
+| Desktop (JVM) | plugin: GStreamer | plugin: GStreamer |
+| iOS | built-in | built-in |
 
 On Desktop, MP4 requires the [GStreamer plugin](../plugins.md).
 
 ## Desktop plugin setup
 
 ```kotlin
-val transmute = Transmute {
+val transmute = transmute {
     plugins {
-        install(GStreamerPlugin) {
-            domains(MediaDomain.VIDEO)
-        }
+        install(GStreamer)
     }
 }
 ```
 
-## Encode options
+## Encode parameters
 
-MP4 uses `CanonicalVideoEncodeOptions` — there are currently no format-specific encoding knobs (bitrate, codec profile, etc.).
+MP4 has no format-specific parameter keys today. Use `VideoParamKeys.OutputFormat`
+and `VideoParamKeys.EncodeMetadataPolicy` when you need to force MP4 output or preserve metadata.
 
 ```kotlin
 encode {
-    options {
-        metadataPolicy = MetadataPolicy.PRESERVE   // default: STRIP_ALL
-        outputFormat   = OutputFormat.Exact(VideoFormat.Mp4)
-    }
+    params(
+        Params.of(
+            VideoParamKeys.OutputFormat to OutputFormat.Exact(VideoFormat.Mp4),
+            VideoParamKeys.EncodeMetadataPolicy to MetadataPolicy.PRESERVE,
+        )
+    )
 }
 ```
 
 ## Basic usage
 
 ```kotlin
-val transmuter = Transmute.video.to(VideoFormat.Mp4) {
-    encode { options { metadataPolicy = MetadataPolicy.PRESERVE } }
+val transmuter = transmute().video.to(VideoFormat.Mp4) {
+    encode {
+        params(Params.of(VideoParamKeys.EncodeMetadataPolicy to MetadataPolicy.PRESERVE))
+    }
 }
 val mp4Bytes = transmuter.transmute(inputBytes)
 ```
@@ -58,7 +61,7 @@ val mp4Bytes = transmuter.transmute(inputBytes)
 ## Transforms
 
 ```kotlin
-val transmuter = Transmute.video.to(VideoFormat.Mp4) {
+val transmuter = transmute().video.to(VideoFormat.Mp4) {
     decode { pipeline { trim(startMs = 0L, endMs = 30_000L) } }
     encode {
         pipeline {
@@ -72,10 +75,10 @@ val transmuter = Transmute.video.to(VideoFormat.Mp4) {
 ## Inspection and thumbnails
 
 ```kotlin
-val inspection = Transmute.inspect.inspect(mp4Bytes)
+val inspection = transmute().inspect.inspect(mp4Bytes)
 
 // Extract first frame as JPEG
-val thumb = Transmute.inspect.video.thumbnailFirstFrame(mp4Bytes)
+val thumb = transmute().inspect.video.thumbnailFirstFrame(mp4Bytes)
 ```
 
 > On Desktop, thumbnail extraction requires the GStreamer plugin.
@@ -86,3 +89,6 @@ val thumb = Transmute.inspect.video.thumbnailFirstFrame(mp4Bytes)
 - [Plugins](../plugins.md)
 - [MOV](mov.md)
 - [Video transforms](../transforms/README.md)
+
+
+

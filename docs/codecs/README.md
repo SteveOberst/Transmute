@@ -2,43 +2,43 @@
 
 ## Platform availability
 
-Codec support depends on the platform. Cells marked **✓** are available out of the box; **plugin** requires the GStreamer or libheif plugin.
+Codec support depends on the platform. Each cell states whether the format can be decoded, encoded, or both on that target, and calls out plugin requirements when they exist.
 
 ### Image
 
 | Format | Android | Desktop (JVM) | iOS |
-|--------|---------|--------------|-----|
-| JPEG   | ✓ | ✓ | ✓ |
-| PNG    | ✓ | ✓ | ✓ |
-| WebP   | ✓ | ✓ | ✓ |
-| GIF    | ✓ (decode) | ✓ | ✓ (decode) |
-| BMP    | ✓ | ✓ | ✓ |
-| TIFF   | ✓ | ✓ | ✓ |
-| HEIF   | ✓ | plugin (GStreamer or libheif) | ✓ |
-| HEIC   | ✓ | plugin (GStreamer or libheif) | ✓ |
-| AVIF   | ✓ | plugin (GStreamer or libheif) | ✓ |
+|--------|---------|---------------|-----|
+| JPEG   | decode + encode | decode + encode | decode + encode |
+| PNG    | decode + encode | decode + encode | decode + encode |
+| WebP   | decode + encode | decode + encode | decode + encode |
+| GIF    | decode only | decode + encode | decode only |
+| BMP    | decode + encode | decode + encode | decode + encode |
+| TIFF   | decode + encode | decode + encode | decode + encode |
+| HEIF   | decode only | decode + encode; plugin: libheif | decode + encode |
+| HEIC   | decode only | decode + encode; plugin: libheif | decode + encode |
+| AVIF   | decode only | decode + encode; plugin: libheif | decode + encode |
 
 ### Audio
 
 | Format | Android | Desktop (JVM) | iOS |
-|--------|---------|--------------|-----|
-| WAV    | ✓ | ✓ (pure-Kotlin) | ✓ |
-| MP3    | ✓ | ✓ | ✓ |
-| FLAC   | ✓ | ✓ (decode only) | ✓ |
-| OGG    | ✓ | ✓ (decode only) | plugin (GStreamer) |
-| AAC    | ✓ | plugin | ✓ |
-| M4A    | ✓ | plugin | ✓ |
-| Opus   | ✓ | plugin | plugin (GStreamer) |
+|--------|---------|---------------|-----|
+| WAV    | decode + encode | decode + encode (pure Kotlin) | decode + encode |
+| MP3    | decode + encode | decode + encode | decode + encode |
+| FLAC   | decode + encode | decode only built-in; encode requires plugin: GStreamer | decode + encode |
+| OGG    | decode + encode | decode only built-in; encode requires plugin: GStreamer | decode + encode; plugin: GStreamer |
+| AAC    | decode + encode | decode + encode; plugin: GStreamer | decode + encode |
+| M4A    | decode + encode | decode + encode; plugin: GStreamer | decode + encode |
+| Opus   | decode built-in; encode hardware dependent | decode + encode; plugin: GStreamer | decode + encode; plugin: GStreamer |
 
 ### Video
 
 | Format | Android | Desktop (JVM) | iOS |
-|--------|---------|--------------|-----|
-| MP4    | ✓ | plugin (GStreamer) | ✓ |
-| MOV    | ✓ | plugin (GStreamer) | ✓ |
-| WebM   | ✓ | plugin (GStreamer) | plugin (GStreamer) |
-| AVI    | plugin (GStreamer) | plugin (GStreamer) | plugin (GStreamer) |
-| MKV    | plugin (GStreamer) | plugin (GStreamer) | plugin (GStreamer) |
+|--------|---------|---------------|-----|
+| MP4    | decode + encode | decode + encode; plugin: GStreamer | decode + encode |
+| MOV    | decode + encode | decode + encode; plugin: GStreamer | decode + encode |
+| WebM   | decode + encode | decode + encode; plugin: GStreamer | decode + encode; plugin: GStreamer |
+| AVI    | decode + encode; plugin: GStreamer | decode + encode; plugin: GStreamer | decode + encode; plugin: GStreamer |
+| MKV    | decode + encode; plugin: GStreamer | decode + encode; plugin: GStreamer | decode + encode; plugin: GStreamer |
 
 ## Format objects
 
@@ -47,10 +47,10 @@ All format constants are `data object` singletons. Use them to build typed trans
 ```kotlin
 // Type-safe fixed-output transmuter
 val transmuter: ImageTransmuter<TSource, EncodedBytes<ImageFormat.Png>> =
-    Transmute.image.to(ImageFormat.Png) { scale(800, 600) }
+    transmute().image.to(ImageFormat.Png) { scale(800, 600) }
 
 // Compare with detected format
-val format = Transmute.inspect.detectFormat(bytes)
+val format = transmute().inspect.detectFormat(bytes)
 if (format == ImageFormat.Jpeg) { /* ... */ }
 
 // Enumerate all known formats
@@ -99,3 +99,6 @@ See [inspect.md](../inspect.md) for which metadata types are extracted from each
 | [MOV](mov.md) | `video/quicktime` | `mov` | ISOBMFF | |
 | [AVI](avi.md) | `video/x-msvideo` | `avi` | RIFF | |
 | [MKV](mkv.md) | `video/x-matroska` | `mkv` | EBML | |
+
+
+

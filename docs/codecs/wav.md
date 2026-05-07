@@ -15,22 +15,25 @@
 
 | Platform | Decode | Encode |
 |----------|--------|--------|
-| Android | ✅ built-in | ✅ built-in |
-| Desktop (JVM) | ✅ built-in | ✅ built-in |
-| iOS | ✅ built-in | ✅ built-in |
+| Android | built-in | built-in |
+| Desktop (JVM) | built-in (pure Kotlin) | built-in (pure Kotlin) |
+| iOS | built-in | built-in |
 
 WAV is implemented as a pure-Kotlin codec and works on **all platforms** without any plugins.
 
 ## Encode options
 
-WAV uses `CanonicalAudioEncodeOptions` — there are currently no format-specific encoding knobs.
+WAV has no format-specific parameter keys today. Use `AudioParamKeys.OutputFormat`
+and `AudioParamKeys.EncodeMetadataPolicy` when you need to force WAV output or preserve metadata.
 
 ```kotlin
 encode {
-    options {
-        metadataPolicy = MetadataPolicy.PRESERVE   // default: STRIP_ALL
-        outputFormat   = OutputFormat.Exact(AudioFormat.Wav)
-    }
+    params(
+        Params.of(
+            AudioParamKeys.EncodeMetadataPolicy to MetadataPolicy.PRESERVE,
+            AudioParamKeys.OutputFormat to OutputFormat.Exact(AudioFormat.Wav),
+        )
+    )
 }
 ```
 
@@ -38,21 +41,23 @@ encode {
 
 ```kotlin
 // Convert any audio to WAV (uncompressed)
-val transmuter = Transmute.audio.to(AudioFormat.Wav)
+val transmuter = transmute().audio.to(AudioFormat.Wav)
 val wavBytes = transmuter.transmute(inputBytes)
 
 // Preserve RIFF INFO chunk metadata
-val transmuter = Transmute.audio.to(AudioFormat.Wav) {
-    encode { options { metadataPolicy = MetadataPolicy.PRESERVE } }
+val transmuter = transmute().audio.to(AudioFormat.Wav) {
+    encode {
+        params(Params.of(AudioParamKeys.EncodeMetadataPolicy to MetadataPolicy.PRESERVE))
+    }
 }
 ```
 
 ## Inspection
 
 ```kotlin
-val structure = Transmute.inspect.structure(wavBytes) // WavStructure — includes fmt chunk info
-val inspection = Transmute.inspect.inspect(wavBytes)
-val riffInfo = inspection.metadata  // RiffInfoMetadata
+val structure = transmute().inspect.structure(wavBytes) // WavStructure — includes fmt chunk info
+val inspection = transmute().inspect.inspect(wavBytes)
+val riffInfo = inspection.metadata.filterIsInstance<RiffInfoMetadata>().firstOrNull()
 ```
 
 ## Notes
@@ -65,3 +70,6 @@ val riffInfo = inspection.metadata  // RiffInfoMetadata
 - [Codec API](../codec.md)
 - [Inspection](../inspect.md)
 - [Structures](../structures.md)
+
+
+

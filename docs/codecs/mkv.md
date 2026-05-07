@@ -15,43 +15,44 @@
 
 | Platform | Decode | Encode |
 |----------|--------|--------|
-| Android | ⚠️ GStreamer plugin | ⚠️ GStreamer plugin |
-| Desktop (JVM) | ⚠️ GStreamer plugin | ⚠️ GStreamer plugin |
-| iOS | ⚠️ GStreamer plugin | ⚠️ GStreamer plugin |
+| Android | plugin: GStreamer | plugin: GStreamer |
+| Desktop (JVM) | plugin: GStreamer | plugin: GStreamer |
+| iOS | plugin: GStreamer | plugin: GStreamer |
 
 MKV requires the [GStreamer plugin](../plugins.md) on **all platforms**.
 
 ## Plugin setup
 
 ```kotlin
-val transmute = Transmute {
+val transmute = transmute {
     plugins {
-        install(GStreamerPlugin) {
-            domains(MediaDomain.VIDEO)
-        }
+        install(GStreamer)
     }
 }
 ```
 
-## Encode options
+## Encode parameters
 
-MKV uses `CanonicalVideoEncodeOptions` — there are currently no format-specific encoding knobs.
+MKV has no format-specific parameter keys today. Use `VideoParamKeys.OutputFormat`
+and `VideoParamKeys.EncodeMetadataPolicy` when you need to force MKV output or preserve metadata.
 
 ```kotlin
 encode {
-    options {
-        metadataPolicy = MetadataPolicy.PRESERVE   // default: STRIP_ALL
-        outputFormat   = OutputFormat.Exact(VideoFormat.Mkv)
-    }
+    params(
+        Params.of(
+            VideoParamKeys.OutputFormat to OutputFormat.Exact(VideoFormat.Mkv),
+            VideoParamKeys.EncodeMetadataPolicy to MetadataPolicy.PRESERVE,
+        )
+    )
 }
 ```
 
 ## Basic usage
 
 ```kotlin
-val transmute = Transmute {
+val transmute = transmute {
     plugins {
-        install(GStreamerPlugin) { domains(MediaDomain.VIDEO) }
+        install(GStreamer)
     }
 }
 
@@ -62,8 +63,8 @@ val mkvBytes = transmuter.transmute(inputBytes)
 ## Inspection
 
 ```kotlin
-val structure  = Transmute.inspect.structure(mkvBytes)   // MkvStructure
-val inspection = Transmute.inspect.inspect(mkvBytes)
+val structure  = transmute().inspect.structure(mkvBytes)   // MkvStructure
+val inspection = transmute().inspect.inspect(mkvBytes)
 // MatroskaTagMetadata carries Matroska tags
 ```
 
@@ -78,3 +79,6 @@ val inspection = Transmute.inspect.inspect(mkvBytes)
 - [Plugins](../plugins.md)
 - [WebM](webm.md) — sibling EBML container
 - [Video transforms](../transforms/README.md)
+
+
+
