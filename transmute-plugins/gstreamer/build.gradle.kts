@@ -60,6 +60,7 @@ kotlin {
             "-F${gstreamerIosFramework.parentFile.absolutePath}",
             "-framework",
             "GStreamer",
+            "-liconv",
           )
         }
         target.compilations["main"].cinterops.create("gstreamer") {
