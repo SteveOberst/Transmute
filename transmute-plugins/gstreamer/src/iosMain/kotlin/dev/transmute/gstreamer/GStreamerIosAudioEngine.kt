@@ -9,12 +9,14 @@ import dev.transmute.audio.codecs.WavDecoder
 import dev.transmute.audio.codecs.WavEncoder
 import dev.transmute.common.PipelineContext
 import dev.transmute.model.core.asBytes
+import kotlinx.cinterop.addressOf
+import kotlinx.cinterop.usePinned
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import platform.Foundation.NSTemporaryDirectory
 import platform.Foundation.NSData
-import platform.Foundation.writeToFile
 import platform.Foundation.dataWithContentsOfFile
+import platform.Foundation.writeToFile
 
 /**
  * Audio encode / decode engine for iOS via the GStreamer cinterop bridge.
@@ -112,6 +114,7 @@ internal fun readTmpFile(path: String): ByteArray {
     return data.toByteArray()
 }
 
+@OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
 internal fun deleteTmpFile(path: String) {
     try {
         platform.Foundation.NSFileManager.defaultManager.removeItemAtPath(path, null)
@@ -128,8 +131,8 @@ internal fun buildIosPipelineDesc(vararg parts: String): List<String> =
 @OptIn(kotlinx.cinterop.ExperimentalForeignApi::class, kotlinx.cinterop.BetaInteropApi::class)
 internal fun ByteArray.toNSData(): NSData = kotlinx.cinterop.memScoped {
     if (isEmpty()) return NSData()
-    kotlinx.cinterop.usePinned {
-        NSData.create(bytes = it.addressOf(0), length = size.toULong())
+    usePinned { pinned ->
+        NSData.create(bytes = pinned.addressOf(0), length = size.toULong())
     }
 }
 
@@ -138,8 +141,8 @@ internal fun NSData.toByteArray(): ByteArray {
     val len = length.toInt()
     if (len == 0) return ByteArray(0)
     val result = ByteArray(len)
-    kotlinx.cinterop.usePinned {
-        platform.posix.memcpy(it.addressOf(0), bytes, length)
+    result.usePinned { pinned ->
+        platform.posix.memcpy(pinned.addressOf(0), bytes, length)
     }
     return result
 }

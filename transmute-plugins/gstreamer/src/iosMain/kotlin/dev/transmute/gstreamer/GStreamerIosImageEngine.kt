@@ -35,12 +35,12 @@ import platform.CoreGraphics.CGBitmapContextGetData
 import platform.CoreGraphics.CGColorSpaceCreateDeviceRGB
 import platform.CoreGraphics.CGContextDrawImage
 import platform.CoreGraphics.CGContextRelease
+import platform.CoreGraphics.CGImageAlphaInfo
 import platform.CoreGraphics.CGImageGetHeight
 import platform.CoreGraphics.CGImageGetWidth
 import platform.CoreGraphics.CGImageRelease
 import platform.CoreGraphics.CGRectMake
 import platform.CoreGraphics.kCGBitmapByteOrder32Big
-import platform.CoreGraphics.kCGImageAlphaPremultipliedLast
 import platform.Foundation.NSData
 import platform.Foundation.NSTemporaryDirectory
 import platform.Foundation.dataWithContentsOfFile
@@ -179,7 +179,7 @@ private fun decodePngToImageIR(pngBytes: ByteArray): ImageIR {
     val bytesPerRow = w * 4
     val colorSpace = CGColorSpaceCreateDeviceRGB()
 
-    val bitmapInfo = kCGBitmapByteOrder32Big or kCGImageAlphaPremultipliedLast
+    val bitmapInfo = kCGBitmapByteOrder32Big or CGImageAlphaInfo.kCGImageAlphaPremultipliedLast.value.toUInt()
 
     val bitmapCtx = CGBitmapContextCreate(
         data = null,
@@ -239,7 +239,7 @@ private fun encodeImageIRToPng(ir: ImageIR, buffer: ByteArrayPixelBuffer): ByteA
     val h = ir.height
     val bytesPerRow = w * 4
     val colorSpace = CGColorSpaceCreateDeviceRGB()
-    val bitmapInfo = kCGBitmapByteOrder32Big or kCGImageAlphaPremultipliedLast
+    val bitmapInfo = kCGBitmapByteOrder32Big or CGImageAlphaInfo.kCGImageAlphaPremultipliedLast.value.toUInt()
 
     val rgba = buffer.data
     val bitmapCtx = rgba.usePinned { pinned ->

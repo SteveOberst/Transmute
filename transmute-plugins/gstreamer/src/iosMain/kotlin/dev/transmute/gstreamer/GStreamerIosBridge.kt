@@ -3,10 +3,9 @@
 package dev.transmute.gstreamer
 
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.alloc
 import kotlinx.cinterop.memScoped
+import kotlinx.cinterop.pointed
 import kotlinx.cinterop.ptr
-import kotlinx.cinterop.toKString
 import platform.posix.RTLD_LAZY
 import platform.posix.dlopen
 import platform.posix.dlsym
@@ -70,8 +69,7 @@ internal object GStreamerIosBridge {
         if (!available) return false
         return try {
             memScoped {
-                val error = alloc<gst.GErrorVar>()
-                val pipeline = gst.gst_parse_launch(pipelineDesc, error.ptr)
+                val pipeline = gst.gst_parse_launch(pipelineDesc, null)
                     ?: return false
 
                 val ret = gst.gst_element_set_state(pipeline, gst.GST_STATE_PLAYING)
@@ -93,7 +91,7 @@ internal object GStreamerIosBridge {
                 )
 
                 val success = if (msg != null) {
-                    val msgType = gst.GST_MESSAGE_TYPE(msg)
+                    val msgType = msg.pointed.type
                     gst.gst_message_unref(msg)
                     msgType == gst.GST_MESSAGE_EOS
                 } else false
