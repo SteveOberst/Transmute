@@ -168,7 +168,7 @@ class IosImageIoEncoder : ImageEncoder {
       val dest = CGImageDestinationCreateWithData(mutableData, uti, 1u, null)
         ?: error("CGImageDestinationCreateWithData failed")
 
-      var compressionQualityNumber: CFTypeRef? = null
+      var compressionQualityNumber: CPointer<*>? = null
       val props = if (format == ImageFormat.Jpeg) {
         val q = ((options as? JpegEncodeOptions)?.quality ?: 0.85f).coerceIn(0f, 1f).toDouble()
         val num = memScoped { CFNumberCreate(null, kCFNumberDoubleType, alloc<DoubleVar>().apply { value = q }.ptr) }
