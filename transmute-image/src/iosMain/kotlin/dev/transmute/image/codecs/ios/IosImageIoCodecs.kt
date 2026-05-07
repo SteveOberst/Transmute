@@ -144,23 +144,21 @@ class IosImageIoEncoder : ImageEncoder {
       )
 
     val cgImage = buffer.data.usePinned { pinned ->
-      val provider = CGDataProviderCreateWithData(null, pinned.addressOf(0), buffer.data.size.toULong(), null)
-        ?: error("CGDataProviderCreateWithData failed")
-      val img = CGImageCreate(
+      val ctx = CGBitmapContextCreate(
+        data = pinned.addressOf(0),
         width = ir.width.toULong(),
         height = ir.height.toULong(),
         bitsPerComponent = 8u,
-        bitsPerPixel = 32u,
         bytesPerRow = (ir.width * 4).toULong(),
         space = colorSpace,
         bitmapInfo = bitmapInfo,
-        provider = provider,
-        decode = null,
-        shouldInterpolate = false,
-        intent = CGColorRenderingIntent.kCGRenderingIntentDefault,
-      ) ?: error("CGImageCreate failed")
-      CGDataProviderRelease(provider)
-      img
+      ) ?: error("CGBitmapContextCreate failed")
+
+      try {
+        CGBitmapContextCreateImage(ctx) ?: error("CGBitmapContextCreateImage failed")
+      } finally {
+        CGContextRelease(ctx)
+      }
     }
 
     val mutableData = CFDataCreateMutable(null, 0)
