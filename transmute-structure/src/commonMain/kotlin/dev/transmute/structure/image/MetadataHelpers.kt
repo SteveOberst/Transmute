@@ -584,7 +584,21 @@ internal fun parseIccProfile(data: ByteArray): IccProfileMetadata {
   val minute = u16be(32)
   val second = u16be(34)
   val creationDate = if (year > 0) {
-    dev.transmute.model.core.Iso8601String("%04d-%02d-%02dT%02d:%02d:%02d".format(year, month, day, hour, minute, second))
+    dev.transmute.model.core.Iso8601String(
+      buildString(19) {
+        append(year.toString().padStart(4, '0'))
+        append('-')
+        append(month.toString().padStart(2, '0'))
+        append('-')
+        append(day.toString().padStart(2, '0'))
+        append('T')
+        append(hour.toString().padStart(2, '0'))
+        append(':')
+        append(minute.toString().padStart(2, '0'))
+        append(':')
+        append(second.toString().padStart(2, '0'))
+      },
+    )
   } else {
     null
   }

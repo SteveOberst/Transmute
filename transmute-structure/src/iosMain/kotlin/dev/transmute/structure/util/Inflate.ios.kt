@@ -20,7 +20,7 @@ actual fun inflateBytes(data: ByteArray): ByteArray = memScoped {
     try {
         val chunks = mutableListOf<ByteArray>()
         val bufSize = 4096
-        val outBuf = allocArray<ByteVar>(bufSize)
+        val outBuf = allocArray<UByteVar>(bufSize)
 
         data.usePinned { pinned ->
             stream.next_in = pinned.addressOf(0).reinterpret()
@@ -39,7 +39,7 @@ actual fun inflateBytes(data: ByteArray): ByteArray = memScoped {
                 if (produced > 0) {
                     val chunk = ByteArray(produced)
                     for (i in 0 until produced) {
-                        chunk[i] = outBuf[i]
+                        chunk[i] = outBuf[i].toByte()
                     }
                     chunks.add(chunk)
                 }
