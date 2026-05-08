@@ -45,6 +45,9 @@ jobs:
           sudo rm -rf /opt/hostedtoolcache/CodeQL
           sudo mkdir -p "$ANDROID_AVD_HOME"
           sudo chown "$USER:$USER" "$ANDROID_AVD_HOME"
+          mkdir -p "$HOME/.android"
+          rm -rf "$HOME/.android/avd"
+          ln -s "$ANDROID_AVD_HOME" "$HOME/.android/avd"
           docker image prune --all --force || true
           df -h
 
