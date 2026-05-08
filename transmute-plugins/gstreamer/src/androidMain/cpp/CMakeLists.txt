@@ -6,15 +6,28 @@ project(gstreamer_bridge C)
 #
 # Set GSTREAMER_ROOT_ANDROID to the top-level GStreamer SDK directory,
 # e.g. /opt/gstreamer-android-universal-1.24.  Inside the SDK each
-# ABI has its own subdirectory (arm64-v8a, armeabi-v7a, x86, x86_64).
+# ABI has its own subdirectory. The SDK uses arm64/armv7/x86/x86_64,
+# which differs from the Android NDK ABI names for ARM targets.
 # ---
 
-if(NOT DEFINED ENV{GSTREAMER_ROOT_ANDROID})
+if(DEFINED GSTREAMER_ROOT_ANDROID AND NOT GSTREAMER_ROOT_ANDROID STREQUAL "")
+    set(GSTREAMER_ANDROID_SDK_ROOT "${GSTREAMER_ROOT_ANDROID}")
+elseif(DEFINED ENV{GSTREAMER_ROOT_ANDROID} AND NOT "$ENV{GSTREAMER_ROOT_ANDROID}" STREQUAL "")
+    set(GSTREAMER_ANDROID_SDK_ROOT "$ENV{GSTREAMER_ROOT_ANDROID}")
+else()
     message(WARNING "GSTREAMER_ROOT_ANDROID not set – native build will be skipped")
     return()
 endif()
 
-set(GSTREAMER_ROOT "$ENV{GSTREAMER_ROOT_ANDROID}/${ANDROID_ABI}")
+if(ANDROID_ABI STREQUAL "arm64-v8a")
+    set(GSTREAMER_ANDROID_ABI_DIR "arm64")
+elseif(ANDROID_ABI STREQUAL "armeabi-v7a")
+    set(GSTREAMER_ANDROID_ABI_DIR "armv7")
+else()
+    set(GSTREAMER_ANDROID_ABI_DIR "${ANDROID_ABI}")
+endif()
+
+set(GSTREAMER_ROOT "${GSTREAMER_ANDROID_SDK_ROOT}/${GSTREAMER_ANDROID_ABI_DIR}")
 
 if(NOT EXISTS "${GSTREAMER_ROOT}/include/gstreamer-1.0/gst/gst.h")
     message(WARNING "GStreamer headers not found at ${GSTREAMER_ROOT} – skipping native build")
