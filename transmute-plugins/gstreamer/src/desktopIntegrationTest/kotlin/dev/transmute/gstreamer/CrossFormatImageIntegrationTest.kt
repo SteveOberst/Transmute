@@ -36,6 +36,7 @@ class CrossFormatImageIntegrationTest : GStreamerTestBase() {
 
   @Test
   fun heif_to_png() = runTest {
+    assumeHeifImageEncodeSupported()
     val transmute = transmute {
       plugins {
         install(GStreamer)
@@ -68,6 +69,7 @@ class CrossFormatImageIntegrationTest : GStreamerTestBase() {
 
   @Test
   fun heif_to_jpeg() = runTest {
+    assumeHeifImageEncodeSupported()
     val transmute = transmute {
       plugins {
         install(GStreamer)
@@ -151,6 +153,7 @@ class CrossFormatImageIntegrationTest : GStreamerTestBase() {
 
   @Test
   fun avif_to_png() = runTest {
+    assumeAvifImageEncodeSupported()
     val transmute = transmute {
       plugins {
         install(GStreamer)
@@ -211,6 +214,7 @@ class CrossFormatImageIntegrationTest : GStreamerTestBase() {
 
   @Test
   fun jpeg_to_heif() = runTest {
+    assumeHeifImageEncodeSupported()
     val transmute = transmute {
       plugins {
         install(GStreamer)

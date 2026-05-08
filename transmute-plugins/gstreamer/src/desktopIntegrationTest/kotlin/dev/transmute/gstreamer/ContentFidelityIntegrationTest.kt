@@ -146,6 +146,7 @@ class ContentFidelityIntegrationTest : GStreamerTestBase() {
 
   @Test
   fun avi_dimensionRoundtrip_320x240() = runTest {
+    assumeLegacyAviEncodeSupported()
     assertVideoDimensions(GstAviCodec(), VideoFormat.Avi, 320, 240)
   }
 

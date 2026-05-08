@@ -142,6 +142,7 @@ class GStreamerVideoCodecIntegrationTest : GStreamerTestBase() {
 
   @Test
   fun avi_encodeAndDecode_roundTrip() = runTest {
+    assumeLegacyAviEncodeSupported()
     val video = GStreamerTestHelpers.syntheticVideo(
       width = 160,
       height = 120,

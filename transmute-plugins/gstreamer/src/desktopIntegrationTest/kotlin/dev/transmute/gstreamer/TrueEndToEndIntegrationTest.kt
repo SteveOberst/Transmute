@@ -188,6 +188,7 @@ class TrueEndToEndIntegrationTest : GStreamerTestBase() {
 
   @Test
   fun avi_realMedia_structureReaderAccepts() = runTest {
+    assumeLegacyAviEncodeSupported()
     val videoIR = GStreamerTestHelpers.syntheticVideo(
       width = 160,
       height = 120,
@@ -210,6 +211,7 @@ class TrueEndToEndIntegrationTest : GStreamerTestBase() {
 
   @Test
   fun heif_realMedia_structureReaderAccepts() = runTest {
+    assumeHeifImageEncodeSupported()
     val imageIR = GStreamerTestHelpers.solidColor(64, 64, r = 128, g = 64, b = 32)
     val heifBytes = GstImageEncoder().encode(imageIR, ImageFormat.Heif, HeifEncodeOptions(), ctx)
 
@@ -228,6 +230,7 @@ class TrueEndToEndIntegrationTest : GStreamerTestBase() {
 
   @Test
   fun avif_realMedia_structureReaderAccepts() = runTest {
+    assumeAvifImageEncodeSupported()
     val imageIR = GStreamerTestHelpers.solidColor(64, 64, r = 50, g = 100, b = 200)
     val avifBytes = GstImageEncoder().encode(imageIR, ImageFormat.Avif, HeifEncodeOptions(format = ImageFormat.Avif), ctx)
 
@@ -245,6 +248,7 @@ class TrueEndToEndIntegrationTest : GStreamerTestBase() {
 
   @Test
   fun transmuteApi_image_decodeTransformEncode() = runTest {
+    assumeHeifImageEncodeSupported()
     val transmute = transmute {
       plugins {
         install(GStreamer)

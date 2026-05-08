@@ -50,6 +50,7 @@ class GStreamerImageCodecIntegrationTest : GStreamerTestBase() {
 
   @Test
   fun heif_encodeAndDecode_roundTrip() = runTest {
+    assumeHeifImageEncodeSupported()
     val ir = GStreamerTestHelpers.solidColor(64, 64, r = 128, g = 64, b = 32)
     val encoded = encoder.encode(ir, ImageFormat.Heif, HeifEncodeOptions(), ctx)
     assertTrue(encoded.isNotEmpty(), "Encoded HEIF output must not be empty")
@@ -64,6 +65,7 @@ class GStreamerImageCodecIntegrationTest : GStreamerTestBase() {
 
   @Test
   fun heic_encodeAndDecode_roundTrip() = runTest {
+    assumeHeifImageEncodeSupported()
     val ir = GStreamerTestHelpers.solidColor(64, 64, r = 200, g = 100, b = 50)
     val encoded = encoder.encode(ir, ImageFormat.Heic, HeifEncodeOptions(format = ImageFormat.Heic), ctx)
     assertTrue(encoded.isNotEmpty(), "Encoded HEIC output must not be empty")
@@ -78,6 +80,7 @@ class GStreamerImageCodecIntegrationTest : GStreamerTestBase() {
 
   @Test
   fun avif_encodeAndDecode_roundTrip() = runTest {
+    assumeAvifImageEncodeSupported()
     val ir = GStreamerTestHelpers.solidColor(64, 64, r = 50, g = 100, b = 200)
     val encoded = encoder.encode(ir, ImageFormat.Avif, HeifEncodeOptions(format = ImageFormat.Avif), ctx)
     assertTrue(encoded.isNotEmpty(), "Encoded AVIF output must not be empty")
@@ -92,6 +95,7 @@ class GStreamerImageCodecIntegrationTest : GStreamerTestBase() {
 
   @Test
   fun heif_encode_producesIsoBmffOutput() = runTest {
+    assumeHeifImageEncodeSupported()
     val ir = GStreamerTestHelpers.solidColor(32, 32, r = 0, g = 0, b = 0)
     val encoded = encoder.encode(ir, ImageFormat.Heif, HeifEncodeOptions(), ctx)
     assertTrue(encoded.size > 12, "Output must have at least 12 bytes")

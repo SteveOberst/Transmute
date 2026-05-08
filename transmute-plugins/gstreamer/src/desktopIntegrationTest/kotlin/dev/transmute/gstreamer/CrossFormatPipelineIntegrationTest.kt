@@ -136,6 +136,7 @@ class CrossFormatPipelineIntegrationTest : GStreamerTestBase() {
    */
   @Test
   fun video_aviToMkv_containerSwap() = runTest {
+    assumeLegacyAviEncodeSupported()
     val video = GStreamerTestHelpers.syntheticVideo(
       width = 160,
       height = 120,

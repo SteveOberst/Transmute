@@ -114,6 +114,7 @@ class DetectFormatEndToEndIntegrationTest : GStreamerTestBase() {
 
   @Test
   fun detectFormat_heif() = runTest {
+    assumeHeifImageEncodeSupported()
     val imageIR = GStreamerTestHelpers.solidColor(64, 64, r = 128, g = 64, b = 32)
     val bytes = GstImageEncoder().encode(imageIR, ImageFormat.Heif, HeifEncodeOptions(), ctx)
 
@@ -125,6 +126,7 @@ class DetectFormatEndToEndIntegrationTest : GStreamerTestBase() {
 
   @Test
   fun detectFormat_avif() = runTest {
+    assumeAvifImageEncodeSupported()
     val imageIR = GStreamerTestHelpers.solidColor(64, 64, r = 50, g = 100, b = 200)
     val bytes = GstImageEncoder().encode(
       imageIR,
@@ -273,6 +275,7 @@ class DetectFormatEndToEndIntegrationTest : GStreamerTestBase() {
 
   @Test
   fun detectFormat_avi() = runTest {
+    assumeLegacyAviEncodeSupported()
     val videoIR = GStreamerTestHelpers.syntheticVideo(
       width = 160,
       height = 120,
