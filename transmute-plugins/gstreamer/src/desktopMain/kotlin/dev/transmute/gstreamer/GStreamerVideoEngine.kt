@@ -73,19 +73,21 @@ internal object GStreamerVideoEngine {
       0L
     }
 
-    // Parse video properties from caps string:
-    // "video/x-raw, width=(int)1920, height=(int)1080, framerate=(fraction)30/1"
-    val widthRegex = Regex("""width=\(int\)(\d+)""")
-    val heightRegex = Regex("""height=\(int\)(\d+)""")
-    val framerateRegex = Regex("""framerate=\(fraction\)(\d+)/(\d+)""")
-
-    val width = widthRegex.find(output)?.groupValues?.get(1)?.toIntOrNull() ?: 0
-    val height = heightRegex.find(output)?.groupValues?.get(1)?.toIntOrNull() ?: 0
-    val frameRate = framerateRegex.find(output)?.let {
-      val num = it.groupValues[1].toDouble()
-      val den = it.groupValues[2].toDouble()
-      if (den > 0) num / den else 0.0
-    } ?: 0.0
+    // Parse video properties from either caps strings or the human-readable
+    // gst-discoverer output used by newer Linux packages.
+    val width = firstIntMatch(output, listOf(
+      Regex("""width=\(int\)(\d+)""", RegexOption.IGNORE_CASE),
+      Regex("""Width:\s*(\d+)""", RegexOption.IGNORE_CASE),
+    ))
+    val height = firstIntMatch(output, listOf(
+      Regex("""height=\(int\)(\d+)""", RegexOption.IGNORE_CASE),
+      Regex("""Height:\s*(\d+)""", RegexOption.IGNORE_CASE),
+    ))
+    val frameRate = firstFractionMatch(output, listOf(
+      Regex("""framerate=\(fraction\)(\d+)/(\d+)""", RegexOption.IGNORE_CASE),
+      Regex("""Frame rate:\s*(\d+)/(\d+)""", RegexOption.IGNORE_CASE),
+      Regex("""Framerate:\s*(\d+)/(\d+)""", RegexOption.IGNORE_CASE),
+    ))
 
     val frameCount = if (frameRate > 0 && durationMs > 0) {
       ((durationMs * frameRate) / 1000.0).toLong().coerceAtLeast(1L)
@@ -94,14 +96,17 @@ internal object GStreamerVideoEngine {
     }
 
     // Parse audio properties
-    val audioRateRegex = Regex("""rate=\(int\)(\d+)""")
-    val audioChannelsRegex = Regex("""channels=\(int\)(\d+)""")
-
-    // Check if there's an audio stream (look for "audio" in topology)
-    val hasAudio = output.contains("audio:", ignoreCase = true) ||
+    val hasAudio = output.contains("audio #", ignoreCase = true) ||
+      output.contains("audio:", ignoreCase = true) ||
       output.contains("audio/", ignoreCase = true)
-    val audioSampleRate = audioRateRegex.find(output)?.groupValues?.get(1)?.toIntOrNull()
-    val audioChannels = audioChannelsRegex.find(output)?.groupValues?.get(1)?.toIntOrNull()
+    val audioSampleRate = firstIntMatch(output, listOf(
+      Regex("""rate=\(int\)(\d+)""", RegexOption.IGNORE_CASE),
+      Regex("""Sample rate:\s*(\d+)""", RegexOption.IGNORE_CASE),
+    )).takeIf { hasAudio }
+    val audioChannels = firstIntMatch(output, listOf(
+      Regex("""channels=\(int\)(\d+)""", RegexOption.IGNORE_CASE),
+      Regex("""Channels:\s*(\d+)""", RegexOption.IGNORE_CASE),
+    )).takeIf { hasAudio }
 
     return VideoInfo(
       width = width,
@@ -113,6 +118,24 @@ internal object GStreamerVideoEngine {
       audioSampleRate = audioSampleRate,
       audioChannels = audioChannels,
     )
+  }
+
+  private fun firstIntMatch(output: String, patterns: List<Regex>): Int {
+    for (pattern in patterns) {
+      val value = pattern.find(output)?.groupValues?.getOrNull(1)?.toIntOrNull()
+      if (value != null) return value
+    }
+    return 0
+  }
+
+  private fun firstFractionMatch(output: String, patterns: List<Regex>): Double {
+    for (pattern in patterns) {
+      val match = pattern.find(output) ?: continue
+      val numerator = match.groupValues.getOrNull(1)?.toDoubleOrNull() ?: continue
+      val denominator = match.groupValues.getOrNull(2)?.toDoubleOrNull() ?: continue
+      if (denominator > 0.0) return numerator / denominator
+    }
+    return 0.0
   }
 
   // ---

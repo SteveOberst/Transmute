@@ -165,6 +165,13 @@ object GStreamer : TransmutePlugin<GStreamerPluginConfig> {
 
     if (!GStreamerCodecInstaller.available) {
       val diag = resolverDiagnostics()
+      scope.diagnostics.report(
+        available = false,
+        reason = "GStreamer is not available",
+        details = buildMap {
+          if (diag.isNotBlank()) put("resolver", diag)
+        },
+      )
       if (diag.isNotBlank()) logger.warn("GStreamer resolution trace:\n$diag")
       logger.warn("GStreamer is not available -- skipping codec registration")
       return
@@ -175,6 +182,14 @@ object GStreamer : TransmutePlugin<GStreamerPluginConfig> {
     if (diag.isNotBlank()) logger.info("GStreamer resolution trace:\n$diag")
     val installInfo = resolvedInstallationInfo()
     if (installInfo.isNotBlank()) logger.info("GStreamer available [$installInfo]")
+    scope.diagnostics.report(
+      available = true,
+      reason = "GStreamer resolved successfully",
+      details = buildMap {
+        if (installInfo.isNotBlank()) put("installation", installInfo)
+        if (diag.isNotBlank()) put("resolver", diag)
+      },
+    )
 
     if (features.isEnabled(GStreamerFeature.AudioCodecs)) {
       GStreamerCodecInstaller.installAudioCodecs(scope.codecs.audio.decoders, scope.codecs.audio.encoders)

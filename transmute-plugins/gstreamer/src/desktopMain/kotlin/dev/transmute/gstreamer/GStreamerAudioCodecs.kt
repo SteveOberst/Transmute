@@ -35,7 +35,7 @@ internal class GstAacCodec : AudioCodec {
     return GStreamerAudioEngine.encode(
       ir,
       encoder,
-      tailElements = "! aacparse",
+      tailElements = "! aacparse ! audio/mpeg,mpegversion=4,stream-format=adts",
       ext = "aac",
       context = context,
     ).asBytes()
