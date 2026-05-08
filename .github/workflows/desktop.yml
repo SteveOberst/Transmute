@@ -30,7 +30,7 @@ concurrency:
 jobs:
   unit-tests:
     name: Unit Tests
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64]
     timeout-minutes: 15
 
     steps:
@@ -69,7 +69,7 @@ jobs:
 
   integration-tests:
     name: Integration Tests
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64]
     timeout-minutes: 30
 
     steps:
@@ -86,19 +86,10 @@ jobs:
         with:
           cache-read-only: ${{ github.event_name == 'pull_request' }}
 
-      - name: Install GStreamer and libheif
-        run: >
-          sudo apt-get update &&
-          sudo apt-get install -y
-          gstreamer1.0-tools
-          gstreamer1.0-plugins-base-apps
-          gstreamer1.0-plugins-good
-          gstreamer1.0-plugins-bad
-          gstreamer1.0-plugins-ugly
-          gstreamer1.0-libav
-          libheif-examples
-          libheif-plugin-x265
-          libheif-plugin-aomenc
+      - name: Verify desktop media dependencies
+        run: |
+          gst-inspect-1.0 --version
+          heif-enc --version
 
       - name: Run desktop integration tests
         run: >

@@ -12,6 +12,29 @@ object MagicBytes {
   private fun ByteArray.decodeSlice(startIndex: Int, length: Int): String =
     copyOfRange(startIndex, startIndex + length).decodeToString()
 
+  private fun String.normalizedEbmlDocType(): String =
+    trimEnd { it == '\u0000' || it.isISOControl() }
+
+  private fun readEbmlVint(data: ByteArray, offset: Int, limit: Int): Pair<Int, Int>? {
+    if (offset >= limit) return null
+    val first = data[offset].toInt() and 0xFF
+    if (first == 0) return null
+
+    var length = 1
+    var mask = 0x80
+    while (length <= 8 && first and mask == 0) {
+      length++
+      mask = mask shr 1
+    }
+    if (length > 8 || offset + length > limit) return null
+
+    var value = first and (mask - 1)
+    for (index in 1 until length) {
+      value = (value shl 8) or (data[offset + index].toInt() and 0xFF)
+    }
+    return value to length
+  }
+
   // -- ISO Base Media File Format (MP4 / MOV / M4A / HEIF / AVIF) ---
 
   /**
@@ -80,29 +103,18 @@ object MagicBytes {
    */
   fun ebmlDocType(data: ByteArray): String? {
     if (!isEbml(data)) return null
-    val searchEnd = minOf(data.size, 128)
-    var pos = 0
+    val (headerSize, headerSizeLen) = readEbmlVint(data, 4, data.size) ?: return null
+    val headerStart = 4 + headerSizeLen
+    val searchEnd = minOf(headerStart + headerSize, data.size, 4096)
+    var pos = headerStart
     while (pos + 3 < searchEnd) {
       // DocType element ID = 0x4282 (2 bytes)
       if (data[pos] == 0x42.toByte() && data[pos + 1] == 0x82.toByte()) {
-        pos += 2
-        if (pos >= searchEnd) return null
-        val first = data[pos].toInt() and 0xFF
-        val sizeLen = when {
-          first and 0x80 != 0 -> 1
-          first and 0x40 != 0 -> 2
-          else -> return null
-        }
-        val mask = 0xFF shr sizeLen
-        var size = (first and mask).toLong()
-        for (i in 1 until sizeLen) {
-          if (pos + i >= searchEnd) return null
-          size = (size shl 8) or (data[pos + i].toLong() and 0xFF)
-        }
-        pos += sizeLen
-        val end = minOf(pos + size.toInt(), data.size)
-        if (end <= pos) return null
-        return data.decodeSlice(pos, end - pos)
+        val (size, sizeLen) = readEbmlVint(data, pos + 2, searchEnd) ?: return null
+        val valueStart = pos + 2 + sizeLen
+        val valueEnd = minOf(valueStart + size, data.size)
+        if (valueEnd <= valueStart) return null
+        return data.decodeSlice(valueStart, valueEnd - valueStart).normalizedEbmlDocType()
       }
       pos++
     }

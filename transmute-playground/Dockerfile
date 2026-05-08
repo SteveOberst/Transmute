@@ -1,5 +1,5 @@
-# ── Stage 1: Build frontend (Next.js -> static export) ─────────────────────────
-FROM node:22-alpine AS frontend
+# Stage 1: Build frontend (Next.js -> static export)
+FROM docker.io/library/node:22-alpine AS frontend
 
 WORKDIR /app/web
 COPY transmute-playground/web/package.json transmute-playground/web/package-lock.json ./
@@ -7,8 +7,8 @@ RUN npm ci
 COPY transmute-playground/web/ .
 RUN npm run build
 
-# ── Stage 2: Build server (Ktor shadow JAR) ───────────────────────────────────
-FROM gradle:8.13-jdk17 AS build
+# Stage 2: Build server (Ktor shadow JAR)
+FROM docker.io/library/gradle:8.13-jdk17 AS build
 
 WORKDIR /app
 COPY . .
@@ -16,8 +16,8 @@ COPY . .
 # Build the server shadow JAR
 RUN gradle :transmute-playground:server:shadowJar --no-daemon --stacktrace
 
-# ── Stage 3: Runtime ─────────────────────────────────────────────────────────
-FROM eclipse-temurin:17-jre
+# Stage 3: Runtime
+FROM docker.io/library/eclipse-temurin:17-jre
 
 # Install GStreamer runtime (needed for codec operations)
 RUN apt-get update && \

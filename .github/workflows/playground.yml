@@ -12,7 +12,7 @@ on:
 jobs:
   build-frontend:
     name: Build Next.js Frontend
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64]
     defaults:
       run:
         working-directory: transmute-playground/web
@@ -36,7 +36,7 @@ jobs:
 
   build-server:
     name: Build Ktor Server
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64]
     steps:
       - uses: actions/checkout@v4
 
@@ -52,15 +52,17 @@ jobs:
 
   docker:
     name: Docker Build
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64]
     needs: [build-frontend, build-server]
     if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build Docker image
+      - name: Build container image
         run: |
-          docker build \
+          export BUILDAH_ISOLATION=chroot
+          buildah bud \
+            --format docker \
             -f transmute-playground/Dockerfile \
             -t transmute-playground:${{ github.sha }} \
             .

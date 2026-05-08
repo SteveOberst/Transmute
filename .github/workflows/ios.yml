@@ -82,8 +82,6 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           cache-read-only: ${{ github.event_name == 'pull_request' }}
-        with:
-          cache-read-only: ${{ github.event_name == 'pull_request' }}
 
       - name: Download GStreamer iOS SDK
         run: >
