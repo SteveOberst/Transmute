@@ -86,22 +86,59 @@ jobs:
         run: |
           set -euo pipefail
 
+          log() {
+            printf '[%s] %s\n' "$(date +%H:%M:%S)" "$*"
+          }
+
+          log 'Accepting Android SDK licenses'
           set +o pipefail
           yes | sdkmanager --licenses > /dev/null
           set -o pipefail
+          log 'Installing Android SDK packages'
           sdkmanager --install 'build-tools;36.0.0' platform-tools 'platforms;android-31' 'system-images;android-31;default;x86_64' emulator > /dev/null
 
           AVD_NAME=test
           AVD_DIR="$HOME/.android/avd/${AVD_NAME}.avd"
           EMULATOR_LOG="$RUNNER_TEMP/android-emulator.log"
 
+          dump_emulator_log() {
+            if [ -f "$EMULATOR_LOG" ]; then
+              echo '::group::Android emulator log tail'
+              tail -n 200 "$EMULATOR_LOG" || true
+              echo '::endgroup::'
+            fi
+          }
+
+          dump_device_state() {
+            echo '::group::Android device state'
+            adb devices -l || true
+            adb -s emulator-5554 shell getprop sys.boot_completed || true
+            adb -s emulator-5554 shell service check package || true
+            adb -s emulator-5554 shell getprop init.svc.bootanim || true
+            echo '::endgroup::'
+          }
+
           rm -rf "$AVD_DIR"
+          log 'Creating Android test AVD'
           echo no | avdmanager create avd --force -n "$AVD_NAME" --package 'system-images;android-31;default;x86_64'
           printf 'hw.cpu.ncore=2\ndisk.dataPartition.size=4096M\n' >> "$AVD_DIR/config.ini"
 
           cleanup() {
+            local status=$?
+            if [ "${status}" -ne 0 ]; then
+              log "Android instrumented test step failed with status ${status}"
+              dump_device_state
+              dump_emulator_log
+            fi
+            if [ -n "${EMULATOR_TAIL_PID:-}" ]; then
+              kill "$EMULATOR_TAIL_PID" >/dev/null 2>&1 || true
+              wait "$EMULATOR_TAIL_PID" >/dev/null 2>&1 || true
+            fi
             adb -s emulator-5554 emu kill >/dev/null 2>&1 || true
-            wait "$EMULATOR_PID" >/dev/null 2>&1 || true
+            if [ -n "${EMULATOR_PID:-}" ]; then
+              wait "$EMULATOR_PID" >/dev/null 2>&1 || true
+            fi
+            return "$status"
           }
           trap cleanup EXIT
 
@@ -116,34 +153,48 @@ jobs:
           )
 
           if [ ! -r /dev/kvm ] || [ ! -w /dev/kvm ]; then
+            log 'KVM not accessible; forcing software acceleration'
             EMULATOR_ARGS+=( -accel off )
+          else
+            log 'KVM accessible; using hardware acceleration'
           fi
 
+          : > "$EMULATOR_LOG"
+          log 'Launching emulator'
           emulator "${EMULATOR_ARGS[@]}" > "$EMULATOR_LOG" 2>&1 &
           EMULATOR_PID=$!
+          tail -n +1 -F "$EMULATOR_LOG" 2>/dev/null | sed -u 's/^/[emulator] /' &
+          EMULATOR_TAIL_PID=$!
 
+          log 'Waiting for adb device'
           adb wait-for-device
-          until adb -s emulator-5554 shell getprop sys.boot_completed 2>/dev/null | tr -d '\r' | grep -q '^1$'; do
-            echo "Waiting for sys.boot_completed..."
+          adb devices -l || true
+
+          until boot_completed="$(adb -s emulator-5554 shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" && [ "$boot_completed" = '1' ]; do
+            log "Waiting for sys.boot_completed... current='${boot_completed:-}'"
             sleep 5
           done
+          log 'sys.boot_completed=1'
 
           adb -s emulator-5554 shell input keyevent 82 >/dev/null 2>&1 || true
 
-          until adb -s emulator-5554 shell service check package 2>/dev/null | tr -d '\r' | grep -q 'Service package: found'; do
-            echo "Waiting for package manager service..."
+          until package_service="$(adb -s emulator-5554 shell service check package 2>/dev/null | tr -d '\r')" && echo "$package_service" | grep -q 'Service package: found'; do
+            log "Waiting for package manager service... current='${package_service:-}'"
             sleep 5
           done
+          log 'Package manager service is available'
 
           until adb -s emulator-5554 shell cmd package path android >/dev/null 2>&1; do
-            echo "Waiting for package manager commands..."
+            log 'Waiting for package manager commands...'
             sleep 5
           done
+          log 'Package manager commands are available'
 
           adb -s emulator-5554 shell settings put global window_animation_scale 0.0 >/dev/null 2>&1 || true
           adb -s emulator-5554 shell settings put global transition_animation_scale 0.0 >/dev/null 2>&1 || true
           adb -s emulator-5554 shell settings put global animator_duration_scale 0.0 >/dev/null 2>&1 || true
 
+          log 'Running Android connected tests'
           ./gradlew --no-daemon \
             :transmute-audio:connectedDebugAndroidTest \
             :transmute-image:connectedDebugAndroidTest \
