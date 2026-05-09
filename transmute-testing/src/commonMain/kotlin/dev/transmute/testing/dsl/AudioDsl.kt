@@ -380,7 +380,7 @@ internal data class PinkNoiseNode(val amp: Float, val seed: Long) : SignalNode {
     var sum = rv.sum()
     val out = FloatArray(sampleCount)
     for (i in 0 until sampleCount) {
-      val row = if (i == 0) 0 else Integer.numberOfTrailingZeros(i) % rows
+      val row = if (i == 0) 0 else i.countTrailingZeroBits() % rows
       sum -= rv[row]
       rv[row] = rng.nextFloat() * 2f - 1f
       sum += rv[row]

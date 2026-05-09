@@ -209,7 +209,7 @@ object AudioAssertions {
     val ratio = energyRatio(original, decoded)
     check(!ratio.isNaN()) { "Original has zero energy — cannot compute fidelity ratio" }
     check(ratio in minEnergyRatio..maxEnergyRatio) {
-      "Energy ratio %.3f is outside expected range [%.3f, %.3f]".format(ratio, minEnergyRatio, maxEnergyRatio)
+      "Energy ratio $ratio is outside expected range [$minEnergyRatio, $maxEnergyRatio]"
     }
   }
 }

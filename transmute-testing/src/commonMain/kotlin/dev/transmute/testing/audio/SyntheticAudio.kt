@@ -211,7 +211,7 @@ object SyntheticAudio {
 
     for (i in 0 until monoSamples) {
       // Update one row per sample (determined by trailing zeros of index)
-      val trailingZeros = if (i == 0) 0 else Integer.numberOfTrailingZeros(i) % rows
+      val trailingZeros = if (i == 0) 0 else i.countTrailingZeroBits() % rows
       runningSum -= rowValues[trailingZeros]
       rowValues[trailingZeros] = rng.nextFloat() * 2f - 1f
       runningSum += rowValues[trailingZeros]

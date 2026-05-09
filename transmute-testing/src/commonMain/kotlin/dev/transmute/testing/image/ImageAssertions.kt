@@ -315,7 +315,7 @@ object ImageAssertions {
   fun assertPsnr(a: ImageIR, b: ImageIR, minDB: Double) {
     val value = psnr(a, b)
     check(value >= minDB) {
-      "PSNR ${String.format("%.2f", value)} dB is below minimum $minDB dB"
+      "PSNR $value dB is below minimum $minDB dB"
     }
   }
 
@@ -325,7 +325,7 @@ object ImageAssertions {
   fun assertMaeBelow(a: ImageIR, b: ImageIR, maxMae: Double) {
     val value = meanAbsoluteError(a, b)
     check(value <= maxMae) {
-      "MAE ${String.format("%.4f", value)} exceeds maximum $maxMae"
+      "MAE $value exceeds maximum $maxMae"
     }
   }
 
@@ -407,7 +407,7 @@ object ImageAssertions {
     val totalPixels = a.width.toLong() * a.height
     val percent = if (totalPixels == 0L) 0.0 else diffCount * 100.0 / totalPixels
     check(percent <= maxPercent) {
-      "%.2f%% of pixels differ (threshold=$threshold), max allowed ${maxPercent}%%".format(percent)
+      "$percent% of pixels differ (threshold=$threshold), max allowed ${maxPercent}%"
     }
   }
 
