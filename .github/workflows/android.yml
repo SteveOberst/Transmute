@@ -115,7 +115,7 @@ jobs:
             -no-boot-anim
           )
 
-          if [ ! -e /dev/kvm ]; then
+          if [ ! -r /dev/kvm ] || [ ! -w /dev/kvm ]; then
             EMULATOR_ARGS+=( -accel off )
           fi
 

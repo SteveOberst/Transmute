@@ -46,12 +46,30 @@ set(GLIB_CONFIG_INC "${GSTREAMER_ROOT}/lib/glib-2.0/include")
 # Find prebuilt GStreamer libraries
 # ---
 
-find_library(LIB_GST         gstreamer-1.0   PATHS "${GSTREAMER_ROOT}/lib" NO_DEFAULT_PATH)
-find_library(LIB_GSTAPP      gstapp-1.0      PATHS "${GSTREAMER_ROOT}/lib" NO_DEFAULT_PATH)
-find_library(LIB_GSTBASE     gstbase-1.0     PATHS "${GSTREAMER_ROOT}/lib" NO_DEFAULT_PATH)
-find_library(LIB_GSTPBUTILS  gstpbutils-1.0  PATHS "${GSTREAMER_ROOT}/lib" NO_DEFAULT_PATH)
-find_library(LIB_GOBJECT     gobject-2.0     PATHS "${GSTREAMER_ROOT}/lib" NO_DEFAULT_PATH)
-find_library(LIB_GLIB        glib-2.0        PATHS "${GSTREAMER_ROOT}/lib" NO_DEFAULT_PATH)
+function(resolve_gstreamer_library out_var library_name)
+    set(static_library "${GSTREAMER_ROOT}/lib/lib${library_name}.a")
+    set(shared_library "${GSTREAMER_ROOT}/lib/lib${library_name}.so")
+
+    if(EXISTS "${static_library}")
+        set(${out_var} "${static_library}" PARENT_SCOPE)
+    elseif(EXISTS "${shared_library}")
+        set(${out_var} "${shared_library}" PARENT_SCOPE)
+    else()
+        set(${out_var} "${out_var}-NOTFOUND" PARENT_SCOPE)
+    endif()
+endfunction()
+
+resolve_gstreamer_library(LIB_GST        "gstreamer-1.0")
+resolve_gstreamer_library(LIB_GSTAPP     "gstapp-1.0")
+resolve_gstreamer_library(LIB_GSTBASE    "gstbase-1.0")
+resolve_gstreamer_library(LIB_GSTPBUTILS "gstpbutils-1.0")
+resolve_gstreamer_library(LIB_GOBJECT    "gobject-2.0")
+resolve_gstreamer_library(LIB_GLIB       "glib-2.0")
+resolve_gstreamer_library(LIB_GMODULE    "gmodule-2.0")
+resolve_gstreamer_library(LIB_INTL       "intl")
+resolve_gstreamer_library(LIB_PCRE2      "pcre2-8")
+resolve_gstreamer_library(LIB_ICONV      "iconv")
+resolve_gstreamer_library(LIB_FFI        "ffi")
 
 # ---
 # JNI bridge library
@@ -72,6 +90,11 @@ target_link_libraries(gstreamer_bridge
     ${LIB_GSTPBUTILS}
     ${LIB_GOBJECT}
     ${LIB_GLIB}
+    ${LIB_GMODULE}
+    ${LIB_INTL}
+    ${LIB_PCRE2}
+    ${LIB_ICONV}
+    ${LIB_FFI}
     android
     log
 )
