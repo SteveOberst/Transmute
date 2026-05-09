@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1-beta.0](https://github.com/SteveOberst/Transmute/compare/v0.1.0-beta.0...v0.1.1-beta.0) (2026-05-09)
+
+
+### Bug Fixes
+
+* use multiplatform-safe helpers in transmute-testing ([6516b4d](https://github.com/SteveOberst/Transmute/commit/6516b4d3e3200fee8bc19554d1cc236faeb1901c))
+
 ## 0.1.0-beta.0 (2026-05-09)
 
 
