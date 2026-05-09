@@ -7,7 +7,9 @@
       "package-name": "transmute",
       "component": "",
       "bump-minor-pre-major": true,
-      "bump-patch-for-minor-pre-major": false,
+      "bump-patch-for-minor-pre-major": true,
+      "prerelease": true,
+      "prerelease-type": "beta",
       "extra-files": [
         {
           "type": "generic",
