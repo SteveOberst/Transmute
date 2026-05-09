@@ -51,6 +51,8 @@ jobs:
             echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
             sudo udevadm control --reload-rules
             sudo udevadm trigger --name-match=kvm
+            sudo chmod 0666 /dev/kvm || true
+            ls -l /dev/kvm || true
           else
             echo "/dev/kvm not present; android-emulator-runner will fall back automatically."
           fi
@@ -151,9 +153,18 @@ jobs:
             exit "$license_status"
           fi
 
-          log 'Installing Android SDK packages'
+          SYSTEM_IMAGE_PACKAGE='system-images;android-31;default;x86_64'
+
+          if [ ! -r /dev/kvm ] || [ ! -w /dev/kvm ]; then
+            log 'KVM is not accessible before SDK install; x86_64 emulator boot is unlikely to succeed without hardware acceleration'
+            ls -l /dev/kvm || true
+          else
+            log 'KVM accessible before SDK install; using x86_64 system image'
+          fi
+
+          log "Installing Android SDK packages for $SYSTEM_IMAGE_PACKAGE"
           set +e
-          timeout --foreground 1200 "$SDKMANAGER_BIN" --install 'build-tools;36.0.0' platform-tools 'platforms;android-31' 'system-images;android-31;default;x86_64' emulator 2>&1 | sed -u 's/^/[sdkmanager] /'
+          timeout --foreground 1200 "$SDKMANAGER_BIN" --install 'build-tools;36.0.0' platform-tools 'platforms;android-31' "$SYSTEM_IMAGE_PACKAGE" emulator 2>&1 | sed -u 's/^/[sdkmanager] /'
           sdk_install_status=$?
           set -e
           if [ "$sdk_install_status" -ne 0 ]; then
@@ -183,9 +194,9 @@ jobs:
           }
 
           rm -rf "$AVD_DIR"
-          log 'Creating Android test AVD'
+          log "Creating Android test AVD from $SYSTEM_IMAGE_PACKAGE"
           set +e
-          timeout --foreground 300 bash -c 'echo no | "$1" create avd --force -n "$2" --package "$3"' _ "$AVDMANAGER_BIN" "$AVD_NAME" 'system-images;android-31;default;x86_64'
+          timeout --foreground 300 bash -c 'echo no | "$1" create avd --force -n "$2" --package "$3"' _ "$AVDMANAGER_BIN" "$AVD_NAME" "$SYSTEM_IMAGE_PACKAGE"
           avd_status=$?
           set -e
           if [ "$avd_status" -ne 0 ]; then
@@ -224,11 +235,11 @@ jobs:
           )
 
           if [ ! -r /dev/kvm ] || [ ! -w /dev/kvm ]; then
-            log 'KVM not accessible; forcing software acceleration'
-            EMULATOR_ARGS+=( -accel off )
-          else
-            log 'KVM accessible; using hardware acceleration'
+            log 'KVM is still not accessible after setup; refusing to run the x86_64 emulator without hardware acceleration'
+            ls -l /dev/kvm || true
+            exit 1
           fi
+          log 'KVM accessible; using hardware acceleration'
 
           : > "$EMULATOR_LOG"
           log "Launching emulator via $EMULATOR_BIN"
