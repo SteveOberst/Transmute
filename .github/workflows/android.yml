@@ -90,6 +90,28 @@ jobs:
             printf '[%s] %s\n' "$(date +%H:%M:%S)" "$*"
           }
 
+          resolve_android_binary() {
+            local relative_path=$1
+            local fallback_name=$2
+
+            if [ -n "${ANDROID_SDK_ROOT:-}" ] && [ -x "${ANDROID_SDK_ROOT}/${relative_path}" ]; then
+              printf '%s\n' "${ANDROID_SDK_ROOT}/${relative_path}"
+              return 0
+            fi
+
+            if [ -n "${ANDROID_HOME:-}" ] && [ -x "${ANDROID_HOME}/${relative_path}" ]; then
+              printf '%s\n' "${ANDROID_HOME}/${relative_path}"
+              return 0
+            fi
+
+            if command -v "$fallback_name" >/dev/null 2>&1; then
+              command -v "$fallback_name"
+              return 0
+            fi
+
+            return 1
+          }
+
           ensure_emulator_alive() {
             if ! kill -0 "$EMULATOR_PID" >/dev/null 2>&1; then
               local status
@@ -102,12 +124,42 @@ jobs:
             fi
           }
 
+          SDKMANAGER_BIN="$(resolve_android_binary 'cmdline-tools/latest/bin/sdkmanager' 'sdkmanager' || true)"
+          AVDMANAGER_BIN="$(resolve_android_binary 'cmdline-tools/latest/bin/avdmanager' 'avdmanager' || true)"
+          ADB_BIN="$(resolve_android_binary 'platform-tools/adb' 'adb' || true)"
+          EMULATOR_BIN="$(resolve_android_binary 'emulator/emulator' 'emulator' || true)"
+
+          if [ -z "$SDKMANAGER_BIN" ] || [ -z "$AVDMANAGER_BIN" ] || [ -z "$ADB_BIN" ] || [ -z "$EMULATOR_BIN" ]; then
+            log 'Required Android SDK tools are missing'
+            log "sdkmanager='${SDKMANAGER_BIN:-}' avdmanager='${AVDMANAGER_BIN:-}' adb='${ADB_BIN:-}' emulator='${EMULATOR_BIN:-}'"
+            log "ANDROID_SDK_ROOT='${ANDROID_SDK_ROOT:-}' ANDROID_HOME='${ANDROID_HOME:-}'"
+            exit 1
+          fi
+
+          log "Using sdkmanager at $SDKMANAGER_BIN"
+          log "Using avdmanager at $AVDMANAGER_BIN"
+          log "Using adb at $ADB_BIN"
+          log "Using emulator at $EMULATOR_BIN"
+
           log 'Accepting Android SDK licenses'
-          set +o pipefail
-          yes | sdkmanager --licenses > /dev/null
-          set -o pipefail
+          set +e
+          timeout --foreground 300 bash -c 'set +o pipefail; yes | "$1" --licenses > /dev/null' _ "$SDKMANAGER_BIN"
+          license_status=$?
+          set -e
+          if [ "$license_status" -ne 0 ]; then
+            log "Android SDK license acceptance failed with status ${license_status}"
+            exit "$license_status"
+          fi
+
           log 'Installing Android SDK packages'
-          sdkmanager --install 'build-tools;36.0.0' platform-tools 'platforms;android-31' 'system-images;android-31;default;x86_64' emulator > /dev/null
+          set +e
+          timeout --foreground 1200 "$SDKMANAGER_BIN" --install 'build-tools;36.0.0' platform-tools 'platforms;android-31' 'system-images;android-31;default;x86_64' emulator 2>&1 | sed -u 's/^/[sdkmanager] /'
+          sdk_install_status=$?
+          set -e
+          if [ "$sdk_install_status" -ne 0 ]; then
+            log "Android SDK package installation failed with status ${sdk_install_status}"
+            exit "$sdk_install_status"
+          fi
 
           AVD_NAME=test
           AVD_DIR="$HOME/.android/avd/${AVD_NAME}.avd"
@@ -123,16 +175,23 @@ jobs:
 
           dump_device_state() {
             echo '::group::Android device state'
-            adb devices -l || true
-            adb -s emulator-5554 shell getprop sys.boot_completed || true
-            adb -s emulator-5554 shell service check package || true
-            adb -s emulator-5554 shell getprop init.svc.bootanim || true
+            "$ADB_BIN" devices -l || true
+            "$ADB_BIN" -s emulator-5554 shell getprop sys.boot_completed || true
+            "$ADB_BIN" -s emulator-5554 shell service check package || true
+            "$ADB_BIN" -s emulator-5554 shell getprop init.svc.bootanim || true
             echo '::endgroup::'
           }
 
           rm -rf "$AVD_DIR"
           log 'Creating Android test AVD'
-          echo no | avdmanager create avd --force -n "$AVD_NAME" --package 'system-images;android-31;default;x86_64'
+          set +e
+          timeout --foreground 300 bash -c 'echo no | "$1" create avd --force -n "$2" --package "$3"' _ "$AVDMANAGER_BIN" "$AVD_NAME" 'system-images;android-31;default;x86_64'
+          avd_status=$?
+          set -e
+          if [ "$avd_status" -ne 0 ]; then
+            log "Android AVD creation failed with status ${avd_status}"
+            exit "$avd_status"
+          fi
           printf 'hw.cpu.ncore=2\ndisk.dataPartition.size=4096M\n' >> "$AVD_DIR/config.ini"
 
           cleanup() {
@@ -146,7 +205,7 @@ jobs:
               kill "$EMULATOR_TAIL_PID" >/dev/null 2>&1 || true
               wait "$EMULATOR_TAIL_PID" >/dev/null 2>&1 || true
             fi
-            adb -s emulator-5554 emu kill >/dev/null 2>&1 || true
+            "$ADB_BIN" -s emulator-5554 emu kill >/dev/null 2>&1 || true
             if [ -n "${EMULATOR_PID:-}" ]; then
               wait "$EMULATOR_PID" >/dev/null 2>&1 || true
             fi
@@ -171,21 +230,6 @@ jobs:
             log 'KVM accessible; using hardware acceleration'
           fi
 
-          EMULATOR_BIN=''
-          if [ -n "${ANDROID_SDK_ROOT:-}" ] && [ -x "${ANDROID_SDK_ROOT}/emulator/emulator" ]; then
-            EMULATOR_BIN="${ANDROID_SDK_ROOT}/emulator/emulator"
-          elif [ -n "${ANDROID_HOME:-}" ] && [ -x "${ANDROID_HOME}/emulator/emulator" ]; then
-            EMULATOR_BIN="${ANDROID_HOME}/emulator/emulator"
-          elif command -v emulator >/dev/null 2>&1; then
-            EMULATOR_BIN="$(command -v emulator)"
-          fi
-
-          if [ -z "$EMULATOR_BIN" ]; then
-            log 'Android emulator binary not found on PATH or under ANDROID_SDK_ROOT/ANDROID_HOME'
-            log "ANDROID_SDK_ROOT='${ANDROID_SDK_ROOT:-}' ANDROID_HOME='${ANDROID_HOME:-}'"
-            exit 1
-          fi
-
           : > "$EMULATOR_LOG"
           log "Launching emulator via $EMULATOR_BIN"
           "$EMULATOR_BIN" "${EMULATOR_ARGS[@]}" > "$EMULATOR_LOG" 2>&1 &
@@ -197,47 +241,68 @@ jobs:
           ensure_emulator_alive
 
           log 'Waiting for adb device'
-          if ! timeout 300 adb wait-for-device; then
+          if ! timeout --foreground 300 "$ADB_BIN" wait-for-device; then
             ensure_emulator_alive
             log 'Timed out waiting for adb device'
             exit 1
           fi
-          adb devices -l || true
+          "$ADB_BIN" devices -l || true
 
-          until boot_completed="$(adb -s emulator-5554 shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" && [ "$boot_completed" = '1' ]; do
+          boot_deadline=$((SECONDS + 600))
+
+          until boot_completed="$($ADB_BIN -s emulator-5554 shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" && [ "$boot_completed" = '1' ]; do
             ensure_emulator_alive
+            if [ "$SECONDS" -ge "$boot_deadline" ]; then
+              log 'Timed out waiting for sys.boot_completed'
+              exit 1
+            fi
             log "Waiting for sys.boot_completed... current='${boot_completed:-}'"
             sleep 5
           done
           log 'sys.boot_completed=1'
 
-          adb -s emulator-5554 shell input keyevent 82 >/dev/null 2>&1 || true
+          "$ADB_BIN" -s emulator-5554 shell input keyevent 82 >/dev/null 2>&1 || true
 
-          until package_service="$(adb -s emulator-5554 shell service check package 2>/dev/null | tr -d '\r')" && echo "$package_service" | grep -q 'Service package: found'; do
+          package_service_deadline=$((SECONDS + 300))
+
+          until package_service="$($ADB_BIN -s emulator-5554 shell service check package 2>/dev/null | tr -d '\r')" && echo "$package_service" | grep -q 'Service package: found'; do
             ensure_emulator_alive
+            if [ "$SECONDS" -ge "$package_service_deadline" ]; then
+              log 'Timed out waiting for package manager service'
+              exit 1
+            fi
             log "Waiting for package manager service... current='${package_service:-}'"
             sleep 5
           done
           log 'Package manager service is available'
 
-          until adb -s emulator-5554 shell cmd package path android >/dev/null 2>&1; do
+          package_command_deadline=$((SECONDS + 300))
+
+          until "$ADB_BIN" -s emulator-5554 shell cmd package path android >/dev/null 2>&1; do
             ensure_emulator_alive
+            if [ "$SECONDS" -ge "$package_command_deadline" ]; then
+              log 'Timed out waiting for package manager commands'
+              exit 1
+            fi
             log 'Waiting for package manager commands...'
             sleep 5
           done
           log 'Package manager commands are available'
 
-          adb -s emulator-5554 shell settings put global window_animation_scale 0.0 >/dev/null 2>&1 || true
-          adb -s emulator-5554 shell settings put global transition_animation_scale 0.0 >/dev/null 2>&1 || true
-          adb -s emulator-5554 shell settings put global animator_duration_scale 0.0 >/dev/null 2>&1 || true
+          "$ADB_BIN" -s emulator-5554 shell settings put global window_animation_scale 0.0 >/dev/null 2>&1 || true
+          "$ADB_BIN" -s emulator-5554 shell settings put global transition_animation_scale 0.0 >/dev/null 2>&1 || true
+          "$ADB_BIN" -s emulator-5554 shell settings put global animator_duration_scale 0.0 >/dev/null 2>&1 || true
 
           log 'Running Android connected tests'
-          ./gradlew --no-daemon \
+          if ! timeout --foreground 3600 ./gradlew --no-daemon \
             :transmute-audio:connectedDebugAndroidTest \
             :transmute-image:connectedDebugAndroidTest \
             :transmute-video:connectedDebugAndroidTest \
             :transmute-plugins:gstreamer:connectedDebugAndroidTest \
-            -Pkotlin.native.enabled=false
+            -Pkotlin.native.enabled=false; then
+            log 'Android connected tests failed or timed out'
+            exit 1
+          fi
 
       - name: Upload test reports
         if: always()

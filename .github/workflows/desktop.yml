@@ -4,6 +4,7 @@ on:
   pull_request:
     branches: [main]
     paths:
+      - '.github/workflows/android.yml'
       - '.github/workflows/desktop.yml'
       - 'build.gradle.kts'
       - 'buildSrc/**'
