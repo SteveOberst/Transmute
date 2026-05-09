@@ -91,18 +91,33 @@ jobs:
           disable-linux-hw-accel: auto
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           disable-animations: true
-          script: >
-            ./gradlew --no-daemon
-            :transmute-audio:connectedDebugAndroidTest
-            :transmute-image:connectedDebugAndroidTest
-            :transmute-video:connectedDebugAndroidTest
-            :transmute-plugins:gstreamer:connectedDebugAndroidTest
-            -Pkotlin.native.enabled=false
+          script: |
+            adb wait-for-device
+            until [ "$(adb shell getprop sys.boot_completed | tr -d '\r')" = "1" ]; do
+              echo "Waiting for sys.boot_completed..."
+              sleep 2
+            done
+            until adb shell service check package 2>/dev/null | tr -d '\r' | grep -q "Service package: found"; do
+              echo "Waiting for package manager service..."
+              sleep 5
+            done
+            until adb shell cmd package path android >/dev/null 2>&1; do
+              echo "Waiting for package manager commands..."
+              sleep 5
+            done
+            ./gradlew --no-daemon \
+              :transmute-audio:connectedDebugAndroidTest \
+              :transmute-image:connectedDebugAndroidTest \
+              :transmute-video:connectedDebugAndroidTest \
+              :transmute-plugins:gstreamer:connectedDebugAndroidTest \
+              -Pkotlin.native.enabled=false
 
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: android-integration-reports-${{ github.run_id }}
-          path: '**/build/reports/tests/'
+          path: |
+            **/build/reports/androidTests/**
+            **/build/reports/tests/**
           retention-days: 7
