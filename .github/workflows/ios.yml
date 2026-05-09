@@ -28,9 +28,7 @@ concurrency:
 jobs:
   integration-tests:
     name: Integration Tests (Simulator)
-    # WarpBuild M4 Pro macOS ARM64 (6 vCPU, 22GB RAM, 120GB SSD). Drop-in for
-    # GitHub-hosted macos-15 (also ARM64) and runs iosSimulatorArm64Test.
-    runs-on: warp-macos-latest-arm64-6x
+    runs-on: macos-15
     timeout-minutes: 45
 
     steps:
@@ -68,8 +66,8 @@ jobs:
 
   gstreamer-integration-tests:
     name: Integration Tests (GStreamer Simulator)
-    # GStreamer iOS framework tests target iosX64 (Intel simulator). WarpBuild
-    # only offers ARM64 macOS, so this job stays on GitHub-hosted macos-15-intel.
+    # GStreamer iOS framework only ships an x86_64 simulator slice, so this
+    # job has to run on an Intel macOS runner.
     runs-on: macos-15-intel
     timeout-minutes: 45
 

@@ -28,16 +28,31 @@ concurrency:
 jobs:
   integration-tests:
     name: Integration Tests
-    # WarpBuild Ubuntu 24.04 x86-64 (4 vCPU, 16GB RAM, 150GB SSD). Drop-in for
-    # ubuntu-latest with /dev/kvm available and enough disk to hold the ~14GB
-    # GStreamer Android universal SDK that exhausted the GitHub-hosted runner.
-    runs-on: warp-ubuntu-latest-x64-4x
+    # GitHub-hosted Ubuntu runner: /dev/kvm is available so the Android emulator
+    # can use hardware acceleration. The self-hosted Linux runner is a managed
+    # KVM guest whose hypervisor does not expose svm/vmx, so /dev/kvm is
+    # missing there and pure software emulation does not make forward progress.
+    runs-on: ubuntu-latest
     timeout-minutes: 75
     env:
       ANDROID_AVD_HOME: ${{ github.workspace }}/.android/avd
 
     steps:
       - uses: actions/checkout@v4
+
+      # The GStreamer Android universal SDK extracts to ~14 GB while
+      # ubuntu-latest only has ~16 GB free on /. Reclaim space by removing
+      # preinstalled toolchains we do not need before downloading the SDK.
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
+        with:
+          tool-cache: false
+          android: false
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: false
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4

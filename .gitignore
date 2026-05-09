@@ -23,7 +23,16 @@ local.properties
 *.aab
 *.dex
 *.class
+
+# Misc local artifacts
 nul
 tmp_jump3r/
 de/
 /TODO/
+
+# Transient CI / scripting outputs (gh api responses, downloaded run artifacts, etc.)
+/ci-artifacts/
+/run.json
+/runs.json
+/*-run.json
+
