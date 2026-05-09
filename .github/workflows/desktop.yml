@@ -100,7 +100,11 @@ jobs:
             libgstreamer1.0-dev \
             libgstreamer-plugins-base1.0-dev \
             libheif-examples \
-            libheif-dev
+            libheif-dev \
+            libheif-plugin-aomenc \
+            libheif-plugin-aomdec \
+            libheif-plugin-libde265 \
+            libheif-plugin-x265
 
       - name: Verify desktop media dependencies
         run: |
