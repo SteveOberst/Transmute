@@ -29,7 +29,7 @@ jobs:
   integration-tests:
     name: Integration Tests
     runs-on: [self-hosted, linux, x64]
-    timeout-minutes: 75
+    timeout-minutes: 120
     env:
       ANDROID_AVD_HOME: ${{ github.workspace }}/.android/avd
 
@@ -208,7 +208,7 @@ jobs:
             log "Android AVD creation failed with status ${avd_status}"
             exit "$avd_status"
           fi
-          printf 'hw.cpu.ncore=2\ndisk.dataPartition.size=4096M\n' >> "$AVD_DIR/config.ini"
+          printf 'hw.cpu.ncore=4\ndisk.dataPartition.size=4096M\nhw.ramSize=3072\n' >> "$AVD_DIR/config.ini"
 
           cleanup() {
             local status=$?
@@ -264,7 +264,11 @@ jobs:
           fi
           "$ADB_BIN" devices -l || true
 
-          boot_deadline=$((SECONDS + 600))
+          if [ "$EMULATOR_ACCELERATION" = 'software' ]; then
+            boot_deadline=$((SECONDS + 1800))
+          else
+            boot_deadline=$((SECONDS + 600))
+          fi
 
           until boot_completed="$($ADB_BIN -s emulator-5554 shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" && [ "$boot_completed" = '1' ]; do
             ensure_emulator_alive
