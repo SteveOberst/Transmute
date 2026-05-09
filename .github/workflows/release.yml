@@ -19,7 +19,7 @@ jobs:
   release-please:
     name: Release Please
     if: github.event_name == 'push'
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-latest
     steps:
       - uses: googleapis/release-please-action@v4
         with:
