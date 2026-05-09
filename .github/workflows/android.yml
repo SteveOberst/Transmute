@@ -28,8 +28,14 @@ concurrency:
 jobs:
   integration-tests:
     name: Integration Tests
-    runs-on: [self-hosted, linux, x64]
-    timeout-minutes: 120
+    # The self-hosted Linux runner is a managed KVM guest whose hypervisor does
+    # not expose svm/vmx; /dev/kvm is unavailable and pure-TCG software
+    # emulation does not make forward progress in any reasonable time. Use a
+    # GitHub-hosted Ubuntu runner so /dev/kvm is available for the Android
+    # emulator. Restore the self-hosted runner once the host enables nested
+    # virtualization.
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
     env:
       ANDROID_AVD_HOME: ${{ github.workspace }}/.android/avd
 
