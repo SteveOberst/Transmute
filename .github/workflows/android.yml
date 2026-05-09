@@ -86,7 +86,9 @@ jobs:
         run: |
           set -euo pipefail
 
+          set +o pipefail
           yes | sdkmanager --licenses > /dev/null
+          set -o pipefail
           sdkmanager --install 'build-tools;36.0.0' platform-tools 'platforms;android-31' 'system-images;android-31;default;x86_64' emulator > /dev/null
 
           AVD_NAME=test
