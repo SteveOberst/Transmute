@@ -5,6 +5,7 @@ import dev.transmute.model.core.ByteRange
 import dev.transmute.model.core.Bytes
 import dev.transmute.model.core.asBytes
 import kotlinx.serialization.Serializable
+import kotlin.jvm.JvmInline
 
 /**
  * Ogg logical stream serial number.

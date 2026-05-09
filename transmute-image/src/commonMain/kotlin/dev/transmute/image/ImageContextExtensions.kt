@@ -8,7 +8,7 @@ import dev.transmute.common.TransmuteContext
 private const val IMAGE_DECODERS_KEY = "transmute.image.decoders"
 private const val IMAGE_ENCODERS_KEY = "transmute.image.encoders"
 
-// -- Builder extensions -------------------------------------------------------
+// -- Builder extensions ---
 
 /**
  * Provide a custom [ImageDecoderRegistry] via the context.
@@ -36,7 +36,7 @@ fun TransmuteContext.Builder.imageEncoders(registry: ImageEncoderRegistry) {
   extra(IMAGE_ENCODERS_KEY, registry)
 }
 
-// -- Read extensions ----------------------------------------------------------
+// -- Read extensions ---
 
 /**
  * Image decoder registry stored in this context, or `null` if none was set.

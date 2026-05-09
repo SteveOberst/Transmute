@@ -21,7 +21,7 @@ fun WavRaw.extractMetadata(): List<MediaMetadata> = buildList {
   extractRiffInfo()?.let(::add)
 }
 
-// -- RIFF INFO extraction -----------------------------------------------------
+// -- RIFF INFO extraction ---
 
 private fun WavRaw.extractRiffInfo(): RiffInfoMetadata? {
   val infoList = chunks.firstOrNull {

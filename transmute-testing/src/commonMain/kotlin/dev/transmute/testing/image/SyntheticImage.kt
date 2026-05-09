@@ -19,8 +19,8 @@ import kotlin.random.Random
  * Convenience shortcuts for generating synthetic [ImageIR] instances.
  *
  * Each function creates a fully-formed [ImageIR] with a single call.
- * For more flexible, composable image generation — layer composition,
- * custom per-pixel generators, blend modes, and gradient configuration —
+ * For more flexible, composable image generation - layer composition,
+ * custom per-pixel generators, blend modes, and gradient configuration -
  * use the **image DSL**:
  *
  * ```kotlin
@@ -44,15 +44,15 @@ import kotlin.random.Random
  * ### Design notes
  * - All images use [PixelFormat.RGBA_8888] for maximum compatibility.
  * - Alpha channel is set to 255 (opaque) unless explicitly specified otherwise.
- * - Pixel values are clamped to 0–255.
+ * - Pixel values are clamped to 0-255.
  *
  * @see dev.transmute.testing.dsl.syntheticImage
  */
 object SyntheticImage {
 
-  // ---------------------------------------------------------------------------
+  // ---
   // Solid fills
-  // ---------------------------------------------------------------------------
+  // ---
 
   /**
    * Solid-color fill.
@@ -83,9 +83,9 @@ object SyntheticImage {
     return imageIR(data, width, height, stride, a)
   }
 
-  // ---------------------------------------------------------------------------
+  // ---
   // Gradients
-  // ---------------------------------------------------------------------------
+  // ---
 
   /**
    * Horizontal gradient from left color to right color.
@@ -151,7 +151,7 @@ object SyntheticImage {
   /**
    * Diagonal gradient from top-left color to bottom-right color.
    *
-   * Exercises both axes simultaneously — useful for rotation and
+   * Exercises both axes simultaneously - useful for rotation and
    * transpose testing.
    */
   fun diagonalGradient(
@@ -218,9 +218,9 @@ object SyntheticImage {
     return imageIR(data, width, height, stride)
   }
 
-  // ---------------------------------------------------------------------------
+  // ---
   // Patterns
-  // ---------------------------------------------------------------------------
+  // ---
 
   /**
    * Checkerboard pattern of alternating colors.
@@ -314,7 +314,7 @@ object SyntheticImage {
   }
 
   /**
-   * Grid pattern (crosshatch) — useful for alignment and scaling tests.
+   * Grid pattern (crosshatch) - useful for alignment and scaling tests.
    *
    * Draws [lineColor] lines on a [bgColor] background at regular intervals.
    *
@@ -349,7 +349,7 @@ object SyntheticImage {
   }
 
   /**
-   * Border frame — solid outer border with a different inner fill.
+   * Border frame - solid outer border with a different inner fill.
    *
    * Useful for verifying that crop coordinates are pixel-accurate.
    *
@@ -381,9 +381,9 @@ object SyntheticImage {
     return imageIR(data, width, height, stride)
   }
 
-  // ---------------------------------------------------------------------------
+  // ---
   // Test cards & reference patterns
-  // ---------------------------------------------------------------------------
+  // ---
 
   /**
    * SMPTE-style color bars (simplified 7-bar pattern).
@@ -443,7 +443,7 @@ object SyntheticImage {
   }
 
   /**
-   * Color wheel — hue varies by angle from center, saturation by radius.
+   * Color wheel - hue varies by angle from center, saturation by radius.
    *
    * Useful for verifying color space handling and hue preservation.
    */
@@ -461,7 +461,7 @@ object SyntheticImage {
         val r = sqrt(dx * dx + dy * dy) / maxR
         val off = y * stride + x * bpp
         if (r > 1f) {
-          // Outside the wheel — transparent black
+          // Outside the wheel - transparent black
           data[off] = 0; data[off + 1] = 0; data[off + 2] = 0; data[off + 3] = 0
         } else {
           val hue = (kotlin.math.atan2(dy, dx) / PI.toFloat() + 1f) / 2f // 0..1
@@ -477,9 +477,9 @@ object SyntheticImage {
     return imageIR(data, width, height, stride, alpha = 0)
   }
 
-  // ---------------------------------------------------------------------------
+  // ---
   // Noise & stress patterns
-  // ---------------------------------------------------------------------------
+  // ---
 
   /**
    * Pseudo-random noise pattern.
@@ -504,7 +504,7 @@ object SyntheticImage {
   }
 
   /**
-   * Noise with alpha variation — random RGBA values including alpha.
+   * Noise with alpha variation - random RGBA values including alpha.
    *
    * Useful for testing alpha channel preservation through codecs.
    *
@@ -527,8 +527,8 @@ object SyntheticImage {
   /**
    * Concentric rings pattern (zone plate).
    *
-   * Classic test pattern for evaluating spatial frequency response — aliasing
-   * and moiré artefacts become visible at high frequencies. The pattern is a
+   * Classic test pattern for evaluating spatial frequency response - aliasing
+   * and moire artefacts become visible at high frequencies. The pattern is a
    * sinusoidal function of squared distance from center.
    */
   fun zonePlate(width: Int, height: Int): ImageIR {
@@ -554,12 +554,12 @@ object SyntheticImage {
     return imageIR(data, width, height, stride)
   }
 
-  // ---------------------------------------------------------------------------
+  // ---
   // Alpha test patterns
-  // ---------------------------------------------------------------------------
+  // ---
 
   /**
-   * Horizontal alpha gradient — opaque on the left, transparent on the right,
+   * Horizontal alpha gradient - opaque on the left, transparent on the right,
    * over a solid [r], [g], [b] fill.
    *
    * Useful for testing alpha channel encode/decode fidelity.
@@ -587,9 +587,9 @@ object SyntheticImage {
     return imageIR(data, width, height, stride, alpha = 0)
   }
 
-  // ---------------------------------------------------------------------------
+  // ---
   // Geometry test patterns
-  // ---------------------------------------------------------------------------
+  // ---
 
   /**
    * Single-pixel dot at the given coordinates on a solid background.
@@ -625,7 +625,7 @@ object SyntheticImage {
   }
 
   /**
-   * Quadrant image — each quarter of the image is a different color.
+   * Quadrant image - each quarter of the image is a different color.
    *
    * Useful for rotation and flip tests: each quadrant is distinguishable.
    *
@@ -662,16 +662,16 @@ object SyntheticImage {
     return imageIR(data, width, height, stride)
   }
 
-  // ---------------------------------------------------------------------------
+  // ---
   // Internal helpers
-  // ---------------------------------------------------------------------------
+  // ---
 
   private fun lerp(start: Int, end: Int, t: Float): Int =
     (start + (end - start) * t).roundToInt().coerceIn(0, 255)
 
   /**
-   * HSV to RGB conversion. H in 0–360, S and V in 0–1.
-   * Returns IntArray of [R, G, B] in 0–255.
+   * HSV to RGB conversion. H in 0-360, S and V in 0-1.
+   * Returns IntArray of [R, G, B] in 0-255.
    */
   private fun hsvToRgb(h: Float, s: Float, v: Float): IntArray {
     val c = v * s

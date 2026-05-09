@@ -6,7 +6,7 @@ plugins {
 
 apply(from = "gstreamer-sdk.gradle.kts")
 
-// -- Optional GStreamer SDK locations -----------------------------------------
+// -- Optional GStreamer SDK locations ---
 val gstreamerAndroidRoot: String? = System.getenv("GSTREAMER_ROOT_ANDROID")
 val gstreamerIosFramework = listOfNotNull(
   System.getenv("GSTREAMER_ROOT_IOS")?.let(::file),
@@ -55,17 +55,20 @@ kotlin {
       // Set up GStreamer cinterop when the framework is present
       if (gstreamerIosFramework.exists()) {
         val headersDir = File(gstreamerIosFramework, "Headers")
+        target.binaries.all {
+          linkerOpts(
+            "-F${gstreamerIosFramework.parentFile.absolutePath}",
+            "-framework",
+            "GStreamer",
+            "-liconv",
+          )
+        }
         target.compilations["main"].cinterops.create("gstreamer") {
           defFile(project.file("src/nativeInterop/cinterop/gstreamer.def"))
           compilerOpts(
             "-I${headersDir.absolutePath}",
             "-I${File(headersDir, "gstreamer-1.0").absolutePath}",
             "-I${File(headersDir, "glib-2.0").absolutePath}",
-          )
-          linkerOpts(
-            "-F${gstreamerIosFramework.parentFile.absolutePath}",
-            "-framework",
-            "GStreamer",
           )
         }
       }
@@ -145,7 +148,7 @@ android {
         }
       }
       ndk {
-        abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+        abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86_64")
       }
     }
   }

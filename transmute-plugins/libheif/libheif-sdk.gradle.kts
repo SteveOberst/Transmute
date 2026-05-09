@@ -112,9 +112,9 @@ fun stageLibHeifFromVcpkgInstall(vcpkgInstalledDir: File, platformDir: File): Bo
   return hasLibHeifDecoder(dstBin)
 }
 
-// ---------------------------------------------------------------------------
+// ---
 // Windows staging via vcpkg
-// ---------------------------------------------------------------------------
+// ---
 
 tasks.register("stageLibHeifDesktopWindows") {
   group = "libheif"
@@ -181,9 +181,9 @@ tasks.register("stageLibHeifDesktopWindows") {
   }
 }
 
-// ---------------------------------------------------------------------------
+// ---
 // macOS staging via Homebrew
-// ---------------------------------------------------------------------------
+// ---
 
 tasks.register("stageLibHeifDesktopMacos") {
   group = "libheif"
@@ -241,9 +241,9 @@ tasks.register("stageLibHeifDesktopMacos") {
   }
 }
 
-// ---------------------------------------------------------------------------
+// ---
 // Manifest-only task for manual staging
-// ---------------------------------------------------------------------------
+// ---
 
 tasks.register("stageLibHeifDesktopManifest") {
   group = "libheif"
@@ -270,9 +270,9 @@ tasks.register("stageLibHeifDesktopManifest") {
   }
 }
 
-// ---------------------------------------------------------------------------
+// ---
 // Umbrella task
-// ---------------------------------------------------------------------------
+// ---
 
 tasks.register("stageLibHeifDesktop") {
   group = "libheif"

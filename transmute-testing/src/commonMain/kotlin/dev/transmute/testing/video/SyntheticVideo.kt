@@ -19,8 +19,8 @@ import kotlin.math.sin
  * Convenience shortcuts for generating synthetic [VideoIR] instances.
  *
  * Each function creates a fully-formed [VideoIR] with a single call.
- * For more flexible video generation — animated per-frame rendering,
- * keyframe transitions, and audio DSL attachment — use the **video DSL**:
+ * For more flexible video generation - animated per-frame rendering,
+ * keyframe transitions, and audio DSL attachment - use the **video DSL**:
  *
  * ```kotlin
  * import dev.transmute.testing.dsl.*
@@ -79,7 +79,7 @@ object SyntheticVideo {
    * Animated horizontal gradient that scrolls across the frame.
    *
    * Each frame shifts the gradient start position, creating a smooth
-   * lateral motion — useful for motion estimation / temporal compression testing.
+   * lateral motion - useful for motion estimation / temporal compression testing.
    */
   fun scrollingGradient(
     width: Int,
@@ -182,7 +182,7 @@ object SyntheticVideo {
   }
 
   /**
-   * Animated color bars — SMPTE-style bars that shift left each frame.
+   * Animated color bars - SMPTE-style bars that shift left each frame.
    *
    * Useful for visual inspection and testing color-space handling in
    * motion codecs.
@@ -226,7 +226,7 @@ object SyntheticVideo {
   }
 
   /**
-   * Pulsing sine-wave pattern — a radial brightness pulse that expands
+   * Pulsing sine-wave pattern - a radial brightness pulse that expands
    * outward from center over time.
    *
    * Useful for exercising temporal + spatial compression simultaneously.
@@ -265,7 +265,7 @@ object SyntheticVideo {
   }
 
   /**
-   * Animated checkerboard — the phase inverts every N frames.
+   * Animated checkerboard - the phase inverts every N frames.
    *
    * Useful for testing high-frequency spatial content with temporal changes.
    *
@@ -324,7 +324,7 @@ object SyntheticVideo {
   }
 
   /**
-   * Single frame video — useful for still-image-in-container tests (e.g., GIF single frame).
+   * Single frame video - useful for still-image-in-container tests (e.g., GIF single frame).
    */
   fun singleFrame(
     width: Int,
@@ -338,9 +338,9 @@ object SyntheticVideo {
     return videoIR(width, height, 1.0, frames, 1, withAudio)
   }
 
-  // ---------------------------------------------------------------------------
+  // ---
   // Internal helpers
-  // ---------------------------------------------------------------------------
+  // ---
 
   private fun timestampMs(frameIndex: Int, frameRate: Double): Long =
     (frameIndex * 1000.0 / frameRate).toLong()

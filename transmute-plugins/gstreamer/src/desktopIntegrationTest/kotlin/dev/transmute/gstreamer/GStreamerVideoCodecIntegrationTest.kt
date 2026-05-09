@@ -22,7 +22,7 @@ class GStreamerVideoCodecIntegrationTest : GStreamerTestBase() {
 
   private val ctx = testContext()
 
-  // -- MP4 ----------------------------------------------------------------
+  // -- MP4 ---
 
   private val mp4 = GstMp4Codec()
 
@@ -66,7 +66,7 @@ class GStreamerVideoCodecIntegrationTest : GStreamerTestBase() {
     assertTrue(decoded.durationMs > 0, "Duration must be positive")
   }
 
-  // -- MOV ----------------------------------------------------------------
+  // -- MOV ---
 
   private val mov = GstMovCodec()
 
@@ -96,7 +96,7 @@ class GStreamerVideoCodecIntegrationTest : GStreamerTestBase() {
     assertTrue(decoded.durationMs > 0, "Duration must be positive")
   }
 
-  // -- WebM ---------------------------------------------------------------
+  // -- WebM ---
 
   private val webm = GstWebmCodec()
 
@@ -126,7 +126,7 @@ class GStreamerVideoCodecIntegrationTest : GStreamerTestBase() {
     assertTrue(decoded.durationMs > 0, "Duration must be positive")
   }
 
-  // -- AVI ----------------------------------------------------------------
+  // -- AVI ---
 
   private val avi = GstAviCodec()
 
@@ -142,6 +142,7 @@ class GStreamerVideoCodecIntegrationTest : GStreamerTestBase() {
 
   @Test
   fun avi_encodeAndDecode_roundTrip() = runTest {
+    assumeLegacyAviEncodeSupported()
     val video = GStreamerTestHelpers.syntheticVideo(
       width = 160,
       height = 120,
@@ -156,7 +157,7 @@ class GStreamerVideoCodecIntegrationTest : GStreamerTestBase() {
     assertTrue(decoded.durationMs > 0, "Duration must be positive")
   }
 
-  // -- MKV ----------------------------------------------------------------
+  // -- MKV ---
 
   private val mkv = GstMkvCodec()
 
@@ -186,7 +187,7 @@ class GStreamerVideoCodecIntegrationTest : GStreamerTestBase() {
     assertTrue(decoded.durationMs > 0, "Duration must be positive")
   }
 
-  // -- Encode with audio --------------------------------------------------
+  // -- Encode with audio ---
 
   @Test
   fun mp4_encodeWithAudio_roundTrip() = runTest {

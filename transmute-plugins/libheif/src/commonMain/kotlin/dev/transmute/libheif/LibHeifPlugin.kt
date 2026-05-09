@@ -55,7 +55,7 @@ class LibHeifPluginConfig : HasPluginConfigure {
   /** Subprocess timeout in milliseconds. */
   val timeoutMs: Long get() = _timeoutMs
 
-  // -- Feature toggles (delegate to pluginConfigure) -------------------------
+  // -- Feature toggles (delegate to pluginConfigure) ---
 
   /** Enable a [LibHeifFeature] for this installation. */
   fun enable(feature: PluginFeature) = pluginConfigure.enable(feature)
@@ -69,7 +69,7 @@ class LibHeifPluginConfig : HasPluginConfigure {
   /** Set a feature by raw string id (fallback for dynamic/runtime usage). */
   fun set(featureId: String, enabled: Boolean) = pluginConfigure.set(featureId, enabled)
 
-  // -- Installation -----------------------------------------------------------
+  // -- Installation ---
 
   /**
    * Use a pre-existing libheif installation at [home].
@@ -159,9 +159,6 @@ class LibHeifPluginConfig : HasPluginConfigure {
 object LibHeif : TransmutePlugin<LibHeifPluginConfig> {
 
   override val key: PluginId = BuiltinPlugins.LibHeif
-  override val displayName: String = "LibHeif"
-  override val description: String =
-    "libheif-based image codec backend - HEIF/HEIC/AVIF decode/encode via heif-dec/heif-enc (desktop); no-op on Android/iOS."
   override val features: Set<PluginFeature> = LibHeifFeature.ALL
 
   override fun createConfig(): LibHeifPluginConfig = LibHeifPluginConfig()

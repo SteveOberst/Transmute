@@ -8,7 +8,7 @@ import dev.transmute.common.TransmuteContext
 private const val AUDIO_DECODERS_KEY = "transmute.audio.decoders"
 private const val AUDIO_ENCODERS_KEY = "transmute.audio.encoders"
 
-// -- Builder extensions -------------------------------------------------------
+// -- Builder extensions ---
 
 /**
  * Provide a custom [AudioDecoderRegistry] via the context.
@@ -36,7 +36,7 @@ fun TransmuteContext.Builder.audioEncoders(registry: AudioEncoderRegistry) {
   extra(AUDIO_ENCODERS_KEY, registry)
 }
 
-// -- Read extensions ----------------------------------------------------------
+// -- Read extensions ---
 
 /**
  * Audio decoder registry stored in this context, or `null` if none was set.

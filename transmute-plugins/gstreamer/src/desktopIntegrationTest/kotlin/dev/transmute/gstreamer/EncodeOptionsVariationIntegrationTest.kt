@@ -21,9 +21,9 @@ class EncodeOptionsVariationIntegrationTest : GStreamerTestBase() {
 
   private val ctx = testContext()
 
-  // =======================================================================
+  // ===
   // JPEG quality variation
-  // =======================================================================
+  // ===
 
   @Test
   fun jpeg_quality_affects_size() = runTest {
@@ -58,9 +58,9 @@ class EncodeOptionsVariationIntegrationTest : GStreamerTestBase() {
     )
   }
 
-  // =======================================================================
+  // ===
   // PNG compression variation
-  // =======================================================================
+  // ===
 
   @Test
   fun png_compressionLevel_affects_size() = runTest {
@@ -78,9 +78,9 @@ class EncodeOptionsVariationIntegrationTest : GStreamerTestBase() {
     )
   }
 
-  // =======================================================================
+  // ===
   // WebP quality variation
-  // =======================================================================
+  // ===
 
   @Test
   fun webp_quality_affects_size() = runTest {
@@ -108,9 +108,9 @@ class EncodeOptionsVariationIntegrationTest : GStreamerTestBase() {
 
   // NOTE: HEIF/AVIF quality variation tests have been moved to the libheif plugin module.
 
-  // =======================================================================
+  // ===
   // Helpers
-  // =======================================================================
+  // ===
 
   /**
    * Creates a gradient [dev.transmute.image.ImageIR] to exercise compression

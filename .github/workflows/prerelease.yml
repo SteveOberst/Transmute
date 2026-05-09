@@ -1,40 +1,55 @@
-name: Release
+name: Pre-release
 
 on:
-  push:
-    branches: [main]
-  release:
-    types: [created]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Git ref to publish from (branch, tag, or SHA)
+        required: true
+        default: main
+      version:
+        description: Pre-release version to publish (for example 0.5.0-beta.1)
+        required: true
 
 concurrency:
-  group: release-${{ github.event_name }}-${{ github.ref_name || github.event.release.tag_name }}
+  group: prerelease-${{ inputs.version }}
   cancel-in-progress: false
 
 permissions:
   contents: write
-  pull-requests: write
   packages: write
 
 jobs:
-  release-please:
-    name: Release Please
-    if: github.event_name == 'push'
+  validate:
+    name: Validate Inputs
     runs-on: ubuntu-latest
     steps:
-      - uses: googleapis/release-please-action@v4
+      - uses: actions/checkout@v4
         with:
-          config-file: release-please-config.json
-          manifest-file: .release-please-manifest.json
-          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+          ref: ${{ inputs.ref }}
+          fetch-depth: 1
 
-  # ---------------------------------------------------------------------------
-  # Stage GStreamer desktop binaries for bundling into the desktop JAR.
-  # Runs on the two platforms that ship portable GStreamer binaries.
-  # The staged files are uploaded as artifacts and merged by the publish job.
-  # ---------------------------------------------------------------------------
+      - name: Validate pre-release version format
+        shell: bash
+        run: |
+          version='${{ inputs.version }}'
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+-[0-9A-Za-z.-]+$ ]]; then
+            echo "Version must be a semantic pre-release like 0.5.0-beta.1"
+            exit 1
+          fi
+
+      - name: Ensure tag does not already exist
+        shell: bash
+        run: |
+          version='${{ inputs.version }}'
+          if git ls-remote --exit-code --tags origin "refs/tags/v$version" >/dev/null 2>&1; then
+            echo "Tag v$version already exists"
+            exit 1
+          fi
+
   stage-gstreamer-desktop:
     name: Stage GStreamer Desktop (${{ matrix.os }})
-    if: github.event_name == 'release'
+    needs: [validate]
     strategy:
       fail-fast: false
       matrix:
@@ -43,7 +58,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.release.tag_name }}
+          ref: ${{ inputs.ref }}
           fetch-depth: 1
 
       - name: Set up JDK 17
@@ -55,8 +70,6 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      # Cache the staged output keyed by GStreamer version + OS so re-runs and
-      # future releases of the same GStreamer version skip the download.
       - name: Restore GStreamer staging cache
         id: gst-cache
         uses: actions/cache@v4
@@ -66,6 +79,8 @@ jobs:
 
       - name: Stage GStreamer desktop binaries
         if: steps.gst-cache.outputs.cache-hit != 'true'
+        env:
+          TRANSMUTE_VERSION: ${{ inputs.version }}
         run: ./gradlew --no-daemon :transmute-plugins:gstreamer:stageGStreamerDesktop
 
       - name: Upload staged binaries
@@ -74,17 +89,11 @@ jobs:
           name: gstreamer-desktop-${{ runner.os }}
           path: transmute-plugins/gstreamer/build/gstreamer-desktop/
           if-no-files-found: error
-          # Retention only needs to outlive this workflow run
           retention-days: 1
 
-  # ---------------------------------------------------------------------------
-  # Stage libheif desktop binaries for bundling into the libheif desktop JAR.
-  # Windows uses vcpkg; macOS uses Homebrew. Linux relies on system packages
-  # and does not bundle binaries into the JAR.
-  # ---------------------------------------------------------------------------
   stage-libheif-desktop:
     name: Stage libheif Desktop (${{ matrix.os }})
-    if: github.event_name == 'release'
+    needs: [validate]
     strategy:
       fail-fast: false
       matrix:
@@ -93,7 +102,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.release.tag_name }}
+          ref: ${{ inputs.ref }}
           fetch-depth: 1
 
       - name: Set up JDK 17
@@ -131,6 +140,7 @@ jobs:
       - name: Stage libheif desktop binaries
         if: steps.libheif-cache.outputs.cache-hit != 'true'
         env:
+          TRANSMUTE_VERSION: ${{ inputs.version }}
           TRANSMUTE_LIBHEIF_WINDOWS_HOME: ${{ steps.msys2-libheif.outputs.msys2-location }}\mingw64
         run: ./gradlew --no-daemon :transmute-plugins:libheif:stageLibHeifDesktop
 
@@ -142,23 +152,18 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-  publish:
-    name: Publish to GitHub Packages
-    if: github.event_name == 'release'
+  publish-prerelease:
+    name: Publish Pre-release (macOS)
     needs: [stage-gstreamer-desktop, stage-libheif-desktop]
-    # Publish from macOS so the iOS Kotlin/Native publications are produced
-    # alongside the Android, Desktop/JVM, and KMP metadata publications.
-    # The Linux self-hosted runner cannot link the iOS frameworks; switching
-    # to a GitHub-hosted macOS runner keeps the published artifact set in
-    # sync with the public README's platform claims (B-2).
     runs-on: macos-15
     env:
       GITHUB_USERNAME: ${{ github.repository_owner }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      TRANSMUTE_VERSION: ${{ inputs.version }}
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.release.tag_name }}
+          ref: ${{ inputs.ref }}
           fetch-depth: 1
 
       - name: Set up JDK 17
@@ -170,8 +175,6 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      # Download both platform artifacts into the same destination - they contain
-      # non-overlapping platform subdirectories so they merge cleanly.
       - name: Download staged GStreamer binaries (Windows)
         uses: actions/download-artifact@v4
         with:
@@ -196,20 +199,23 @@ jobs:
           name: libheif-desktop-macOS
           path: transmute-plugins/libheif/build/libheif-desktop/
 
-      # Required for the iOS Kotlin/Native compilation of :transmute-plugins:gstreamer.
-      # Cached by the SDK gradle task; safe to run unconditionally.
       - name: Download GStreamer iOS SDK
         run: ./gradlew --no-daemon :transmute-plugins:gstreamer:downloadGStreamerIos
 
-      - name: Build (tests already gated on the release PR)
+      - name: Build (tests already gated before publish)
         run: ./gradlew --no-daemon build -x test -x check
 
       - name: Publish to GitHub Packages
         run: ./gradlew --no-daemon publish
 
-      - name: Upload JARs to release
+      - name: Create GitHub pre-release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: v${{ inputs.version }}
+          name: v${{ inputs.version }}
+          target_commitish: ${{ inputs.ref }}
+          prerelease: true
+          generate_release_notes: true
           files: |
             transmute-api/build/libs/*.jar
             transmute-audio/build/libs/*.jar

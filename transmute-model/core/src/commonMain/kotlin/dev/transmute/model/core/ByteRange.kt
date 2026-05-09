@@ -1,6 +1,7 @@
 package dev.transmute.model.core
 
 import kotlinx.serialization.Serializable
+import kotlin.jvm.JvmInline
 
 /**
  * Byte offset within a media file. Zero-based absolute position.

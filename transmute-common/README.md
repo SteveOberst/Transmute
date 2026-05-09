@@ -10,7 +10,7 @@ and a multiplatform `Closeable` interface.
 ## Key Types
 
 | Type | Purpose |
-|------|---------|
+|---|---|
 | `TransmuteContext` | Composition root: logger, extras map, pipeline context factory |
 | `PipelineContext` | Runtime context passed through every pipeline handler |
 | `TransmuteLogger` | Structured logger interface (debug, info, warn, error) |
@@ -35,4 +35,4 @@ context.logger.info("Processing file...")
 
 ## Targets
 
-Android, Desktop JVM, iOS — via Kotlin Multiplatform.
+Android, Desktop JVM, iOS - via Kotlin Multiplatform.

@@ -7,7 +7,7 @@ Codec support depends on the platform. Each cell states whether the format can b
 ### Image
 
 | Format | Android | Desktop (JVM) | iOS |
-|--------|---------|---------------|-----|
+|---|---|---|---|
 | JPEG   | decode + encode | decode + encode | decode + encode |
 | PNG    | decode + encode | decode + encode | decode + encode |
 | WebP   | decode + encode | decode + encode | decode + encode |
@@ -21,7 +21,7 @@ Codec support depends on the platform. Each cell states whether the format can b
 ### Audio
 
 | Format | Android | Desktop (JVM) | iOS |
-|--------|---------|---------------|-----|
+|---|---|---|---|
 | WAV    | decode + encode | decode + encode (pure Kotlin) | decode + encode |
 | MP3    | decode + encode | decode + encode | decode + encode |
 | FLAC   | decode + encode | decode only built-in; encode requires plugin: GStreamer | decode + encode |
@@ -33,7 +33,7 @@ Codec support depends on the platform. Each cell states whether the format can b
 ### Video
 
 | Format | Android | Desktop (JVM) | iOS |
-|--------|---------|---------------|-----|
+|---|---|---|---|
 | MP4    | decode + encode | decode + encode; plugin: GStreamer | decode + encode |
 | MOV    | decode + encode | decode + encode; plugin: GStreamer | decode + encode |
 | WebM   | decode + encode | decode + encode; plugin: GStreamer | decode + encode; plugin: GStreamer |
@@ -77,7 +77,7 @@ See [inspect.md](../inspect.md) for which metadata types are extracted from each
 ## Format reference
 
 | Format | MIME | Extension | Container | Details |
-|--------|------|-----------|-----------|---------|
+|---|---|---|---|---|
 | [JPEG](jpeg.md) | `image/jpeg` | `jpg` | JFIF | |
 | [PNG](png.md) | `image/png` | `png` | PNG chunks | |
 | [WebP](webp.md) | `image/webp` | `webp` | RIFF | |

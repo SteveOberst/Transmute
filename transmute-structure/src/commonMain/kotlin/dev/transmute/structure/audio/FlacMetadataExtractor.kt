@@ -24,7 +24,7 @@ fun FlacRaw.extractMetadata(): List<MediaMetadata> = buildList {
   extractVorbisComment()?.let(::add)
 }
 
-// -- Vorbis Comment extraction ------------------------------------------------
+// -- Vorbis Comment extraction ---
 
 /**
  * FLAC Vorbis Comment block data layout (all little-endian):
@@ -38,7 +38,7 @@ private fun FlacRaw.extractVorbisComment(): VorbisCommentMetadata? {
   return parseVorbisCommentBytes(block.data.data)
 }
 
-// -- Shared Vorbis Comment parser ---------------------------------------------
+// -- Shared Vorbis Comment parser ---
 
 /**
  * Parse a raw Vorbis Comment byte sequence (used by both FLAC and Ogg).

@@ -7,8 +7,8 @@ Cross-platform filesystem abstraction layer.
 Provides a platform-agnostic filesystem interface with two submodules:
 
 | Submodule     | Purpose                                          |
-|---------------|--------------------------------------------------|
-| [core](core/) | Pure interface module — no external dependencies |
+|---|---|
+| [core](core/) | Pure interface module - no external dependencies |
 | [okio](okio/) | Okio-backed implementation for all KMP targets   |
 
 ## Quick Start
@@ -58,4 +58,4 @@ filesystem operations live in `transmute-api` under `dev.transmute.io`. See the
 
 ## Targets
 
-Android, Desktop JVM, iOS — via Kotlin Multiplatform.
+Android, Desktop JVM, iOS - via Kotlin Multiplatform.

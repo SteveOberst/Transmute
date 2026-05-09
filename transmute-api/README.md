@@ -1,6 +1,6 @@
 # transmute-api
 
-The public API facade — the primary entry point for using the Transmute library.
+The public API facade - the primary entry point for using the Transmute library.
 
 ## Overview
 
@@ -27,8 +27,8 @@ transmute.inspect // -> format detection, lightweight probing, structure parsing
 ## Key Types
 
 | Type | Purpose |
-|------|---------|
-| `Transmute` | Main facade class — builder DSL, plugin installation, domain access |
+|---|---|
+| `Transmute` | Main facade class - builder DSL, plugin installation, domain access |
 | `TransmuteCodec` | Low-level codec facade (decode, encode, format detection) |
 | `TransmuteInspect` | Format detection, lightweight probing, structure and metadata parsing |
 | `TransmuteImage` | Image transcoding builder (`from -> to`) |
@@ -44,7 +44,7 @@ transmute.inspect // -> format detection, lightweight probing, structure parsing
 Suspending byte-stream types for non-blocking I/O on every platform:
 
 | Type | Purpose |
-|------|---------|
+|---|---|
 | `TSource` | Read-only sequential byte source (`suspend fun readAll()`) |
 | `TSink` | Write-only sequential byte sink (`suspend fun writeAll()`) |
 | `TChannel` | Combined read + write channel for in-place transforms |
@@ -55,7 +55,7 @@ In-memory implementations (`ByteArraySource`, `ByteArraySink`,
 
 ## Coroutine Support
 
-All I/O-bound methods are `suspend` functions — no blocking overloads. If callers
+All I/O-bound methods are `suspend` functions - no blocking overloads. If callers
 need synchronous execution they can use `runBlocking {}`.
 
 ```kotlin
@@ -71,12 +71,12 @@ val inspection = Transmute.inspect.inspect(bytes)   // -> MediaInspection
 
 ## Targets
 
-Android, Desktop JVM, iOS (when building on Mac) — via Kotlin Multiplatform.
+Android, Desktop JVM, iOS (when building on Mac) - via Kotlin Multiplatform.
 
 ## Dependencies
 
-- `transmute-codec` — pipeline & codec abstractions
-- `transmute-audio` / `transmute-image` / `transmute-video` — domain modules
-- `transmute-model:structure` — typed file structures
-- `transmute-structure` — concrete structure readers
+- `transmute-codec` - pipeline & codec abstractions
+- `transmute-audio` / `transmute-image` / `transmute-video` - domain modules
+- `transmute-model:structure` - typed file structures
+- `transmute-structure` - concrete structure readers
 - `kotlinx-coroutines-core`

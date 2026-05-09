@@ -1,6 +1,6 @@
 # Transmute
 
-Kotlin Multiplatform media conversion, compression, and transformation — image, audio, and video — with a single API
+Kotlin Multiplatform media conversion, compression, and transformation - image, audio, and video - with a single API
 across Android, Desktop/JVM, and iOS.
 
 [![JitPack](https://jitpack.io/v/SteveOberst/Transmute.svg)](https://jitpack.io/#SteveOberst/Transmute)
@@ -10,20 +10,20 @@ across Android, Desktop/JVM, and iOS.
 ## Features
 
 - Single `commonMain` API for image, audio, and video across Android, Desktop (JVM), and iOS
-- Instance-based API with plugin system — create isolated `Transmute` instances with custom codec configurations
-- Platform-native codecs by default — no external dependencies for common formats
+- Instance-based API with plugin system - create isolated `Transmute` instances with custom codec configurations
+- Platform-native codecs by default - no external dependencies for common formats
 - Optional `transmute-plugins:gstreamer` fills platform gaps (Opus/OGG on iOS, MP4/MOV/WebM/AVI/MKV on Desktop, etc.)
 - Optional `transmute-plugins:libheif` for HEIF/HEIC/AVIF codec support on Desktop (without requiring a system GStreamer
   install)
 - Pure-Kotlin WAV and BMP codecs that work on all platforms without native dependencies
-- Pipeline-based decode → transform → encode: swap or extend individual stages without touching the rest
+- Pipeline-based decode -> transform -> encode: swap or extend individual stages without touching the rest
 - 27 transforms across all three domains (scale, crop, rotate, blur, normalize, trim, fade, gain, speed, compressor,
   etc.)
 - Structure reading: parse files into typed Kotlin data classes mirroring the on-disk format (PNG chunks, JPEG segments,
   RIFF containers, ISO-BMFF boxes, etc.) without decoding pixel/sample data
 - Metadata reading: extract EXIF, XMP, ICC, ID3v1/v2, Vorbis, RIFF INFO, iTunes, Matroska tags without full decode;
   metadata is read-only in v1.0 (inspection and preservation/stripping on encode, not in-place editing)
-- Suspending I/O via `TSource` and `TSink` — non-blocking byte streams on every platform
+- Suspending I/O via `TSource` and `TSink` - non-blocking byte streams on every platform
 - Configurable logging with level filtering and pluggable backends
 
 ## Format Support
@@ -37,7 +37,7 @@ all platforms, but codec availability is intentionally split between:
 ### Image
 
 | Format | Android | Desktop (JVM) | iOS |
-|--------|---------|---------------|-----|
+|---|---|---|---|
 | JPEG   | decode + encode | decode + encode | decode + encode |
 | PNG    | decode + encode | decode + encode | decode + encode |
 | WebP   | decode + encode | decode + encode | decode + encode |
@@ -51,7 +51,7 @@ all platforms, but codec availability is intentionally split between:
 ### Audio
 
 | Format | Android | Desktop (JVM) | iOS |
-|--------|---------|---------------|-----|
+|---|---|---|---|
 | WAV    | decode + encode | decode + encode (pure Kotlin) | decode + encode |
 | MP3    | decode + encode | decode + encode | decode + encode |
 | FLAC   | decode + encode | decode only built-in; encode requires plugin: `gstreamer` | decode + encode |
@@ -63,7 +63,7 @@ all platforms, but codec availability is intentionally split between:
 ### Video
 
 | Format | Android | Desktop (JVM) | iOS |
-|--------|---------|---------------|-----|
+|---|---|---|---|
 | MP4    | decode + encode | decode + encode; plugin: `gstreamer` | decode + encode |
 | MOV    | decode + encode | decode + encode; plugin: `gstreamer` | decode + encode |
 | WebM   | decode + encode | decode + encode; plugin: `gstreamer` | decode + encode; plugin: `gstreamer` |
@@ -119,7 +119,7 @@ val resized = transmute().image.to(ImageFormat.Png) {
 
 // --- Audio ---
 
-// Normalize, trim, and fade — preserves input format if encodable, else falls back to WAV
+// Normalize, trim, and fade - preserves input format if encodable, else falls back to WAV
 val audioOut: ByteArray = transmute().audio {
   normalize(targetPeak = 0.9f)
   trim(startMs = 1_000, endMs = 5_000)
@@ -196,7 +196,7 @@ See [docs/plugins.md](docs/plugins.md) for the full plugin API.
 ## Logging
 
 ```kotlin
-// Global — warnings and errors go to stdout by default
+// Global - warnings and errors go to stdout by default
 TransmuteLogging.configure(LogLevel.INFO)
 
 // Per-operation override
@@ -211,7 +211,7 @@ See [docs/logging.md](docs/logging.md) for custom logger backends.
 ## Documentation
 
 | Topic                  | File                                                   |
-|------------------------|--------------------------------------------------------|
+|---|---|
 | Conversion examples    | [docs/examples.md](docs/examples.md)                   |
 | Format detection       | [docs/format-detection.md](docs/format-detection.md)   |
 | Inspect API            | [docs/inspect.md](docs/inspect.md)                     |

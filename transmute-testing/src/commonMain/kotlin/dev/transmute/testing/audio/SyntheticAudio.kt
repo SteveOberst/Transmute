@@ -15,8 +15,8 @@ import kotlin.random.Random
  * Convenience shortcuts for generating synthetic [AudioIR] instances.
  *
  * Each function creates a fully-formed [AudioIR] with a single call.
- * For more flexible, composable audio generation — mixing, sequencing,
- * envelopes, and custom per-sample generators — use the **audio DSL**:
+ * For more flexible, composable audio generation - mixing, sequencing,
+ * envelopes, and custom per-sample generators - use the **audio DSL**:
  *
  * ```kotlin
  * import dev.transmute.testing.dsl.*
@@ -48,9 +48,9 @@ import kotlin.random.Random
  */
 object SyntheticAudio {
 
-  // ---------------------------------------------------------------------------
+  // ---
   // Basic waveforms
-  // ---------------------------------------------------------------------------
+  // ---
 
   /**
    * Pure sine wave at the given [frequency].
@@ -75,7 +75,7 @@ object SyntheticAudio {
    * Square wave at the given [frequency].
    *
    * Alternates between +[amplitude] and -[amplitude] at [frequency] Hz.
-   * Rich in odd harmonics — useful for testing how codecs handle steep
+   * Rich in odd harmonics - useful for testing how codecs handle steep
    * transients and high-frequency content.
    */
   fun squareWave(
@@ -96,7 +96,7 @@ object SyntheticAudio {
    * Sawtooth wave at the given [frequency].
    *
    * Linear ramp from -[amplitude] to +[amplitude] per cycle.
-   * Contains all harmonics — useful for testing spectral preservation.
+   * Contains all harmonics - useful for testing spectral preservation.
    */
   fun sawtoothWave(
     frequency: Float = 440f,
@@ -116,7 +116,7 @@ object SyntheticAudio {
    * Triangle wave at the given [frequency].
    *
    * Smooth ramp between -[amplitude] and +[amplitude].
-   * Contains only odd harmonics that roll off quickly — useful for testing
+   * Contains only odd harmonics that roll off quickly - useful for testing
    * gentle waveforms through lossy codecs.
    */
   fun triangleWave(
@@ -133,9 +133,9 @@ object SyntheticAudio {
     return audioIR(samples, sampleRate, channelCount, durationMs)
   }
 
-  // ---------------------------------------------------------------------------
+  // ---
   // Silence & noise
-  // ---------------------------------------------------------------------------
+  // ---
 
   /**
    * Digital silence (all samples are 0.0).
@@ -160,7 +160,7 @@ object SyntheticAudio {
   /**
    * Pseudo-random white noise.
    *
-   * Covers all frequencies equally — useful for testing that lossy codecs
+   * Covers all frequencies equally - useful for testing that lossy codecs
    * don't introduce unexpected tonal artefacts and for worst-case compression
    * (incompressible data).
    *
@@ -183,7 +183,7 @@ object SyntheticAudio {
    * Pink noise approximation (1/f spectrum).
    *
    * Energy per octave is roughly constant, making it more representative of
-   * natural audio content than white noise. Uses a simple Voss–McCartney
+   * natural audio content than white noise. Uses a simple Voss-McCartney
    * algorithm approximation.
    *
    * @param seed Deterministic RNG seed for reproducible test runs.
@@ -199,7 +199,7 @@ object SyntheticAudio {
     val totalSamples = sampleCount(durationMs, sampleRate, channelCount)
     val monoSamples = totalSamples / channelCount
 
-    // Voss–McCartney pink noise with 8 rows
+    // Voss-McCartney pink noise with 8 rows
     val rows = 8
     val rowValues = FloatArray(rows)
     val monoData = FloatArray(monoSamples)
@@ -227,9 +227,9 @@ object SyntheticAudio {
     return audioIR(AudioSamples(data, sampleRate, channelCount), sampleRate, channelCount, durationMs)
   }
 
-  // ---------------------------------------------------------------------------
+  // ---
   // Frequency sweeps & composites
-  // ---------------------------------------------------------------------------
+  // ---
 
   /**
    * Linear frequency sweep (chirp) from [startHz] to [endHz].
@@ -305,9 +305,9 @@ object SyntheticAudio {
     return audioIR(samples, sampleRate, channelCount, durationMs)
   }
 
-  // ---------------------------------------------------------------------------
+  // ---
   // Transients & envelopes
-  // ---------------------------------------------------------------------------
+  // ---
 
   /**
    * Single impulse (click) followed by silence.
@@ -335,12 +335,12 @@ object SyntheticAudio {
   /**
    * Sine wave with an ADSR (attack-decay-sustain-release) envelope.
    *
-   * Simulates a simple synthesizer note — useful for testing that codecs
+   * Simulates a simple synthesizer note - useful for testing that codecs
    * handle amplitude variations over time.
    *
    * @param attackMs   Time to ramp from 0 to peak.
    * @param decayMs    Time to ramp from peak to sustain level.
-   * @param sustainLevel Amplitude during sustain (0.0–1.0 relative to peak).
+   * @param sustainLevel Amplitude during sustain (0.0-1.0 relative to peak).
    * @param releaseMs  Time to ramp from sustain to 0 at the end.
    */
   fun adsrTone(
@@ -411,9 +411,9 @@ object SyntheticAudio {
     return audioIR(samples, sampleRate, channelCount, durationMs)
   }
 
-  // ---------------------------------------------------------------------------
+  // ---
   // Stereo & spatial
-  // ---------------------------------------------------------------------------
+  // ---
 
   /**
    * Stereo ping-pong tone that alternates between left and right channels.
@@ -480,12 +480,12 @@ object SyntheticAudio {
     return audioIR(AudioSamples(data, sampleRate, channelCount), sampleRate, channelCount, durationMs)
   }
 
-  // ---------------------------------------------------------------------------
+  // ---
   // Utility generators
-  // ---------------------------------------------------------------------------
+  // ---
 
   /**
-   * DC offset signal — constant value for every sample.
+   * DC offset signal - constant value for every sample.
    *
    * Useful for testing DC-blocking filters and offset handling.
    */
@@ -518,7 +518,7 @@ object SyntheticAudio {
   /**
    * Staircase signal that increments in discrete steps.
    *
-   * Useful for testing bit-depth preservation — each step maps to a
+   * Useful for testing bit-depth preservation - each step maps to a
    * quantization level.
    *
    * @param steps Number of distinct amplitude levels.
@@ -543,9 +543,9 @@ object SyntheticAudio {
     return audioIR(AudioSamples(data, sampleRate, channelCount), sampleRate, channelCount, durationMs)
   }
 
-  // ---------------------------------------------------------------------------
+  // ---
   // Internal helpers
-  // ---------------------------------------------------------------------------
+  // ---
 
   private fun sampleCount(durationMs: Long, sampleRate: Int, channelCount: Int): Int =
     ((durationMs * sampleRate * channelCount) / 1000).toInt()

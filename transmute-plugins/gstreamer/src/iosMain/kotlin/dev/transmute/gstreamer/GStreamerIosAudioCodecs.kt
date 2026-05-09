@@ -11,11 +11,11 @@ import dev.transmute.common.PipelineContext
 import dev.transmute.model.core.Bytes
 import dev.transmute.model.core.asBytes
 
-// ---------------------------------------------------------------------------
+// ---
 // GStreamer-backed audio codecs for iOS.
 // Mirrors the Desktop / Android implementations but delegates to
 // GStreamerIosAudioEngine (cinterop) instead of subprocess / JNI.
-// ---------------------------------------------------------------------------
+// ---
 
 // --- AAC (ADTS) ---
 
@@ -86,14 +86,38 @@ internal class GstIosOggVorbisEncoder : AudioEncoder {
     }
 }
 
-// ---------------------------------------------------------------------------
+// ---
 // AAC encoder element discovery for iOS
-// ---------------------------------------------------------------------------
+// ---
 
-private val _iosAacEncoder: String by lazy {
-    listOf("fdkaacenc", "voaacenc", "avenc_aac", "faac")
-        .firstOrNull { GStreamerIosBridge.hasElement(it) }
-        ?: "voaacenc"
+private val iosAacEncoderCandidates = listOf("fdkaacenc", "voaacenc", "avenc_aac", "faac")
+
+private val _iosAacEncoder: String? by lazy {
+    iosAacEncoderCandidates.firstOrNull { GStreamerIosBridge.hasElement(it) }
 }
 
-internal fun iosAacEncoderElement(): String = _iosAacEncoder
+private fun hasAllElements(vararg elements: String): Boolean =
+    elements.all(GStreamerIosBridge::hasElement)
+
+internal fun iosAacEncoderElementOrNull(): String? = _iosAacEncoder
+
+internal fun iosAacEncodeSupported(): Boolean =
+    iosAacEncoderElementOrNull() != null && hasAllElements("aacparse")
+
+internal fun iosM4aEncodeSupported(): Boolean =
+    iosAacEncoderElementOrNull() != null && hasAllElements("mp4mux")
+
+internal fun iosOpusEncodeSupported(): Boolean =
+    hasAllElements("opusenc", "oggmux")
+
+internal fun iosFlacEncodeSupported(): Boolean =
+    hasAllElements("flacenc")
+
+internal fun iosOggVorbisEncodeSupported(): Boolean =
+    hasAllElements("vorbisenc", "oggmux")
+
+private fun requireAacEncoderElement(): String =
+    iosAacEncoderElementOrNull()
+        ?: error("No supported AAC encoder element available on this iOS GStreamer runtime: ${iosAacEncoderCandidates.joinToString()}")
+
+internal fun iosAacEncoderElement(): String = requireAacEncoderElement()

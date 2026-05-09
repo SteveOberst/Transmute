@@ -11,9 +11,9 @@ import dev.transmute.io.TSource
 import dev.transmute.model.core.Bytes
 import dev.transmute.model.core.asBytes
 
-// ---------------------------------------------------------------------------
+// ---
 // AAC codec (ADTS container, GStreamer-backed)
-// ---------------------------------------------------------------------------
+// ---
 
 /**
  * AAC codec for the JVM desktop target.
@@ -35,16 +35,16 @@ internal class GstAacCodec : AudioCodec {
     return GStreamerAudioEngine.encode(
       ir,
       encoder,
-      tailElements = "! aacparse",
+      tailElements = "! aacparse ! audio/mpeg,mpegversion=4,stream-format=adts",
       ext = "aac",
       context = context,
     ).asBytes()
   }
 }
 
-// ---------------------------------------------------------------------------
+// ---
 // M4A codec (AAC in MP4/IPOD container, GStreamer-backed)
-// ---------------------------------------------------------------------------
+// ---
 
 /**
  * M4A codec for the JVM desktop target.
@@ -72,9 +72,9 @@ internal class GstM4aCodec : AudioCodec {
   }
 }
 
-// ---------------------------------------------------------------------------
+// ---
 // OPUS codec (Opus in OGG container, GStreamer-backed)
-// ---------------------------------------------------------------------------
+// ---
 
 /**
  * Opus codec for the JVM desktop target.
@@ -101,9 +101,9 @@ internal class GstOpusCodec : AudioCodec {
   }
 }
 
-// ---------------------------------------------------------------------------
+// ---
 // FLAC encoder (GStreamer-backed, decode is native JFlac)
-// ---------------------------------------------------------------------------
+// ---
 
 /**
  * FLAC encoder for the JVM desktop target.
@@ -125,9 +125,9 @@ internal class GstFlacEncoder : AudioEncoder {
   }
 }
 
-// ---------------------------------------------------------------------------
+// ---
 // OGG/Vorbis encoder (GStreamer-backed, decode is native JOrbis)
-// ---------------------------------------------------------------------------
+// ---
 
 /**
  * OGG/Vorbis encoder for the JVM desktop target.
@@ -150,9 +150,9 @@ internal class GstOggVorbisEncoder : AudioEncoder {
   }
 }
 
-// ---------------------------------------------------------------------------
+// ---
 // AAC encoder element discovery
-// ---------------------------------------------------------------------------
+// ---
 
 /** Cached AAC encoder element name. */
 private val _aacEncoder: String by lazy {

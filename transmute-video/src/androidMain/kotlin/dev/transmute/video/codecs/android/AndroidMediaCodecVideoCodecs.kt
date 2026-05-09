@@ -25,9 +25,9 @@ import dev.transmute.video.VideoTrack
 import java.io.File
 import java.nio.ByteOrder
 
-// ---------------------------------------------------------------------------
+// ---
 // ByteArray -> MediaDataSource helper (private, same pattern as audio module)
-// ---------------------------------------------------------------------------
+// ---
 
 private class ByteArrayMediaDataSource(private val bytes: ByteArray) : MediaDataSource() {
   override fun close() {}
@@ -40,9 +40,9 @@ private class ByteArrayMediaDataSource(private val bytes: ByteArray) : MediaData
   }
 }
 
-// ---------------------------------------------------------------------------
+// ---
 // YUV <-> RGBA conversion (BT.601)
-// ---------------------------------------------------------------------------
+// ---
 
 private fun yuvToRgba(
   yPlane: ByteArray,
@@ -104,9 +104,9 @@ private fun rgbaToNv12(rgba: ByteArray, width: Int, height: Int): ByteArray {
   return nv12
 }
 
-// ---------------------------------------------------------------------------
+// ---
 // Shared decode logic - extract all video frames + audio via MediaCodec
-// ---------------------------------------------------------------------------
+// ---
 
 private fun decodeVideoWithMediaCodec(
   source: ByteArray,
@@ -340,9 +340,9 @@ private fun decodeAudioWithMediaCodec(source: ByteArray, timeRangeMs: dev.transm
   }
 }
 
-// ---------------------------------------------------------------------------
+// ---
 // Shared encode logic
-// ---------------------------------------------------------------------------
+// ---
 
 private fun encodeVideoWithMediaCodec(
   ir: VideoIR,
@@ -618,9 +618,9 @@ private fun floatToPcm16(samples: FloatArray): ByteArray {
   return pcm
 }
 
-// ---------------------------------------------------------------------------
+// ---
 // MP4 Codec (H.264 + AAC)
-// ---------------------------------------------------------------------------
+// ---
 
 internal class AndroidMp4Codec : VideoCodec {
   override val decodableFormats: Set<VideoFormat> = setOf(VideoFormat.Mp4)
@@ -669,9 +669,9 @@ internal class AndroidMp4Codec : VideoCodec {
     ).asBytes()
 }
 
-// ---------------------------------------------------------------------------
+// ---
 // MOV Codec (same container as MP4 on Android)
-// ---------------------------------------------------------------------------
+// ---
 
 internal class AndroidMovCodec : VideoCodec {
   override val decodableFormats: Set<VideoFormat> = setOf(VideoFormat.Mov)
@@ -721,9 +721,9 @@ internal class AndroidMovCodec : VideoCodec {
     ).asBytes()
 }
 
-// ---------------------------------------------------------------------------
+// ---
 // WebM Decoder (VP8 decode - encode not reliably supported on all devices)
-// ---------------------------------------------------------------------------
+// ---
 
 internal class AndroidWebmDecoder : dev.transmute.video.VideoDecoder {
   override val supportedFormats: Set<VideoFormat> = setOf(VideoFormat.Webm)

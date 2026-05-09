@@ -15,7 +15,7 @@ class OkioFileSystemTest {
     private val testPath = TPath.of("/test.txt")
     private val testData = "Hello, Transmute!".encodeToByteArray()
 
-    // -- exists / metadata --------------------------------------
+    // -- exists / metadata ---
 
     @Test
     fun existsReturnsFalseForMissingFile() {
@@ -64,7 +64,7 @@ class OkioFileSystemTest {
         assertFalse(meta.isRegularFile)
     }
 
-    // -- read / write -------------------------------------------
+    // -- read / write ---
 
     @Test
     fun readReturnsWrittenData() {
@@ -107,7 +107,7 @@ class OkioFileSystemTest {
         assertEquals("Hello World", fs.read(testPath).decodeToString())
     }
 
-    // -- Streaming read / write ---------------------------------
+    // -- Streaming read / write ---
 
     @Test
     fun openReadReturnsCorrectContent() {
@@ -164,7 +164,7 @@ class OkioFileSystemTest {
         assertContentEquals(testData, fs.read(testPath))
     }
 
-    // -- Directory operations -----------------------------------
+    // -- Directory operations ---
 
     @Test
     fun createDirectoryAndList() {
@@ -207,7 +207,7 @@ class OkioFileSystemTest {
         }
     }
 
-    // -- Delete -------------------------------------------------
+    // -- Delete ---
 
     @Test
     fun deleteRemovesFile() {
@@ -235,7 +235,7 @@ class OkioFileSystemTest {
         assertFalse(fs.exists(dir))
     }
 
-    // -- Copy / Move --------------------------------------------
+    // -- Copy / Move ---
 
     @Test
     fun copyCopiesFileContent() {

@@ -10,7 +10,7 @@ import dev.transmute.model.metadata.xmp.XmpMetadata
 import dev.transmute.model.structure.image.types.JpegRaw
 import dev.transmute.model.structure.image.types.segments
 
-// -- Public API ---------------------------------------------------------------
+// -- Public API ---
 
 /**
  * Extract all recognised metadata blocks from a parsed [JpegRaw].
@@ -26,7 +26,7 @@ fun JpegRaw.extractMetadata(): List<MediaMetadata> = buildList {
   extractIccProfile()?.let(::add)
 }
 
-// -- EXIF extraction ----------------------------------------------------------
+// -- EXIF extraction ---
 
 private val EXIF_HEADER = byteArrayOf(0x45, 0x78, 0x69, 0x66, 0x00, 0x00) // "Exif\0\0"
 
@@ -47,7 +47,7 @@ private fun JpegRaw.extractExif(): ExifMetadata? {
   }
 }
 
-// -- XMP extraction -----------------------------------------------------------
+// -- XMP extraction ---
 
 private val XMP_HEADER = "http://ns.adobe.com/xap/1.0/\u0000".encodeToByteArray()
 
@@ -66,7 +66,7 @@ private fun JpegRaw.extractXmp(): XmpMetadata? {
   return parseXmpText(xmlText)
 }
 
-// -- ICC Profile extraction ---------------------------------------------------
+// -- ICC Profile extraction ---
 
 private val ICC_HEADER = "ICC_PROFILE\u0000".encodeToByteArray()
 

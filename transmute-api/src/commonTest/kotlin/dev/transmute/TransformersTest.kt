@@ -8,7 +8,7 @@ import kotlin.test.assertIs
 
 class TransformersTest {
 
-    // -- Image transforms ----------------------------------------------
+    // -- Image transforms ---
 
     @Test
     fun imageScaleCreatesCorrectType() {
@@ -52,7 +52,7 @@ class TransformersTest {
         assertIs<ImageOpacityTransform>(Transformers.image().opacity(0.5f))
     }
 
-    // -- Audio transforms ----------------------------------------------
+    // -- Audio transforms ---
 
     @Test
     fun audioNormalizeCreatesCorrectType() {
@@ -109,7 +109,7 @@ class TransformersTest {
         assertIs<AudioChannelMapTransform>(Transformers.audio().channelMap(intArrayOf(0, 1)))
     }
 
-    // -- Video transforms ----------------------------------------------
+    // -- Video transforms ---
 
     @Test
     fun videoTrimCreatesCorrectType() {
@@ -146,7 +146,7 @@ class TransformersTest {
         assertIs<VideoRotateTransform>(Transformers.video().rotate(90))
     }
 
-    // -- Factory singletons --------------------------------------------
+    // -- Factory singletons ---
 
     @Test
     fun imageFactoryReturnsSameInstance() {

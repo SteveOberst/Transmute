@@ -25,7 +25,7 @@ fun PngRaw.extractMetadata(): List<MediaMetadata> = buildList {
   extractText()?.let(::add)
 }
 
-// -- EXIF via eXIf chunk ------------------------------------------------------
+// -- EXIF via eXIf chunk ---
 
 private fun PngRaw.extractExif(): MediaMetadata? {
   val chunk = chunks.firstOrNull { it.type.value == "eXIf" } ?: return null
@@ -40,7 +40,7 @@ private fun PngRaw.extractExif(): MediaMetadata? {
   }
 }
 
-// -- ICC via iCCP chunk -------------------------------------------------------
+// -- ICC via iCCP chunk ---
 
 /**
  * The iCCP chunk stores a zlib-compressed ICC profile. The profile data after the
@@ -60,7 +60,7 @@ private fun PngRaw.extractIcc(): MediaMetadata? {
   }
 }
 
-// -- XMP via iTXt chunk -------------------------------------------------------
+// -- XMP via iTXt chunk ---
 
 private fun PngRaw.extractXmp(): MediaMetadata? {
   val xmp = chunks.firstOrNull { it.type.value == "iTXt" }
@@ -82,7 +82,7 @@ private fun PngRaw.extractXmp(): MediaMetadata? {
   return xmp
 }
 
-// -- PNG text metadata (tEXt / zTXt / iTXt) ----------------------------------
+// -- PNG text metadata (tEXt / zTXt / iTXt) ---
 
 private fun PngRaw.extractText(): PngTextMetadata? {
   val out = mutableListOf<PngTextChunk>()

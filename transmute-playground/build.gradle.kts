@@ -1,7 +1,7 @@
 // Umbrella module for the Transmute Playground.
 // Sub-modules: shared, server, web (Next.js - not a Gradle module)
 
-/* -- Dev tasks: start frontend & backend for local development ------------- */
+/* -- Dev tasks: start frontend & backend for local development --- */
 
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.jvm.toolchain.JavaLanguageVersion

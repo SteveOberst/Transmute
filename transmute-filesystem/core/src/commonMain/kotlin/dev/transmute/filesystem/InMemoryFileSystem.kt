@@ -37,7 +37,7 @@ class InMemoryFileSystem : TransmuteFileSystem {
     return key(p)
   }
 
-  // -- Metadata -----------------------------------------------
+  // -- Metadata ---
 
   override fun exists(path: TPath): Boolean = nodes.containsKey(key(path))
 
@@ -55,7 +55,7 @@ class InMemoryFileSystem : TransmuteFileSystem {
     null -> null
   }
 
-  // -- Bulk read / write --------------------------------------
+  // -- Bulk read / write ---
 
   override fun read(path: TPath): ByteArray {
     val node = nodes[key(path)]
@@ -92,7 +92,7 @@ class InMemoryFileSystem : TransmuteFileSystem {
     }
   }
 
-  // -- Streaming / random-access ------------------------------
+  // -- Streaming / random-access ---
 
   override fun openRead(path: TPath): ReadHandle {
     val data = read(path)
@@ -101,7 +101,7 @@ class InMemoryFileSystem : TransmuteFileSystem {
 
   override fun openWrite(path: TPath, mode: WriteMode): WriteHandle = InMemoryWriteHandle(this, path, mode)
 
-  // -- Directory operations -----------------------------------
+  // -- Directory operations ---
 
   override fun list(path: TPath): List<TPath> {
     val node = nodes[key(path)]
@@ -140,7 +140,7 @@ class InMemoryFileSystem : TransmuteFileSystem {
     }
   }
 
-  // -- Delete -------------------------------------------------
+  // -- Delete ---
 
   override fun delete(path: TPath, recursive: Boolean) {
     val k = key(path)
@@ -162,7 +162,7 @@ class InMemoryFileSystem : TransmuteFileSystem {
     }
   }
 
-  // -- Copy / Move --------------------------------------------
+  // -- Copy / Move ---
 
   override fun copy(source: TPath, target: TPath, overwrite: Boolean) {
     if (!overwrite && exists(target)) {
@@ -177,7 +177,7 @@ class InMemoryFileSystem : TransmuteFileSystem {
     delete(source)
   }
 
-  // -- Internal helpers ---------------------------------------
+  // -- Internal helpers ---
 
   private fun ensureParent(path: TPath) {
     val p = path.normalize().parent ?: return
@@ -188,7 +188,7 @@ class InMemoryFileSystem : TransmuteFileSystem {
   }
 }
 
-// -- In-memory ReadHandle ---------------------------------------
+// -- In-memory ReadHandle ---
 
 private class InMemoryReadHandle(private val data: ByteArray) : ReadHandle {
   private var pos = 0L
@@ -210,7 +210,7 @@ private class InMemoryReadHandle(private val data: ByteArray) : ReadHandle {
   override fun close() { /* no-op */ }
 }
 
-// -- In-memory WriteHandle --------------------------------------
+// -- In-memory WriteHandle ---
 
 private class InMemoryWriteHandle(private val fs: InMemoryFileSystem, private val path: TPath, private val mode: WriteMode) : WriteHandle {
   private val buffer = mutableListOf<Byte>()

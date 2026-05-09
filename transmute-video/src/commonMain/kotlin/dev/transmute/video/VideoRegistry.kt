@@ -114,6 +114,7 @@ class MutableVideoEncoderRegistry : VideoEncoderRegistry {
  */
 object VideoRegistries {
   @Volatile private var defaultsInstalled: Boolean = false
+  private val defaultInstallation: Unit by lazy { installDefaults() }
 
   val decoders = MutableVideoDecoderRegistry()
   val encoders = MutableVideoEncoderRegistry()
@@ -167,11 +168,7 @@ object VideoRegistries {
   /** Installs platform defaults if the registries look empty. */
   fun installDefaultsIfEmpty() {
     if (defaultsInstalled) return
-    synchronized(this) {
-      if (defaultsInstalled) return
-      installDefaults()
-      defaultsInstalled = true
-    }
+    defaultInstallation
   }
 }
 

@@ -11,7 +11,7 @@ iOS.
 ## Supported Formats
 
 | Domain | Formats                                     |
-|--------|---------------------------------------------|
+|---|---|
 | Audio  | AAC, M4A, Opus, FLAC (encode), OGG (encode) |
 | Video  | MP4, MOV, WebM, AVI, MKV                    |
 
@@ -29,7 +29,7 @@ val transmute = Transmute {
 ## Feature Toggles
 
 GStreamer declares typed `PluginFeature` constants for fine-grained codec control.
-All features are **enabled by default** — disable the ones you don't need:
+All features are **enabled by default** - disable the ones you don't need:
 
 ```kotlin
 install(GStreamer) {
@@ -38,7 +38,7 @@ install(GStreamer) {
 ```
 
 | Feature                          | Default | Description                                           |
-|----------------------------------|---------|-------------------------------------------------------|
+|---|---|---|
 | `GStreamerFeature.AudioCodecs`   | enabled | AAC, M4A, Opus, FLAC/OGG encode                      |
 | `GStreamerFeature.VideoCodecs`   | enabled | MP4, MOV, WebM, AVI, MKV                              |
 | `GStreamerFeature.LegacyAvi`    | enabled | Legacy AVI container support                           |
@@ -46,9 +46,9 @@ install(GStreamer) {
 ## Key Types
 
 | Type                      | Purpose                                                            |
-|---------------------------|--------------------------------------------------------------------|
-| `GStreamer`               | `TransmutePlugin<GStreamerPluginConfig>` — the plugin object       |
-| `GStreamer.key`           | `PluginId` — strongly-typed plugin identifier                      |
+|---|---|
+| `GStreamer`               | `TransmutePlugin<GStreamerPluginConfig>` - the plugin object       |
+| `GStreamer.key`           | `PluginId` - strongly-typed plugin identifier                      |
 | `GStreamerFeature`        | Typed feature constants for codec control                          |
 | `GStreamerPluginConfig`   | Configuration: feature toggles, installation mode, timeout, logging |
 | `GStreamerCodecInstaller` | Installs GStreamer codecs into registries                           |
@@ -85,4 +85,4 @@ println(diag?.current?.available)  // true
 
 ## Targets
 
-Android, Desktop JVM, iOS — via Kotlin Multiplatform.
+Android, Desktop JVM, iOS - via Kotlin Multiplatform.

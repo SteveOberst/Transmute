@@ -77,6 +77,7 @@ kotlin {
 
     val androidInstrumentedTest by getting {
       dependencies {
+        implementation(libs.kotlin.test)
         implementation("androidx.test.ext:junit:1.1.5")
         implementation("androidx.test:runner:1.5.2")
         implementation(libs.kotlinx.coroutines.test)

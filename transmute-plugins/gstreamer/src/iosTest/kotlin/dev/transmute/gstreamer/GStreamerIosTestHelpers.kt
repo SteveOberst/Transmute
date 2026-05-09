@@ -57,7 +57,34 @@ object GStreamerIosTestHelpers {
         block()
     }
 
-    // -- Synthetic audio --------------------------------------------------
+    suspend fun requireGStreamerElements(vararg elements: String, block: suspend () -> Unit) {
+        if (!gstreamerAvailable) {
+            println("SKIP: GStreamer not available - test skipped")
+            return
+        }
+        val missing = elements.filterNot(GStreamerIosBridge::hasElement)
+        if (missing.isNotEmpty()) {
+            println("SKIP: GStreamer elements not available - ${missing.joinToString()}")
+            return
+        }
+        block()
+    }
+
+    suspend fun requireGStreamerOptionalElements(vararg elements: String?, block: suspend () -> Unit) {
+        if (!gstreamerAvailable) {
+            println("SKIP: GStreamer not available - test skipped")
+            return
+        }
+        val missing = elements.filter { it == null || !GStreamerIosBridge.hasElement(it) }
+            .map { it ?: "<missing element selection>" }
+        if (missing.isNotEmpty()) {
+            println("SKIP: GStreamer elements not available - ${missing.joinToString()}")
+            return
+        }
+        block()
+    }
+
+    // -- Synthetic audio ---
 
     fun sineWave(
         durationMs: Long = 500,
@@ -82,7 +109,7 @@ object GStreamerIosTestHelpers {
         )
     }
 
-    // -- Synthetic image --------------------------------------------------
+    // -- Synthetic image ---
 
     fun solidColor(
         width: Int,
@@ -115,7 +142,7 @@ object GStreamerIosTestHelpers {
         )
     }
 
-    // -- Synthetic video --------------------------------------------------
+    // -- Synthetic video ---
 
     fun syntheticVideo(
         width: Int = 160,

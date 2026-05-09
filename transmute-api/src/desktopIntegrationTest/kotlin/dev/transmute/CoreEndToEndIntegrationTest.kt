@@ -56,9 +56,9 @@ class CoreEndToEndIntegrationTest {
 
   private fun testContext(): PipelineContext = PipelineContext(logger = PrintLogger)
 
-  // -----------------------------------------------------------------------
+  // ---
   // Synthetic-media helpers (inline -- no dependency on GStreamer test code)
-  // -----------------------------------------------------------------------
+  // ---
 
   private fun sineWave(durationMs: Long = 500, sampleRate: Int = 44100, channelCount: Int = 1): AudioIR {
     val totalSamples = ((durationMs * sampleRate * channelCount) / 1000).toInt()
@@ -99,9 +99,9 @@ class CoreEndToEndIntegrationTest {
     )
   }
 
-  // =======================================================================
+  // ===
   // AUDIO: pure-JVM codecs
-  // =======================================================================
+  // ===
 
   @Test
   fun wav_realMedia_structureReaderAccepts() = runTest {
@@ -155,9 +155,9 @@ class CoreEndToEndIntegrationTest {
     assertTrue(decoded.durationMs > 0, "MP3 must decode with positive duration")
   }
 
-  // =======================================================================
+  // ===
   // IMAGE: pure-JVM codecs (JvmImageIo / BmpImageEncoder)
-  // =======================================================================
+  // ===
 
   @Test
   fun jpeg_realMedia_structureReaderAccepts() = runTest {

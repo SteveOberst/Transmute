@@ -58,7 +58,7 @@ class PluginConfigure {
     featuresConfig.apply(block)
   }
 
-  // -- Shorthand feature toggles (skip nested features { } block) -----------
+  // -- Shorthand feature toggles (skip nested features { } block) ---
 
   /** Enable a [PluginFeature] directly without a nested `features { }` block. */
   fun enable(feature: PluginFeature) {

@@ -14,15 +14,15 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 import kotlin.random.Random
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===
 //  Entry point
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===
 
 /**
  * Build a synthetic [ImageIR] using the image DSL.
  *
  * ```kotlin
- * // Solid red, 640×480
+ * // Solid red, 640x480
  * val img = syntheticImage {
  *     size(640, 480)
  *     solid(Color.RED)
@@ -62,9 +62,9 @@ import kotlin.random.Random
 fun syntheticImage(block: ImageScope.() -> Unit): ImageIR =
   ImageScope().apply(block).build()
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===
 //  Root scope
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===
 
 @SyntheticMediaDsl
 class ImageScope {
@@ -77,7 +77,7 @@ class ImageScope {
   /** Pixel format for the output buffer (default RGBA_8888). */
   var pixelFormat: PixelFormat = PixelFormat.RGBA_8888
 
-  // ---- internal bookkeeping ----
+  // --- internal bookkeeping ---
   internal var renderer: PixelRenderer? = null
   internal val layers = mutableListOf<LayerEntry>()
 
@@ -87,14 +87,14 @@ class ImageScope {
     height = h
   }
 
-  // ─────────────────────────── Solid fill ────────────────────────────
+  // --- Solid fill ---
 
   /** Fill the entire image with a single [color]. */
   fun solid(color: Color) {
     renderer = SolidRenderer(color)
   }
 
-  // ─────────────────────────── Gradients ─────────────────────────────
+  // --- Gradients ---
 
   /** Configure a gradient via sub-scope. */
   fun gradient(block: GradientScope.() -> Unit) {
@@ -117,7 +117,7 @@ class ImageScope {
     renderer = GradientRenderer(GradientDirection.RADIAL, center, edge)
   }
 
-  // ─────────────────────────── Patterns ──────────────────────────────
+  // --- Patterns ---
 
   /** Checkerboard pattern via sub-scope. */
   fun checkerboard(block: CheckerboardScope.() -> Unit = {}) {
@@ -142,7 +142,7 @@ class ImageScope {
     renderer = ColorBarsRenderer
   }
 
-  /** Grayscale ramp (black → white, left → right). */
+  /** Grayscale ramp (black -> white, left -> right). */
   fun grayscaleRamp() {
     renderer = GrayscaleRampRenderer
   }
@@ -158,14 +158,14 @@ class ImageScope {
     renderer = BorderRenderer(b.width, b.color, b.fill)
   }
 
-  // ─────────────────────────── Noise ─────────────────────────────────
+  // --- Noise ---
 
   /** Pseudo-random noise (high-entropy, incompressible). */
   fun noise(seed: Long = 42L) {
     renderer = NoiseRenderer(seed)
   }
 
-  // ─────────────────────────── Custom ────────────────────────────────
+  // --- Custom ---
 
   /**
    * Arbitrary per-pixel generator.
@@ -177,16 +177,16 @@ class ImageScope {
     renderer = CustomRenderer(block)
   }
 
-  // ─────────────────────────── Layers ────────────────────────────────
+  // --- Layers ---
 
   /**
    * Add a compositing layer.
    *
-   * Layers are alpha-composited in order (bottom → top). The first layer is the
+   * Layers are alpha-composited in order (bottom -> top). The first layer is the
    * base; subsequent layers are blended on top. Each layer is described with
    * its own [ImageScope].
    *
-   * @param opacity Overall opacity multiplier for this layer (0.0–1.0).
+   * @param opacity Overall opacity multiplier for this layer (0.0-1.0).
    * @param blendMode Blend function (default [BlendMode.NORMAL]).
    */
   fun layer(
@@ -203,7 +203,7 @@ class ImageScope {
     layers += LayerEntry(inner, opacity, blendMode)
   }
 
-  // ─────────────────────────── Build ─────────────────────────────────
+  // --- Build ---
 
   internal fun build(): ImageIR {
     val bpp = pixelFormat.bytesPerPixel
@@ -255,9 +255,9 @@ class ImageScope {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===
 //  Sub-scopes
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===
 
 /** Configuration for a gradient. */
 @SyntheticMediaDsl
@@ -278,7 +278,7 @@ class CheckerboardScope {
 /** Configuration for stripes. */
 @SyntheticMediaDsl
 class StripeScope {
-  /** If true → horizontal stripes; if false → vertical. */
+  /** If true -> horizontal stripes; if false -> vertical. */
   var horizontal: Boolean = true
   var stripeSize: Int = 8
   var colorA: Color = Color.WHITE
@@ -302,9 +302,9 @@ class BorderScope {
   var fill: Color = Color.WHITE
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===
 //  Pixel renderers (internal)
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===
 
 internal fun interface PixelRenderer {
   fun colorAt(scope: ImageScope, x: Int, y: Int): Color
@@ -429,9 +429,9 @@ internal class CustomRenderer(private val fn: ImageScope.(Int, Int) -> Color) : 
   override fun colorAt(scope: ImageScope, x: Int, y: Int): Color = scope.fn(x, y)
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===
 //  Layer compositing (internal)
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===
 
 internal data class LayerEntry(
   val scope: ImageScope,

@@ -39,7 +39,7 @@ class PluginFeaturesConfig constructor() {
   /** All user-specified feature overrides (feature-id -> enabled). */
   val overrides: Map<String, Boolean> get() = _overrides.toMap()
 
-  // -- Typed PluginFeature API (preferred) --------------------------------
+  // -- Typed PluginFeature API (preferred) ---
 
   /** Explicitly enable a [PluginFeature]. */
   fun enable(feature: PluginFeature) {
@@ -64,7 +64,7 @@ class PluginFeaturesConfig constructor() {
    */
   fun isEnabled(feature: PluginFeature): Boolean = _overrides[feature.id] ?: feature.defaultEnabled
 
-  // -- String-based API (legacy / fallback) -------------------------------
+  // -- String-based API (legacy / fallback) ---
 
   /** Explicitly enable a named feature by raw string ID. */
   fun enable(featureId: String) {

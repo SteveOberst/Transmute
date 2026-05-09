@@ -12,9 +12,9 @@ import kotlin.math.ln
 import kotlin.math.sin
 import kotlin.random.Random
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===
 //  Entry point
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===
 
 /**
  * Build a synthetic [AudioIR] using the audio DSL.
@@ -68,26 +68,26 @@ import kotlin.random.Random
 fun syntheticAudio(block: AudioScope.() -> Unit): AudioIR =
   AudioScope().apply(block).build()
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===
 //  Root scope
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===
 
 @SyntheticMediaDsl
 class AudioScope {
   /** Sample rate in Hz (default 44 100). */
   var sampleRate: Int = 44100
 
-  /** Channel count — 1 = mono, 2 = stereo (default 1). */
+  /** Channel count - 1 = mono, 2 = stereo (default 1). */
   var channels: Int = 1
 
   /** Total duration in milliseconds (default 1 000). Use [Int.seconds] / [Int.ms] helpers. */
   var duration: Long = 1000L
 
-  // ---- internal bookkeeping ----
+  // --- internal bookkeeping ---
   internal var signal: SignalNode = SilenceNode
   internal val effects = mutableListOf<EffectNode>()
 
-  // ─────────────────────────── Waveforms ───────────────────────────
+  // --- Waveforms ---
 
   /** Pure sine wave. */
   fun sine(frequencyHz: Double = 440.0, amplitude: Float = 0.8f, phase: Float = 0f) {
@@ -104,7 +104,7 @@ class AudioScope {
     signal = SawtoothNode(frequencyHz, amplitude)
   }
 
-  /** Triangle wave (odd harmonics, −6 dB/octave roll-off). */
+  /** Triangle wave (odd harmonics, -6 dB/octave roll-off). */
   fun triangle(frequencyHz: Double = 440.0, amplitude: Float = 0.8f) {
     signal = TriangleNode(frequencyHz, amplitude)
   }
@@ -119,7 +119,7 @@ class AudioScope {
     signal = DcNode(level)
   }
 
-  // ─────────────────────────── Noise ───────────────────────────
+  // --- Noise ---
 
   /** White noise (uniform spectral density). */
   fun whiteNoise(amplitude: Float = 0.5f, seed: Long = 42L) {
@@ -131,7 +131,7 @@ class AudioScope {
     signal = PinkNoiseNode(amplitude, seed)
   }
 
-  // ─────────────────────────── Sweeps ───────────────────────────
+  // --- Sweeps ---
 
   /** Frequency sweep (chirp). */
   fun chirp(
@@ -143,33 +143,33 @@ class AudioScope {
     signal = ChirpNode(startHz, endHz, amplitude, sweep)
   }
 
-  // ─────────────────────────── Impulse ───────────────────────────
+  // --- Impulse ---
 
   /** Single-sample impulse at [positionMs]. */
   fun impulse(positionMs: Long = 0, amplitude: Float = 1f) {
     signal = ImpulseNode(positionMs, amplitude)
   }
 
-  // ─────────────────────────── Composition ───────────────────────────
+  // --- Composition ---
 
   /** Additive mix of multiple signals (summed). */
   fun mix(block: MixScope.() -> Unit) {
     signal = MixNode(MixScope().apply(block).signals.toList())
   }
 
-  /** Temporal concatenation of segments — duration is summed automatically. */
+  /** Temporal concatenation of segments - duration is summed automatically. */
   fun sequence(block: SequenceScope.() -> Unit) {
     val scope = SequenceScope().apply(block)
     signal = SequenceNode(scope.segments.toList())
     duration = scope.segments.sumOf { it.durationMs }
   }
 
-  /** Arbitrary per-sample generator: `(sampleIndex, sampleRate) → Float`. */
+  /** Arbitrary per-sample generator: `(sampleIndex, sampleRate) -> Float`. */
   fun generate(block: (sampleIndex: Int, sampleRate: Int) -> Float) {
     signal = CustomNode(block)
   }
 
-  // ─────────────────────────── Effects ───────────────────────────
+  // --- Effects ---
 
   /** Linear fade-in from silence at the start. */
   fun fadeIn(ms: Long) {
@@ -186,24 +186,24 @@ class AudioScope {
     effects += AmplifyNode(factor)
   }
 
-  /** Normalize peak amplitude to [ceiling] (0–1). */
+  /** Normalize peak amplitude to [ceiling] (0-1). */
   fun normalize(ceiling: Float = 1f) {
     effects += NormalizeNode(ceiling)
   }
 
-  /** Apply an ADSR (attack–decay–sustain–release) envelope. */
+  /** Apply an ADSR (attack-decay-sustain-release) envelope. */
   fun adsr(block: AdsrScope.() -> Unit) {
     val env = AdsrScope().apply(block)
     effects += AdsrNode(env.attack, env.decay, env.sustain, env.release)
   }
 
-  // ─────────────────────────── Stereo ───────────────────────────
+  // --- Stereo ---
 
   /**
    * Enable stereo and set a constant pan position.
    *
    * Sets [channels] to 2 and applies constant-power panning.
-   * `pan` ranges from −1.0 (hard left) to +1.0 (hard right); 0.0 = centre.
+   * `pan` ranges from -1.0 (hard left) to +1.0 (hard right); 0.0 = centre.
    */
   fun stereo(block: StereoScope.() -> Unit) {
     channels = 2
@@ -211,7 +211,7 @@ class AudioScope {
     effects += StereoPanNode(scope.pan)
   }
 
-  // ─────────────────────────── Build ───────────────────────────
+  // --- Build ---
 
   internal fun build(): AudioIR {
     val monoCount = (sampleRate.toLong() * duration / 1000).toInt()
@@ -224,7 +224,7 @@ class AudioScope {
     val finalSamples = if (channels <= 1) {
       mono
     } else {
-      // Expand mono → interleaved multi-channel (unless stereo pan node already handled it)
+      // Expand mono -> interleaved multi-channel (unless stereo pan node already handled it)
       val hasStereoPan = effects.any { it is StereoPanNode }
       if (hasStereoPan) mono else FloatArray(monoCount * channels) { mono[it / channels] }
     }
@@ -239,9 +239,9 @@ class AudioScope {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===
 //  Sub-scopes
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===
 
 /** Scope for [AudioScope.mix]. Each call adds a signal to be summed. */
 @SyntheticMediaDsl
@@ -288,26 +288,26 @@ class SequenceScope {
 /** Scope for the ADSR envelope. */
 @SyntheticMediaDsl
 class AdsrScope {
-  /** Attack time in ms (ramp 0 → peak). */
+  /** Attack time in ms (ramp 0 -> peak). */
   var attack: Long = 50L
-  /** Decay time in ms (ramp peak → [sustain]). */
+  /** Decay time in ms (ramp peak -> [sustain]). */
   var decay: Long = 100L
-  /** Sustain level (0–1) relative to peak. */
+  /** Sustain level (0-1) relative to peak. */
   var sustain: Float = 0.7f
-  /** Release time in ms (ramp sustain → 0, applied at end). */
+  /** Release time in ms (ramp sustain -> 0, applied at end). */
   var release: Long = 150L
 }
 
 /** Scope for stereo configuration. */
 @SyntheticMediaDsl
 class StereoScope {
-  /** Pan position: −1.0 (hard left) … 0.0 (centre) … +1.0 (hard right). */
+  /** Pan position: -1.0 (hard left) ... 0.0 (centre) ... +1.0 (hard right). */
   var pan: Float = 0f
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===
 //  Signal graph nodes (internal)
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===
 
 internal sealed interface SignalNode {
   fun render(sampleCount: Int, sampleRate: Int): FloatArray
@@ -466,9 +466,9 @@ internal data class CustomNode(val gen: (Int, Int) -> Float) : SignalNode {
     FloatArray(sampleCount) { gen(it, sampleRate) }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===
 //  Effect nodes (internal)
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===
 
 internal sealed interface EffectNode {
   fun apply(samples: FloatArray, sampleRate: Int, durationMs: Long): FloatArray

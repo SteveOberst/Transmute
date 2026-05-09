@@ -5,7 +5,7 @@ Official plugin catalog for the Transmute media processing library.
 ## Available Plugins
 
 | Plugin      | Module                          | Key                        | Description                                      |
-|-------------|---------------------------------|----------------------------|--------------------------------------------------|
+|---|---|---|---|
 | `GStreamer` | `transmute-plugins:gstreamer`   | `GStreamer.key`            | OGG/Opus/FLAC, MP4/MOV/WebM/AVI/MKV             |
 | `LibHeif`   | `transmute-plugins:libheif`     | `LibHeif.key`              | HEIF/HEIC/AVIF decode/encode via libheif         |
 
@@ -54,7 +54,7 @@ val transmute = Transmute {
 **GStreamer features:**
 
 | Feature                          | Default | Description                                           |
-|----------------------------------|---------|-------------------------------------------------------|
+|---|---|---|
 | `GStreamerFeature.AudioCodecs`   | enabled | AAC, M4A, Opus, FLAC/OGG decode/encode               |
 | `GStreamerFeature.VideoCodecs`   | enabled | MP4, MOV, WebM, AVI, MKV                              |
 | `GStreamerFeature.LegacyAvi`    | enabled | Legacy AVI container support                           |
@@ -62,7 +62,7 @@ val transmute = Transmute {
 **LibHeif features:**
 
 | Feature                          | Default | Description                                           |
-|----------------------------------|---------|-------------------------------------------------------|
+|---|---|---|
 | `LibHeifFeature.ImageCodecs`    | enabled | HEIF, HEIC, AVIF decode/encode                        |
 | `LibHeifFeature.ImageEncoding`  | enabled | HEIF/AVIF encoding via `heif-enc`                     |
 
@@ -71,7 +71,7 @@ val transmute = Transmute {
 Every plugin installed through the `Transmute { }` builder gets access to:
 
 | Feature             | API                                        | Description                              |
-|---------------------|--------------------------------------------|------------------------------------------|
+|---|---|---|
 | Typed keys          | `PluginId`                                 | Strongly-typed plugin identification     |
 | Typed features      | `PluginFeature`                            | Strongly-typed feature toggle constants  |
 | Typed services      | `scope.services`                           | Type-safe `ServiceRegistry` for sharing  |

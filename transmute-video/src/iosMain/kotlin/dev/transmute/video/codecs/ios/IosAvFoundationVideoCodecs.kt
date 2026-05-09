@@ -34,9 +34,9 @@ import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 import dev.transmute.codec.TimeRangeMs
 
-// ---------------------------------------------------------------------------
+// ---
 // Shared decode helpers
-// ---------------------------------------------------------------------------
+// ---
 
 /**
  * Write bytes to a temporary file and return its NSURL.
@@ -201,9 +201,9 @@ private fun decodeAudioSamples(fileUrl: NSURL, timeRangeMs: TimeRangeMs?): Audio
   )
 }
 
-// ---------------------------------------------------------------------------
+// ---
 // Shared encode helper
-// ---------------------------------------------------------------------------
+// ---
 
 private suspend fun encodeWithAvFoundation(
   ir: VideoIR,
@@ -355,9 +355,9 @@ private suspend fun encodeWithAvFoundation(
   return result
 }
 
-// ---------------------------------------------------------------------------
+// ---
 // MP4 Codec (H.264 + AAC via AVFoundation)
-// ---------------------------------------------------------------------------
+// ---
 
 internal class IosMp4Codec : VideoCodec {
   override val decodableFormats: Set<VideoFormat> = setOf(VideoFormat.Mp4)
@@ -401,9 +401,9 @@ internal class IosMp4Codec : VideoCodec {
   }
 }
 
-// ---------------------------------------------------------------------------
+// ---
 // MOV Codec (H.264 + AAC via AVFoundation)
-// ---------------------------------------------------------------------------
+// ---
 
 internal class IosMovCodec : VideoCodec {
   override val decodableFormats: Set<VideoFormat> = setOf(VideoFormat.Mov)

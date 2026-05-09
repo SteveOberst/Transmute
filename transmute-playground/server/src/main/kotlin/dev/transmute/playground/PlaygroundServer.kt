@@ -36,7 +36,7 @@ fun main() {
 }
 
 fun Application.configureServer(service: TransmuteService = TransmuteService()) {
-  // -- Serialization --------------------------------------------------------
+  // -- Serialization ---
   install(ContentNegotiation) {
     json(
       Json {
@@ -49,7 +49,7 @@ fun Application.configureServer(service: TransmuteService = TransmuteService()) 
     )
   }
 
-  // -- CORS (dev-friendly, allow all origins) --------------------------------
+  // -- CORS (dev-friendly, allow all origins) ---
   install(CORS) {
     anyHost()
     allowHeader(HttpHeaders.ContentType)
@@ -61,7 +61,7 @@ fun Application.configureServer(service: TransmuteService = TransmuteService()) 
     allowMethod(HttpMethod.Options)
   }
 
-  // -- WebSockets -----------------------------------------------------------
+  // -- WebSockets ---
   install(WebSockets) {
     pingPeriod = 15.seconds
     timeout = 60.seconds
@@ -69,12 +69,12 @@ fun Application.configureServer(service: TransmuteService = TransmuteService()) 
     masking = false
   }
 
-  // -- Call Logging ---------------------------------------------------------
+  // -- Call Logging ---
   install(CallLogging) {
     level = org.slf4j.event.Level.INFO
   }
 
-  // -- Status Pages (global error handler) -----------------------------------
+  // -- Status Pages (global error handler) ---
   install(StatusPages) {
     exception<BadRequestException> { call, cause ->
       // Common during live-preview while the user is still typing.
@@ -110,7 +110,7 @@ fun Application.configureServer(service: TransmuteService = TransmuteService()) 
     }
   }
 
-  // -- Routing --------------------------------------------------------------
+  // -- Routing ---
   routing {
     // REST endpoints
     healthRoutes(service)

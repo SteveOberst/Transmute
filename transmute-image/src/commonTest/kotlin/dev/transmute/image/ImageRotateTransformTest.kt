@@ -119,7 +119,7 @@ class ImageRotateTransformTest {
     assertContentEquals(white, pixelAt(result, 2, 3), "dst(2,3) should be WHITE from src(3,0)")
 
     // src(3,2)=TEAL -> dst_x = 3-1-2=0, dst_y = 3 -> (0,3)
-    assertContentEquals(TEAL, pixelAt(result, 0, 3), "dst(0,3) should be TEAL from src(3,2)")
+    assertContentEquals(teal, pixelAt(result, 0, 3), "dst(0,3) should be TEAL from src(3,2)")
   }
 
   // --- 180 deg ---
@@ -142,15 +142,15 @@ class ImageRotateTransformTest {
     val input = referenceImage(Orientation.NORMAL)
     val result = ImageRotateTransform(180).apply(input, testContext())
 
-    assertContentEquals(TEAL, pixelAt(result, 0, 0), "dst(0,0) should be TEAL from src(3,2)")
-    assertContentEquals(RED, pixelAt(result, 3, 2), "dst(3,2) should be RED from src(0,0)")
-    assertContentEquals(CYAN, pixelAt(result, 2, 1), "dst(2,1) should be CYAN from src(1,1)")
+    assertContentEquals(teal, pixelAt(result, 0, 0), "dst(0,0) should be TEAL from src(3,2)")
+    assertContentEquals(red, pixelAt(result, 3, 2), "dst(3,2) should be RED from src(0,0)")
+    assertContentEquals(cyan, pixelAt(result, 2, 1), "dst(2,1) should be CYAN from src(1,1)")
 
     // src(3,0)=WHITE -> dst(0,2)
-    assertContentEquals(WHITE, pixelAt(result, 0, 2), "dst(0,2) should be WHITE from src(3,0)")
+    assertContentEquals(white, pixelAt(result, 0, 2), "dst(0,2) should be WHITE from src(3,0)")
 
     // src(0,2)=ORANGE -> dst(3,0)
-    assertContentEquals(ORANGE, pixelAt(result, 3, 0), "dst(3,0) should be ORANGE from src(0,2)")
+    assertContentEquals(orange, pixelAt(result, 3, 0), "dst(3,0) should be ORANGE from src(0,2)")
   }
 
   // --- 270 deg CW (= 90 deg CCW) ---
@@ -174,13 +174,13 @@ class ImageRotateTransformTest {
     val input = referenceImage(Orientation.NORMAL)
     val result = ImageRotateTransform(270).apply(input, testContext())
 
-    assertContentEquals(WHITE, pixelAt(result, 0, 0), "dst(0,0) should be WHITE from src(3,0)")
-    assertContentEquals(RED, pixelAt(result, 0, 3), "dst(0,3) should be RED from src(0,0)")
-    assertContentEquals(TEAL, pixelAt(result, 2, 0), "dst(2,0) should be TEAL from src(3,2)")
-    assertContentEquals(ORANGE, pixelAt(result, 2, 3), "dst(2,3) should be ORANGE from src(0,2)")
+    assertContentEquals(white, pixelAt(result, 0, 0), "dst(0,0) should be WHITE from src(3,0)")
+    assertContentEquals(red, pixelAt(result, 0, 3), "dst(0,3) should be RED from src(0,0)")
+    assertContentEquals(teal, pixelAt(result, 2, 0), "dst(2,0) should be TEAL from src(3,2)")
+    assertContentEquals(orange, pixelAt(result, 2, 3), "dst(2,3) should be ORANGE from src(0,2)")
 
     // src(1,1)=CYAN -> dst(1, 4-1-1) = dst(1,2)
-    assertContentEquals(CYAN, pixelAt(result, 1, 2), "dst(1,2) should be CYAN from src(1,1)")
+    assertContentEquals(cyan, pixelAt(result, 1, 2), "dst(1,2) should be CYAN from src(1,1)")
   }
 
   // --- Rotation preserves metadata ---

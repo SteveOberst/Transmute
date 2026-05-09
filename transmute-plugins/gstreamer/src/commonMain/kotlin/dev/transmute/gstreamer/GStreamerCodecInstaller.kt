@@ -1,7 +1,7 @@
 package dev.transmute.gstreamer
 
-import dev.transmute.AudioIrCodecRegistry
-import dev.transmute.VideoIrCodecRegistry
+import dev.transmute.AudioCodecRegistry
+import dev.transmute.VideoCodecRegistry
 import dev.transmute.audio.MutableAudioDecoderRegistry
 import dev.transmute.audio.MutableAudioEncoderRegistry
 import dev.transmute.plugin.PluginFeaturesConfig
@@ -39,7 +39,7 @@ object GStreamerCodecInstaller {
    * Register GStreamer audio codecs: AAC, M4A, Opus (full codec),
    * plus FLAC and OGG/Vorbis encoders.
    */
-  fun installAudioCodecs(codecs: AudioIrCodecRegistry): CodecInstallResult =
+  fun installAudioCodecs(codecs: AudioCodecRegistry): CodecInstallResult =
     installGstAudioCodecs(codecs.decoders, codecs.encoders)
 
   fun installAudioCodecs(decoders: MutableAudioDecoderRegistry, encoders: MutableAudioEncoderRegistry): CodecInstallResult =
@@ -51,7 +51,7 @@ object GStreamerCodecInstaller {
    * All video codecs are registered; use the feature-aware overload for
    * fine-grained control (e.g. disabling AVI).
    */
-  fun installVideoCodecs(codecs: VideoIrCodecRegistry): CodecInstallResult =
+  fun installVideoCodecs(codecs: VideoCodecRegistry): CodecInstallResult =
     installGstVideoCodecs(codecs.decoders, codecs.encoders, PluginFeaturesConfig())
 
   fun installVideoCodecs(decoders: MutableVideoDecoderRegistry, encoders: MutableVideoEncoderRegistry): CodecInstallResult =
@@ -63,7 +63,7 @@ object GStreamerCodecInstaller {
    * When [GStreamerFeature.LegacyAvi] is disabled in [features],
    * the AVI codec is not registered.
    */
-  fun installVideoCodecs(codecs: VideoIrCodecRegistry, features: PluginFeaturesConfig): CodecInstallResult =
+  fun installVideoCodecs(codecs: VideoCodecRegistry, features: PluginFeaturesConfig): CodecInstallResult =
     installGstVideoCodecs(codecs.decoders, codecs.encoders, features)
 
   fun installVideoCodecs(decoders: MutableVideoDecoderRegistry, encoders: MutableVideoEncoderRegistry, features: PluginFeaturesConfig): CodecInstallResult =

@@ -58,9 +58,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build Docker image
-        run: |
-          docker build \
-            -f transmute-playground/Dockerfile \
-            -t transmute-playground:${{ github.sha }} \
-            .
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build container image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: transmute-playground/Dockerfile
+          tags: transmute-playground:${{ github.sha }}
+          push: false

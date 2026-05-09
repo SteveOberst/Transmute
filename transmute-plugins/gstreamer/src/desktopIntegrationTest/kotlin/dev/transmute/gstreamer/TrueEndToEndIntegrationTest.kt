@@ -39,9 +39,9 @@ class TrueEndToEndIntegrationTest : GStreamerTestBase() {
 
   private val ctx = testContext()
 
-  // =======================================================================
+  // ===
   // AUDIO: Generate real media -> Structure Reader -> Decode
-  // =======================================================================
+  // ===
 
   @Test
   fun aac_realMedia_structureReaderAccepts() = runTest {
@@ -106,9 +106,9 @@ class TrueEndToEndIntegrationTest : GStreamerTestBase() {
     assertTrue(structure.pages.isNotEmpty(), "OGG must have pages")
   }
 
-  // =======================================================================
+  // ===
   // VIDEO: Generate real media -> Structure Reader -> Decode
-  // =======================================================================
+  // ===
 
   @Test
   fun mp4_realMedia_structureReaderAccepts() = runTest {
@@ -188,6 +188,7 @@ class TrueEndToEndIntegrationTest : GStreamerTestBase() {
 
   @Test
   fun avi_realMedia_structureReaderAccepts() = runTest {
+    assumeLegacyAviEncodeSupported()
     val videoIR = GStreamerTestHelpers.syntheticVideo(
       width = 160,
       height = 120,
@@ -204,12 +205,13 @@ class TrueEndToEndIntegrationTest : GStreamerTestBase() {
     assertTrue(structure.riff.children.isNotEmpty(), "AVI must have RIFF children")
   }
 
-  // =======================================================================
+  // ===
   // IMAGE (GStreamer): Generate real media -> Structure Reader -> Decode
-  // =======================================================================
+  // ===
 
   @Test
   fun heif_realMedia_structureReaderAccepts() = runTest {
+    assumeHeifImageEncodeSupported()
     val imageIR = GStreamerTestHelpers.solidColor(64, 64, r = 128, g = 64, b = 32)
     val heifBytes = GstImageEncoder().encode(imageIR, ImageFormat.Heif, HeifEncodeOptions(), ctx)
 
@@ -228,6 +230,7 @@ class TrueEndToEndIntegrationTest : GStreamerTestBase() {
 
   @Test
   fun avif_realMedia_structureReaderAccepts() = runTest {
+    assumeAvifImageEncodeSupported()
     val imageIR = GStreamerTestHelpers.solidColor(64, 64, r = 50, g = 100, b = 200)
     val avifBytes = GstImageEncoder().encode(imageIR, ImageFormat.Avif, HeifEncodeOptions(format = ImageFormat.Avif), ctx)
 
@@ -239,12 +242,13 @@ class TrueEndToEndIntegrationTest : GStreamerTestBase() {
     assertTrue(structure.boxes.isNotEmpty(), "AVIF must have ISO BMFF boxes")
   }
 
-  // =======================================================================
+  // ===
   // FULL TRANSMUTE API: Transmute { }.image { } pipeline
-  // =======================================================================
+  // ===
 
   @Test
   fun transmuteApi_image_decodeTransformEncode() = runTest {
+    assumeHeifImageEncodeSupported()
     val transmute = transmute {
       plugins {
         install(GStreamer)
@@ -332,9 +336,9 @@ class TrueEndToEndIntegrationTest : GStreamerTestBase() {
     reader.read(result.bytes) // validates the output is parseable
   }
 
-  // =======================================================================
+  // ===
   // TRANSMUTE STRUCTURE API: Parse -> Write -> Re-parse
-  // =======================================================================
+  // ===
 
   @Test
   fun transmuteStructure_mp4_readWriteRoundtrip() = runTest {
@@ -373,9 +377,9 @@ class TrueEndToEndIntegrationTest : GStreamerTestBase() {
     assertNotNull(structure, "M4A structure must decode successfully")
   }
 
-  // =======================================================================
+  // ===
   // INSPECT: thumbnailFirstFrame
-  // =======================================================================
+  // ===
 
   @Test
   fun inspect_thumbnailFirstFrame_extractsFromVideo() = runTest {

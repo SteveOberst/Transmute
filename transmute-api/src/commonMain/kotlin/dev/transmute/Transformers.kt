@@ -36,7 +36,7 @@ object Transformers {
   fun video(): VideoTransforms = VideoTransforms
 }
 
-// -- Image transform factory ------------------------------------------------
+// -- Image transform factory ---
 
 /** Creates image [Transform][dev.transmute.codec.pipeline.Transform] instances. */
 object ImageTransforms {
@@ -107,7 +107,7 @@ object ImageTransforms {
     ImageOpacityTransform(opacity)
 }
 
-// -- Audio transform factory ------------------------------------------------
+// -- Audio transform factory ---
 
 /** Creates audio [Transform][dev.transmute.codec.pipeline.Transform] instances. */
 object AudioTransforms {
@@ -185,7 +185,7 @@ object AudioTransforms {
     AudioChannelMapTransform(mapping)
 }
 
-// -- Video transform factory ------------------------------------------------
+// -- Video transform factory ---
 
 /** Creates video [Transform][dev.transmute.codec.pipeline.Transform] instances. */
 object VideoTransforms {

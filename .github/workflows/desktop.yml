@@ -1,10 +1,28 @@
 name: Desktop
 
 on:
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
+    paths:
+      - '.github/workflows/android.yml'
+      - '.github/workflows/desktop.yml'
+      - 'build.gradle.kts'
+      - 'buildSrc/**'
+      - 'settings.gradle.kts'
+      - 'gradle.properties'
+      - 'gradle/**'
+      - 'transmute-api/**'
+      - 'transmute-codec/**'
+      - 'transmute-common/**'
+      - 'transmute-filesystem/**'
+      - 'transmute-model/**'
+      - 'transmute-audio/**'
+      - 'transmute-image/**'
+      - 'transmute-video/**'
+      - 'transmute-structure/**'
+      - 'transmute-testing/**'
+      - 'transmute-plugins/gstreamer/**'
+      - 'transmute-plugins/libheif/**'
 
 concurrency:
   group: desktop-${{ github.ref }}
@@ -13,7 +31,7 @@ concurrency:
 jobs:
   unit-tests:
     name: Unit Tests
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-latest
     timeout-minutes: 15
 
     steps:
@@ -27,6 +45,8 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.event_name == 'pull_request' }}
 
       - name: Run common unit tests (desktop target)
         run: >
@@ -36,7 +56,6 @@ jobs:
           :transmute-codec:desktopTest
           :transmute-image:desktopTest
           :transmute-model:structure:desktopTest
-          :transmute-model:view:desktopTest
           :transmute-filesystem:core:desktopTest
           :transmute-filesystem:okio:desktopTest
           -Pkotlin.native.enabled=false
@@ -51,7 +70,7 @@ jobs:
 
   integration-tests:
     name: Integration Tests
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-latest
     timeout-minutes: 30
 
     steps:
@@ -65,16 +84,33 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.event_name == 'pull_request' }}
 
-      - name: Install GStreamer and libheif
-        run: >
-          sudo apt-get update &&
-          sudo apt-get install -y
-          gstreamer1.0-tools
-          gstreamer1.0-plugins-good
-          gstreamer1.0-plugins-bad
-          gstreamer1.0-plugins-ugly
-          libheif-tools
+      - name: Install desktop media dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            gstreamer1.0-tools \
+            gstreamer1.0-plugins-base \
+            gstreamer1.0-plugins-base-apps \
+            gstreamer1.0-plugins-good \
+            gstreamer1.0-plugins-bad \
+            gstreamer1.0-plugins-ugly \
+            gstreamer1.0-libav \
+            libgstreamer1.0-dev \
+            libgstreamer-plugins-base1.0-dev \
+            libheif-examples \
+            libheif-dev \
+            libheif-plugin-aomenc \
+            libheif-plugin-aomdec \
+            libheif-plugin-libde265 \
+            libheif-plugin-x265
+
+      - name: Verify desktop media dependencies
+        run: |
+          gst-inspect-1.0 --version
+          heif-enc --version
 
       - name: Run desktop integration tests
         run: >

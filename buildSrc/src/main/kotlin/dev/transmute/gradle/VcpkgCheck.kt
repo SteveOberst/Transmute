@@ -4,12 +4,12 @@ import org.gradle.api.GradleException
 import org.gradle.api.logging.Logger
 import java.io.File
 
-// ---------------------------------------------------------------------------
+// ---
 // vcpkg detection utilities
-// ---------------------------------------------------------------------------
+// ---
 // Used by modules that provision native libraries via vcpkg at build time.
 // Only the Gradle classloader needs these; no Kotlin Multiplatform targets.
-// ---------------------------------------------------------------------------
+// ---
 
 /**
  * Locates the vcpkg executable.

@@ -1,6 +1,7 @@
 package dev.transmute.gstreamer
 
-import dev.transmute.gstreamer.GStreamerIosTestHelpers.requireGStreamer
+import dev.transmute.gstreamer.GStreamerIosTestHelpers.requireGStreamerElements
+import dev.transmute.gstreamer.GStreamerIosTestHelpers.requireGStreamerOptionalElements
 import dev.transmute.gstreamer.GStreamerIosTestHelpers.testContext
 import dev.transmute.video.CanonicalVideoDecodeOptions
 import dev.transmute.video.CanonicalVideoEncodeOptions
@@ -25,7 +26,7 @@ class GStreamerIosVideoCodecIntegrationTest {
 
     private val ctx = testContext()
 
-    // -- MP4 ----------------------------------------------------------------
+    // -- MP4 ---
 
     private val mp4 = GstIosMp4Codec()
 
@@ -41,7 +42,7 @@ class GStreamerIosVideoCodecIntegrationTest {
 
     @Test
     fun mp4_encode_producesNonEmptyOutput() = runTest {
-        requireGStreamer {
+        requireGStreamerOptionalElements(iosH264VideoEncoderElementOrNull(), "h264parse", "mp4mux") {
             val video = GStreamerIosTestHelpers.syntheticVideo(
                 width = 160, height = 120, frameRate = 10.0, durationMs = 500,
             )
@@ -52,7 +53,7 @@ class GStreamerIosVideoCodecIntegrationTest {
 
     @Test
     fun mp4_encodeAndDecode_roundTrip() = runTest {
-        requireGStreamer {
+        requireGStreamerOptionalElements(iosH264VideoEncoderElementOrNull(), "h264parse", "mp4mux") {
             val video = GStreamerIosTestHelpers.syntheticVideo(
                 width = 160, height = 120, frameRate = 10.0, durationMs = 500,
             )
@@ -67,7 +68,7 @@ class GStreamerIosVideoCodecIntegrationTest {
         }
     }
 
-    // -- MOV ----------------------------------------------------------------
+    // -- MOV ---
 
     private val mov = GstIosMovCodec()
 
@@ -83,7 +84,7 @@ class GStreamerIosVideoCodecIntegrationTest {
 
     @Test
     fun mov_encodeAndDecode_roundTrip() = runTest {
-        requireGStreamer {
+        requireGStreamerOptionalElements(iosH264VideoEncoderElementOrNull(), "h264parse", "qtmux") {
             val video = GStreamerIosTestHelpers.syntheticVideo(
                 width = 160, height = 120, frameRate = 10.0, durationMs = 500,
             )
@@ -96,7 +97,7 @@ class GStreamerIosVideoCodecIntegrationTest {
         }
     }
 
-    // -- WebM ---------------------------------------------------------------
+    // -- WebM ---
 
     private val webm = GstIosWebmCodec()
 
@@ -112,7 +113,7 @@ class GStreamerIosVideoCodecIntegrationTest {
 
     @Test
     fun webm_encodeAndDecode_roundTrip() = runTest {
-        requireGStreamer {
+        requireGStreamerElements("vp8enc", "webmmux") {
             val video = GStreamerIosTestHelpers.syntheticVideo(
                 width = 160, height = 120, frameRate = 10.0, durationMs = 500,
             )
@@ -125,7 +126,7 @@ class GStreamerIosVideoCodecIntegrationTest {
         }
     }
 
-    // -- AVI ----------------------------------------------------------------
+    // -- AVI ---
 
     private val avi = GstIosAviCodec()
 
@@ -141,7 +142,7 @@ class GStreamerIosVideoCodecIntegrationTest {
 
     @Test
     fun avi_encodeAndDecode_roundTrip() = runTest {
-        requireGStreamer {
+        requireGStreamerElements("avenc_mpeg4", "avimux") {
             val video = GStreamerIosTestHelpers.syntheticVideo(
                 width = 160, height = 120, frameRate = 10.0, durationMs = 500,
             )
@@ -154,7 +155,7 @@ class GStreamerIosVideoCodecIntegrationTest {
         }
     }
 
-    // -- MKV ----------------------------------------------------------------
+    // -- MKV ---
 
     private val mkv = GstIosMkvCodec()
 
@@ -170,7 +171,7 @@ class GStreamerIosVideoCodecIntegrationTest {
 
     @Test
     fun mkv_encodeAndDecode_roundTrip() = runTest {
-        requireGStreamer {
+        requireGStreamerOptionalElements(iosH264VideoEncoderElementOrNull(), "h264parse", "matroskamux") {
             val video = GStreamerIosTestHelpers.syntheticVideo(
                 width = 160, height = 120, frameRate = 10.0, durationMs = 500,
             )
@@ -183,7 +184,7 @@ class GStreamerIosVideoCodecIntegrationTest {
         }
     }
 
-    // -- Cross-format checks -----------------------------------------------
+    // -- Cross-format checks ---
 
     @Test
     fun allCodecsReportCorrectFormats() {

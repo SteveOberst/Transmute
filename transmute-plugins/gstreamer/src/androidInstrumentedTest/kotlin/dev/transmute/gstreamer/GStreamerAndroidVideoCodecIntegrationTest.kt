@@ -32,7 +32,7 @@ class GStreamerAndroidVideoCodecIntegrationTest {
 
   private val ctx = testContext()
 
-  // -- MP4 ----------------------------------------------------------------
+  // -- MP4 ---
 
   private val mp4 = GstAndroidMp4Codec()
 
@@ -72,7 +72,7 @@ class GStreamerAndroidVideoCodecIntegrationTest {
     assertTrue(decoded.durationMs > 0)
   }
 
-  // -- MOV ----------------------------------------------------------------
+  // -- MOV ---
 
   private val mov = GstAndroidMovCodec()
 
@@ -110,7 +110,7 @@ class GStreamerAndroidVideoCodecIntegrationTest {
     assertTrue(decoded.durationMs > 0)
   }
 
-  // -- WebM ---------------------------------------------------------------
+  // -- WebM ---
 
   private val webm = GstAndroidWebmCodec()
 
@@ -148,7 +148,7 @@ class GStreamerAndroidVideoCodecIntegrationTest {
     assertTrue(decoded.durationMs > 0)
   }
 
-  // -- AVI ----------------------------------------------------------------
+  // -- AVI ---
 
   private val avi = GstAndroidAviCodec()
 
@@ -186,7 +186,7 @@ class GStreamerAndroidVideoCodecIntegrationTest {
     assertTrue(decoded.durationMs > 0)
   }
 
-  // -- MKV ----------------------------------------------------------------
+  // -- MKV ---
 
   private val mkv = GstAndroidMkvCodec()
 
@@ -224,7 +224,7 @@ class GStreamerAndroidVideoCodecIntegrationTest {
     assertTrue(decoded.durationMs > 0)
   }
 
-  // -- Cross-format checks -----------------------------------------------
+  // -- Cross-format checks ---
 
   @Test
   fun allCodecsReportCorrectFormats() {

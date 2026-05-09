@@ -25,7 +25,7 @@ class GStreamerAudioCodecIntegrationTest : GStreamerTestBase() {
 
   private val ctx = testContext()
 
-  // -- AAC ----------------------------------------------------------------
+  // -- AAC ---
 
   private val aac = GstAacCodec()
 
@@ -51,7 +51,7 @@ class GStreamerAudioCodecIntegrationTest : GStreamerTestBase() {
     assertTrue(decoded.durationMs > 0, "Duration must be positive")
   }
 
-  // -- M4A ----------------------------------------------------------------
+  // -- M4A ---
 
   private val m4a = GstM4aCodec()
 
@@ -77,7 +77,7 @@ class GStreamerAudioCodecIntegrationTest : GStreamerTestBase() {
     assertTrue(decoded.durationMs > 0, "Duration must be positive")
   }
 
-  // -- Opus ---------------------------------------------------------------
+  // -- Opus ---
 
   private val opus = GstOpusCodec()
 
@@ -103,7 +103,7 @@ class GStreamerAudioCodecIntegrationTest : GStreamerTestBase() {
     assertTrue(decoded.durationMs > 0, "Duration must be positive")
   }
 
-  // -- FLAC (encode only) -------------------------------------------------
+  // -- FLAC (encode only) ---
 
   private val flacEncoder = GstFlacEncoder()
 
@@ -123,7 +123,7 @@ class GStreamerAudioCodecIntegrationTest : GStreamerTestBase() {
     assertEquals("fLaC", magic, "FLAC output must start with 'fLaC' magic")
   }
 
-  // -- OGG/Vorbis (encode only) -------------------------------------------
+  // -- OGG/Vorbis (encode only) ---
 
   private val oggEncoder = GstOggVorbisEncoder()
 

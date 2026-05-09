@@ -16,9 +16,9 @@ import kotlin.test.assertTrue
 
 class SyntheticVideoTest {
 
-  // ---------------------------------------------------------------------------
+  // ---
   // solidColor
-  // ---------------------------------------------------------------------------
+  // ---
 
   @Test
   fun solidColorDefaults() {
@@ -61,9 +61,9 @@ class SyntheticVideoTest {
     }
   }
 
-  // ---------------------------------------------------------------------------
+  // ---
   // scrollingGradient
-  // ---------------------------------------------------------------------------
+  // ---
 
   @Test
   fun scrollingGradientBasic() {
@@ -72,9 +72,9 @@ class SyntheticVideoTest {
     assertFrameCount(v, 10L)
   }
 
-  // ---------------------------------------------------------------------------
+  // ---
   // fadeToBlack / fadeFromBlack
-  // ---------------------------------------------------------------------------
+  // ---
 
   @Test
   fun fadeToBlackEndsBlack() = runTest {
@@ -109,9 +109,9 @@ class SyntheticVideoTest {
     assertTrue(lastBrightness > 200.0, "Last frame should be bright, got $lastBrightness")
   }
 
-  // ---------------------------------------------------------------------------
+  // ---
   // flashing
-  // ---------------------------------------------------------------------------
+  // ---
 
   @Test
   fun flashingAlternatesColours() = runTest {
@@ -123,9 +123,9 @@ class SyntheticVideoTest {
     assertEquals(brightness0, brightness2, "Same phase frames should match")
   }
 
-  // ---------------------------------------------------------------------------
+  // ---
   // animatedColorBars
-  // ---------------------------------------------------------------------------
+  // ---
 
   @Test
   fun animatedColorBarsCreatesFrames() {
@@ -134,25 +134,25 @@ class SyntheticVideoTest {
     assertResolution(v, 64, 48)
   }
 
-  // ---------------------------------------------------------------------------
+  // ---
   // pulsing
-  // ---------------------------------------------------------------------------
+  // ---
 
   @Test
   fun pulsingFramesDiffer() = runTest {
     val v = SyntheticVideo.pulsing(32, 32, frameCount = 10)
     val frames = collectFrames(v)
     assertTrue(frames.size == 10)
-    // The spatial wave shifts per frame — pixel data should differ between frames
+    // The spatial wave shifts per frame - pixel data should differ between frames
     val data0 = (frames[0].buffer as ByteArrayPixelBuffer).data
     val data5 = (frames[5].buffer as ByteArrayPixelBuffer).data
     val differs = data0.indices.count { data0[it] != data5[it] }
     assertTrue(differs > 0, "Pulsing frames should have different pixel data")
   }
 
-  // ---------------------------------------------------------------------------
+  // ---
   // animatedCheckerboard
-  // ---------------------------------------------------------------------------
+  // ---
 
   @Test
   fun animatedCheckerboardBasic() {
@@ -161,9 +161,9 @@ class SyntheticVideoTest {
     assertFrameCount(v, 10L)
   }
 
-  // ---------------------------------------------------------------------------
+  // ---
   // hueRotation
-  // ---------------------------------------------------------------------------
+  // ---
 
   @Test
   fun hueRotationFramesVary() = runTest {
@@ -177,9 +177,9 @@ class SyntheticVideoTest {
     assertTrue(!samePixel, "Hue rotation should produce different colours per frame")
   }
 
-  // ---------------------------------------------------------------------------
+  // ---
   // singleFrame
-  // ---------------------------------------------------------------------------
+  // ---
 
   @Test
   fun singleFrameHasOneFrame() {
@@ -187,9 +187,9 @@ class SyntheticVideoTest {
     assertFrameCount(v, 1L)
   }
 
-  // ---------------------------------------------------------------------------
+  // ---
   // Timestamp monotonicity
-  // ---------------------------------------------------------------------------
+  // ---
 
   @Test
   fun timestampsIncreaseMonotonically() = runTest {

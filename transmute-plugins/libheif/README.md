@@ -1,4 +1,4 @@
-﻿# transmute-plugins:libheif
+# transmute-plugins:libheif
 
 Desktop HEIF/HEIC/AVIF codec plugin for Transmute, backed by the [libheif](https://github.com/strukturag/libheif) CLI tools.
 
@@ -11,7 +11,7 @@ If the libheif binaries are not available and cannot be provisioned, the plugin 
 ## Supported Formats
 
 | Format | Decode | Encode |
-|--------|--------|--------|
+|---|---|---|
 | HEIF (`.heif`) | yes | yes |
 | HEIC (`.heic`) | yes | yes |
 | AVIF (`.avif`) | yes | yes |
@@ -21,7 +21,7 @@ If the libheif binaries are not available and cannot be provisioned, the plugin 
 libheif itself is **LGPL-3.0**.  However, the codec plugins it bundles carry their own licenses, and **HEIC encoding uses x265 which is GPL-2.0 (or commercial)**.
 
 | Codec    | Format      | Operation | License              |
-|----------|-------------|-----------|----------------------|
+|---|---|---|---|
 | libde265 | HEIF / HEIC | Decode    | LGPL-3.0             |
 | x265     | HEIF / HEIC | Encode    | **GPL-2.0** / commercial |
 | libaom   | AVIF        | Both      | BSD-2-Clause         |
@@ -63,7 +63,7 @@ install(LibHeif) {
 ```
 
 | Feature | Default | Description |
-|---------|---------|-------------|
+|---|---|---|
 | `LibHeifFeature.ImageCodecs` | enabled | Register HEIF/HEIC/AVIF decoders and encoders |
 | `LibHeifFeature.ImageEncoding` | enabled | HEIF/HEIC/AVIF encoding via `heif-enc` (uses x265 -- see GPL note above) |
 
@@ -146,7 +146,7 @@ install(LibHeif) {
 ## Key Types
 
 | Type | Purpose |
-|------|---------|
+|---|---|
 | `LibHeif` | `TransmutePlugin<LibHeifPluginConfig>` -- the plugin object |
 | `LibHeif.key` | `PluginId` -- strongly-typed plugin identifier |
 | `LibHeifFeature` | Typed feature toggle constants (with full licensing notes) |
@@ -172,7 +172,7 @@ println(diag?.current?.available)
 ## Platform Notes
 
 | Platform | Status |
-|----------|--------|
+|---|---|
 | Desktop (JVM) | Subprocess via `heif-dec` / `heif-enc`; staged via vcpkg (Windows) or Homebrew (macOS) |
 | Android | No-op (platform HEIF support is built-in via `BitmapFactory`) |
 | iOS | No-op (platform HEIF support is built-in via `CoreGraphics`) |

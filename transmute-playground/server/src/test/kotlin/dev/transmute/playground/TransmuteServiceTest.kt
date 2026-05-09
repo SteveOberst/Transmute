@@ -40,7 +40,7 @@ class TransmuteServiceTest {
         tempDir.deleteRecursively()
     }
 
-    // -- File management -------------------------------------------------------
+    // -- File management ---
 
     @Test
     fun storeFileReturnsHandleWithMatchingName() {
@@ -93,7 +93,7 @@ class TransmuteServiceTest {
         assertTrue(files.any { it.name == "b.bin" })
     }
 
-    // -- Format catalog --------------------------------------------------------
+    // -- Format catalog ---
 
     @Test
     fun allFormatsReturnsWithoutThrowing() {
@@ -103,7 +103,7 @@ class TransmuteServiceTest {
         assertNotNull(formats)
     }
 
-    // -- Plugin management -----------------------------------------------------
+    // -- Plugin management ---
 
     @Test
     fun listPluginsReturnsGStreamer() {
@@ -128,7 +128,7 @@ class TransmuteServiceTest {
         assertNotNull(service.getPlugin("gstreamer"))
     }
 
-    // -- Transform execution validation ----------------------------------------
+    // -- Transform execution validation ---
 
     @Test
     fun executeTransformThrowsForUnsupportedFormat() {

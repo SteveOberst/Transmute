@@ -17,7 +17,7 @@ import kotlin.math.abs
  * ### Quick start
  * ```kotlin
  * val original = SyntheticVideo.solidColor(320, 240, frameCount = 30)
- * val decoded  = roundTrip(original) // encode → decode
+ * val decoded  = roundTrip(original) // encode -> decode
  *
  * VideoAssertions.assertResolution(decoded, 320, 240)
  * VideoAssertions.assertFrameCount(decoded, 30)
@@ -26,14 +26,14 @@ import kotlin.math.abs
  */
 object VideoAssertions {
 
-  // ---------------------------------------------------------------------------
+  // ---
   // Frame extraction
-  // ---------------------------------------------------------------------------
+  // ---
 
   /**
    * Collect all frames from the [VideoIR]'s frame stream into a list.
    *
-   * **Consumes** the frame stream — call only once per VideoIR or on a
+   * **Consumes** the frame stream - call only once per VideoIR or on a
    * freshly-constructed synthetic video whose [FrameStream] is rewindable.
    */
   suspend fun collectFrames(video: VideoIR): List<VideoFrame> {
@@ -46,13 +46,13 @@ object VideoAssertions {
     return result
   }
 
-  // ---------------------------------------------------------------------------
+  // ---
   // Measurements
-  // ---------------------------------------------------------------------------
+  // ---
 
   /**
    * Compute the average brightness (luma) of a single frame using Rec.601:
-   * Y = 0.299·R + 0.587·G + 0.114·B
+   * Y = 0.299.R + 0.587.G + 0.114.B
    *
    * Only supports [ByteArrayPixelBuffer] with 8-bit channels.
    */
@@ -99,12 +99,12 @@ object VideoAssertions {
     return peak
   }
 
-  // ---------------------------------------------------------------------------
+  // ---
   // Assertions
-  // ---------------------------------------------------------------------------
+  // ---
 
   /**
-   * Assert that the video has the expected resolution (width × height).
+   * Assert that the video has the expected resolution (width x height).
    */
   fun assertResolution(video: VideoIR, width: Int, height: Int) {
     val vt = video.videoTrack
@@ -235,9 +235,9 @@ object VideoAssertions {
     }
   }
 
-  // ---------------------------------------------------------------------------
+  // ---
   // Internal helpers
-  // ---------------------------------------------------------------------------
+  // ---
 
   private fun requireFrameBytes(frame: VideoFrame): ByteArray {
     val buffer = frame.buffer

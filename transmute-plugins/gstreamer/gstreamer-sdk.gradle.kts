@@ -183,9 +183,9 @@ fun extractMacPkgFramework(
   logger.lifecycle("$frameworkName extracted -> ${destinationDir.absolutePath}")
 }
 
-// ---------------------------------------------------------------------------
+// ---
 // Android SDK download
-// ---------------------------------------------------------------------------
+// ---
 
 tasks.register("downloadGStreamerAndroid") {
   group = "gstreamer"
@@ -216,9 +216,9 @@ tasks.register("downloadGStreamerAndroid") {
   }
 }
 
-// ---------------------------------------------------------------------------
+// ---
 // iOS SDK download (macOS only)
-// ---------------------------------------------------------------------------
+// ---
 
 tasks.register("downloadGStreamerIos") {
   group = "gstreamer"
@@ -252,9 +252,9 @@ tasks.register("downloadGStreamerIos") {
   }
 }
 
-// ---------------------------------------------------------------------------
+// ---
 // Convenience tasks
-// ---------------------------------------------------------------------------
+// ---
 
 tasks.register("downloadGStreamerSdks") {
   group = "gstreamer"
@@ -262,9 +262,9 @@ tasks.register("downloadGStreamerSdks") {
   dependsOn("downloadGStreamerAndroid", "downloadGStreamerIos")
 }
 
-// ---------------------------------------------------------------------------
+// ---
 // Desktop SDK staging - bundles GStreamer binaries into the desktop JAR
-// ---------------------------------------------------------------------------
+// ---
 
 val desktopStagingDir = project.layout.buildDirectory.dir("gstreamer-desktop").get().asFile
 

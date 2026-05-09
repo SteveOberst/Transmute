@@ -54,7 +54,7 @@ class GStreamerPluginConfig : HasPluginConfigure {
   /** Subprocess timeout in milliseconds. */
   val timeoutMs: Long get() = _timeoutMs
 
-  // -- Feature toggles (delegate to pluginConfigure) -------------------------
+  // -- Feature toggles (delegate to pluginConfigure) ---
 
   /** Enable a [GStreamerFeature] for this installation. */
   fun enable(feature: PluginFeature) = pluginConfigure.enable(feature)
@@ -68,7 +68,7 @@ class GStreamerPluginConfig : HasPluginConfigure {
   /** Set a feature by raw string id (fallback for dynamic/runtime usage). */
   fun set(featureId: String, enabled: Boolean) = pluginConfigure.set(featureId, enabled)
 
-  // -- Installation -----------------------------------------------------------
+  // -- Installation ---
 
   /**
    * Use a pre-existing GStreamer installation at [home].
@@ -152,9 +152,6 @@ class GStreamerPluginConfig : HasPluginConfigure {
 object GStreamer : TransmutePlugin<GStreamerPluginConfig> {
 
   override val key: PluginId = BuiltinPlugins.GStreamer
-  override val displayName: String = "GStreamer"
-  override val description: String =
-    "GStreamer-based codec backend — adds video, audio and container support via libgstreamer."
   override val features: Set<PluginFeature> = GStreamerFeature.ALL
 
   override fun createConfig(): GStreamerPluginConfig = GStreamerPluginConfig()
@@ -168,6 +165,13 @@ object GStreamer : TransmutePlugin<GStreamerPluginConfig> {
 
     if (!GStreamerCodecInstaller.available) {
       val diag = resolverDiagnostics()
+      scope.diagnostics.report(
+        available = false,
+        reason = "GStreamer is not available",
+        details = buildMap {
+          if (diag.isNotBlank()) put("resolver", diag)
+        },
+      )
       if (diag.isNotBlank()) logger.warn("GStreamer resolution trace:\n$diag")
       logger.warn("GStreamer is not available -- skipping codec registration")
       return
@@ -178,6 +182,14 @@ object GStreamer : TransmutePlugin<GStreamerPluginConfig> {
     if (diag.isNotBlank()) logger.info("GStreamer resolution trace:\n$diag")
     val installInfo = resolvedInstallationInfo()
     if (installInfo.isNotBlank()) logger.info("GStreamer available [$installInfo]")
+    scope.diagnostics.report(
+      available = true,
+      reason = "GStreamer resolved successfully",
+      details = buildMap {
+        if (installInfo.isNotBlank()) put("installation", installInfo)
+        if (diag.isNotBlank()) put("resolver", diag)
+      },
+    )
 
     if (features.isEnabled(GStreamerFeature.AudioCodecs)) {
       GStreamerCodecInstaller.installAudioCodecs(scope.codecs.audio.decoders, scope.codecs.audio.encoders)

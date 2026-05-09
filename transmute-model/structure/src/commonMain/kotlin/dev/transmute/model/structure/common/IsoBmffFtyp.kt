@@ -6,9 +6,9 @@ import dev.transmute.model.identify.Brand
 import dev.transmute.model.identify.FourCC
 import kotlinx.serialization.Serializable
 
-// ================================================================
+// ===
 //  Typed model: ISO BMFF `ftyp` box data
-// ================================================================
+// ===
 
 /**
  * Parsed contents of an ISO BMFF `ftyp` (file type) box.
@@ -50,9 +50,9 @@ data class FtypData(
   }
 }
 
-// ================================================================
+// ===
 //  Extension helpers for ISO BMFF box lists
-// ================================================================
+// ===
 
 /** Find the first box with the given type code. */
 fun List<IsoBmffBox>.findBox(type: String): IsoBmffBox? = firstOrNull { it.type.value == type }
@@ -60,9 +60,9 @@ fun List<IsoBmffBox>.findBox(type: String): IsoBmffBox? = firstOrNull { it.type.
 /** Parse the `ftyp` box data, or `null` if no ftyp box is present. */
 fun List<IsoBmffBox>.parseFtyp(): FtypData? = findBox("ftyp")?.data?.data?.let { FtypData.fromBytes(it) }
 
-// ----------------------------------------------------------------
+// ---
 //  Common ISO BMFF box accessors (shared by all ISO BMFF formats)
-// ----------------------------------------------------------------
+// ---
 
 /** The `ftyp` box (required by ISO BMFF spec). */
 val List<IsoBmffBox>.ftypBox: IsoBmffBox? get() = findBox("ftyp")

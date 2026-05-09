@@ -14,9 +14,9 @@ import dev.transmute.model.metadata.itunes.ItunesUnknownBox
 import dev.transmute.model.metadata.itunes.ItunesValue
 import dev.transmute.model.structure.common.IsoBmffBox
 
-// ===============================================================================
+// ===
 //  ISO BMFF box navigation helpers
-// ===============================================================================
+// ===
 
 /**
  * Parse the payload of a regular ISO BMFF container box as child boxes.
@@ -38,9 +38,9 @@ internal fun IsoBmffBox.fullBoxSubBoxes(): List<IsoBmffBox> = if (data.size < 4)
   data.data.parseIsoBmffBoxes(offset = 4)
 }
 
-// ===============================================================================
+// ===
 //  iTunes ilst metadata extraction (M4A / MP4 / MOV)
-// ===============================================================================
+// ===
 
 /** Well-known types that are full boxes and need 4 bytes skipped. */
 private val FULL_BOX_TYPES = setOf("meta", "stbl", "stsd")
@@ -156,7 +156,7 @@ internal fun extractItunesMetadata(boxes: List<IsoBmffBox>): ItunesMetadata? {
   )
 }
 
-// -- iTunes ilst item parsing -------------------------------------------------
+// -- iTunes ilst item parsing ---
 
 /**
  * Parse a single iTunes metadata item box into an [ItunesItem].
@@ -221,7 +221,7 @@ private fun parseItunesItem(item: IsoBmffBox): ItunesItem? {
   )
 }
 
-// -- Value decoding helpers ---------------------------------------------------
+// -- Value decoding helpers ---
 
 /**
  * Decode an integer payload from an iTunes data box.
@@ -271,9 +271,9 @@ private fun readBE32(d: ByteArray, off: Int): Long = ((d[off].toLong() and 0xFF)
 
 private fun readBE64(d: ByteArray, off: Int): Long = (readBE32(d, off) shl 32) or (readBE32(d, off + 4) and 0xFFFFFFFFL)
 
-// ===============================================================================
+// ===
 //  HEIF / AVIF metadata helpers
-// ===============================================================================
+// ===
 
 /**
  * Attempt to find raw EXIF bytes in a HEIF/AVIF box tree.
@@ -352,7 +352,7 @@ internal fun findHeifXmpBytes(topLevelBoxes: List<IsoBmffBox>): ByteArray? {
     ?: extractExifBytesFromMdat(mdatBox.data.data, offset.toInt(), length.toInt()) // fallback
 }
 
-// -- iinf (Item Information) parsing ------------------------------------------
+// -- iinf (Item Information) parsing ---
 
 /**
  * Find the item ID from an `iinf` full box for items matching [itemType] (4 chars).
@@ -445,7 +445,7 @@ private fun parseInfeMimeItem(infe: IsoBmffBox, targetContentType: String): Int?
   return if (ct.contains(targetContentType, ignoreCase = true)) itemId else null
 }
 
-// -- iloc (Item Location) parsing ---------------------------------------------
+// -- iloc (Item Location) parsing ---
 
 /**
  * Parse an `iloc` box to find the offset and length of the given item.
@@ -601,9 +601,9 @@ private fun computeBoxPayloadStart(topLevelBoxes: List<IsoBmffBox>, targetType: 
   return -1L
 }
 
-// ===============================================================================
+// ===
 //  Well-known iTunes key names
-// ===============================================================================
+// ===
 
 internal val ITUNES_KEY_NAMES: Map<String, String> = mapOf(
   "\u00A9nam" to "Title",

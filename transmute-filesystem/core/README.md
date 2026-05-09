@@ -13,7 +13,7 @@ platform-native APIs, etc.).
 ### Filesystem
 
 | Type | Purpose |
-|------|---------|
+|---|---|
 | `TransmuteFileSystem` | Main interface: read, write, openRead, openWrite, list, mkdir, delete, move, copy |
 | `ReadHandle` | Random-access read handle (read, seek, position, size) |
 | `WriteHandle` | Write handle (write, flush) |
@@ -23,13 +23,13 @@ platform-native APIs, etc.).
 ### Path
 
 | Type | Purpose |
-|------|---------|
+|---|---|
 | `TPath` | Cross-platform path: segments + optional root, `/` operator, resolve, parent, name, extension, stem |
 
 ### Testing
 
 | Type | Purpose |
-|------|---------|
+|---|---|
 | `InMemoryFileSystem` | In-memory implementation for unit testing |
 
 ### Exceptions
@@ -38,8 +38,8 @@ platform-native APIs, etc.).
 
 ## Dependencies
 
-None — pure interface module.
+None - pure interface module.
 
 ## Targets
 
-Android, Desktop JVM, iOS — via Kotlin Multiplatform.
+Android, Desktop JVM, iOS - via Kotlin Multiplatform.

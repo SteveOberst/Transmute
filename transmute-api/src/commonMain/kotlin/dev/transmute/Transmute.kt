@@ -127,7 +127,7 @@ class Transmute private constructor(
     }
   }
 
-  // -- Builder DSL ----------------------------------------------------------
+  // -- Builder DSL ---
 
   class Builder internal constructor() {
     private var loggerOverride: TransmuteLogger? = null
@@ -504,7 +504,7 @@ class ImageTransmuter<IN, OUT> internal constructor(
   }
 }
 
-// -- Audio -------------------------------------------------------------------
+// -- Audio ---
 
 class DynamicAudioTransmuterBuilder<IN, OUT> internal constructor(
   private val defaultDecodePipeline: (() -> DecodePipeline<IN, Decoded<AudioFormat, AudioIR>>)? = null,
@@ -637,7 +637,7 @@ class AudioTransmuter<IN, OUT> internal constructor(
   }
 }
 
-// -- Video -------------------------------------------------------------------
+// -- Video ---
 
 class DynamicVideoTransmuterBuilder<IN, OUT> internal constructor(
   private val defaultDecodePipeline: (() -> DecodePipeline<IN, Decoded<VideoFormat, VideoIR>>)? = null,

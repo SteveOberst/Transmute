@@ -13,8 +13,8 @@ round-tripped: read from raw bytes and written back to produce valid files.
 ### Core Abstractions
 
 | Type | Purpose |
-|------|---------|
-| `MediaStructure` | Marker interface — every format model implements this + `BinarySerializable` |
+|---|---|
+| `MediaStructure` | Marker interface - every format model implements this + `BinarySerializable` |
 | `StructureReader<S>` | Interface to parse `Bytes` -> `S : MediaStructure` |
 | `StructureReaders` | Global registry of readers, with `read()` and `readAuto()` |
 | `StructureSink` / `BytesSink` | Output abstractions for writing structures |
@@ -44,4 +44,4 @@ round-tripped: read from raw bytes and written back to produce valid files.
 
 ## Targets
 
-Android, Desktop JVM, iOS — via Kotlin Multiplatform.
+Android, Desktop JVM, iOS - via Kotlin Multiplatform.

@@ -131,8 +131,9 @@ class TiffStructureReader : StructureReader<TiffRaw> {
     // Add any remaining discovered IFDs in ascending-offset order.
     orderedIfds += ifdByOffset
       .filterKeys { it !in inOrder }
-      .toSortedMap()
-      .values
+      .toList()
+      .sortedBy { it.first }
+      .map { it.second }
 
     return TiffRaw(
       byteOrder = byteOrder,

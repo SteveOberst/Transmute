@@ -26,7 +26,7 @@ class GStreamerImageCodecIntegrationTest : GStreamerTestBase() {
   private val decoder = GstImageDecoder()
   private val encoder = GstImageEncoder()
 
-  // -- Decoder metadata ---------------------------------------------------
+  // -- Decoder metadata ---
 
   @Test
   fun decoder_supportedFormats_containsHeifHeicAvif() {
@@ -36,7 +36,7 @@ class GStreamerImageCodecIntegrationTest : GStreamerTestBase() {
     assertTrue(ImageFormat.Avif in formats, "Must support AVIF")
   }
 
-  // -- Encoder metadata ---------------------------------------------------
+  // -- Encoder metadata ---
 
   @Test
   fun encoder_supportedFormats_containsHeifHeicAvif() {
@@ -46,10 +46,11 @@ class GStreamerImageCodecIntegrationTest : GStreamerTestBase() {
     assertTrue(ImageFormat.Avif in formats, "Must support AVIF")
   }
 
-  // -- HEIF encode -> decode roundtrip -------------------------------------
+  // -- HEIF encode -> decode roundtrip ---
 
   @Test
   fun heif_encodeAndDecode_roundTrip() = runTest {
+    assumeHeifImageEncodeSupported()
     val ir = GStreamerTestHelpers.solidColor(64, 64, r = 128, g = 64, b = 32)
     val encoded = encoder.encode(ir, ImageFormat.Heif, HeifEncodeOptions(), ctx)
     assertTrue(encoded.isNotEmpty(), "Encoded HEIF output must not be empty")
@@ -60,10 +61,11 @@ class GStreamerImageCodecIntegrationTest : GStreamerTestBase() {
     assertEquals(64, decoded.height, "Height must survive roundtrip")
   }
 
-  // -- HEIC encode -> decode roundtrip -------------------------------------
+  // -- HEIC encode -> decode roundtrip ---
 
   @Test
   fun heic_encodeAndDecode_roundTrip() = runTest {
+    assumeHeifImageEncodeSupported()
     val ir = GStreamerTestHelpers.solidColor(64, 64, r = 200, g = 100, b = 50)
     val encoded = encoder.encode(ir, ImageFormat.Heic, HeifEncodeOptions(format = ImageFormat.Heic), ctx)
     assertTrue(encoded.isNotEmpty(), "Encoded HEIC output must not be empty")
@@ -74,10 +76,11 @@ class GStreamerImageCodecIntegrationTest : GStreamerTestBase() {
     assertEquals(64, decoded.height, "Height must survive roundtrip")
   }
 
-  // -- AVIF encode -> decode roundtrip -------------------------------------
+  // -- AVIF encode -> decode roundtrip ---
 
   @Test
   fun avif_encodeAndDecode_roundTrip() = runTest {
+    assumeAvifImageEncodeSupported()
     val ir = GStreamerTestHelpers.solidColor(64, 64, r = 50, g = 100, b = 200)
     val encoded = encoder.encode(ir, ImageFormat.Avif, HeifEncodeOptions(format = ImageFormat.Avif), ctx)
     assertTrue(encoded.isNotEmpty(), "Encoded AVIF output must not be empty")
@@ -88,10 +91,11 @@ class GStreamerImageCodecIntegrationTest : GStreamerTestBase() {
     assertEquals(64, decoded.height, "Height must survive roundtrip")
   }
 
-  // -- Encode produces valid ISO BMFF header ------------------------------
+  // -- Encode produces valid ISO BMFF header ---
 
   @Test
   fun heif_encode_producesIsoBmffOutput() = runTest {
+    assumeHeifImageEncodeSupported()
     val ir = GStreamerTestHelpers.solidColor(32, 32, r = 0, g = 0, b = 0)
     val encoded = encoder.encode(ir, ImageFormat.Heif, HeifEncodeOptions(), ctx)
     assertTrue(encoded.size > 12, "Output must have at least 12 bytes")

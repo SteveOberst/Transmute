@@ -84,9 +84,9 @@ internal object GStreamerAndroidAudioEngine {
     }
 }
 
-// ---------------------------------------------------------------------------
+// ---
 // Helpers shared by all Android engines
-// ---------------------------------------------------------------------------
+// ---
 
 /** Join pipeline tokens into a single descriptor, filtering blanks. */
 internal fun buildPipelineDesc(vararg parts: String): List<String> =

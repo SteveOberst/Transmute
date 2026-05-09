@@ -33,7 +33,7 @@ class IosImageCodecIntegrationTest {
   fun jpegRoundTripPreservesDimensions() = runTest {
     val original = ImageTestHelpers.solidColor(64, 48, r = 200, g = 100, b = 50)
     val ctx = ImageTestHelpers.testContext()
-    val encoded = encoder.encode(original, ImageFormat.JPEG, JpegEncodeOptions(), ctx)
+    val encoded = encoder.encode(original, ImageFormat.Jpeg, JpegEncodeOptions(), ctx)
     assertTrue(encoded.isNotEmpty(), "JPEG encoded bytes should not be empty")
 
     val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
@@ -45,7 +45,7 @@ class IosImageCodecIntegrationTest {
   fun jpegRoundTripSolidColorHasLowError() = runTest {
     val original = ImageTestHelpers.solidColor(32, 32, r = 128, g = 128, b = 128)
     val ctx = ImageTestHelpers.testContext()
-    val encoded = encoder.encode(original, ImageFormat.JPEG, JpegEncodeOptions(quality = 0.95f), ctx)
+    val encoded = encoder.encode(original, ImageFormat.Jpeg, JpegEncodeOptions(quality = 0.95f), ctx)
     val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
     val diff = ImageTestHelpers.peakDifference(original, decoded)
     assertTrue(diff < 15,
@@ -58,7 +58,7 @@ class IosImageCodecIntegrationTest {
   fun pngRoundTripIsLossless() = runTest {
     val original = ImageTestHelpers.checkerboard(32, 32)
     val ctx = ImageTestHelpers.testContext()
-    val encoded = encoder.encode(original, ImageFormat.PNG, PngEncodeOptions(), ctx)
+    val encoded = encoder.encode(original, ImageFormat.Png, PngEncodeOptions(), ctx)
     val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
 
     assertEquals(32, decoded.width)
@@ -74,7 +74,7 @@ class IosImageCodecIntegrationTest {
     val original = ImageTestHelpers.horizontalGradient(64, 32)
     val ctx = ImageTestHelpers.testContext()
     val encoded = try {
-      encoder.encode(original, ImageFormat.WEBP, WebPEncodeOptions(), ctx)
+      encoder.encode(original, ImageFormat.Webp, WebPEncodeOptions(), ctx)
     } catch (_: IllegalStateException) {
       // WebP encoding not supported on this simulator - skip.
       println("SKIP: WebP encoding not available on this simulator")
@@ -94,7 +94,7 @@ class IosImageCodecIntegrationTest {
     val original = ImageTestHelpers.solidColor(64, 48, r = 100, g = 200, b = 50)
     val ctx = ImageTestHelpers.testContext()
     val encoded = try {
-      encoder.encode(original, ImageFormat.HEIF, HeifEncodeOptions(format = ImageFormat.HEIF), ctx)
+      encoder.encode(original, ImageFormat.Heif, HeifEncodeOptions(format = ImageFormat.Heif), ctx)
     } catch (_: IllegalStateException) {
       // HEIF encoding not supported on this simulator - skip.
       println("SKIP: HEIF encoding not available on this simulator")
@@ -114,7 +114,7 @@ class IosImageCodecIntegrationTest {
     val original = ImageTestHelpers.solidColor(32, 32, r = 0, g = 255, b = 0)
     val ctx = ImageTestHelpers.testContext()
     val encoded =
-      encoder.encode(original, ImageFormat.TIFF, CanonicalImageEncodeOptions(outputFormat = OutputFormat.Exact(ImageFormat.TIFF)), ctx)
+      encoder.encode(original, ImageFormat.Tiff, CanonicalImageEncodeOptions(outputFormat = OutputFormat.Exact(ImageFormat.Tiff)), ctx)
     assertTrue(encoded.isNotEmpty(), "TIFF encoded bytes should not be empty")
 
     val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
@@ -129,7 +129,7 @@ class IosImageCodecIntegrationTest {
     val original = ImageTestHelpers.solidColor(16, 16, r = 255, g = 0, b = 0)
     val ctx = ImageTestHelpers.testContext()
     val encoded =
-      encoder.encode(original, ImageFormat.GIF, CanonicalImageEncodeOptions(outputFormat = OutputFormat.Exact(ImageFormat.GIF)), ctx)
+      encoder.encode(original, ImageFormat.Gif, CanonicalImageEncodeOptions(outputFormat = OutputFormat.Exact(ImageFormat.Gif)), ctx)
     assertTrue(encoded.isNotEmpty(), "GIF encoded bytes should not be empty")
 
     val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
@@ -144,7 +144,7 @@ class IosImageCodecIntegrationTest {
     val original = ImageTestHelpers.solidColor(32, 32, r = 0, g = 0, b = 255)
     val ctx = ImageTestHelpers.testContext()
     val encoded =
-      encoder.encode(original, ImageFormat.BMP, CanonicalImageEncodeOptions(outputFormat = OutputFormat.Exact(ImageFormat.BMP)), ctx)
+      encoder.encode(original, ImageFormat.Bmp, CanonicalImageEncodeOptions(outputFormat = OutputFormat.Exact(ImageFormat.Bmp)), ctx)
     assertTrue(encoded.isNotEmpty(), "BMP encoded bytes should not be empty")
 
     val decoded = decoder.decode(encoded, CanonicalImageDecodeOptions(), ctx)
@@ -157,23 +157,23 @@ class IosImageCodecIntegrationTest {
   @Test
   fun decoderReportsAllExpectedFormats() {
     val formats = decoder.supportedFormats
-    assertTrue(ImageFormat.JPEG in formats, "Decoder should support JPEG")
-    assertTrue(ImageFormat.PNG in formats, "Decoder should support PNG")
-    assertTrue(ImageFormat.WEBP in formats, "Decoder should support WebP")
-    assertTrue(ImageFormat.HEIF in formats, "Decoder should support HEIF")
-    assertTrue(ImageFormat.GIF in formats, "Decoder should support GIF")
-    assertTrue(ImageFormat.BMP in formats, "Decoder should support BMP")
-    assertTrue(ImageFormat.TIFF in formats, "Decoder should support TIFF")
+    assertTrue(ImageFormat.Jpeg in formats, "Decoder should support JPEG")
+    assertTrue(ImageFormat.Png in formats, "Decoder should support PNG")
+    assertTrue(ImageFormat.Webp in formats, "Decoder should support WebP")
+    assertTrue(ImageFormat.Heif in formats, "Decoder should support HEIF")
+    assertTrue(ImageFormat.Gif in formats, "Decoder should support GIF")
+    assertTrue(ImageFormat.Bmp in formats, "Decoder should support BMP")
+    assertTrue(ImageFormat.Tiff in formats, "Decoder should support TIFF")
   }
 
   @Test
   fun encoderReportsAllExpectedFormats() {
     val formats = encoder.supportedFormats
-    assertTrue(ImageFormat.JPEG in formats, "Encoder should support JPEG")
-    assertTrue(ImageFormat.PNG in formats, "Encoder should support PNG")
-    assertTrue(ImageFormat.WEBP in formats, "Encoder should support WebP")
-    assertTrue(ImageFormat.HEIF in formats, "Encoder should support HEIF")
-    assertTrue(ImageFormat.TIFF in formats, "Encoder should support TIFF")
-    assertTrue(ImageFormat.GIF in formats, "Encoder should support GIF")
+    assertTrue(ImageFormat.Jpeg in formats, "Encoder should support JPEG")
+    assertTrue(ImageFormat.Png in formats, "Encoder should support PNG")
+    assertTrue(ImageFormat.Webp in formats, "Encoder should support WebP")
+    assertTrue(ImageFormat.Heif in formats, "Encoder should support HEIF")
+    assertTrue(ImageFormat.Tiff in formats, "Encoder should support TIFF")
+    assertTrue(ImageFormat.Gif in formats, "Encoder should support GIF")
   }
 }

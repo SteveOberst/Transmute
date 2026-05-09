@@ -48,12 +48,12 @@ val ExifMetadata.interopIfd: ExifIfd? get() = exifIfd?.entries?.interoperability
 @Deprecated("Use ifd0?.nextIfd", ReplaceWith("ifd0?.nextIfd"))
 val ExifMetadata.ifd1: ExifIfd? get() = ifd0?.nextIfd
 
-// -- Byte order ---------------------------------------------------------------
+// -- Byte order ---
 
 @Serializable
 enum class ExifByteOrder { LITTLE_ENDIAN, BIG_ENDIAN }
 
-// -- IFD (Image File Directory) ----------------------------------------------
+// -- IFD (Image File Directory) ---
 
 /**
  * A single TIFF Image File Directory.
@@ -128,7 +128,7 @@ data class ExifThumbnailRef(
   val payload: PayloadRef? = null,
 )
 
-// -- IFD Entry ----------------------------------------------------------------
+// -- IFD Entry ---
 
 @Serializable
 data class ExifEntry(
@@ -151,7 +151,7 @@ data class ExifEntry(
   val stored: PayloadRef? = null,
 )
 
-// -- TIFF field types ---------------------------------------------------------
+// -- TIFF field types ---
 
 @Serializable
 enum class ExifFieldType(val code: UShort, val bytesPerValue: UInt) {
@@ -177,7 +177,7 @@ enum class ExifFieldType(val code: UShort, val bytesPerValue: UInt) {
   }
 }
 
-// -- Value hierarchy ----------------------------------------------------------
+// -- Value hierarchy ---
 
 /**
  * Typed EXIF entry value matching TIFF field semantics.

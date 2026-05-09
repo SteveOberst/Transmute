@@ -28,7 +28,7 @@ import dev.transmute.plugin.PluginFeature
  * The codec plugins bundled with libheif carry their own licenses:
  *
  * | Codec       | Format      | Operation | License             | Notes                               |
- * |-------------|-------------|-----------|---------------------|-------------------------------------|
+ * |---|---|---|---|---|
  * | libde265    | HEIF / HEIC | Decode    | LGPL-3.0            | Free to use                         |
  * | x265        | HEIF / HEIC | Encode    | GPL-2.0 / commercial | See note below                     |
  * | libaom      | AVIF        | Both      | BSD-2-Clause        | Free to use                         |

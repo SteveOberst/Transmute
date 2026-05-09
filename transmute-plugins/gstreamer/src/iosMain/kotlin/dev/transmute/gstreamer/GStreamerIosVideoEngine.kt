@@ -30,7 +30,7 @@ internal object GStreamerIosVideoEngine {
     private val wavDecoder = WavDecoder()
     private val wavEncoder = WavEncoder()
 
-    // -- Encode ---------------------------------------------------------------
+    // -- Encode ---
 
     suspend fun encode(
         ir: VideoIR,
@@ -100,7 +100,7 @@ internal object GStreamerIosVideoEngine {
         }
     }
 
-    // -- Decode ---------------------------------------------------------------
+    // -- Decode ---
 
     suspend fun decode(
         source: ByteArray,

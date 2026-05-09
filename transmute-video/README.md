@@ -1,6 +1,6 @@
 # transmute-video
 
-Video domain module — formats, codecs, intermediate representation, and transforms.
+Video domain module - formats, codecs, intermediate representation, and transforms.
 
 ## Overview
 
@@ -13,7 +13,7 @@ and video-specific transforms. Reuses `ImageIR` types for video frames and
 ### Formats & IR
 
 | Type | Purpose |
-|------|---------|
+|---|---|
 | `VideoFormat` | Sealed interface: `Mp4`, `Webm`, `Mov`, `Avi`, `Mkv`, `Unknown` |
 | `VideoIR` | Intermediate representation (videoTrack, audioTrack, durationMs, metadata) |
 | `VideoTrack` | Width, height, frameRate, frames via `FrameStream` |
@@ -25,7 +25,7 @@ and video-specific transforms. Reuses `ImageIR` types for video frames and
 ### Codecs
 
 | Type | Purpose |
-|------|---------|
+|---|---|
 | `VideoCodec` / `VideoDecoder` / `VideoEncoder` | Codec interfaces |
 | `VideoDecoderRegistry` / `VideoEncoderRegistry` | Registries with mutable variants for plugins |
 | `VideoDecodeOptions` / `VideoEncodeOptions` | Sealed option hierarchies |
@@ -34,22 +34,22 @@ and video-specific transforms. Reuses `ImageIR` types for video frames and
 ### Transforms
 
 | Transform | DSL | Purpose |
-|-----------|-----|---------|
+|---|---|---|
 | `VideoTrimTransform` | `trim` | Trim to time range |
 | `VideoResizeTransform` | `resize` | Resize frames, preserve aspect ratio |
 | `VideoFrameRateTransform` | `frameRate` | Change frame rate |
 | `VideoRemoveAudioTransform` | `removeAudio` | Strip audio track |
 | `VideoCropTransform` | `crop` | Crop frames to sub-region |
 | `VideoSpeedTransform` | `speed` | Playback speed adjustment |
-| `VideoRotateTransform` | `rotate` | Rotate frames 90°/180°/270° |
+| `VideoRotateTransform` | `rotate` | Rotate frames 90 deg/180 deg/270 deg |
 
 ## Dependencies
 
 - `transmute-codec`
-- `transmute-image` (implementation — for pixel buffer types)
-- `transmute-audio` (implementation — for audio track types)
+- `transmute-image` (implementation - for pixel buffer types)
+- `transmute-audio` (implementation - for audio track types)
 - `kotlinx-coroutines-core`
 
 ## Targets
 
-Android, Desktop JVM, iOS — via Kotlin Multiplatform.
+Android, Desktop JVM, iOS - via Kotlin Multiplatform.

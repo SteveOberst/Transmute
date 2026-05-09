@@ -35,8 +35,8 @@ import org.slf4j.LoggerFactory
  * Owns the Transmute instance and manages uploaded files.
  *
  * All media processing operations flow through this service.
- * Plugin and format information is derived **dynamically** from the
- * Transmute instance's codec registries - nothing is hardcoded.
+ * Plugin and format information is derived from the Transmute instance's
+ * codec registries, with playground-specific display metadata layered on top.
  */
 class TransmuteService(
   private val tempDir: File = File(System.getProperty("java.io.tmpdir"), "transmute-playground"),
@@ -45,12 +45,12 @@ class TransmuteService(
   private val log = LoggerFactory.getLogger(TransmuteService::class.java)
   private val files = ConcurrentHashMap<String, UploadedFile>()
 
-  // -- Plugin management (dynamic) -------------------------------------------
+  // -- Plugin management (dynamic) ---
 
   private val featureOverrides = mutableMapOf<String, Boolean>()
   private val disabledPlugins = mutableSetOf<PluginId>().apply { addAll(initiallyDisabledPlugins) }
 
-  /** All plugins this playground supports, in preferred display order. Metadata comes from the plugins themselves. */
+  /** All plugins this playground supports, in preferred display order. */
   private val allPlugins: List<TransmutePlugin<*>> = listOf(GStreamer, LibHeif)
 
   /** All plugins keyed by plugin ID string. */
@@ -60,7 +60,7 @@ class TransmuteService(
    * Maps a format label to the plugin ID that provides it.
    *
    * Built lazily by probing each known plugin in isolation against the builtin
-   * baseline. Completely dynamic — no format→plugin attribution is ever hardcoded.
+   * baseline. Completely dynamic - no format->plugin attribution is ever hardcoded.
    */
   private val formatToPlugin: Map<String, String> by lazy {
     buildMap {
@@ -112,7 +112,7 @@ class TransmuteService(
     tempDir.mkdirs()
   }
 
-  // -- File management --------------------------------------------------------
+  // -- File management ---
 
   fun storeFile(name: String, bytes: ByteArray): FileHandle {
     val handle = UUID.randomUUID().toString()
@@ -138,7 +138,7 @@ class TransmuteService(
 
   fun listFiles(): List<UploadedFile> = files.values.toList()
 
-  // -- Inspect ----------------------------------------------------------------
+  // -- Inspect ---
 
   suspend fun inspect(handle: String): InspectResult? {
     val uploaded = files[handle] ?: return null
@@ -177,7 +177,7 @@ class TransmuteService(
     }
   }
 
-  // -- Preview ----------------------------------------------------------------
+  // -- Preview ---
 
   /**
    * Returns browser-renderable image bytes for any image format.
@@ -224,7 +224,7 @@ class TransmuteService(
     }
   }
 
-  // -- Dynamic format catalog ------------------------------------------------
+  // -- Dynamic format catalog ---
 
   fun allFormats(): List<FormatInfo> = imageFormats() + audioFormats() + videoFormats()
 
@@ -257,7 +257,7 @@ class TransmuteService(
     }.sortedBy { it.name }
   }
 
-  // -- Reflection-driven transform catalog ---------------------------------
+  // -- Reflection-driven transform catalog ---
   //    Transform metadata is discovered at runtime from annotations on the
   //    Transformers.kt factory objects - nothing is hardcoded here.
 
@@ -321,8 +321,8 @@ class TransmuteService(
       val info = installed[keyId]
       PluginDescriptor(
         key = keyId,
-        name = plugin.displayName,
-        description = plugin.description,
+        name = pluginDisplayName(plugin),
+        description = pluginDescription(plugin),
         version = null,
         enabled = plugin.key !in disabledPlugins,
         status = PluginStatusInfo(available = true),
@@ -396,6 +396,18 @@ class TransmuteService(
       .forEach { add(it.label) }
   }
 
+  private fun pluginDisplayName(plugin: TransmutePlugin<*>): String = when (plugin.key) {
+    GStreamer.key -> "GStreamer"
+    LibHeif.key -> "libheif"
+    else -> plugin.key.id.substringAfterLast('.').replaceFirstChar { it.uppercase() }
+  }
+
+  private fun pluginDescription(plugin: TransmutePlugin<*>): String = when (plugin.key) {
+    GStreamer.key -> "Audio and video codecs powered by GStreamer."
+    LibHeif.key -> "HEIF, HEIC, and AVIF image codecs powered by libheif."
+    else -> "Optional Transmute plugin."
+  }
+
   @Synchronized
   fun rebuildTransmute() {
     transmute.close()
@@ -424,7 +436,7 @@ class TransmuteService(
     }
   }
 
-  // -- Transform execution --------------------------------------------------
+  // -- Transform execution ---
 
   /**
    * Executes a [TransformRequest] against a previously uploaded file using
@@ -576,14 +588,14 @@ class TransmuteService(
     }
   }
 
-  // -- Cleanup ----------------------------------------------------------------
+  // -- Cleanup ---
 
   fun cleanup() {
     transmute.close()
     tempDir.deleteRecursively()
   }
 
-  // -- Format helpers --------------------------------------------------------
+  // -- Format helpers ---
 
   companion object {
     /** Extension strings that map to the image domain. */

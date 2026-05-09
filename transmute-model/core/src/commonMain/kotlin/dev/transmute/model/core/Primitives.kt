@@ -3,6 +3,7 @@
 package dev.transmute.model.core
 
 import kotlinx.serialization.Serializable
+import kotlin.jvm.JvmInline
 
 // --- String wrapper types ---
 

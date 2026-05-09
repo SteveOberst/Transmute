@@ -8,9 +8,9 @@ import dev.transmute.model.core.Hertz
 import dev.transmute.model.core.RawMediaStructure
 import kotlinx.serialization.Serializable
 
-// ================================================================
+// ===
 //  AAC enums
-// ================================================================
+// ===
 
 /**
  * AAC audio object type (profile).
@@ -29,9 +29,9 @@ enum class AacProfile(val objectType: Int) {
   }
 }
 
-// ================================================================
+// ===
 //  Typed model: ADTS frame header
-// ================================================================
+// ===
 
 /**
  * Parsed ADTS (Audio Data Transport Stream) frame header.
@@ -54,9 +54,9 @@ data class AdtsFrameHeader(
   val isMpeg4: Boolean,
 )
 
-// ================================================================
+// ===
 //  AAC file - complete on-disk representation
-// ================================================================
+// ===
 
 /**
  * Canonical representation of a raw AAC ADTS file as written to disk.

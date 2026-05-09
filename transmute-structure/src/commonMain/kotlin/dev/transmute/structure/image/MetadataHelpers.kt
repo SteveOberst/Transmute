@@ -20,7 +20,7 @@ import dev.transmute.model.structure.image.types.TiffIfd
 import dev.transmute.model.structure.image.types.TiffIfdEntry
 import dev.transmute.model.structure.image.types.TiffRaw
 
-// -- TIFF -> EXIF mapping (shared across JPEG / TIFF / PNG / WebP) ------------
+// -- TIFF -> EXIF mapping (shared across JPEG / TIFF / PNG / WebP) ---
 
 /**
  * Convert a fully parsed [TiffRaw] structure to an [ExifMetadata] model.
@@ -181,7 +181,7 @@ internal fun tiffRawToExif(tiff: TiffRaw, originalSizeBytes: ULong?): ExifMetada
   )
 }
 
-// -- Value decoding -----------------------------------------------------------
+// -- Value decoding ---
 
 internal fun decodeExifValue(
   data: ByteArray,
@@ -236,7 +236,7 @@ internal fun decodeExifValue(
   }
 }
 
-// -- Byte-order-aware readers -------------------------------------------------
+// -- Byte-order-aware readers ---
 
 internal fun readUShort(data: ByteArray, offset: Int, order: Endianness): UShort? {
   if (offset + 2 > data.size) return null
@@ -257,7 +257,7 @@ internal fun readUInt(data: ByteArray, offset: Int, order: Endianness): UInt? {
   }
 }
 
-// -- XMP parsing (shared) ----------------------------------------------------
+// -- XMP parsing (shared) ---
 
 /**
  * Parse raw XMP XML text into an [XmpMetadata] model with a fully
@@ -282,9 +282,9 @@ internal fun parseXmpText(xmlText: String): XmpMetadata? {
   }
 }
 
-// ===============================================================================
+// ===
 //  Minimal recursive-descent XML parser (KMP-safe, no platform deps)
-// ===============================================================================
+// ===
 
 /**
  * A tiny XML parser that builds an [XmpElement] tree.
@@ -306,7 +306,7 @@ internal fun parseXmpText(xmlText: String): XmpMetadata? {
 private class SimpleXmlParser(private val src: String) {
   private var pos = 0
 
-  // -- Public entry point ---------------------------------------
+  // -- Public entry point ---
 
   fun parseDocument(): XmpDocument? {
     val prolog = mutableListOf<XmpMiscNode>()
@@ -331,7 +331,7 @@ private class SimpleXmlParser(private val src: String) {
     return XmpDocument(prolog = prolog, root = root)
   }
 
-  // -- Element parsing ------------------------------------------
+  // -- Element parsing ---
 
   private fun parseElement(inScopeNamespaces: Map<String, String>): XmpElement? {
     if (pos >= src.length || src[pos] != '<') return null
@@ -431,7 +431,7 @@ private class SimpleXmlParser(private val src: String) {
     )
   }
 
-  // -- Lexer helpers --------------------------------------------
+  // -- Lexer helpers ---
 
   private fun skipWs() {
     while (pos < src.length && src[pos].isWhitespace()) pos++
@@ -513,7 +513,7 @@ private class SimpleXmlParser(private val src: String) {
     if (pos < src.length && src[pos] == ch) pos++
   }
 
-  // -- Namespace helpers ----------------------------------------
+  // -- Namespace helpers ---
 
   private fun resolveQName(raw: String, nsMap: Map<String, String>, defaultApplies: Boolean): dev.transmute.model.metadata.xmp.XmpQName {
     val colon = raw.indexOf(':')
@@ -534,7 +534,7 @@ private class SimpleXmlParser(private val src: String) {
     .replace("&quot;", "\"")
 }
 
-// -- ICC Profile parsing (shared) ---------------------------------------------
+// -- ICC Profile parsing (shared) ---
 
 /**
  * Parse an ICC profile from raw bytes.
@@ -584,7 +584,21 @@ internal fun parseIccProfile(data: ByteArray): IccProfileMetadata {
   val minute = u16be(32)
   val second = u16be(34)
   val creationDate = if (year > 0) {
-    dev.transmute.model.core.Iso8601String("%04d-%02d-%02dT%02d:%02d:%02d".format(year, month, day, hour, minute, second))
+    dev.transmute.model.core.Iso8601String(
+      buildString(19) {
+        append(year.toString().padStart(4, '0'))
+        append('-')
+        append(month.toString().padStart(2, '0'))
+        append('-')
+        append(day.toString().padStart(2, '0'))
+        append('T')
+        append(hour.toString().padStart(2, '0'))
+        append(':')
+        append(minute.toString().padStart(2, '0'))
+        append(':')
+        append(second.toString().padStart(2, '0'))
+      },
+    )
   } else {
     null
   }
@@ -634,7 +648,7 @@ internal fun parseIccProfile(data: ByteArray): IccProfileMetadata {
   )
 }
 
-// -- Helpers ------------------------------------------------------------------
+// -- Helpers ---
 
 internal fun ByteArray.startsWith(prefix: ByteArray): Boolean {
   if (size < prefix.size) return false
@@ -644,7 +658,7 @@ internal fun ByteArray.startsWith(prefix: ByteArray): Boolean {
   return true
 }
 
-// -- Well-known EXIF tag names ------------------------------------------------
+// -- Well-known EXIF tag names ---
 
 internal val EXIF_TAG_NAMES: Map<UInt, String> = mapOf(
   // IFD0 / IFD1 (TIFF baseline)

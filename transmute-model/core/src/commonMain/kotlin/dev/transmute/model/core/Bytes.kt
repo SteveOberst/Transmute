@@ -29,14 +29,14 @@ object BytesSerializer : KSerializer<Bytes> {
 @Serializable(with = BytesSerializer::class)
 class Bytes(val data: ByteArray) : TSource {
 
-  // -- data-container surface -------------------------------------------
+  // -- data-container surface ---
 
   val size: Int get() = data.size
   fun isEmpty(): Boolean = data.isEmpty()
   fun isNotEmpty(): Boolean = data.isNotEmpty()
   operator fun get(index: Int): Byte = data[index]
 
-  // -- TSource implementation -------------------------------------------
+  // -- TSource implementation ---
 
   private var position = 0
 

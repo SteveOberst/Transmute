@@ -35,9 +35,9 @@ class CrossFormatPipelineIntegrationTest : GStreamerTestBase() {
 
   private val ctx = testContext()
 
-  // -----------------------------------------------------------------------
+  // ---
   // Audio cross-format
-  // -----------------------------------------------------------------------
+  // ---
 
   /**
    * Encode a sine wave to AAC, then decode to AudioIR, then re-encode to M4A,
@@ -92,9 +92,9 @@ class CrossFormatPipelineIntegrationTest : GStreamerTestBase() {
     assertTrue(fromAac.sampleRate > 0, "Final decoded sample rate must be positive")
   }
 
-  // -----------------------------------------------------------------------
+  // ---
   // Video container swap
-  // -----------------------------------------------------------------------
+  // ---
 
   /**
    * Encode as MP4 -> decode -> re-encode as WebM -> decode -> verify dimensions
@@ -136,6 +136,7 @@ class CrossFormatPipelineIntegrationTest : GStreamerTestBase() {
    */
   @Test
   fun video_aviToMkv_containerSwap() = runTest {
+    assumeLegacyAviEncodeSupported()
     val video = GStreamerTestHelpers.syntheticVideo(
       width = 160,
       height = 120,
@@ -158,9 +159,9 @@ class CrossFormatPipelineIntegrationTest : GStreamerTestBase() {
     assertTrue(fromMkv.durationMs > 0, "MKV duration must be positive")
   }
 
-  // -----------------------------------------------------------------------
+  // ---
   // Transform + re-encode
-  // -----------------------------------------------------------------------
+  // ---
 
   /**
    * Decode MP4 -> resize frames to a smaller resolution -> encode as MKV ->
@@ -204,9 +205,9 @@ class CrossFormatPipelineIntegrationTest : GStreamerTestBase() {
     )
   }
 
-  // -----------------------------------------------------------------------
+  // ---
   // Multi-track (video + audio)
-  // -----------------------------------------------------------------------
+  // ---
 
   /**
    * Encode a video with stereo audio via MP4, decode, and verify that
@@ -280,9 +281,9 @@ class CrossFormatPipelineIntegrationTest : GStreamerTestBase() {
     assertTrue(decoded.durationMs > 0, "Duration must be positive")
   }
 
-  // =======================================================================
+  // ===
   // Helpers
-  // =======================================================================
+  // ===
 
   /**
    * Creates a new [VideoIR] with frames re-created at the given dimensions.

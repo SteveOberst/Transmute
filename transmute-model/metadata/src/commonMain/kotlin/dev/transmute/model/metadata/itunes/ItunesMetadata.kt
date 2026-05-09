@@ -13,9 +13,9 @@ import kotlinx.serialization.Serializable
  *
  * On disk the hierarchy is:
  * `ilst` (container)
- *   - item box per key (4-byte type, e.g. `©nam`, `aART`, `trkn`)
+ *   - item box per key (4-byte type, e.g. `(c)nam`, `aART`, `trkn`)
  *       - one or more `data` boxes holding typed values
- *       - (optional) other sub-boxes (e.g. `mean`/`name` for freeform `----`)
+ *       - (optional) other sub-boxes (e.g. `mean`/`name` for freeform `---`)
  *
  * This model:
  * - Preserves the container > items > data-box structure.
@@ -59,16 +59,16 @@ val ItunesMetadata.items: List<ItunesItem>
 @Serializable
 data class ItunesIlst(
   // -- Typed slots (common keys) --
-  val title: List<ItunesItem> = emptyList(), // ©nam
-  val artist: List<ItunesItem> = emptyList(), // ©ART
-  val album: List<ItunesItem> = emptyList(), // ©alb
-  val year: List<ItunesItem> = emptyList(), // ©day
-  val genre: List<ItunesItem> = emptyList(), // ©gen / gnre
-  val comment: List<ItunesItem> = emptyList(), // ©cmt
-  val composer: List<ItunesItem> = emptyList(), // ©wrt
-  val encodingTool: List<ItunesItem> = emptyList(), // ©too
-  val grouping: List<ItunesItem> = emptyList(), // ©grp
-  val lyrics: List<ItunesItem> = emptyList(), // ©lyr
+  val title: List<ItunesItem> = emptyList(), // (c)nam
+  val artist: List<ItunesItem> = emptyList(), // (c)ART
+  val album: List<ItunesItem> = emptyList(), // (c)alb
+  val year: List<ItunesItem> = emptyList(), // (c)day
+  val genre: List<ItunesItem> = emptyList(), // (c)gen / gnre
+  val comment: List<ItunesItem> = emptyList(), // (c)cmt
+  val composer: List<ItunesItem> = emptyList(), // (c)wrt
+  val encodingTool: List<ItunesItem> = emptyList(), // (c)too
+  val grouping: List<ItunesItem> = emptyList(), // (c)grp
+  val lyrics: List<ItunesItem> = emptyList(), // (c)lyr
   val albumArtist: List<ItunesItem> = emptyList(), // aART
   val trackNumber: List<ItunesItem> = emptyList(), // trkn
   val discNumber: List<ItunesItem> = emptyList(), // disk
@@ -120,7 +120,7 @@ sealed class ItunesIlstItemRef {
 
 @Serializable
 data class ItunesItem(
-  /** The item's 4-byte box type (e.g. `©nam`, `trkn`). */
+  /** The item's 4-byte box type (e.g. `(c)nam`, `trkn`). */
   val key: FourCC,
   /** Human-readable name when the key is well-known. */
   val name: String? = null,

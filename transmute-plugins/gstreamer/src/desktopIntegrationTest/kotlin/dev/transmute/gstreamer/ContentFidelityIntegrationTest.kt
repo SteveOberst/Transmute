@@ -33,9 +33,9 @@ class ContentFidelityIntegrationTest : GStreamerTestBase() {
 
   private val ctx = testContext()
 
-  // -----------------------------------------------------------------------
+  // ---
   // Audio waveform preservation
-  // -----------------------------------------------------------------------
+  // ---
 
   /**
    * Encode a 440 Hz sine, decode it back, and verify the RMS of the decoded
@@ -96,9 +96,9 @@ class ContentFidelityIntegrationTest : GStreamerTestBase() {
     )
   }
 
-  // -----------------------------------------------------------------------
+  // ---
   // Audio duration accuracy
-  // -----------------------------------------------------------------------
+  // ---
 
   @Test
   fun aac_durationAccuracy_1s() = runTest {
@@ -125,9 +125,9 @@ class ContentFidelityIntegrationTest : GStreamerTestBase() {
     assertDurationWithin(GstOpusCodec(), AudioFormat.Opus, inputMs = 1000, toleranceMs = 50)
   }
 
-  // -----------------------------------------------------------------------
+  // ---
   // Video dimension roundtrip
-  // -----------------------------------------------------------------------
+  // ---
 
   @Test
   fun mp4_dimensionRoundtrip_320x240() = runTest {
@@ -146,6 +146,7 @@ class ContentFidelityIntegrationTest : GStreamerTestBase() {
 
   @Test
   fun avi_dimensionRoundtrip_320x240() = runTest {
+    assumeLegacyAviEncodeSupported()
     assertVideoDimensions(GstAviCodec(), VideoFormat.Avi, 320, 240)
   }
 
@@ -154,9 +155,9 @@ class ContentFidelityIntegrationTest : GStreamerTestBase() {
     assertVideoDimensions(GstMovCodec(), VideoFormat.Mov, 320, 240)
   }
 
-  // -----------------------------------------------------------------------
+  // ---
   // Video frame count
-  // -----------------------------------------------------------------------
+  // ---
 
   @Test
   fun mp4_frameCount_10fps1s() = runTest {
@@ -173,9 +174,9 @@ class ContentFidelityIntegrationTest : GStreamerTestBase() {
     assertFrameCount(GstMkvCodec(), VideoFormat.Mkv, fps = 10.0, durationMs = 1000, expectedMin = 9, expectedMax = 11)
   }
 
-  // =======================================================================
+  // ===
   // Helpers
-  // =======================================================================
+  // ===
 
   /** Compute RMS amplitude in dB (relative to 1.0 full scale). */
   private fun rmsDb(samples: FloatArray): Double {

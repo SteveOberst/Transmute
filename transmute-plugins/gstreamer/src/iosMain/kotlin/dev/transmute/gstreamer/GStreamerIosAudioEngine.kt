@@ -9,12 +9,11 @@ import dev.transmute.audio.codecs.WavDecoder
 import dev.transmute.audio.codecs.WavEncoder
 import dev.transmute.common.PipelineContext
 import dev.transmute.model.core.asBytes
+import kotlinx.cinterop.addressOf
+import kotlinx.cinterop.usePinned
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import platform.Foundation.NSTemporaryDirectory
-import platform.Foundation.NSData
-import platform.Foundation.writeToFile
-import platform.Foundation.dataWithContentsOfFile
+import platform.Foundation.*
 
 /**
  * Audio encode / decode engine for iOS via the GStreamer cinterop bridge.
@@ -95,9 +94,9 @@ internal object GStreamerIosAudioEngine {
     }
 }
 
-// ---------------------------------------------------------------------------
+// ---
 // iOS file helpers  (shared by all iOS engines)
-// ---------------------------------------------------------------------------
+// ---
 
 @OptIn(kotlinx.cinterop.ExperimentalForeignApi::class, kotlinx.cinterop.BetaInteropApi::class)
 internal fun ByteArray.writeToTmpFile(path: String) {
@@ -112,6 +111,7 @@ internal fun readTmpFile(path: String): ByteArray {
     return data.toByteArray()
 }
 
+@OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
 internal fun deleteTmpFile(path: String) {
     try {
         platform.Foundation.NSFileManager.defaultManager.removeItemAtPath(path, null)
@@ -121,15 +121,17 @@ internal fun deleteTmpFile(path: String) {
 internal fun buildIosPipelineDesc(vararg parts: String): List<String> =
     parts.filter { it.isNotBlank() }.flatMap { it.trim().split("\\s+".toRegex()) }
 
-// ---------------------------------------------------------------------------
+// ---
 // NSData <-> ByteArray conversions
-// ---------------------------------------------------------------------------
+// ---
 
 @OptIn(kotlinx.cinterop.ExperimentalForeignApi::class, kotlinx.cinterop.BetaInteropApi::class)
-internal fun ByteArray.toNSData(): NSData = kotlinx.cinterop.memScoped {
+internal fun ByteArray.toNSData(): NSData {
     if (isEmpty()) return NSData()
-    kotlinx.cinterop.usePinned {
-        NSData.create(bytes = it.addressOf(0), length = size.toULong())
+    val data = this
+    return data.usePinned { pinned ->
+        NSData.dataWithBytes(pinned.addressOf(0), data.size.toULong())
+            ?: error("Failed to create NSData")
     }
 }
 
@@ -138,8 +140,8 @@ internal fun NSData.toByteArray(): ByteArray {
     val len = length.toInt()
     if (len == 0) return ByteArray(0)
     val result = ByteArray(len)
-    kotlinx.cinterop.usePinned {
-        platform.posix.memcpy(it.addressOf(0), bytes, length)
+    result.usePinned { pinned ->
+        platform.posix.memcpy(pinned.addressOf(0), bytes, length)
     }
     return result
 }

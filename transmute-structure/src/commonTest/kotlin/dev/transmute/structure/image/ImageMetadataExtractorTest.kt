@@ -32,9 +32,9 @@ import kotlin.test.assertTrue
  */
 class ImageMetadataExtractorTest {
 
-  // ===========================================================================
+  // ===
   //  PNG - tEXt extraction
-  // ===========================================================================
+  // ===
 
   /** Build a PNG tEXt chunk: keyword + null separator + text. */
   private fun pngTextChunk(keyword: String, text: String): PngChunk {
@@ -180,9 +180,9 @@ class ImageMetadataExtractorTest {
     assertTrue(png.extractMetadata().isEmpty())
   }
 
-  // ===========================================================================
+  // ===
   //  JPEG - basic extraction tests
-  // ===========================================================================
+  // ===
 
   @Test
   fun jpegXmpExtraction() {
@@ -240,9 +240,9 @@ class ImageMetadataExtractorTest {
     assertTrue(metadata.filterIsInstance<dev.transmute.model.metadata.exif.ExifMetadata>().isEmpty())
   }
 
-  // ===========================================================================
+  // ===
   //  WebP - XMP extraction
-  // ===========================================================================
+  // ===
 
   @Test
   fun webpExtractsXmpChunk() {
