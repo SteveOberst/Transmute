@@ -73,6 +73,7 @@ jobs:
         with:
           name: gstreamer-desktop-${{ runner.os }}
           path: transmute-plugins/gstreamer/build/gstreamer-desktop/
+          include-hidden-files: true
           if-no-files-found: error
           # Retention only needs to outlive this workflow run
           retention-days: 1
@@ -139,6 +140,7 @@ jobs:
         with:
           name: libheif-desktop-${{ runner.os }}
           path: transmute-plugins/libheif/build/libheif-desktop/
+          include-hidden-files: true
           if-no-files-found: error
           retention-days: 1
 
