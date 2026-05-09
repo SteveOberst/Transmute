@@ -154,17 +154,22 @@ jobs:
           fi
 
           SYSTEM_IMAGE_PACKAGE='system-images;android-31;default;x86_64'
+          PLATFORM_PACKAGE='platforms;android-31'
+          EMULATOR_ACCELERATION='hardware'
 
           if [ ! -r /dev/kvm ] || [ ! -w /dev/kvm ]; then
-            log 'KVM is not accessible before SDK install; x86_64 emulator boot is unlikely to succeed without hardware acceleration'
+            SYSTEM_IMAGE_PACKAGE='system-images;android-30;aosp_atd;x86'
+            PLATFORM_PACKAGE='platforms;android-30'
+            EMULATOR_ACCELERATION='software'
+            log 'KVM is not accessible before SDK install; using Android 30 ATD x86 software-emulation fallback'
             ls -l /dev/kvm || true
           else
-            log 'KVM accessible before SDK install; using x86_64 system image'
+            log 'KVM accessible before SDK install; using Android 31 x86_64 system image'
           fi
 
           log "Installing Android SDK packages for $SYSTEM_IMAGE_PACKAGE"
           set +e
-          timeout --foreground 1200 "$SDKMANAGER_BIN" --install 'build-tools;36.0.0' platform-tools 'platforms;android-31' "$SYSTEM_IMAGE_PACKAGE" emulator 2>&1 | sed -u 's/^/[sdkmanager] /'
+          timeout --foreground 1200 "$SDKMANAGER_BIN" --install 'build-tools;36.0.0' platform-tools "$PLATFORM_PACKAGE" "$SYSTEM_IMAGE_PACKAGE" emulator 2>&1 | sed -u 's/^/[sdkmanager] /'
           sdk_install_status=$?
           set -e
           if [ "$sdk_install_status" -ne 0 ]; then
@@ -234,12 +239,12 @@ jobs:
             -no-boot-anim
           )
 
-          if [ ! -r /dev/kvm ] || [ ! -w /dev/kvm ]; then
-            log 'KVM is still not accessible after setup; refusing to run the x86_64 emulator without hardware acceleration'
-            ls -l /dev/kvm || true
-            exit 1
+          if [ "$EMULATOR_ACCELERATION" = 'software' ]; then
+            log 'KVM is still not accessible after setup; using Android 30 ATD x86 emulator with software acceleration'
+            EMULATOR_ARGS+=( -accel off )
+          else
+            log 'KVM accessible; using hardware acceleration'
           fi
-          log 'KVM accessible; using hardware acceleration'
 
           : > "$EMULATOR_LOG"
           log "Launching emulator via $EMULATOR_BIN"
