@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.2-beta.0](https://github.com/SteveOberst/Transmute/compare/v0.1.1-beta.0...v0.1.2-beta.0) (2026-05-09)
+
+
+### Bug Fixes
+
+* trigger prerelease after publish workflow repair ([5ba0138](https://github.com/SteveOberst/Transmute/commit/5ba013818feab5d3ce1d6786681163cf6e414a02))
+
 ## [0.1.1-beta.0](https://github.com/SteveOberst/Transmute/compare/v0.1.0-beta.0...v0.1.1-beta.0) (2026-05-09)
 
 
