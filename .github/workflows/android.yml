@@ -90,6 +90,18 @@ jobs:
             printf '[%s] %s\n' "$(date +%H:%M:%S)" "$*"
           }
 
+          ensure_emulator_alive() {
+            if ! kill -0 "$EMULATOR_PID" >/dev/null 2>&1; then
+              local status
+              set +e
+              wait "$EMULATOR_PID"
+              status=$?
+              set -e
+              log "Emulator process exited unexpectedly with status ${status}"
+              exit "$status"
+            fi
+          }
+
           log 'Accepting Android SDK licenses'
           set +o pipefail
           yes | sdkmanager --licenses > /dev/null
@@ -159,18 +171,41 @@ jobs:
             log 'KVM accessible; using hardware acceleration'
           fi
 
+          EMULATOR_BIN=''
+          if [ -n "${ANDROID_SDK_ROOT:-}" ] && [ -x "${ANDROID_SDK_ROOT}/emulator/emulator" ]; then
+            EMULATOR_BIN="${ANDROID_SDK_ROOT}/emulator/emulator"
+          elif [ -n "${ANDROID_HOME:-}" ] && [ -x "${ANDROID_HOME}/emulator/emulator" ]; then
+            EMULATOR_BIN="${ANDROID_HOME}/emulator/emulator"
+          elif command -v emulator >/dev/null 2>&1; then
+            EMULATOR_BIN="$(command -v emulator)"
+          fi
+
+          if [ -z "$EMULATOR_BIN" ]; then
+            log 'Android emulator binary not found on PATH or under ANDROID_SDK_ROOT/ANDROID_HOME'
+            log "ANDROID_SDK_ROOT='${ANDROID_SDK_ROOT:-}' ANDROID_HOME='${ANDROID_HOME:-}'"
+            exit 1
+          fi
+
           : > "$EMULATOR_LOG"
-          log 'Launching emulator'
-          emulator "${EMULATOR_ARGS[@]}" > "$EMULATOR_LOG" 2>&1 &
+          log "Launching emulator via $EMULATOR_BIN"
+          "$EMULATOR_BIN" "${EMULATOR_ARGS[@]}" > "$EMULATOR_LOG" 2>&1 &
           EMULATOR_PID=$!
           tail -n +1 -F "$EMULATOR_LOG" 2>/dev/null | sed -u 's/^/[emulator] /' &
           EMULATOR_TAIL_PID=$!
 
+          sleep 2
+          ensure_emulator_alive
+
           log 'Waiting for adb device'
-          adb wait-for-device
+          if ! timeout 300 adb wait-for-device; then
+            ensure_emulator_alive
+            log 'Timed out waiting for adb device'
+            exit 1
+          fi
           adb devices -l || true
 
           until boot_completed="$(adb -s emulator-5554 shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" && [ "$boot_completed" = '1' ]; do
+            ensure_emulator_alive
             log "Waiting for sys.boot_completed... current='${boot_completed:-}'"
             sleep 5
           done
@@ -179,12 +214,14 @@ jobs:
           adb -s emulator-5554 shell input keyevent 82 >/dev/null 2>&1 || true
 
           until package_service="$(adb -s emulator-5554 shell service check package 2>/dev/null | tr -d '\r')" && echo "$package_service" | grep -q 'Service package: found'; do
+            ensure_emulator_alive
             log "Waiting for package manager service... current='${package_service:-}'"
             sleep 5
           done
           log 'Package manager service is available'
 
           until adb -s emulator-5554 shell cmd package path android >/dev/null 2>&1; do
+            ensure_emulator_alive
             log 'Waiting for package manager commands...'
             sleep 5
           done
