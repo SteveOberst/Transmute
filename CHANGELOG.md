@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.3-beta.0](https://github.com/SteveOberst/Transmute/compare/v0.1.2-beta.0...v0.1.3-beta.0) (2026-05-10)
+
+
+### Bug Fixes
+
+* normalize JitPack publication coordinates ([c66a816](https://github.com/SteveOberst/Transmute/commit/c66a8160e1ced5c7d31c59924d521f9701ef45dc))
+
 ## [0.1.2-beta.0](https://github.com/SteveOberst/Transmute/compare/v0.1.1-beta.0...v0.1.2-beta.0) (2026-05-09)
 
 
