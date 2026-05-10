@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.4-beta.0](https://github.com/SteveOberst/Transmute/compare/v0.1.3-beta.0...v0.1.4-beta.0) (2026-05-10)
+
+
+### Bug Fixes
+
+* unblock prerelease publication ([54885ed](https://github.com/SteveOberst/Transmute/commit/54885ed494e54a0a0a3138095d2965bd313e298a))
+
 ## [0.1.3-beta.0](https://github.com/SteveOberst/Transmute/compare/v0.1.2-beta.0...v0.1.3-beta.0) (2026-05-10)
 
 
