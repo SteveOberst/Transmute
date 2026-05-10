@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.5-beta.0](https://github.com/SteveOberst/Transmute/compare/v0.1.4-beta.0...v0.1.5-beta.0) (2026-05-10)
+
+
+### Bug Fixes
+
+* correct ios gstreamer bridge initialization ([2c38b0e](https://github.com/SteveOberst/Transmute/commit/2c38b0e9b3f83361dbde164f0ddf307b69e3829d))
+
 ## [0.1.4-beta.0](https://github.com/SteveOberst/Transmute/compare/v0.1.3-beta.0...v0.1.4-beta.0) (2026-05-10)
 
 
