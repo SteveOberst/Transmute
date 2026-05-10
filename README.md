@@ -12,8 +12,8 @@ across Android, Desktop/JVM, and iOS.
 - Single `commonMain` API for image, audio, and video across Android, Desktop (JVM), and iOS
 - Instance-based API with plugin system - create isolated `Transmute` instances with custom codec configurations
 - Platform-native codecs by default - no external dependencies for common formats
-- Optional `transmute-plugins:gstreamer` fills platform gaps (Opus/OGG on iOS, MP4/MOV/WebM/AVI/MKV on Desktop, etc.)
-- Optional `transmute-plugins:libheif` for HEIF/HEIC/AVIF codec support on Desktop (without requiring a system GStreamer
+- Optional `transmute-plugins-gstreamer` fills platform gaps (Opus/OGG on iOS, MP4/MOV/WebM/AVI/MKV on Desktop, etc.)
+- Optional `transmute-plugins-libheif` for HEIF/HEIC/AVIF codec support on Desktop (without requiring a system GStreamer
   install)
 - Pure-Kotlin WAV and BMP codecs that work on all platforms without native dependencies
 - Pipeline-based decode -> transform -> encode: swap or extend individual stages without touching the rest
@@ -32,7 +32,7 @@ Transmute exposes one shared set of image, audio, and video format types across
 all platforms, but codec availability is intentionally split between:
 
 - platform-native defaults that work out of the box on a given target
-- plugin-backed formats that require `transmute-plugins:gstreamer` or `transmute-plugins:libheif`
+- plugin-backed formats that require `transmute-plugins-gstreamer` or `transmute-plugins-libheif`
 
 ### Image
 
@@ -76,6 +76,10 @@ For per-format notes and the fuller reference table, see [docs/codecs/README.md]
 
 Transmute is published via [JitPack](https://jitpack.io/#SteveOberst/Transmute).
 
+JitPack builds the repo's Gradle `maven-publish` publications directly from tags and commits.
+It does not resolve from GitHub Release attachments, so the important part is stable Maven
+coordinates for each published module.
+
 ```kotlin
 // settings.gradle.kts
 dependencyResolutionManagement {
@@ -98,6 +102,24 @@ dependencies {
   implementation("com.github.SteveOberst.Transmute:transmute-plugins-libheif:<version>")
 }
 ```
+
+Most consumers should depend on `transmute-api` and then add plugins only when needed.
+If you are building against narrower internal surfaces, the published JitPack modules map to
+the repo structure as path-based artifact ids:
+
+| Use case | Coordinate |
+|---|---|
+| Main facade and DSL | `com.github.SteveOberst.Transmute:transmute-api:<version>` |
+| Image codecs / transforms only | `com.github.SteveOberst.Transmute:transmute-image:<version>` |
+| Audio codecs / transforms only | `com.github.SteveOberst.Transmute:transmute-audio:<version>` |
+| Video codecs / transforms only | `com.github.SteveOberst.Transmute:transmute-video:<version>` |
+| Low-level codec abstractions | `com.github.SteveOberst.Transmute:transmute-codec:<version>` |
+| Shared model facade | `com.github.SteveOberst.Transmute:transmute-model:<version>` |
+| Model submodules | `com.github.SteveOberst.Transmute:transmute-model-core:<version>`, `transmute-model-identify`, `transmute-model-metadata`, `transmute-model-structure` |
+| Filesystem abstractions | `com.github.SteveOberst.Transmute:transmute-filesystem-core:<version>`, `transmute-filesystem-okio` |
+| Plugin catalog constants | `com.github.SteveOberst.Transmute:transmute-plugins-catalog:<version>` |
+| Optional GStreamer plugin | `com.github.SteveOberst.Transmute:transmute-plugins-gstreamer:<version>` |
+| Optional libheif plugin | `com.github.SteveOberst.Transmute:transmute-plugins-libheif:<version>` |
 
 ## Quick Start
 

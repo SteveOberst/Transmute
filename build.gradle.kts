@@ -1,5 +1,6 @@
 import dev.transmute.gradle.ProjectVersion
 import org.gradle.api.publish.PublishingExtension
+import org.gradle.api.publish.maven.MavenPublication
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform) apply false
@@ -9,6 +10,9 @@ plugins {
 
 group = "com.github.SteveOberst.Transmute"
 version = ProjectVersion.resolve(rootDir) // x-release-please-version
+
+fun Project.publishedArtifactBaseId(): String =
+    path.removePrefix(":").replace(':', '-')
 
 subprojects {
     group = rootProject.group
@@ -28,6 +32,20 @@ subprojects {
     // gpr.user / gpr.key, then reference them below.
     afterEvaluate {
         extensions.findByType<PublishingExtension>()?.apply {
+            publications.withType(MavenPublication::class.java).configureEach {
+                val baseArtifactId = project.publishedArtifactBaseId()
+                val currentArtifactId = artifactId
+
+                groupId = rootProject.group.toString()
+                artifactId = when {
+                    currentArtifactId == project.name -> baseArtifactId
+                    currentArtifactId.startsWith("${project.name}-") -> {
+                        baseArtifactId + currentArtifactId.removePrefix(project.name)
+                    }
+                    else -> currentArtifactId
+                }
+            }
+
             repositories {
                 maven {
                     name = "GitHubPackages"

@@ -6,21 +6,25 @@ Official plugin catalog for the Transmute media processing library.
 
 | Plugin      | Module                          | Key                        | Description                                      |
 |---|---|---|---|
-| `GStreamer` | `transmute-plugins:gstreamer`   | `GStreamer.key`            | OGG/Opus/FLAC, MP4/MOV/WebM/AVI/MKV             |
-| `LibHeif`   | `transmute-plugins:libheif`     | `LibHeif.key`              | HEIF/HEIC/AVIF decode/encode via libheif         |
+| `GStreamer` | `transmute-plugins-gstreamer`   | `GStreamer.key`            | OGG/Opus/FLAC, MP4/MOV/WebM/AVI/MKV             |
+| `LibHeif`   | `transmute-plugins-libheif`     | `LibHeif.key`              | HEIF/HEIC/AVIF decode/encode via libheif         |
 
 ## Installation
 
-Plugins live under `transmute-plugins:<name>` in the Gradle project hierarchy.
-Add the plugin module to your dependencies alongside `transmute-api`:
+Plugins live under `transmute-plugins:<name>` in the Gradle project hierarchy,
+but the published JitPack artifacts use path-based ids. Add the plugin artifact
+to your dependencies alongside `transmute-api`:
 
 ```kotlin
 dependencies {
-    implementation("dev.transmute:transmute-api:<version>")
-    implementation("dev.transmute:transmute-gstreamer:<version>")
-    implementation("dev.transmute:transmute-libheif:<version>")
+    implementation("com.github.SteveOberst.Transmute:transmute-api:<version>")
+    implementation("com.github.SteveOberst.Transmute:transmute-plugins-gstreamer:<version>")
+    implementation("com.github.SteveOberst.Transmute:transmute-plugins-libheif:<version>")
 }
 ```
+
+You normally do not need `transmute-plugins-catalog` directly; the concrete plugin
+artifacts bring it in transitively.
 
 Then install the plugin via the builder DSL:
 

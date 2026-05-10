@@ -67,8 +67,8 @@ val transmute = Transmute {
 
 | Plugin      | Module                        | Description                                    |
 |-------------|-------------------------------|------------------------------------------------|
-| `GStreamer` | `transmute-plugins:gstreamer` | OGG/Opus/FLAC, MP4/MOV/WebM/AVI/MKV            |
-| `LibHeif`   | `transmute-plugins:libheif`   | HEIF/HEIC/AVIF image codecs (Desktop via libheif CLI tools) |
+| `GStreamer` | `transmute-plugins-gstreamer` | OGG/Opus/FLAC, MP4/MOV/WebM/AVI/MKV            |
+| `LibHeif`   | `transmute-plugins-libheif`   | HEIF/HEIC/AVIF image codecs (Desktop via libheif CLI tools) |
 
 See the [plugin catalog](../transmute-plugins/README.md) for the full list.
 
@@ -359,7 +359,7 @@ with logging, error messages, and diagnostics output.
 
 ## GStreamer Plugin
 
-The `GStreamer` plugin object (in `transmute-plugins:gstreamer`) registers GStreamer-backed
+The `GStreamer` plugin object (published as `transmute-plugins-gstreamer`; source module `:transmute-plugins:gstreamer`) registers GStreamer-backed
 codecs for formats not covered by platform-native codecs:
 
 ```kotlin
@@ -381,7 +381,7 @@ val transmute = Transmute {
 }
 ```
 
-For HEIF/HEIC/AVIF image codecs on Desktop, install the `LibHeif` plugin (in `transmute-plugins:libheif`).
+For HEIF/HEIC/AVIF image codecs on Desktop, install the `LibHeif` plugin (published as `transmute-plugins-libheif`; source module `:transmute-plugins:libheif`).
 
 GStreamer is **bundled by default** and extracted automatically on first use.
 To use a custom installation, call `installFrom(TPath.of("/path/to/gstreamer"))`.
@@ -390,12 +390,12 @@ Resolver diagnostics are automatically logged through the plugin logger at
 
 ### Dependency
 
-Add `transmute-gstreamer` to your dependencies alongside `transmute-api`:
+Add `transmute-plugins-gstreamer` to your dependencies alongside `transmute-api`:
 
 ```kotlin
 dependencies {
-    implementation("dev.transmute:transmute-api:<version>")
-    implementation("dev.transmute:transmute-gstreamer:<version>")
+    implementation("com.github.SteveOberst.Transmute:transmute-api:<version>")
+    implementation("com.github.SteveOberst.Transmute:transmute-plugins-gstreamer:<version>")
 }
 ```
 

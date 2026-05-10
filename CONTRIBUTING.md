@@ -206,16 +206,15 @@ BREAKING CHANGE: Builder-level encodeOptions/decodeOptions were removed. Use dec
 3. When the Release PR is merged:
     - A GitHub Release is created from the Release PR notes
     - JitPack automatically builds the release tag
-4. Use the manual pre-release workflow for `-alpha`, `-beta`, or `-rc`
-   versions without mutating the release-please manifest or stable changelog line.
+4. Pre-releases are cut through release-please as semver prerelease tags (for example `0.1.2-beta.0`).
 
 ### Version Policy
 
 - Pre-1.0: `feat` bumps patch, breaking changes bump minor
 - Post-1.0: Standard semver (`feat` -> minor, `fix` -> patch, breaking -> major)
 - Current version is tracked in `.release-please-manifest.json`
-- Pre-release versions are published manually via `TRANSMUTE_VERSION`
-  overrides and should include a suffix such as `-beta.1` or `-rc.1`.
+- Pre-release versions are published as semver prerelease tags and should include
+  a suffix such as `-beta.0` or `-rc.0`.
 
 ### JitPack
 
@@ -224,6 +223,14 @@ Consumers can depend on any release tag or branch via JitPack:
 ```kotlin
 implementation("com.github.SteveOberst.Transmute:transmute-api:<version>")
 ```
+
+Published artifact ids follow the Gradle project path, flattened with `-`.
+Examples: `transmute-model-core`, `transmute-filesystem-core`,
+`transmute-plugins-gstreamer`, `transmute-plugins-libheif`.
+
+JitPack resolves these from the repository's Maven publications. GitHub Release
+attachments are optional for humans, but they are not used by JitPack dependency
+resolution.
 
 ---
 
