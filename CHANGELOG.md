@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.6-beta.0](https://github.com/SteveOberst/Transmute/compare/v0.1.5-beta.0...v0.1.6-beta.0) (2026-05-10)
+
+
+### Bug Fixes
+
+* stabilize prerelease publish pipeline ([42a271e](https://github.com/SteveOberst/Transmute/commit/42a271e95a363338c4e69d19a4357bbf87f3bc1e))
+
 ## [0.1.5-beta.0](https://github.com/SteveOberst/Transmute/compare/v0.1.4-beta.0...v0.1.5-beta.0) (2026-05-10)
 
 
