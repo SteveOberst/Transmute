@@ -172,6 +172,13 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
+      - name: Restore GStreamer iOS SDK cache
+        id: gst-ios-cache
+        uses: actions/cache@v4
+        with:
+          path: build/gstreamer-sdk/ios/
+          key: gstreamer-ios-${{ runner.os }}-${{ hashFiles('gradle.properties', 'transmute-plugins/gstreamer/gstreamer-sdk.gradle.kts') }}
+
       # Download both platform artifacts into the same destination - they contain
       # non-overlapping platform subdirectories so they merge cleanly.
       - name: Download staged GStreamer binaries (Windows)
@@ -199,12 +206,11 @@ jobs:
           path: transmute-plugins/libheif/build/libheif-desktop/
 
       # Required for the iOS Kotlin/Native compilation of :transmute-plugins:gstreamer.
-      # Cached by the SDK gradle task; safe to run unconditionally.
+      # Cache the extracted framework across release runs so we only pay the
+      # separate Gradle invocation and SDK download when the pinned SDK changes.
       - name: Download GStreamer iOS SDK
+        if: steps.gst-ios-cache.outputs.cache-hit != 'true'
         run: ./gradlew --no-daemon :transmute-plugins:gstreamer:downloadGStreamerIos
-
-      - name: Build (tests already gated on the release PR)
-        run: ./gradlew --no-daemon build -x test -x check
 
       - name: Publish to GitHub Packages
         run: ./gradlew --no-daemon publish

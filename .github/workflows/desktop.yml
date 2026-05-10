@@ -4,7 +4,6 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - '.github/workflows/android.yml'
       - '.github/workflows/desktop.yml'
       - 'build.gradle.kts'
       - 'buildSrc/**'
@@ -21,6 +20,7 @@ on:
       - 'transmute-video/**'
       - 'transmute-structure/**'
       - 'transmute-testing/**'
+      - 'transmute-plugins/catalog/**'
       - 'transmute-plugins/gstreamer/**'
       - 'transmute-plugins/libheif/**'
 

@@ -1,6 +1,9 @@
-# transmute-filesystem:okio
+# transmute-filesystem-okio
 
 Okio-backed implementation of `TransmuteFileSystem`.
+
+Published artifact: `com.github.SteveOberst.Transmute:transmute-filesystem-okio:<version>`
+Source module: `:transmute-filesystem:okio`
 
 ## Overview
 

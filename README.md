@@ -74,11 +74,14 @@ For per-format notes and the fuller reference table, see [docs/codecs/README.md]
 
 ## Setup
 
-Transmute is published via [JitPack](https://jitpack.io/#SteveOberst/Transmute).
+Transmute is published through two Maven channels:
 
-JitPack builds the repo's Gradle `maven-publish` publications directly from tags and commits.
-It does not resolve from GitHub Release attachments, so the important part is stable Maven
-coordinates for each published module.
+- [JitPack](https://jitpack.io/#SteveOberst/Transmute) for tag and branch builds with no extra credentials
+- GitHub Packages at `https://maven.pkg.github.com/SteveOberst/Transmute` for release artifacts published from this repository
+
+Both channels expose the same Maven coordinates. GitHub Release attachments are optional download assets for humans; they are not used for Maven dependency resolution.
+
+### JitPack
 
 ```kotlin
 // settings.gradle.kts
@@ -88,6 +91,37 @@ dependencyResolutionManagement {
   }
 }
 ```
+
+### GitHub Packages
+
+GitHub Packages uses the same artifact coordinates, but Maven access is authenticated. For local use, add credentials to `~/.gradle/gradle.properties`:
+
+```properties
+gpr.user=YOUR_GITHUB_USERNAME
+gpr.key=YOUR_GITHUB_PACKAGES_TOKEN
+```
+
+Then add the GitHub Packages repository:
+
+```kotlin
+// settings.gradle.kts
+dependencyResolutionManagement {
+  repositories {
+    maven("https://maven.pkg.github.com/SteveOberst/Transmute") {
+      credentials {
+        username = providers.gradleProperty("gpr.user")
+          .orElse(providers.environmentVariable("GITHUB_USERNAME"))
+          .get()
+        password = providers.gradleProperty("gpr.key")
+          .orElse(providers.environmentVariable("GITHUB_TOKEN"))
+          .get()
+      }
+    }
+  }
+}
+```
+
+Use a token with package read access. In GitHub Actions, `GITHUB_TOKEN` is sufficient inside the same repository.
 
 ```kotlin
 // build.gradle.kts
@@ -104,7 +138,7 @@ dependencies {
 ```
 
 Most consumers should depend on `transmute-api` and then add plugins only when needed.
-If you are building against narrower internal surfaces, the published JitPack modules map to
+If you are building against narrower internal surfaces, the published modules map to
 the repo structure as path-based artifact ids:
 
 | Use case | Coordinate |
@@ -115,8 +149,8 @@ the repo structure as path-based artifact ids:
 | Video codecs / transforms only | `com.github.SteveOberst.Transmute:transmute-video:<version>` |
 | Low-level codec abstractions | `com.github.SteveOberst.Transmute:transmute-codec:<version>` |
 | Shared model facade | `com.github.SteveOberst.Transmute:transmute-model:<version>` |
-| Model submodules | `com.github.SteveOberst.Transmute:transmute-model-core:<version>`, `transmute-model-identify`, `transmute-model-metadata`, `transmute-model-structure` |
-| Filesystem abstractions | `com.github.SteveOberst.Transmute:transmute-filesystem-core:<version>`, `transmute-filesystem-okio` |
+| Model submodules | `com.github.SteveOberst.Transmute:transmute-model-core:<version>`, `com.github.SteveOberst.Transmute:transmute-model-identify:<version>`, `com.github.SteveOberst.Transmute:transmute-model-metadata:<version>`, `com.github.SteveOberst.Transmute:transmute-model-structure:<version>` |
+| Filesystem abstractions | `com.github.SteveOberst.Transmute:transmute-filesystem-core:<version>`, `com.github.SteveOberst.Transmute:transmute-filesystem-okio:<version>` |
 | Plugin catalog constants | `com.github.SteveOberst.Transmute:transmute-plugins-catalog:<version>` |
 | Optional GStreamer plugin | `com.github.SteveOberst.Transmute:transmute-plugins-gstreamer:<version>` |
 | Optional libheif plugin | `com.github.SteveOberst.Transmute:transmute-plugins-libheif:<version>` |

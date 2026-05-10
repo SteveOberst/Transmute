@@ -198,11 +198,11 @@ including IO abstractions (`TSource`, `TSink`, `TChannel`).
 ## Instance-based API with plugins
 
 All examples above use the static `Transmute.xxx` API. For plugin-based
-setups, create an instance with `Transmute { }`:
+setups, create an instance with `transmute { }`:
 
 ```kotlin
 // All features enabled by default
-val transmute = Transmute {
+val transmute = transmute {
     plugins {
     install(GStreamer)  // audio + video codecs
     install(LibHeif)    // HEIF/HEIC/AVIF image codecs on Desktop

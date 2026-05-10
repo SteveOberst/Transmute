@@ -2,6 +2,8 @@
 
 The codec abstraction layer and composable pipeline system.
 
+Published artifact: `com.github.SteveOberst.Transmute:transmute-codec:<version>`
+
 ## Overview
 
 Defines the `Decoder`, `Encoder`, and `Codec` interfaces plus the composable

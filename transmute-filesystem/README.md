@@ -2,6 +2,8 @@
 
 Cross-platform filesystem abstraction layer.
 
+Published artifact: `com.github.SteveOberst.Transmute:transmute-filesystem:<version>`
+
 ## Overview
 
 Provides a platform-agnostic filesystem interface with two submodules:
@@ -15,8 +17,8 @@ Provides a platform-agnostic filesystem interface with two submodules:
 
 ```kotlin
 // Depend on the Okio implementation
-commonMain.dependencies {
-    implementation(project(":transmute-filesystem:okio"))
+dependencies {
+    implementation("com.github.SteveOberst.Transmute:transmute-filesystem-okio:<version>")
 }
 ```
 

@@ -2,6 +2,8 @@
 
 Shared infrastructure and cross-cutting concerns for all Transmute modules.
 
+Published artifact: `com.github.SteveOberst.Transmute:transmute-common:<version>`
+
 ## Overview
 
 Provides the composition root, pipeline runtime context, logging, configuration,

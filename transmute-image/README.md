@@ -2,6 +2,8 @@
 
 Image domain module - formats, codecs, intermediate representation, and transforms.
 
+Published artifact: `com.github.SteveOberst.Transmute:transmute-image:<version>`
+
 ## Overview
 
 Defines image-specific formats, the `ImageIR` intermediate representation,

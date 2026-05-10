@@ -20,12 +20,12 @@ val jpeg = Transmute.image {
 
 ### Instance API
 
-Build a `Transmute` instance with the `Transmute { }` factory function. Each instance
+Build a `Transmute` instance with the `transmute { }` factory function. Each instance
 gets its own codec registries populated with platform defaults, then extended by plugins:
 
 ```kotlin
 // Plugins are optional - install what you need for your target formats
-val transmute = Transmute {
+val transmute = transmute {
     plugins {
         install(GStreamer)  // audio + video codecs
         install(LibHeif)    // HEIF/HEIC/AVIF image codecs on Desktop
@@ -42,7 +42,7 @@ Multiple instances can coexist with different codec configurations:
 
 ```kotlin
 val basic = Transmute()                                           // platform defaults only
-val full = Transmute { plugins { install(GStreamer); install(LibHeif) } }  // + plugins
+val full = transmute { plugins { install(GStreamer); install(LibHeif) } }  // + plugins
 ```
 
 ## Plugin System
@@ -52,7 +52,7 @@ val full = Transmute { plugins { install(GStreamer); install(LibHeif) } }  // + 
 Plugins are installed via the `plugins { }` block in the builder DSL:
 
 ```kotlin
-val transmute = Transmute {
+val transmute = transmute {
     plugins {
         install(PluginA)                   // no-config plugin
         install(PluginB) {                 // plugin with configuration
@@ -65,12 +65,14 @@ val transmute = Transmute {
 
 ### Built-in Plugins
 
-| Plugin      | Module                        | Description                                    |
+| Plugin      | Published artifact            | Description                                    |
 |-------------|-------------------------------|------------------------------------------------|
 | `GStreamer` | `transmute-plugins-gstreamer` | OGG/Opus/FLAC, MP4/MOV/WebM/AVI/MKV            |
 | `LibHeif`   | `transmute-plugins-libheif`   | HEIF/HEIC/AVIF image codecs (Desktop via libheif CLI tools) |
 
 See the [plugin catalog](../transmute-plugins/README.md) for the full list.
+
+The same artifact coordinates work on both JitPack and GitHub Packages. Only the repository configuration changes; see the root [README](../README.md) for concrete setup snippets.
 
 ### Writing a Plugin
 
@@ -229,7 +231,7 @@ After building, query diagnostics on the `Transmute` instance using the plugin's
 typed `PluginId` — no raw strings needed:
 
 ```kotlin
-val transmute = Transmute { plugins { install(GStreamer) } }
+val transmute = transmute { plugins { install(GStreamer) } }
 
 // Check a specific plugin (using its typed key)
 val gstDiag = transmute.diagnostics.plugin(GStreamer.key)
@@ -364,7 +366,7 @@ codecs for formats not covered by platform-native codecs:
 
 ```kotlin
 // All features enabled by default
-val transmute = Transmute {
+val transmute = transmute {
     plugins {
         install(GStreamer) {
             // Selectively disable features you don't need:
@@ -398,6 +400,8 @@ dependencies {
     implementation("com.github.SteveOberst.Transmute:transmute-plugins-gstreamer:<version>")
 }
 ```
+
+The same dependency lines work from GitHub Packages once `maven.pkg.github.com/SteveOberst/Transmute` is configured with credentials.
 
 ## Backward Compatibility
 

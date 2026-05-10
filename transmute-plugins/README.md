@@ -4,7 +4,7 @@ Official plugin catalog for the Transmute media processing library.
 
 ## Available Plugins
 
-| Plugin      | Module                          | Key                        | Description                                      |
+| Plugin      | Published artifact              | Key                        | Description                                      |
 |---|---|---|---|
 | `GStreamer` | `transmute-plugins-gstreamer`   | `GStreamer.key`            | OGG/Opus/FLAC, MP4/MOV/WebM/AVI/MKV             |
 | `LibHeif`   | `transmute-plugins-libheif`     | `LibHeif.key`              | HEIF/HEIC/AVIF decode/encode via libheif         |
@@ -12,8 +12,10 @@ Official plugin catalog for the Transmute media processing library.
 ## Installation
 
 Plugins live under `transmute-plugins:<name>` in the Gradle project hierarchy,
-but the published JitPack artifacts use path-based ids. Add the plugin artifact
-to your dependencies alongside `transmute-api`:
+but the published artifacts use path-based ids. The same coordinates work from
+JitPack and GitHub Packages; only the repository configuration changes.
+
+Add the plugin artifact to your dependencies alongside `transmute-api`:
 
 ```kotlin
 dependencies {
@@ -25,6 +27,8 @@ dependencies {
 
 You normally do not need `transmute-plugins-catalog` directly; the concrete plugin
 artifacts bring it in transitively.
+
+For GitHub Packages repository and credential setup, see the root [README](../README.md).
 
 Then install the plugin via the builder DSL:
 

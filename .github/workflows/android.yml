@@ -19,15 +19,48 @@ on:
       - 'transmute-image/**'
       - 'transmute-video/**'
       - 'transmute-testing/**'
+      - 'transmute-plugins/catalog/**'
       - 'transmute-plugins/gstreamer/**'
 
 concurrency:
   group: android-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  pull-requests: read
+
 jobs:
+  changes:
+    name: Detect GStreamer-impacting changes
+    runs-on: ubuntu-latest
+    outputs:
+      gstreamer: ${{ steps.filter.outputs.gstreamer }}
+    steps:
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            gstreamer:
+              - '.github/workflows/android.yml'
+              - 'build.gradle.kts'
+              - 'buildSrc/**'
+              - 'settings.gradle.kts'
+              - 'gradle.properties'
+              - 'gradle/**'
+              - 'transmute-api/**'
+              - 'transmute-codec/**'
+              - 'transmute-common/**'
+              - 'transmute-filesystem/**'
+              - 'transmute-audio/**'
+              - 'transmute-image/**'
+              - 'transmute-video/**'
+              - 'transmute-testing/**'
+              - 'transmute-plugins/catalog/**'
+              - 'transmute-plugins/gstreamer/**'
+
   integration-tests:
-    name: Integration Tests
+    name: Integration Tests (Core Media)
     # GitHub-hosted Ubuntu runner: /dev/kvm is available so the Android emulator
     # can use hardware acceleration. The self-hosted Linux runner is a managed
     # KVM guest whose hypervisor does not expose svm/vmx, so /dev/kvm is
@@ -39,20 +72,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
-      # The GStreamer Android universal SDK extracts to ~14 GB while
-      # ubuntu-latest only has ~16 GB free on /. Reclaim space by removing
-      # preinstalled toolchains we do not need before downloading the SDK.
-      - name: Free disk space
-        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
-        with:
-          tool-cache: false
-          android: false
-          dotnet: true
-          haskell: true
-          large-packages: true
-          docker-images: true
-          swap-storage: false
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -86,20 +105,6 @@ jobs:
           rm -rf "$HOME/.android/avd"
           ln -s "$ANDROID_AVD_HOME" "$HOME/.android/avd"
           df -h
-
-      - name: Download GStreamer Android SDK
-        run: >
-          ./gradlew --no-daemon
-          :transmute-plugins:gstreamer:downloadGStreamerAndroid
-          -Pkotlin.native.enabled=false
-        continue-on-error: true
-
-      - name: Set GSTREAMER_ROOT_ANDROID
-        run: |
-          GST_DIR="${{ github.workspace }}/build/gstreamer-sdk/android"
-          if [ -d "$GST_DIR" ]; then
-            echo "GSTREAMER_ROOT_ANDROID=$GST_DIR" >> $GITHUB_ENV
-          fi
 
       - name: Run Android instrumented tests
         shell: bash
@@ -336,7 +341,6 @@ jobs:
             :transmute-audio:connectedDebugAndroidTest \
             :transmute-image:connectedDebugAndroidTest \
             :transmute-video:connectedDebugAndroidTest \
-            :transmute-plugins:gstreamer:connectedDebugAndroidTest \
             -Pkotlin.native.enabled=false; then
             log 'Android connected tests failed or timed out'
             exit 1
@@ -347,6 +351,326 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: android-integration-reports-${{ github.run_id }}
+          path: |
+            **/build/reports/androidTests/**
+            **/build/reports/tests/**
+          retention-days: 7
+
+  gstreamer-integration-tests:
+    name: Integration Tests (GStreamer Android)
+    needs: changes
+    if: needs.changes.outputs.gstreamer == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    env:
+      ANDROID_AVD_HOME: ${{ github.workspace }}/.android/avd
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # The GStreamer Android universal SDK extracts to ~14 GB while
+      # ubuntu-latest only has ~16 GB free on /. Reclaim space before downloading it.
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
+        with:
+          tool-cache: false
+          android: false
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: false
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Enable KVM access
+        run: |
+          if [ -e /dev/kvm ]; then
+            echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+            sudo udevadm control --reload-rules
+            sudo udevadm trigger --name-match=kvm
+            sudo chmod 0666 /dev/kvm || true
+            ls -l /dev/kvm || true
+          else
+            echo "/dev/kvm not present; android-emulator-runner will fall back automatically."
+          fi
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.event_name == 'pull_request' }}
+
+      - name: Prepare Android workspace
+        run: |
+          mkdir -p "$ANDROID_AVD_HOME" "$HOME/.android"
+          rm -rf "$HOME/.android/avd"
+          ln -s "$ANDROID_AVD_HOME" "$HOME/.android/avd"
+          df -h
+
+      - name: Download GStreamer Android SDK
+        run: >
+          ./gradlew --no-daemon
+          :transmute-plugins:gstreamer:downloadGStreamerAndroid
+          -Pkotlin.native.enabled=false
+        continue-on-error: true
+
+      - name: Set GSTREAMER_ROOT_ANDROID
+        run: |
+          GST_DIR="${{ github.workspace }}/build/gstreamer-sdk/android"
+          if [ -d "$GST_DIR" ]; then
+            echo "GSTREAMER_ROOT_ANDROID=$GST_DIR" >> $GITHUB_ENV
+          fi
+
+      - name: Run Android GStreamer instrumented tests
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          log() {
+            printf '[%s] %s\n' "$(date +%H:%M:%S)" "$*"
+          }
+
+          resolve_android_binary() {
+            local relative_path=$1
+            local fallback_name=$2
+
+            if [ -n "${ANDROID_SDK_ROOT:-}" ] && [ -x "${ANDROID_SDK_ROOT}/${relative_path}" ]; then
+              printf '%s\n' "${ANDROID_SDK_ROOT}/${relative_path}"
+              return 0
+            fi
+
+            if [ -n "${ANDROID_HOME:-}" ] && [ -x "${ANDROID_HOME}/${relative_path}" ]; then
+              printf '%s\n' "${ANDROID_HOME}/${relative_path}"
+              return 0
+            fi
+
+            if command -v "$fallback_name" >/dev/null 2>&1; then
+              command -v "$fallback_name"
+              return 0
+            fi
+
+            return 1
+          }
+
+          ensure_emulator_alive() {
+            if ! kill -0 "$EMULATOR_PID" >/dev/null 2>&1; then
+              local status
+              set +e
+              wait "$EMULATOR_PID"
+              status=$?
+              set -e
+              log "Emulator process exited unexpectedly with status ${status}"
+              exit "$status"
+            fi
+          }
+
+          SDKMANAGER_BIN="$(resolve_android_binary 'cmdline-tools/latest/bin/sdkmanager' 'sdkmanager' || true)"
+          AVDMANAGER_BIN="$(resolve_android_binary 'cmdline-tools/latest/bin/avdmanager' 'avdmanager' || true)"
+          ADB_BIN="$(resolve_android_binary 'platform-tools/adb' 'adb' || true)"
+          EMULATOR_BIN="$(resolve_android_binary 'emulator/emulator' 'emulator' || true)"
+
+          if [ -z "$SDKMANAGER_BIN" ] || [ -z "$AVDMANAGER_BIN" ] || [ -z "$ADB_BIN" ] || [ -z "$EMULATOR_BIN" ]; then
+            log 'Required Android SDK tools are missing'
+            log "sdkmanager='${SDKMANAGER_BIN:-}' avdmanager='${AVDMANAGER_BIN:-}' adb='${ADB_BIN:-}' emulator='${EMULATOR_BIN:-}'"
+            log "ANDROID_SDK_ROOT='${ANDROID_SDK_ROOT:-}' ANDROID_HOME='${ANDROID_HOME:-}'"
+            exit 1
+          fi
+
+          log "Using sdkmanager at $SDKMANAGER_BIN"
+          log "Using avdmanager at $AVDMANAGER_BIN"
+          log "Using adb at $ADB_BIN"
+          log "Using emulator at $EMULATOR_BIN"
+
+          log 'Accepting Android SDK licenses'
+          set +e
+          timeout --foreground 300 bash -c 'set +o pipefail; yes | "$1" --licenses > /dev/null' _ "$SDKMANAGER_BIN"
+          license_status=$?
+          set -e
+          if [ "$license_status" -ne 0 ]; then
+            log "Android SDK license acceptance failed with status ${license_status}"
+            exit "$license_status"
+          fi
+
+          SYSTEM_IMAGE_PACKAGE='system-images;android-31;default;x86_64'
+          PLATFORM_PACKAGE='platforms;android-31'
+          EMULATOR_ACCELERATION='hardware'
+
+          if [ ! -r /dev/kvm ] || [ ! -w /dev/kvm ]; then
+            SYSTEM_IMAGE_PACKAGE='system-images;android-30;aosp_atd;x86'
+            PLATFORM_PACKAGE='platforms;android-30'
+            EMULATOR_ACCELERATION='software'
+            log 'KVM is not accessible before SDK install; using Android 30 ATD x86 software-emulation fallback'
+            ls -l /dev/kvm || true
+          else
+            log 'KVM accessible before SDK install; using Android 31 x86_64 system image'
+          fi
+
+          log "Installing Android SDK packages for $SYSTEM_IMAGE_PACKAGE"
+          set +e
+          timeout --foreground 1200 "$SDKMANAGER_BIN" --install 'build-tools;36.0.0' platform-tools "$PLATFORM_PACKAGE" "$SYSTEM_IMAGE_PACKAGE" emulator 2>&1 | sed -u 's/^/[sdkmanager] /'
+          sdk_install_status=$?
+          set -e
+          if [ "$sdk_install_status" -ne 0 ]; then
+            log "Android SDK package installation failed with status ${sdk_install_status}"
+            exit "$sdk_install_status"
+          fi
+
+          AVD_NAME=test
+          AVD_DIR="$HOME/.android/avd/${AVD_NAME}.avd"
+          EMULATOR_LOG="$RUNNER_TEMP/android-emulator.log"
+
+          dump_emulator_log() {
+            if [ -f "$EMULATOR_LOG" ]; then
+              echo '::group::Android emulator log tail'
+              tail -n 200 "$EMULATOR_LOG" || true
+              echo '::endgroup::'
+            fi
+          }
+
+          dump_device_state() {
+            echo '::group::Android device state'
+            "$ADB_BIN" devices -l || true
+            "$ADB_BIN" -s emulator-5554 shell getprop sys.boot_completed || true
+            "$ADB_BIN" -s emulator-5554 shell service check package || true
+            "$ADB_BIN" -s emulator-5554 shell getprop init.svc.bootanim || true
+            echo '::endgroup::'
+          }
+
+          rm -rf "$AVD_DIR"
+          log "Creating Android test AVD from $SYSTEM_IMAGE_PACKAGE"
+          set +e
+          timeout --foreground 300 bash -c 'echo no | "$1" create avd --force -n "$2" --package "$3"' _ "$AVDMANAGER_BIN" "$AVD_NAME" "$SYSTEM_IMAGE_PACKAGE"
+          avd_status=$?
+          set -e
+          if [ "$avd_status" -ne 0 ]; then
+            log "Android AVD creation failed with status ${avd_status}"
+            exit "$avd_status"
+          fi
+          printf 'hw.cpu.ncore=4\ndisk.dataPartition.size=4096M\nhw.ramSize=3072\n' >> "$AVD_DIR/config.ini"
+
+          cleanup() {
+            local status=$?
+            if [ "${status}" -ne 0 ]; then
+              log "Android instrumented test step failed with status ${status}"
+              dump_device_state
+              dump_emulator_log
+            fi
+            if [ -n "${EMULATOR_TAIL_PID:-}" ]; then
+              kill "$EMULATOR_TAIL_PID" >/dev/null 2>&1 || true
+              wait "$EMULATOR_TAIL_PID" >/dev/null 2>&1 || true
+            fi
+            "$ADB_BIN" -s emulator-5554 emu kill >/dev/null 2>&1 || true
+            if [ -n "${EMULATOR_PID:-}" ]; then
+              wait "$EMULATOR_PID" >/dev/null 2>&1 || true
+            fi
+            return "$status"
+          }
+          trap cleanup EXIT
+
+          EMULATOR_ARGS=(
+            -port 5554
+            -avd "$AVD_NAME"
+            -no-snapshot-save
+            -no-window
+            -gpu swiftshader_indirect
+            -noaudio
+            -no-boot-anim
+          )
+
+          if [ "$EMULATOR_ACCELERATION" = 'software' ]; then
+            log 'KVM is still not accessible after setup; using Android 30 ATD x86 emulator with software acceleration'
+            EMULATOR_ARGS+=( -accel off )
+          else
+            log 'KVM accessible; using hardware acceleration'
+          fi
+
+          : > "$EMULATOR_LOG"
+          log "Launching emulator via $EMULATOR_BIN"
+          "$EMULATOR_BIN" "${EMULATOR_ARGS[@]}" > "$EMULATOR_LOG" 2>&1 &
+          EMULATOR_PID=$!
+          tail -n +1 -F "$EMULATOR_LOG" 2>/dev/null | sed -u 's/^/[emulator] /' &
+          EMULATOR_TAIL_PID=$!
+
+          sleep 2
+          ensure_emulator_alive
+
+          log 'Waiting for adb device'
+          if ! timeout --foreground 300 "$ADB_BIN" wait-for-device; then
+            ensure_emulator_alive
+            log 'Timed out waiting for adb device'
+            exit 1
+          fi
+          "$ADB_BIN" devices -l || true
+
+          if [ "$EMULATOR_ACCELERATION" = 'software' ]; then
+            boot_deadline=$((SECONDS + 1800))
+          else
+            boot_deadline=$((SECONDS + 600))
+          fi
+
+          until boot_completed="$($ADB_BIN -s emulator-5554 shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" && [ "$boot_completed" = '1' ]; do
+            ensure_emulator_alive
+            if [ "$SECONDS" -ge "$boot_deadline" ]; then
+              log 'Timed out waiting for sys.boot_completed'
+              exit 1
+            fi
+            log "Waiting for sys.boot_completed... current='${boot_completed:-}'"
+            sleep 5
+          done
+          log 'sys.boot_completed=1'
+
+          "$ADB_BIN" -s emulator-5554 shell input keyevent 82 >/dev/null 2>&1 || true
+
+          package_service_deadline=$((SECONDS + 300))
+
+          until package_service="$($ADB_BIN -s emulator-5554 shell service check package 2>/dev/null | tr -d '\r')" && echo "$package_service" | grep -q 'Service package: found'; do
+            ensure_emulator_alive
+            if [ "$SECONDS" -ge "$package_service_deadline" ]; then
+              log 'Timed out waiting for package manager service'
+              exit 1
+            fi
+            log "Waiting for package manager service... current='${package_service:-}'"
+            sleep 5
+          done
+          log 'Package manager service is available'
+
+          package_command_deadline=$((SECONDS + 300))
+
+          until "$ADB_BIN" -s emulator-5554 shell cmd package path android >/dev/null 2>&1; do
+            ensure_emulator_alive
+            if [ "$SECONDS" -ge "$package_command_deadline" ]; then
+              log 'Timed out waiting for package manager commands'
+              exit 1
+            fi
+            log 'Waiting for package manager commands...'
+            sleep 5
+          done
+          log 'Package manager commands are available'
+
+          "$ADB_BIN" -s emulator-5554 shell settings put global window_animation_scale 0.0 >/dev/null 2>&1 || true
+          "$ADB_BIN" -s emulator-5554 shell settings put global transition_animation_scale 0.0 >/dev/null 2>&1 || true
+          "$ADB_BIN" -s emulator-5554 shell settings put global animator_duration_scale 0.0 >/dev/null 2>&1 || true
+
+          log 'Running Android GStreamer connected tests'
+          if ! timeout --foreground 3600 ./gradlew --no-daemon \
+            :transmute-plugins:gstreamer:connectedDebugAndroidTest \
+            -Pkotlin.native.enabled=false; then
+            log 'Android GStreamer connected tests failed or timed out'
+            exit 1
+          fi
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-gstreamer-integration-reports-${{ github.run_id }}
           path: |
             **/build/reports/androidTests/**
             **/build/reports/tests/**

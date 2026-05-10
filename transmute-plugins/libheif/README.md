@@ -1,6 +1,9 @@
-# transmute-plugins:libheif
+# transmute-plugins-libheif
 
 Desktop HEIF/HEIC/AVIF codec plugin for Transmute, backed by the [libheif](https://github.com/strukturag/libheif) CLI tools.
+
+Published artifact: `com.github.SteveOberst.Transmute:transmute-plugins-libheif:<version>`
+Source module: `:transmute-plugins:libheif`
 
 ## Overview
 
@@ -44,8 +47,17 @@ Reference: https://www.videolan.org/developers/x265.html
 
 ## Installation
 
+Add the plugin dependency, then install it through the Transmute builder:
+
 ```kotlin
-val transmute = Transmute {
+dependencies {
+    implementation("com.github.SteveOberst.Transmute:transmute-api:<version>")
+    implementation("com.github.SteveOberst.Transmute:transmute-plugins-libheif:<version>")
+}
+```
+
+```kotlin
+val transmute = transmute {
     plugins {
         install(LibHeif)
     }

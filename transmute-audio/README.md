@@ -2,6 +2,8 @@
 
 Audio domain module - formats, codecs, intermediate representation, and transforms.
 
+Published artifact: `com.github.SteveOberst.Transmute:transmute-audio:<version>`
+
 ## Overview
 
 Defines audio-specific formats, the `AudioIR` intermediate representation,
