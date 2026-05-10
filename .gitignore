@@ -6,6 +6,7 @@ build/
 # Kotlin build metadata
 .kotlin/
 **/.kotlin/
+/kotlin-js-store/
 
 # IDE
 .idea/
