@@ -13,12 +13,14 @@ internal actual object GStreamerIosBridge {
   actual val available: Boolean by lazy { tryInit() }
 
   @OptIn(ExperimentalForeignApi::class)
-  private fun tryInit(): Boolean = try {
-    val handle = dlopen(null, RTLD_LAZY) ?: return false
-    dlsym(handle, "gst_init_check") ?: return false
-    gst.gst_init_check(null, null, null) != 0
-  } catch (_: Throwable) {
-    false
+  private fun tryInit(): Boolean {
+    return try {
+      val handle = dlopen(null, RTLD_LAZY) ?: return false
+      dlsym(handle, "gst_init_check") ?: return false
+      gst.gst_init_check(null, null, null) != 0
+    } catch (_: Throwable) {
+      false
+    }
   }
 
   @OptIn(ExperimentalForeignApi::class)
