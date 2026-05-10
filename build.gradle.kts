@@ -14,6 +14,25 @@ version = ProjectVersion.resolve(rootDir) // x-release-please-version
 fun Project.publishedArtifactBaseId(): String =
     path.removePrefix(":").replace(':', '-')
 
+fun MavenPublication.normalizedArtifactId(baseArtifactId: String, projectName: String): String = when (name) {
+    "kotlinMultiplatform" -> baseArtifactId
+    "androidRelease" -> "$baseArtifactId-android"
+    "desktop" -> "$baseArtifactId-desktop"
+    "iosArm64" -> "$baseArtifactId-iosarm64"
+    "iosSimulatorArm64" -> "$baseArtifactId-iossimulatorarm64"
+    "iosX64" -> "$baseArtifactId-iosx64"
+    else -> {
+        val currentArtifactId = artifactId
+        when {
+            currentArtifactId == projectName -> baseArtifactId
+            currentArtifactId.startsWith("$projectName-") -> {
+                baseArtifactId + currentArtifactId.removePrefix(projectName)
+            }
+            else -> currentArtifactId
+        }
+    }
+}
+
 subprojects {
     group = rootProject.group
     version = rootProject.version
@@ -26,24 +45,20 @@ subprojects {
         // (We intentionally don't hardcode more style knobs here.)
     }
 
-    // Wire GitHub Packages as the publish target for all modules that apply maven-publish.
-    // Credentials come from GITHUB_USERNAME / GITHUB_TOKEN environment variables.
-    // For local development set these in your shell or in ~/.gradle/gradle.properties as
-    // gpr.user / gpr.key, then reference them below.
-    afterEvaluate {
-        extensions.findByType<PublishingExtension>()?.apply {
+}
+
+// Wire GitHub Packages as the publish target for all modules that apply maven-publish.
+// Credentials come from GITHUB_USERNAME / GITHUB_TOKEN environment variables.
+// For local development set these in your shell or in ~/.gradle/gradle.properties as
+// gpr.user / gpr.key, then reference them below.
+gradle.projectsEvaluated {
+    subprojects.forEach { subproject ->
+        subproject.extensions.findByType(PublishingExtension::class.java)?.apply {
             publications.withType(MavenPublication::class.java).configureEach {
-                val baseArtifactId = project.publishedArtifactBaseId()
-                val currentArtifactId = artifactId
+                val baseArtifactId = subproject.publishedArtifactBaseId()
 
                 groupId = rootProject.group.toString()
-                artifactId = when {
-                    currentArtifactId == project.name -> baseArtifactId
-                    currentArtifactId.startsWith("${project.name}-") -> {
-                        baseArtifactId + currentArtifactId.removePrefix(project.name)
-                    }
-                    else -> currentArtifactId
-                }
+                artifactId = normalizedArtifactId(baseArtifactId, subproject.name)
             }
 
             repositories {
@@ -52,9 +67,9 @@ subprojects {
                     url = uri("https://maven.pkg.github.com/SteveOberst/Transmute")
                     credentials {
                         username = System.getenv("GITHUB_USERNAME")
-                            ?: (project.findProperty("gpr.user") as? String)
+                            ?: (subproject.findProperty("gpr.user") as? String)
                         password = System.getenv("GITHUB_TOKEN")
-                            ?: (project.findProperty("gpr.key") as? String)
+                            ?: (subproject.findProperty("gpr.key") as? String)
                     }
                 }
             }
