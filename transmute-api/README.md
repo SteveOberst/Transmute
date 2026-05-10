@@ -2,6 +2,8 @@
 
 The public API facade - the primary entry point for using the Transmute library.
 
+Published artifact: `com.github.SteveOberst.Transmute:transmute-api:<version>`
+
 ## Overview
 
 `transmute-api` provides the `Transmute` class, which serves as the central hub

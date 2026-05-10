@@ -1,6 +1,9 @@
-# transmute-filesystem:core
+# transmute-filesystem-core
 
 Pure interface module for the cross-platform filesystem abstraction.
+
+Published artifact: `com.github.SteveOberst.Transmute:transmute-filesystem-core:<version>`
+Source module: `:transmute-filesystem:core`
 
 ## Overview
 

@@ -2,6 +2,8 @@
 
 Concrete `StructureReader` implementations for all supported media formats.
 
+Published artifact: `com.github.SteveOberst.Transmute:transmute-structure:<version>`
+
 ## Overview
 
 Parses raw file bytes into the typed `MediaStructure` models defined in

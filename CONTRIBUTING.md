@@ -51,7 +51,7 @@ cd Transmute
 
 ### GStreamer (Bundled by Default)
 
-The `transmute-plugins:gstreamer` module ships a bundled
+The source module `:transmute-plugins:gstreamer` ships a bundled
 [GStreamer](https://gstreamer.freedesktop.org/) runtime that is extracted
 automatically on first use. Without GStreamer, Desktop supports WAV, MP3,
 FLAC decode, OGG decode, BMP, PNG, JPEG, WebP, GIF, and TIFF natively.
@@ -76,7 +76,7 @@ val slim = transmute {
 }
 ```
 
-For HEIF/HEIC/AVIF image codecs on Desktop, use the `transmute-plugins:libheif` plugin.
+For HEIF/HEIC/AVIF image codecs on Desktop, use the source module `:transmute-plugins:libheif`.
 
 To use a custom (pre-existing) GStreamer installation instead of the bundled one:
 
@@ -231,6 +231,18 @@ Examples: `transmute-model-core`, `transmute-filesystem-core`,
 JitPack resolves these from the repository's Maven publications. GitHub Release
 attachments are optional for humans, but they are not used by JitPack dependency
 resolution.
+
+### GitHub Packages
+
+The same artifacts are also published to GitHub Packages from the release workflow.
+Consumers use the same coordinates as JitPack, but the Maven repository is:
+
+```kotlin
+maven("https://maven.pkg.github.com/SteveOberst/Transmute")
+```
+
+GitHub Packages access is authenticated. For local development, set `gpr.user` / `gpr.key`
+in `~/.gradle/gradle.properties` or `GITHUB_USERNAME` / `GITHUB_TOKEN` in the shell.
 
 ---
 

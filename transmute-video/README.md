@@ -2,6 +2,8 @@
 
 Video domain module - formats, codecs, intermediate representation, and transforms.
 
+Published artifact: `com.github.SteveOberst.Transmute:transmute-video:<version>`
+
 ## Overview
 
 Defines video container formats, the `VideoIR` intermediate representation,

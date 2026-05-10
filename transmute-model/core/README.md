@@ -1,6 +1,9 @@
-# transmute-model:core
+# transmute-model-core
 
 Foundation types for the entire Transmute library.
+
+Published artifact: `com.github.SteveOberst.Transmute:transmute-model-core:<version>`
+Source module: `:transmute-model:core`
 
 ## Overview
 

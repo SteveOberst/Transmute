@@ -19,13 +19,46 @@ on:
       - 'transmute-image/**'
       - 'transmute-video/**'
       - 'transmute-testing/**'
+      - 'transmute-plugins/catalog/**'
       - 'transmute-plugins/gstreamer/**'
 
 concurrency:
   group: ios-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  pull-requests: read
+
 jobs:
+  changes:
+    name: Detect GStreamer-impacting changes
+    runs-on: ubuntu-latest
+    outputs:
+      gstreamer: ${{ steps.filter.outputs.gstreamer }}
+    steps:
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            gstreamer:
+              - '.github/workflows/ios.yml'
+              - 'build.gradle.kts'
+              - 'buildSrc/**'
+              - 'settings.gradle.kts'
+              - 'gradle.properties'
+              - 'gradle/**'
+              - 'transmute-api/**'
+              - 'transmute-codec/**'
+              - 'transmute-common/**'
+              - 'transmute-filesystem/**'
+              - 'transmute-audio/**'
+              - 'transmute-image/**'
+              - 'transmute-video/**'
+              - 'transmute-testing/**'
+              - 'transmute-plugins/catalog/**'
+              - 'transmute-plugins/gstreamer/**'
+
   integration-tests:
     name: Integration Tests (Simulator)
     runs-on: macos-15
@@ -42,12 +75,6 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
-
-      - name: Download GStreamer iOS SDK
-        run: >
-          ./gradlew --no-daemon
-          :transmute-plugins:gstreamer:downloadGStreamerIos
-        continue-on-error: true
 
       - name: Run iOS simulator tests
         run: >
@@ -66,6 +93,8 @@ jobs:
 
   gstreamer-integration-tests:
     name: Integration Tests (GStreamer Simulator)
+    needs: changes
+    if: needs.changes.outputs.gstreamer == 'true'
     # GStreamer iOS framework only ships an x86_64 simulator slice, so this
     # job has to run on an Intel macOS runner.
     runs-on: macos-15-intel
@@ -85,7 +114,15 @@ jobs:
         with:
           cache-read-only: ${{ github.event_name == 'pull_request' }}
 
+      - name: Restore GStreamer iOS SDK cache
+        id: gst-ios-cache
+        uses: actions/cache@v4
+        with:
+          path: build/gstreamer-sdk/ios/
+          key: gstreamer-ios-${{ runner.os }}-${{ hashFiles('gradle.properties', 'transmute-plugins/gstreamer/gstreamer-sdk.gradle.kts') }}
+
       - name: Download GStreamer iOS SDK
+        if: steps.gst-ios-cache.outputs.cache-hit != 'true'
         run: >
           ./gradlew --no-daemon
           :transmute-plugins:gstreamer:downloadGStreamerIos

@@ -1,6 +1,9 @@
-# transmute-gstreamer
+# transmute-plugins-gstreamer
 
 Optional GStreamer integration plugin for Transmute.
+
+Published artifact: `com.github.SteveOberst.Transmute:transmute-plugins-gstreamer:<version>`
+Source module: `:transmute-plugins:gstreamer`
 
 ## Overview
 
@@ -17,9 +20,18 @@ iOS.
 
 ## Installation
 
+Add the plugin dependency, then install it through the Transmute builder:
+
+```kotlin
+dependencies {
+    implementation("com.github.SteveOberst.Transmute:transmute-api:<version>")
+    implementation("com.github.SteveOberst.Transmute:transmute-plugins-gstreamer:<version>")
+}
+```
+
 ```kotlin
 // All features (audio, video) are enabled by default
-val transmute = Transmute {
+val transmute = transmute {
     plugins {
         install(GStreamer)
     }
@@ -66,7 +78,7 @@ if (GStreamerCodecInstaller.available) {
 Query plugin health using the typed key:
 
 ```kotlin
-val transmute = Transmute { plugins { install(GStreamer) } }
+val transmute = transmute { plugins { install(GStreamer) } }
 val diag = transmute.diagnostics.plugin(GStreamer.key)
 println(diag?.current?.available)  // true
 ```

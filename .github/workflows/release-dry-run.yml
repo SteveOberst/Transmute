@@ -61,6 +61,7 @@ jobs:
         with:
           name: gstreamer-desktop-${{ runner.os }}
           path: transmute-plugins/gstreamer/build/gstreamer-desktop/
+          include-hidden-files: true
           if-no-files-found: error
           retention-days: 1
 
@@ -121,6 +122,7 @@ jobs:
         with:
           name: libheif-desktop-${{ runner.os }}
           path: transmute-plugins/libheif/build/libheif-desktop/
+          include-hidden-files: true
           if-no-files-found: error
           retention-days: 1
 
@@ -144,6 +146,13 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
+
+      - name: Restore GStreamer iOS SDK cache
+        id: gst-ios-cache
+        uses: actions/cache@v4
+        with:
+          path: build/gstreamer-sdk/ios/
+          key: gstreamer-ios-${{ runner.os }}-${{ hashFiles('gradle.properties', 'transmute-plugins/gstreamer/gstreamer-sdk.gradle.kts') }}
 
       - name: Download staged GStreamer binaries (Windows)
         uses: actions/download-artifact@v4
@@ -170,18 +179,19 @@ jobs:
           path: transmute-plugins/libheif/build/libheif-desktop/
 
       - name: Download GStreamer iOS SDK
+        if: steps.gst-ios-cache.outputs.cache-hit != 'true'
         run: ./gradlew --no-daemon :transmute-plugins:gstreamer:downloadGStreamerIos
 
       - name: Clear previous local Transmute publications
-        run: rm -rf ~/.m2/repository/dev/transmute
+        run: rm -rf ~/.m2/repository/com/github/SteveOberst/Transmute
 
       - name: Publish to Maven Local
-        run: ./gradlew --no-daemon build -x test -x check publishToMavenLocal
+        run: ./gradlew --no-daemon publishToMavenLocal
 
       - name: Upload local Maven repository snapshot
         uses: actions/upload-artifact@v4
         with:
           name: maven-local-dev-transmute
-          path: ~/.m2/repository/dev/transmute/
+          path: ~/.m2/repository/com/github/SteveOberst/Transmute/
           if-no-files-found: error
           retention-days: 7

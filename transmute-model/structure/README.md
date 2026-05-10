@@ -1,6 +1,9 @@
-# transmute-model:structure
+# transmute-model-structure
 
 Typed data models for every supported media format's binary layout.
+
+Published artifact: `com.github.SteveOberst.Transmute:transmute-model-structure:<version>`
+Source module: `:transmute-model:structure`
 
 ## Overview
 

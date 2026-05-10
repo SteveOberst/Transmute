@@ -1,6 +1,9 @@
-# transmute-model:metadata
+# transmute-model-metadata
 
 Structured metadata types for media file tags.
+
+Published artifact: `com.github.SteveOberst.Transmute:transmute-model-metadata:<version>`
+Source module: `:transmute-model:metadata`
 
 ## Overview
 

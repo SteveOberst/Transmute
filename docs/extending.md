@@ -17,7 +17,7 @@ object MyImagePlugin : SimpleTransmutePlugin() {
 }
 
 // Install it:
-val transmute = Transmute {
+val transmute = transmute {
     plugins { install(MyImagePlugin) }
 }
 ```
@@ -38,7 +38,7 @@ class MyPlugin : TransmutePlugin<MyPluginConfig> {
 }
 
 // Install with configuration:
-val transmute = Transmute {
+val transmute = transmute {
     plugins {
         install(MyPlugin()) {
             quality = 0.95f
